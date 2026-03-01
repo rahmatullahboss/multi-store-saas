@@ -835,173 +835,205 @@ function BannerTab({
   );
 
   return (
-    <bannerFetcher.Form method="post" className="space-y-8">
+    <bannerFetcher.Form method="post" className="space-y-6">
       <input type="hidden" name="intent" value="banner" />
 
-      {/* Success message */}
+      {/* Alerts */}
       {bannerFetcher.data?.success && (
-        <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-lg flex items-center gap-2">
-          <CheckCircle className="w-5 h-5" /> ব্যানার সেভ হয়েছে! স্টোর রিফ্রেশ করুন।
+        <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-xl flex items-center gap-2 text-sm font-medium">
+          <CheckCircle className="w-4 h-4 flex-shrink-0" /> ব্যানার সেভ হয়েছে! স্টোর রিফ্রেশ করুন।
         </div>
       )}
       {bannerFetcher.data?.error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center gap-2">
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl flex items-center gap-2 text-sm">
           ⚠️ {bannerFetcher.data.error}
         </div>
       )}
 
-      {/* Hero Banner */}
-      <section className="bg-white rounded-xl border border-gray-200 p-6">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 bg-pink-100 rounded-lg flex items-center justify-center">
-            <ImageIcon className="w-5 h-5 text-pink-600" />
+      {/* ── Hero Banner Section ── */}
+      <section className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        {/* Card Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 bg-rose-50 rounded-xl flex items-center justify-center">
+              <ImageIcon className="w-4 h-4 text-rose-500" />
+            </div>
+            <div>
+              <h2 className="text-sm font-semibold text-gray-900">হিরো ব্যানার</h2>
+              <p className="text-xs text-gray-400">স্টোরের মেইন ব্যানার ইমেজ ও স্লাইডার</p>
+            </div>
           </div>
-          <h2 className="text-lg font-semibold">হিরো ব্যানার</h2>
-        </div>
-
-        {/* Mode Toggle */}
-        <div className="flex gap-2 mb-4">
-          {(['single', 'carousel'] as const).map((m) => (
-            <button
-              key={m}
-              type="button"
-              onClick={() => setMode(m)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition ${mode === m ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
-            >
-              {m === 'single' ? 'Single Image' : `Carousel (${slides.length}/6)`}
-            </button>
-          ))}
+          {/* Mode toggle pills */}
+          <div className="flex items-center gap-1 bg-gray-100 rounded-xl p-1">
+            {(['single', 'carousel'] as const).map((m) => (
+              <button
+                key={m}
+                type="button"
+                onClick={() => setMode(m)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                  mode === m
+                    ? 'bg-white text-indigo-600 shadow-sm font-semibold'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                {m === 'single' ? 'Single' : `Carousel (${slides.length}/6)`}
+              </button>
+            ))}
+          </div>
         </div>
         <input type="hidden" name="bannerMode" value={mode} />
 
-        {/* Overlay Opacity */}
-        <div className="mb-6">
-          <div className="flex justify-between text-sm mb-1">
-            <span>Hero Overlay Opacity</span>
-            <span className="text-purple-600 font-medium">{opacity}%</span>
+        <div className="p-6 space-y-5">
+          {/* Opacity slider */}
+          <div className="bg-gray-50 rounded-xl p-4">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-sm font-medium text-gray-700">ওভারলে অপ্যাসিটি</span>
+              <span className="text-sm font-bold text-indigo-600 bg-indigo-50 px-2.5 py-0.5 rounded-lg">{opacity}%</span>
+            </div>
+            <div className="relative">
+              <div className="w-full h-2 rounded-full bg-gradient-to-r from-gray-200 to-gray-800 mb-1" />
+              <input
+                type="range"
+                name="overlayOpacity"
+                min="0"
+                max="100"
+                value={opacity}
+                onChange={(e) => setOpacity(parseInt(e.target.value))}
+                className="w-full accent-indigo-600 -mt-1"
+              />
+            </div>
+            <p className="text-xs text-gray-400 mt-1">
+              ০% = স্বচ্ছ, ১০০% = সম্পূর্ণ কালো — ব্যানারের উপর টেক্সট পড়তে সুবিধার জন্য সেট করুন।
+            </p>
           </div>
-          <input
-            type="range"
-            name="overlayOpacity"
-            min="0"
-            max="100"
-            value={opacity}
-            onChange={(e) => setOpacity(parseInt(e.target.value))}
-            className="w-full accent-purple-600"
-          />
-          <p className="text-xs text-gray-500 mt-1">
-            Adjust the darkness of the overlay on your banner images. 0% is fully transparent, 100%
-            is fully black.
-          </p>
-        </div>
 
-        {/* Slides */}
-        {slides.map((slide, idx) => (
-          <BannerSlide
-            key={idx}
-            idx={idx}
-            slide={slide}
-            totalSlides={slides.length}
-            onUpdate={updateSlide}
-            onRemove={removeSlide}
-            onMove={moveSlide}
-            onUploadStateChange={onSlideUploadStateChange}
-            onPersistSlideImage={handlePersistSlideImage}
-          />
-        ))}
+          {/* Slides */}
+          <div className="space-y-4">
+            {slides.map((slide, idx) => (
+              <BannerSlide
+                key={idx}
+                idx={idx}
+                slide={slide}
+                totalSlides={slides.length}
+                onUpdate={updateSlide}
+                onRemove={removeSlide}
+                onMove={moveSlide}
+                onUploadStateChange={onSlideUploadStateChange}
+                onPersistSlideImage={handlePersistSlideImage}
+              />
+            ))}
+          </div>
 
-        {slides.length < 6 && (
-          <button
-            type="button"
-            onClick={addSlide}
-            className="text-sm text-purple-600 hover:text-purple-700 flex items-center gap-1"
-          >
-            <Plus className="w-4 h-4" /> Add Slide
-          </button>
-        )}
-        <p className="text-xs text-gray-500 mt-2">
-          Use up to 6 slides. First slide is used as fallback banner.
-        </p>
+          {slides.length < 6 && (
+            <button
+              type="button"
+              onClick={addSlide}
+              className="flex items-center gap-2 text-sm text-indigo-600 hover:text-indigo-700 font-medium px-4 py-2 border-2 border-dashed border-indigo-200 rounded-xl w-full justify-center hover:bg-indigo-50 transition"
+            >
+              <Plus className="w-4 h-4" /> স্লাইড যোগ করুন
+            </button>
+          )}
 
-        {/* Fallback Headline */}
-        <div className="mt-4">
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            ব্যানার হেডলাইন (fallback)
-          </label>
-          <input
-            type="text"
-            name="fallbackHeadline"
-            value={headline}
-            onChange={(e) => setHeadline(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-          />
+          {/* Fallback Headline */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              ফলব্যাক হেডলাইন
+              <span className="ml-2 text-xs text-gray-400 font-normal">(ইমেজ না থাকলে দেখাবে)</span>
+            </label>
+            <input
+              type="text"
+              name="fallbackHeadline"
+              value={headline}
+              onChange={(e) => setHeadline(e.target.value)}
+              placeholder="আমাদের সেরা কালেকশন দেখুন"
+              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+            />
+          </div>
         </div>
       </section>
 
-      {/* Announcement Bar */}
-      <section className="bg-white rounded-xl border border-gray-200 p-6">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
-            📢
+      {/* ── Announcement Bar Section ── */}
+      <section className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 bg-amber-50 rounded-xl flex items-center justify-center text-base">
+              📢
+            </div>
+            <div>
+              <h2 className="text-sm font-semibold text-gray-900">আনাউন্সমেন্ট বার</h2>
+              <p className="text-xs text-gray-400">স্টোরের একদম উপরে দেখাবে</p>
+            </div>
           </div>
-          <div>
-            <h2 className="text-lg font-semibold">আনাউন্সমেন্ট বার</h2>
-            <p className="text-sm text-gray-500">আপনার স্টোরের একদম উপরে দেখাবে।</p>
-          </div>
+          <label className="flex items-center gap-2 cursor-pointer">
+            <span className="text-xs font-medium text-gray-500">{annEnabled ? 'চালু' : 'বন্ধ'}</span>
+            <button
+              type="button"
+              onClick={() => setAnnEnabled((v) => !v)}
+              className={`relative w-10 h-5.5 rounded-full transition-colors ${annEnabled ? 'bg-indigo-600' : 'bg-gray-200'}`}
+              style={{ height: '22px', width: '40px' }}
+            >
+              <span
+                className="absolute top-0.5 left-0.5 w-[18px] h-[18px] bg-white rounded-full shadow transition-transform"
+                style={{ transform: annEnabled ? 'translateX(18px)' : 'translateX(0)' }}
+              />
+            </button>
+          </label>
         </div>
-        <div className="space-y-3">
+        <input type="hidden" name="announcementEnabled" value={annEnabled ? 'on' : 'off'} />
+
+        {/* Live preview */}
+        {annEnabled && annText && (
+          <div className="mx-6 mt-4 rounded-xl overflow-hidden border border-amber-200">
+            <div className="bg-amber-400 text-amber-900 text-xs font-medium text-center py-2 px-4">
+              {annText}
+              {annLink && <span className="ml-2 underline opacity-70">আরও দেখুন →</span>}
+            </div>
+            <div className="bg-amber-50 text-center text-xs text-amber-600 py-1 px-2">↑ স্টোরে এভাবে দেখাবে</div>
+          </div>
+        )}
+
+        <div className="p-6 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              আনাউন্সমেন্ট টেক্সট
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">আনাউন্সমেন্ট টেক্সট</label>
             <input
               type="text"
               name="announcementText"
               value={annText}
               onChange={(e) => setAnnText(e.target.value)}
               placeholder="🎉 ১০০০ টাকার বেশি অর্ডারে ফ্রি শিপিং!"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">লিংক (ঐচ্ছিক)</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">লিংক <span className="text-gray-400 font-normal">(ঐচ্ছিক)</span></label>
             <input
               type="text"
               name="announcementLink"
               value={annLink}
               onChange={(e) => setAnnLink(e.target.value)}
               placeholder="https://yourstore.com/sale"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
             />
-          </div>
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              name="announcementEnabled"
-              id="announcementEnabled"
-              checked={annEnabled}
-              onChange={(e) => setAnnEnabled(e.target.checked)}
-              className="h-4 w-4 text-purple-600 rounded"
-            />
-            <label htmlFor="announcementEnabled" className="text-sm text-gray-700">
-              আনাউন্সমেন্ট বার দেখান
-            </label>
           </div>
         </div>
       </section>
 
-      <div className="flex justify-center">
+      {/* Save Button */}
+      <div className="flex items-center justify-end gap-3 pt-2">
+        {(isSaving || isAnySlideUploading) && (
+          <span className="text-xs text-gray-400">সেভ হচ্ছে...</span>
+        )}
         <button
           type="submit"
           disabled={isSaving || isAnySlideUploading}
-          className="px-8 py-3 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition disabled:opacity-50 flex items-center gap-2"
+          className="inline-flex items-center gap-2 px-6 py-2.5 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 transition disabled:opacity-50 shadow-sm text-sm"
         >
           {isSaving || isAnySlideUploading ? (
             <Loader2 className="w-4 h-4 animate-spin" />
           ) : (
             <ImageIcon className="w-4 h-4" />
           )}
-          {isAnySlideUploading ? 'ইমেজ আপলোড হচ্ছে...' : '🖼 ব্যানার সেভ করুন'}
+          {isAnySlideUploading ? 'আপলোড হচ্ছে...' : 'ব্যানার সেভ করুন'}
         </button>
       </div>
     </bannerFetcher.Form>
@@ -1112,117 +1144,120 @@ function BannerSlide({
   };
 
   return (
-    <div className="border border-gray-200 rounded-lg p-4 mb-4">
-      <div className="flex justify-between items-center mb-3">
-        <span className="text-sm font-medium">Slide {idx + 1}</span>
+    <div className="border border-gray-200 rounded-2xl overflow-hidden bg-gray-50">
+      {/* Slide header bar */}
+      <div className="flex items-center justify-between px-4 py-2.5 bg-white border-b border-gray-100">
+        <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">স্লাইড {idx + 1}</span>
         <div className="flex gap-1">
           {idx > 0 && (
-            <button
-              type="button"
-              onClick={() => onMove(idx, 'up')}
-              className="p-1 hover:bg-gray-100 rounded"
-            >
-              <ChevronUp className="w-4 h-4" />
+            <button type="button" onClick={() => onMove(idx, 'up')} className="p-1.5 hover:bg-gray-100 rounded-lg transition" title="উপরে যান">
+              <ChevronUp className="w-3.5 h-3.5 text-gray-400" />
             </button>
           )}
           {idx < totalSlides - 1 && (
-            <button
-              type="button"
-              onClick={() => onMove(idx, 'down')}
-              className="p-1 hover:bg-gray-100 rounded"
-            >
-              <ChevronDown className="w-4 h-4" />
+            <button type="button" onClick={() => onMove(idx, 'down')} className="p-1.5 hover:bg-gray-100 rounded-lg transition" title="নিচে যান">
+              <ChevronDown className="w-3.5 h-3.5 text-gray-400" />
             </button>
           )}
           {totalSlides > 1 && (
-            <button
-              type="button"
-              onClick={() => onRemove(idx)}
-              className="text-red-500 p-1 hover:bg-red-50 rounded"
-            >
-              <Trash2 className="w-4 h-4" />
+            <button type="button" onClick={() => onRemove(idx)} className="p-1.5 hover:bg-red-50 rounded-lg transition" title="মুছুন">
+              <Trash2 className="w-3.5 h-3.5 text-red-400" />
             </button>
           )}
         </div>
       </div>
-      <input type="hidden" name={`slide_${idx}_imageUrl`} value={slide.imageUrl || ''} />
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <input
-          type="text"
-          name={`slide_${idx}_heading`}
-          value={slide.heading || ''}
-          onChange={(e) => onUpdate(idx, { heading: e.target.value })}
-          placeholder="Heading (optional)"
-          className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
-        />
-        <input
-          type="text"
-          name={`slide_${idx}_subheading`}
-          value={slide.subheading || ''}
-          onChange={(e) => onUpdate(idx, { subheading: e.target.value })}
-          placeholder="Subheading (optional)"
-          className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
-        />
-        <input
-          type="text"
-          name={`slide_${idx}_ctaText`}
-          value={slide.ctaText || ''}
-          onChange={(e) => onUpdate(idx, { ctaText: e.target.value })}
-          placeholder="CTA text (optional)"
-          className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
-        />
-        <input
-          type="text"
-          name={`slide_${idx}_ctaLink`}
-          value={slide.ctaLink || ''}
-          onChange={(e) => onUpdate(idx, { ctaLink: e.target.value })}
-          placeholder="https://example.com/products (optional)"
-          className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
-        />
-      </div>
 
-      <div className="mt-3">
-        <label className="block text-sm font-medium text-gray-700 mb-2">ব্যানার ইমেজ</label>
-        <div className="flex items-center gap-4">
-          <div className="relative">
-            {preview || slide.imageUrl ? (
-              <div className="relative">
-                <img
-                  src={preview || slide.imageUrl || ''}
-                  alt={`Slide ${idx + 1}`}
-                  className="w-32 h-20 object-cover rounded-lg border border-gray-200"
-                />
-                {isUploading && (
-                  <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center">
-                    <Loader2 className="w-5 h-5 text-white animate-spin" />
-                  </div>
-                )}
-                <button
-                  type="button"
-                  onClick={handleRemoveImage}
-                  disabled={isUploading || isDeleting}
-                  className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center"
-                >
-                  <X className="w-3 h-3" />
-                </button>
-              </div>
-            ) : (
-              <label className="w-32 h-20 bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-200 transition">
-                <ImageIcon className="w-6 h-6 text-gray-400" />
-                <span className="text-xs text-gray-500 mt-1">আপলোড</span>
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handleImageChange}
-                  disabled={isUploading}
-                />
-              </label>
-            )}
+      <input type="hidden" name={`slide_${idx}_imageUrl`} value={slide.imageUrl || ''} />
+
+      {/* Two-column body */}
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-0">
+        {/* Image upload — left 2 cols */}
+        <div className="md:col-span-2 p-4 border-b md:border-b-0 md:border-r border-gray-200">
+          <p className="text-xs font-medium text-gray-500 mb-2">ব্যানার ইমেজ</p>
+          {preview || slide.imageUrl ? (
+            <div className="relative group rounded-xl overflow-hidden aspect-video">
+              <img
+                src={preview || slide.imageUrl || ''}
+                alt={`Slide ${idx + 1}`}
+                className="w-full h-full object-cover"
+              />
+              {isUploading && (
+                <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                  <Loader2 className="w-5 h-5 text-white animate-spin" />
+                </div>
+              )}
+              <button
+                type="button"
+                onClick={handleRemoveImage}
+                disabled={isUploading || isDeleting}
+                className="absolute top-2 right-2 w-7 h-7 bg-red-500 text-white rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition shadow"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          ) : (
+            <label className="flex flex-col items-center justify-center aspect-video bg-white rounded-xl border-2 border-dashed border-gray-200 cursor-pointer hover:border-indigo-300 hover:bg-indigo-50/30 transition">
+              {isUploading ? (
+                <Loader2 className="w-6 h-6 text-indigo-400 animate-spin" />
+              ) : (
+                <>
+                  <Upload className="w-6 h-6 text-gray-300 mb-2" />
+                  <span className="text-xs font-medium text-gray-400">ইমেজ আপলোড করুন</span>
+                  <span className="text-xs text-gray-300 mt-0.5">1920×1080px</span>
+                </>
+              )}
+              <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} disabled={isUploading} />
+            </label>
+          )}
+        </div>
+
+        {/* Text fields — right 3 cols */}
+        <div className="md:col-span-3 p-4 space-y-3">
+          <div>
+            <label className="block text-xs font-medium text-gray-500 mb-1">হেডিং</label>
+            <input
+              type="text"
+              name={`slide_${idx}_heading`}
+              value={slide.heading || ''}
+              onChange={(e) => onUpdate(idx, { heading: e.target.value })}
+              placeholder="আমাদের নতুন কালেকশন"
+              className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition bg-white"
+            />
           </div>
-          <div className="text-xs text-gray-500">
-            <p>সাইজ: 1920x1080 পিক্সেল</p>
-            <p>ফরম্যাট: JPG, PNG, WebP</p>
+          <div>
+            <label className="block text-xs font-medium text-gray-500 mb-1">সাবহেডিং</label>
+            <input
+              type="text"
+              name={`slide_${idx}_subheading`}
+              value={slide.subheading || ''}
+              onChange={(e) => onUpdate(idx, { subheading: e.target.value })}
+              placeholder="সেরা দামে সেরা পণ্য"
+              className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition bg-white"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">CTA বাটন টেক্সট</label>
+              <input
+                type="text"
+                name={`slide_${idx}_ctaText`}
+                value={slide.ctaText || ''}
+                onChange={(e) => onUpdate(idx, { ctaText: e.target.value })}
+                placeholder="এখনই কিনুন"
+                className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition bg-white"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">CTA লিংক</label>
+              <input
+                type="text"
+                name={`slide_${idx}_ctaLink`}
+                value={slide.ctaLink || ''}
+                onChange={(e) => onUpdate(idx, { ctaLink: e.target.value })}
+                placeholder="/products"
+                className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition bg-white"
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -1247,33 +1282,30 @@ function ContentTab({
   ];
 
   const badges = settings.trustBadges?.badges || defaultBadges;
-  const iconLabels = { truck: 'Truck Icon', shield: 'Shield Icon', refresh: 'Return Icon' };
+  // iconLabels removed — no longer displayed
   const IconMap = { truck: Truck, shield: Shield, refresh: RefreshCw };
-  const whyChoose = settings.whyChooseUs;
+  const trustBadgesEnabled = !!(settings.trustBadges as unknown as { enabled?: boolean })?.enabled;
+
 
   return (
     <Form method="post" className="space-y-6">
       <input type="hidden" name="intent" value="content" />
 
-      <section className="bg-white rounded-xl border border-gray-200 p-6">
-        <div className="flex items-center justify-between mb-4">
+      <section className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        {/* Card Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-              <Type className="w-5 h-5 text-blue-600" />
+            <div className="w-9 h-9 bg-blue-50 rounded-xl flex items-center justify-center">
+              <Type className="w-4 h-4 text-blue-500" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold">ট্রাস্ট ব্যাজ</h2>
-              <p className="text-xs text-gray-500">দ্রুত ডেলিভারি, নিরাপদ পেমেন্ট ইত্যাদি ব্যাজ হোমপেজে দেখাবে</p>
+              <h2 className="text-sm font-semibold text-gray-900">ট্রাস্ট ব্যাজ</h2>
+              <p className="text-xs text-gray-400">দ্রুত ডেলিভারি, নিরাপদ পেমেন্ট ইত্যাদি ব্যাজ হোমপেজে দেখাবে</p>
             </div>
           </div>
-          {/* Enable/Disable toggle */}
           <label className="flex items-center gap-2 cursor-pointer">
-            <span className="text-sm text-gray-600">{settings.trustBadges?.enabled ? 'চালু' : 'বন্ধ'}</span>
-            <input
-              type="hidden"
-              name="trustBadgesEnabled"
-              value={settings.trustBadges?.enabled ? 'on' : 'off'}
-            />
+            <span className="text-xs font-medium text-gray-500">{trustBadgesEnabled ? 'চালু' : 'বন্ধ'}</span>
+            <input type="hidden" name="trustBadgesEnabled" value={trustBadgesEnabled ? 'on' : 'off'} />
             <button
               type="button"
               onClick={(e) => {
@@ -1281,46 +1313,71 @@ function ContentTab({
                 const isOn = hidden.value === 'on';
                 hidden.value = isOn ? 'off' : 'on';
                 e.currentTarget.classList.toggle('bg-indigo-600', !isOn);
-                e.currentTarget.classList.toggle('bg-gray-300', isOn);
-                (e.currentTarget.querySelector('span') as HTMLElement).style.transform = isOn ? 'translateX(0)' : 'translateX(20px)';
+                e.currentTarget.classList.toggle('bg-gray-200', isOn);
+                (e.currentTarget.querySelector('span') as HTMLElement).style.transform = isOn ? 'translateX(0)' : 'translateX(18px)';
               }}
-              className={`relative w-11 h-6 rounded-full transition-colors ${settings.trustBadges?.enabled ? 'bg-indigo-600' : 'bg-gray-300'}`}
+              className={`relative rounded-full transition-colors ${trustBadgesEnabled ? 'bg-indigo-600' : 'bg-gray-200'}`}
+              style={{ width: '40px', height: '22px' }}
             >
               <span
-                className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform"
-                style={{ transform: settings.trustBadges?.enabled ? 'translateX(20px)' : 'translateX(0)' }}
+                className="absolute top-0.5 left-0.5 w-[18px] h-[18px] bg-white rounded-full shadow transition-transform"
+                style={{ transform: trustBadgesEnabled ? 'translateX(18px)' : 'translateX(0)' }}
               />
             </button>
           </label>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+
+        {/* Live preview strip */}
+        <div className="mx-6 mt-5 rounded-xl bg-gray-50 border border-gray-100 px-6 py-4">
+          <p className="text-xs text-gray-400 mb-3 font-medium uppercase tracking-wider">স্টোরে এভাবে দেখাবে</p>
+          <div className="flex items-center justify-around">
+            {badges.map((badge, idx) => {
+              const Icon = IconMap[badge.icon as keyof typeof IconMap] || Truck;
+              return (
+                <div key={idx} className="flex flex-col items-center gap-1.5 text-center">
+                  <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
+                    <Icon className="w-5 h-5 text-indigo-600" />
+                  </div>
+                  <span className="text-xs font-semibold text-gray-700">{badge.title || `Badge ${idx + 1}`}</span>
+                  <span className="text-xs text-gray-400">{badge.description}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Badge editors */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-6">
           {badges.map((badge, idx) => {
             const Icon = IconMap[badge.icon as keyof typeof IconMap] || Truck;
             return (
-              <div key={idx} className="border border-gray-200 rounded-lg p-4">
-                <div className="text-sm font-medium text-gray-500 mb-3 flex items-center gap-2">
-                  <Icon className="w-4 h-4" />
-                  Badge {idx + 1} (
-                  {iconLabels[badge.icon as keyof typeof iconLabels] || 'Truck Icon'})
+              <div key={idx} className="border border-gray-100 rounded-2xl p-4 bg-gray-50">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center">
+                    <Icon className="w-4 h-4 text-indigo-600" />
+                  </div>
+                  <span className="text-xs font-semibold text-gray-500">
+                    Badge {idx + 1}
+                  </span>
                 </div>
                 <input type="hidden" name={`badge_${idx}_icon`} value={badge.icon} />
-                <div className="space-y-3">
+                <div className="space-y-2.5">
                   <div>
-                    <label className="block text-xs text-gray-500 mb-1">Title</label>
+                    <label className="block text-xs font-medium text-gray-500 mb-1">শিরোনাম</label>
                     <input
                       type="text"
                       name={`badge_${idx}_title`}
                       defaultValue={badge.title}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                      className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm bg-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs text-gray-500 mb-1">Description</label>
+                    <label className="block text-xs font-medium text-gray-500 mb-1">বিবরণ</label>
                     <input
                       type="text"
                       name={`badge_${idx}_description`}
                       defaultValue={badge.description}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                      className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm bg-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
                     />
                   </div>
                 </div>
@@ -1330,18 +1387,14 @@ function ContentTab({
         </div>
       </section>
 
-      <div className="flex justify-center">
+      <div className="flex items-center justify-end gap-3 pt-1">
         <button
           type="submit"
           disabled={isSaving}
-          className="px-8 py-3 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition disabled:opacity-50 flex items-center gap-2"
+          className="inline-flex items-center gap-2 px-6 py-2.5 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 transition disabled:opacity-50 shadow-sm text-sm"
         >
-          {isSaving ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
-          ) : (
-            <CheckCircle className="w-4 h-4" />
-          )}
-          🖊 পরিবর্তনগুলো সেভ করুন
+          {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
+          পরিবর্তনগুলো সেভ করুন
         </button>
       </div>
     </Form>
@@ -1426,226 +1479,214 @@ function InfoTab({
       <input type="hidden" name="intent" value="info" />
       <input type="hidden" name="logo" value={logoUrl} />
 
-      {/* Store Logo */}
-      <section className="bg-white rounded-xl border border-gray-200 p-6">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
-            <Store className="w-5 h-5 text-emerald-600" />
-          </div>
-          <h2 className="text-lg font-semibold">স্টোর লোগো</h2>
-        </div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">স্টোর লোগো</label>
-        <div className="flex items-center gap-4">
-          <div className="relative">
-            {logoPreview ? (
-              <div className="relative">
-                <img
-                  src={logoPreview}
-                  alt="Logo"
-                  className="w-20 h-20 object-contain rounded-lg border border-gray-200 bg-gray-50"
-                />
-                {isUploading && (
-                  <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center">
-                    <Loader2 className="w-5 h-5 text-white animate-spin" />
-                  </div>
-                )}
-                <button
-                  type="button"
-                  onClick={removeLogo}
-                  className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center"
-                >
-                  <X className="w-3 h-3" />
-                </button>
-              </div>
-            ) : (
-              <div className="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-300">
-                <Store className="w-6 h-6 text-gray-400" />
-              </div>
-            )}
+      {/* ── Store Logo ── */}
+      <section className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        <div className="flex items-center gap-3 px-6 py-4 border-b border-gray-100">
+          <div className="w-9 h-9 bg-emerald-50 rounded-xl flex items-center justify-center">
+            <Store className="w-4 h-4 text-emerald-500" />
           </div>
           <div>
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isUploading}
-              className="inline-flex items-center gap-2 px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition"
-            >
-              <Upload className="w-4 h-4" /> {isUploading ? 'আপলোড হচ্ছে...' : 'আপলোড'}
-            </button>
-            <p className="text-xs text-gray-500 mt-1">
-              সর্বোচ্চ: 2MB টাইপ: 200x200 পিক্সেল বা তার বেশি
-            </p>
+            <h2 className="text-sm font-semibold text-gray-900">স্টোর লোগো</h2>
+            <p className="text-xs text-gray-400">হেডার ও ফেভিকনে ব্যবহৃত হবে</p>
           </div>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            onChange={handleLogoChange}
-            className="hidden"
-          />
+        </div>
+        <div className="p-6">
+          <div className="flex items-center gap-5">
+            {/* Logo preview */}
+            <div className="relative flex-shrink-0">
+              {logoPreview ? (
+                <div className="relative group">
+                  <img
+                    src={logoPreview}
+                    alt="Logo"
+                    className="w-24 h-24 object-contain rounded-2xl border border-gray-200 bg-gray-50"
+                  />
+                  {isUploading && (
+                    <div className="absolute inset-0 bg-black/50 rounded-2xl flex items-center justify-center">
+                      <Loader2 className="w-5 h-5 text-white animate-spin" />
+                    </div>
+                  )}
+                  <button
+                    type="button"
+                    onClick={removeLogo}
+                    className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-lg flex items-center justify-center shadow"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              ) : (
+                <div className="w-24 h-24 bg-gray-50 rounded-2xl flex items-center justify-center border-2 border-dashed border-gray-200">
+                  <Store className="w-7 h-7 text-gray-300" />
+                </div>
+              )}
+            </div>
+            {/* Upload CTA */}
+            <div className="space-y-2">
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploading}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-xl hover:bg-indigo-700 transition disabled:opacity-50 shadow-sm"
+              >
+                <Upload className="w-4 h-4" />
+                {isUploading ? 'আপলোড হচ্ছে...' : 'লোগো আপলোড করুন'}
+              </button>
+              <p className="text-xs text-gray-400">PNG, JPG বা WebP · সর্বোচ্চ 2MB</p>
+              <p className="text-xs text-gray-400">প্রস্তাবিত: 200×200px বা তার বেশি</p>
+            </div>
+          </div>
+          <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" onChange={handleLogoChange} className="hidden" />
         </div>
       </section>
 
-      {/* Store Branding */}
-      <section className="bg-white rounded-xl border border-gray-200 p-6">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-            <Type className="w-5 h-5 text-blue-600" />
+      {/* ── Store Branding ── */}
+      <section className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        <div className="flex items-center gap-3 px-6 py-4 border-b border-gray-100">
+          <div className="w-9 h-9 bg-blue-50 rounded-xl flex items-center justify-center">
+            <Type className="w-4 h-4 text-blue-500" />
           </div>
           <div>
-            <h2 className="text-lg font-semibold">স্টোর ব্র্যান্ডিং</h2>
-            <p className="text-sm text-gray-500">
-              আপনার স্টোরের জন্য ট্যাগলাইন এবং বিবরণ দেওয়া করুন। এগুলো হেডার, ফুটার এবং SEO তে
-              দেখাবে।
-            </p>
+            <h2 className="text-sm font-semibold text-gray-900">স্টোর ব্র্যান্ডিং</h2>
+            <p className="text-xs text-gray-400">হেডার, ফুটার এবং SEO তে দেখাবে</p>
           </div>
         </div>
-        <div className="space-y-4">
+        <div className="p-6 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              ট্যাগলাইন / স্লোগান
-            </label>
+            <label className="block text-xs font-medium text-gray-600 mb-1.5">ট্যাগলাইন / স্লোগান</label>
             <input
               type="text"
               name="tagline"
               defaultValue={branding.tagline || ''}
               maxLength={200}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+              placeholder="সেরা দামে সেরা পণ্য!"
+              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
             />
-            <p className="text-xs text-gray-500 mt-1">সর্বোচ্চ ২০০ অক্ষর</p>
+            <p className="text-xs text-gray-400 mt-1">সর্বোচ্চ ২০০ অক্ষর</p>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">স্টোরের বিবরণ</label>
+            <label className="block text-xs font-medium text-gray-600 mb-1.5">স্টোরের বিবরণ</label>
             <textarea
               name="description"
               defaultValue={branding.description || ''}
               rows={3}
               maxLength={500}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm resize-none"
+              placeholder="আপনার স্টোর সম্পর্কে সংক্ষিপ্ত বিবরণ লিখুন..."
+              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm resize-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
             />
-            <p className="text-xs text-gray-500 mt-1">SEO এর জন্য ১৫০-৫০০ অক্ষর ভালো কাজ করে</p>
+            <p className="text-xs text-gray-400 mt-1">SEO-র জন্য ১৫০–৫০০ অক্ষর আদর্শ</p>
           </div>
         </div>
       </section>
 
-      {/* Business Info */}
-      <section className="bg-white rounded-xl border border-gray-200 p-6">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-            <Phone className="w-5 h-5 text-orange-600" />
+      {/* ── Business Info ── */}
+      <section className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        <div className="flex items-center gap-3 px-6 py-4 border-b border-gray-100">
+          <div className="w-9 h-9 bg-orange-50 rounded-xl flex items-center justify-center">
+            <Phone className="w-4 h-4 text-orange-500" />
           </div>
-          <h2 className="text-lg font-semibold">ব্যবসায়ের তথ্য</h2>
+          <div>
+            <h2 className="text-sm font-semibold text-gray-900">ব্যবসায়ের তথ্য</h2>
+            <p className="text-xs text-gray-400">যোগাযোগ তথ্য ফুটারে দেখাবে</p>
+          </div>
         </div>
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              <Phone className="w-4 h-4 inline mr-1" />
-              ফোন নম্বর
-            </label>
-            <input
-              type="tel"
-              name="businessPhone"
-              defaultValue={business.phone || ''}
-              placeholder="01739416661"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-            />
+        <div className="p-6 space-y-4">
+          {[
+            { name: 'businessPhone', type: 'tel', label: 'ফোন নম্বর', placeholder: '01739416661', icon: Phone, color: 'text-orange-500 bg-orange-50' },
+            { name: 'businessEmail', type: 'email', label: 'ইমেইল ঠিকানা', placeholder: 'contact@example.com', icon: Mail, color: 'text-blue-500 bg-blue-50' },
+            { name: 'businessAddress', type: 'text', label: 'ঠিকানা', placeholder: 'ঢাকা, বাংলাদেশ', icon: MapPin, color: 'text-red-500 bg-red-50' },
+          ].map(({ name, type, label, placeholder, icon: Icon, color }) => (
+            <div key={name}>
+              <label className="block text-xs font-medium text-gray-600 mb-1.5">{label}</label>
+              <div className="relative">
+                <div className={`absolute left-3 top-1/2 -translate-y-1/2 w-7 h-7 rounded-lg flex items-center justify-center ${color}`}>
+                  <Icon className="w-3.5 h-3.5" />
+                </div>
+                <input
+                  type={type}
+                  name={name}
+                  defaultValue={name === 'businessPhone' ? business.phone || '' : name === 'businessEmail' ? business.email || '' : business.address || ''}
+                  placeholder={placeholder}
+                  className="w-full pl-12 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── Social Media ── */}
+      <section className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        <div className="flex items-center gap-3 px-6 py-4 border-b border-gray-100">
+          <div className="w-9 h-9 bg-pink-50 rounded-xl flex items-center justify-center">
+            <Instagram className="w-4 h-4 text-pink-500" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              <Mail className="w-4 h-4 inline mr-1" />
-              ইমেইল ঠিকানা
-            </label>
-            <input
-              type="email"
-              name="businessEmail"
-              defaultValue={business.email || ''}
-              placeholder="contact@ozzyl.com"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-            />
+            <h2 className="text-sm font-semibold text-gray-900">সোশ্যাল মিডিয়া</h2>
+            <p className="text-xs text-gray-400">স্টোরের ফুটারে লিংক দেখাবে</p>
           </div>
+        </div>
+        <div className="p-6 space-y-4">
+          {/* Facebook */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              <MapPin className="w-4 h-4 inline mr-1" />
-              ঠিকানা
-            </label>
-            <input
-              type="text"
-              name="businessAddress"
-              defaultValue={business.address || ''}
-              placeholder="dkp road, barguna"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-            />
+            <label className="block text-xs font-medium text-gray-600 mb-1.5">ফেসবুক পেজ URL</label>
+            <div className="relative">
+              <div className="absolute left-3 top-1/2 -translate-y-1/2 w-7 h-7 rounded-lg flex items-center justify-center bg-blue-600">
+                <Facebook className="w-3.5 h-3.5 text-white" />
+              </div>
+              <input
+                type="url"
+                name="facebook"
+                defaultValue={social.facebook || ''}
+                placeholder="https://facebook.com/yourpage"
+                className="w-full pl-12 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+              />
+            </div>
+          </div>
+          {/* Instagram */}
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1.5">ইনস্টাগ্রাম প্রোফাইল URL</label>
+            <div className="relative">
+              <div className="absolute left-3 top-1/2 -translate-y-1/2 w-7 h-7 rounded-lg flex items-center justify-center bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400">
+                <Instagram className="w-3.5 h-3.5 text-white" />
+              </div>
+              <input
+                type="url"
+                name="instagram"
+                defaultValue={social.instagram || ''}
+                placeholder="https://instagram.com/yourprofile"
+                className="w-full pl-12 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+              />
+            </div>
+          </div>
+          {/* WhatsApp */}
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1.5">হোয়াটসঅ্যাপ নম্বর</label>
+            <div className="relative">
+              <div className="absolute left-3 top-1/2 -translate-y-1/2 w-7 h-7 rounded-lg flex items-center justify-center bg-green-500">
+                <MessageCircle className="w-3.5 h-3.5 text-white" />
+              </div>
+              <input
+                type="tel"
+                name="whatsapp"
+                defaultValue={social.whatsapp || ''}
+                placeholder="01739416661"
+                className="w-full pl-12 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
+              />
+            </div>
+            <p className="text-xs text-gray-400 mt-1">দেশের কোড ছাড়া শুধু নম্বর দিন</p>
           </div>
         </div>
       </section>
 
-      {/* Social Media */}
-      <section className="bg-white rounded-xl border border-gray-200 p-6">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 bg-pink-100 rounded-lg flex items-center justify-center">
-            <Instagram className="w-5 h-5 text-pink-600" />
-          </div>
-          <div>
-            <h2 className="text-lg font-semibold">সোশ্যাল মিডিয়া লিংক</h2>
-            <p className="text-sm text-gray-500">আপনার সোশ্যাল মিডিয়া লিংকগুলো দেওয়া করুন</p>
-          </div>
-        </div>
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              <Facebook className="w-4 h-4 inline mr-1 text-blue-600" />
-              ফেসবুক ইউআরএল
-            </label>
-            <input
-              type="url"
-              name="facebook"
-              defaultValue={social.facebook || ''}
-              placeholder="https://facebook.com/yourpage"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              <Instagram className="w-4 h-4 inline mr-1 text-pink-600" />
-              ইন্সটাগ্রাম ইউআরএল
-            </label>
-            <input
-              type="url"
-              name="instagram"
-              defaultValue={social.instagram || ''}
-              placeholder="https://instagram.com/yourprofile"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              <MessageCircle className="w-4 h-4 inline mr-1 text-green-600" />
-              হোয়াটসঅ্যাপ নম্বর
-            </label>
-            <input
-              type="tel"
-              name="whatsapp"
-              defaultValue={social.whatsapp || ''}
-              placeholder="01739416661"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
-            />
-            <p className="text-xs text-gray-500 mt-1">দেশের কোডসহ দিন</p>
-          </div>
-        </div>
-      </section>
-
-      <div className="flex justify-center">
+      {/* Save Button */}
+      <div className="flex items-center justify-end gap-3 pt-1">
         <button
           type="submit"
           disabled={isSaving}
-          className="px-8 py-3 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition disabled:opacity-50 flex items-center gap-2"
+          className="inline-flex items-center gap-2 px-6 py-2.5 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 transition disabled:opacity-50 shadow-sm text-sm"
         >
-          {isSaving ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
-          ) : (
-            <CheckCircle className="w-4 h-4" />
-          )}
-          🏪 স্টোর তথ্য সেভ করুন
+          {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
+          স্টোর তথ্য সেভ করুন
         </button>
       </div>
     </Form>
