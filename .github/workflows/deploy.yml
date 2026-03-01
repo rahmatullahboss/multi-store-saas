@@ -59,9 +59,8 @@ jobs:
       - name: 📥 Install dependencies
         run: npm ci
 
-      - name: 📥 Install platform-specific rollup binary
-        run: npm install --ignore-scripts=false --force
-        working-directory: apps/web
+      - name: 📥 Fix rollup optional binary for Linux
+        run: npm install @rollup/rollup-linux-x64-gnu --save-optional --force
 
       - name: 🔍 Type check
         run: npm run typecheck
@@ -104,9 +103,8 @@ jobs:
       - name: 📥 Install dependencies
         run: npm ci
 
-      - name: 📥 Install platform-specific rollup binary
-        run: npm install --ignore-scripts=false --force
-        working-directory: apps/web
+      - name: 📥 Fix rollup optional binary for Linux
+        run: npm install @rollup/rollup-linux-x64-gnu --save-optional --force
 
       - name: 🏗️ Build application
         run: npm run build
