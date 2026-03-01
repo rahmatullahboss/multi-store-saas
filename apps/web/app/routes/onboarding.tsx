@@ -79,7 +79,9 @@ const PLAN_OPTIONS = [
     features: [
       'feature1Product',
       'feature50Orders',
-      'featureLandingPageMode',
+      'featureFullStoreMode',
+      'featureBkashNagad',
+      'featureFraudDetection',
       'featureBasicSupport',
     ],
   },
@@ -1178,14 +1180,14 @@ export default function OnboardingPage() {
 
         {/* Step 3: Plan Selection with bKash Payment */}
         {currentStep === 3 && (
-          <div className="space-y-6">
+          <div className="plan-step space-y-6">
             <div className="text-center mb-8">
               <h1 className="text-2xl font-bold text-gray-900">{t('auth:choosePlan')}</h1>
               <p className="text-gray-500 mt-2">{t('auth:selectPlanBasedNeeds')}</p>
             </div>
 
             {/* Plan Cards */}
-            <div className="grid md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {PLAN_OPTIONS.map((plan) => {
                 const Icon = plan.icon;
                 const isSelected = formData.selectedPlan === plan.id;
@@ -1196,7 +1198,7 @@ export default function OnboardingPage() {
                     key={plan.id}
                     type="button"
                     onClick={() => updateField('selectedPlan', plan.id)}
-                    className={`relative p-6 rounded-2xl border-2 text-left transition-all ${
+                    className={`relative p-4 rounded-2xl border-2 text-left transition-all ${
                       isSelected
                         ? plan.color === 'gray'
                           ? 'border-gray-500 bg-gray-50 ring-2 ring-gray-200'
@@ -1207,14 +1209,15 @@ export default function OnboardingPage() {
                     }`}
                   >
                     {plan.popular && (
-                      <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-emerald-500 text-white text-xs font-semibold rounded-full">
+                      <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-emerald-500 text-white text-xs font-semibold rounded-full whitespace-nowrap">
                         {t('auth:mostPopular')}
                       </span>
                     )}
 
-                    <div className="flex items-center gap-3 mb-4">
+                    {/* Icon + Name + Price */}
+                    <div className="flex items-start gap-2 mb-3">
                       <div
-                        className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                        className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
                           plan.color === 'gray'
                             ? 'bg-gray-100'
                             : plan.color === 'emerald'
@@ -1223,7 +1226,7 @@ export default function OnboardingPage() {
                         }`}
                       >
                         <Icon
-                          className={`w-5 h-5 ${
+                          className={`w-4 h-4 ${
                             plan.color === 'gray'
                               ? 'text-gray-600'
                               : plan.color === 'emerald'
@@ -1232,12 +1235,12 @@ export default function OnboardingPage() {
                           }`}
                         />
                       </div>
-                      <div>
-                        <h3 className="font-bold text-gray-900">{t(`auth:${plan.nameKey}`)}</h3>
-                        <p className="text-lg font-bold">
+                      <div className="min-w-0">
+                        <h3 className="font-bold text-gray-900 text-sm leading-tight">{t(`auth:${plan.nameKey}`)}</h3>
+                        <p className="text-base font-bold leading-tight">
                           {plan.price === 0 ? t('auth:freeText') : formatPrice(plan.price)}
                           {plan.price > 0 && (
-                            <span className="text-sm font-normal text-gray-500">
+                            <span className="text-xs font-normal text-gray-500">
                               {t('auth:perMonth')}
                             </span>
                           )}
@@ -1245,19 +1248,20 @@ export default function OnboardingPage() {
                       </div>
                     </div>
 
-                    <ul className="space-y-2">
+                    {/* Features list */}
+                    <ul className="space-y-1.5">
                       {features.map((feature, idx) => (
-                        <li key={idx} className="flex items-center gap-2 text-sm text-gray-600">
-                          <Check className="w-4 h-4 text-emerald-500" />
-                          {t(`auth:${feature}`)}
+                        <li key={idx} className="flex items-start gap-1.5 text-xs text-gray-600">
+                          <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0 mt-0.5" />
+                          <span>{t(`auth:${feature}`)}</span>
                         </li>
                       ))}
                     </ul>
 
                     {isSelected && (
-                      <div className="absolute top-4 right-4">
+                      <div className="absolute top-3 right-3">
                         <div
-                          className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                          className={`w-5 h-5 rounded-full flex items-center justify-center ${
                             plan.color === 'gray'
                               ? 'bg-gray-500'
                               : plan.color === 'emerald'
@@ -1265,7 +1269,7 @@ export default function OnboardingPage() {
                                 : 'bg-purple-500'
                           }`}
                         >
-                          <Check className="w-4 h-4 text-white" />
+                          <Check className="w-3 h-3 text-white" />
                         </div>
                       </div>
                     )}

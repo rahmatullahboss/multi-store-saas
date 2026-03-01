@@ -31,7 +31,7 @@ export function OnboardingLayout({ children, featureComponent }: OnboardingLayou
 
       {/* Right Side (Desktop) / Bottom Side (Mobile) - Form Content */}
       <div className="w-full md:w-1/2 lg:w-[55%] bg-white flex flex-col">
-        <div className="w-full max-w-xl mx-auto p-6 md:p-12 lg:p-16 flex-1 flex flex-col justify-center">
+        <div className="w-full max-w-2xl mx-auto p-6 md:p-10 flex-1 flex flex-col justify-center">
             {children}
         </div>
       </div>
