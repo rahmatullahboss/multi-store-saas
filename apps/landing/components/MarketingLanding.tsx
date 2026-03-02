@@ -1,4 +1,3 @@
-'use client';
 
 /**
  * SaaS Marketing Landing Page - NEXT.JS 16 OPTIMIZED VERSION
@@ -11,7 +10,7 @@
  * - Reduced re-renders
  */
 
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useRef, useEffect, useMemo, lazy, Suspense } from 'react';
 import { Rocket } from 'lucide-react';
 import { useTranslation } from '@/app/contexts/LanguageContext';
 import { ClientOnly } from '@/components/LazySection';
@@ -26,10 +25,8 @@ import { MarketingHeader } from '@/components/MarketingHeader';
 
 import { AwardWinningHero } from '@/components/AwardWinningHero';
 
-const FraudDetectionSection = dynamic(
-  () => import('@/components/FraudDetectionSection').then((m) => ({ default: m.FraudDetectionSection })),
-  { loading: () => <SectionSkeleton />, ssr: false }
-);
+const FraudDetectionSection = lazy(
+  () => import('@/components/FraudDetectionSection').then((m) => ({ default: m.FraudDetectionSection })));
 
 // ============================================================================
 // OPTIMIZED DYNAMIC IMPORTS
@@ -50,320 +47,222 @@ const SectionSkeleton = () => (
 );
 
 // HIGH PRIORITY - Load with SSR for better LCP
-const AIHeroSection = dynamic(
-  () => import('@/components/AIHeroSection').then((m) => ({ default: m.AIHeroSection })),
-  { loading: () => <SectionSkeleton />, ssr: true }
-);
+const AIHeroSection = lazy(
+  () => import('@/components/AIHeroSection').then((m) => ({ default: m.AIHeroSection })));
 
-const ProblemSolutionSection = dynamic(
+const ProblemSolutionSection = lazy(
   () =>
     import('@/components/ProblemSolutionSection').then((m) => ({
       default: m.ProblemSolutionSection,
-    })),
-  { loading: () => <SectionSkeleton />, ssr: true }
-);
+    })));
 
 // MEDIUM PRIORITY - Client-side only, load on demand
-const AIShowcaseSection = dynamic(
+const AIShowcaseSection = lazy(
   () =>
     import('@/components/landing/AIShowcaseSection').then((m) => ({
       default: m.AIShowcaseSection,
-    })),
-  { loading: () => <SectionSkeleton />, ssr: false }
-);
-const DragDropBuilderShowcase = dynamic(
+    })));
+const DragDropBuilderShowcase = lazy(
   () =>
     import('@/components/landing/DragDropBuilderShowcase').then((m) => ({
       default: m.DragDropBuilderShowcase,
-    })),
-  { loading: () => <SectionSkeleton />, ssr: false }
-);
-const EditorModeComparison = dynamic(
+    })));
+const EditorModeComparison = lazy(
   () =>
     import('@/components/landing/EditorModeComparison').then((m) => ({
       default: m.EditorModeComparison,
-    })),
-  { loading: () => <SectionSkeleton />, ssr: false }
-);
-const AIMagicSection = dynamic(
-  () => import('@/components/landing/AIMagicSection').then((m) => ({ default: m.AIMagicSection })),
-  { loading: () => <SectionSkeleton />, ssr: false }
-);
-const AISocialProofSection = dynamic(
+    })));
+const AIMagicSection = lazy(
+  () => import('@/components/landing/AIMagicSection').then((m) => ({ default: m.AIMagicSection })));
+const AISocialProofSection = lazy(
   () =>
     import('@/components/landing/AISocialProofSection').then((m) => ({
       default: m.AISocialProofSection,
-    })),
-  { loading: () => <SectionSkeleton />, ssr: false }
-);
-const BentoFeaturesSection = dynamic(
+    })));
+const BentoFeaturesSection = lazy(
   () =>
-    import('@/components/BentoFeaturesSection').then((m) => ({ default: m.BentoFeaturesSection })),
-  { loading: () => <SectionSkeleton />, ssr: false }
-);
+    import('@/components/BentoFeaturesSection').then((m) => ({ default: m.BentoFeaturesSection })));
 
 // Infrastructure sections
-const InfrastructureSection = dynamic(
+const InfrastructureSection = lazy(
   () =>
     import('@/components/InfrastructureSection').then((m) => ({
       default: m.InfrastructureSection,
-    })),
-  { loading: () => <SectionSkeleton />, ssr: false }
-);
-const SpeedComparison = dynamic(
-  () => import('@/components/SpeedComparison').then((m) => ({ default: m.SpeedComparison })),
-  { loading: () => <SectionSkeleton />, ssr: false }
-);
-const CDNExplainer = dynamic(
-  () => import('@/components/CDNExplainer').then((m) => ({ default: m.CDNExplainer })),
-  { loading: () => <SectionSkeleton />, ssr: false }
-);
-const SpeedImpact = dynamic(
-  () => import('@/components/SpeedImpact').then((m) => ({ default: m.SpeedImpact })),
-  { loading: () => <SectionSkeleton />, ssr: false }
-);
-const CloudflareBenefitsCards = dynamic(
+    })));
+const SpeedComparison = lazy(
+  () => import('@/components/SpeedComparison').then((m) => ({ default: m.SpeedComparison })));
+const CDNExplainer = lazy(
+  () => import('@/components/CDNExplainer').then((m) => ({ default: m.CDNExplainer })));
+const SpeedImpact = lazy(
+  () => import('@/components/SpeedImpact').then((m) => ({ default: m.SpeedImpact })));
+const CloudflareBenefitsCards = lazy(
   () =>
     import('@/components/CloudflareBenefitsCards').then((m) => ({
       default: m.CloudflareBenefitsCards,
-    })),
-  { loading: () => <SectionSkeleton />, ssr: false }
-);
-const TechnicalSpecs = dynamic(
-  () => import('@/components/TechnicalSpecs').then((m) => ({ default: m.TechnicalSpecs })),
-  { loading: () => <SectionSkeleton />, ssr: false }
-);
-const LiveDashboard = dynamic(
-  () => import('@/components/LiveDashboard').then((m) => ({ default: m.LiveDashboard })),
-  { loading: () => <SectionSkeleton />, ssr: false }
-);
-const InfrastructureCTA = dynamic(
-  () => import('@/components/InfrastructureCTA').then((m) => ({ default: m.InfrastructureCTA })),
-  { loading: () => <SectionSkeleton />, ssr: false }
-);
+    })));
+const TechnicalSpecs = lazy(
+  () => import('@/components/TechnicalSpecs').then((m) => ({ default: m.TechnicalSpecs })));
+const LiveDashboard = lazy(
+  () => import('@/components/LiveDashboard').then((m) => ({ default: m.LiveDashboard })));
+const InfrastructureCTA = lazy(
+  () => import('@/components/InfrastructureCTA').then((m) => ({ default: m.InfrastructureCTA })));
 
 // Trust & sections
-const TrustSection = dynamic(
-  () => import('@/components/TrustSection').then((m) => ({ default: m.TrustSection })),
-  { loading: () => <SectionSkeleton />, ssr: false }
-);
-const ComparisonSection = dynamic(
-  () => import('@/components/ComparisonSection').then((m) => ({ default: m.ComparisonSection })),
-  { loading: () => <SectionSkeleton />, ssr: false }
-);
+const TrustSection = lazy(
+  () => import('@/components/TrustSection').then((m) => ({ default: m.TrustSection })));
+const ComparisonSection = lazy(
+  () => import('@/components/ComparisonSection').then((m) => ({ default: m.ComparisonSection })));
 
 // Interactive demo
-const InteractiveStoreDemo = dynamic(
+const InteractiveStoreDemo = lazy(
   () =>
-    import('@/components/InteractiveStoreDemo').then((m) => ({ default: m.InteractiveStoreDemo })),
-  { loading: () => <SectionSkeleton />, ssr: false }
-);
+    import('@/components/InteractiveStoreDemo').then((m) => ({ default: m.InteractiveStoreDemo })));
 
 // FAQ & CTA
-const FAQSection = dynamic(
-  () => import('@/components/FAQSection').then((m) => ({ default: m.FAQSection })),
-  { loading: () => <SectionSkeleton />, ssr: false }
-);
-const FinalCTA = dynamic(
-  () => import('@/components/FinalCTA').then((m) => ({ default: m.FinalCTA })),
-  { loading: () => <SectionSkeleton />, ssr: false }
-);
+const FAQSection = lazy(
+  () => import('@/components/FAQSection').then((m) => ({ default: m.FAQSection })));
+const FinalCTA = lazy(
+  () => import('@/components/FinalCTA').then((m) => ({ default: m.FinalCTA })));
 
 // New Feature sections
-const MarketingAutomationSection = dynamic(
+const MarketingAutomationSection = lazy(
   () =>
     import('@/components/landing/MarketingAutomationSection').then((m) => ({
       default: m.MarketingAutomationSection,
-    })),
-  { loading: () => <SectionSkeleton />, ssr: false }
-);
-const LogisticsOperationsSection = dynamic(
+    })));
+const LogisticsOperationsSection = lazy(
   () =>
     import('@/components/landing/LogisticsOperationsSection').then((m) => ({
       default: m.LogisticsOperationsSection,
-    })),
-  { loading: () => <SectionSkeleton />, ssr: false }
-);
-const BusinessManagementSection = dynamic(
+    })));
+const BusinessManagementSection = lazy(
   () =>
     import('@/components/landing/BusinessManagementSection').then((m) => ({
       default: m.BusinessManagementSection,
-    })),
-  { loading: () => <SectionSkeleton />, ssr: false }
-);
-const CustomerExperienceSection = dynamic(
+    })));
+const CustomerExperienceSection = lazy(
   () =>
     import('@/components/landing/CustomerExperienceSection').then((m) => ({
       default: m.CustomerExperienceSection,
-    })),
-  { loading: () => <SectionSkeleton />, ssr: false }
-);
-const CustomerBenefitsSection = dynamic(
+    })));
+const CustomerBenefitsSection = lazy(
   () =>
     import('@/components/landing/CustomerBenefitsSection').then((m) => ({
       default: m.CustomerBenefitsSection,
-    })),
-  { loading: () => <SectionSkeleton />, ssr: false }
-);
-const AnalyticsInsightsSection = dynamic(
+    })));
+const AnalyticsInsightsSection = lazy(
   () =>
     import('@/components/landing/AnalyticsInsightsSection').then((m) => ({
       default: m.AnalyticsInsightsSection,
-    })),
-  { loading: () => <SectionSkeleton />, ssr: false }
-);
-const UseCaseScenariosSection = dynamic(
+    })));
+const UseCaseScenariosSection = lazy(
   () =>
     import('@/components/landing/UseCaseScenariosSection').then((m) => ({
       default: m.UseCaseScenariosSection,
-    })),
-  { loading: () => <SectionSkeleton />, ssr: false }
-);
-const FeatureMatrixSection = dynamic(
+    })));
+const FeatureMatrixSection = lazy(
   () =>
     import('@/components/landing/FeatureMatrixSection').then((m) => ({
       default: m.FeatureMatrixSection,
-    })),
-  { loading: () => <SectionSkeleton />, ssr: false }
-);
-const CourierIntegrationSection = dynamic(
+    })));
+const CourierIntegrationSection = lazy(
   () =>
     import('@/components/landing/CourierIntegrationSection').then((m) => ({
       default: m.CourierIntegrationSection,
-    })),
-  { loading: () => <SectionSkeleton />, ssr: false }
-);
-const WhatsAppSMSAutomationSection = dynamic(
+    })));
+const WhatsAppSMSAutomationSection = lazy(
   () =>
     import('@/components/landing/WhatsAppSMSAutomationSection').then((m) => ({
       default: m.WhatsAppSMSAutomationSection,
-    })),
-  { loading: () => <SectionSkeleton />, ssr: false }
-);
-const EmailMarketingSection = dynamic(
+    })));
+const EmailMarketingSection = lazy(
   () =>
     import('@/components/landing/EmailMarketingSection').then((m) => ({
       default: m.EmailMarketingSection,
-    })),
-  { loading: () => <SectionSkeleton />, ssr: false }
-);
-const TeamManagementSection = dynamic(
+    })));
+const TeamManagementSection = lazy(
   () =>
     import('@/components/landing/TeamManagementSection').then((m) => ({
       default: m.TeamManagementSection,
-    })),
-  { loading: () => <SectionSkeleton />, ssr: false }
-);
-const ActivityLogsSection = dynamic(
+    })));
+const ActivityLogsSection = lazy(
   () =>
     import('@/components/landing/ActivityLogsSection').then((m) => ({
       default: m.ActivityLogsSection,
-    })),
-  { loading: () => <SectionSkeleton />, ssr: false }
-);
-const ProductReviewsSection = dynamic(
+    })));
+const ProductReviewsSection = lazy(
   () =>
     import('@/components/landing/ProductReviewsSection').then((m) => ({
       default: m.ProductReviewsSection,
-    })),
-  { loading: () => <SectionSkeleton />, ssr: false }
-);
-const ReturnsRefundsSection = dynamic(
+    })));
+const ReturnsRefundsSection = lazy(
   () =>
     import('@/components/landing/ReturnsRefundsSection').then((m) => ({
       default: m.ReturnsRefundsSection,
-    })),
-  { loading: () => <SectionSkeleton />, ssr: false }
-);
-const MessengerIntegrationSection = dynamic(
+    })));
+const MessengerIntegrationSection = lazy(
   () =>
     import('@/components/landing/MessengerIntegrationSection').then((m) => ({
       default: m.MessengerIntegrationSection,
-    })),
-  { loading: () => <SectionSkeleton />, ssr: false }
-);
-const TaxReportsSection = dynamic(
+    })));
+const TaxReportsSection = lazy(
   () =>
     import('@/components/landing/TaxReportsSection').then((m) => ({
       default: m.TaxReportsSection,
-    })),
-  { loading: () => <SectionSkeleton />, ssr: false }
-);
-const UnifiedCommunicationHub = dynamic(
+    })));
+const UnifiedCommunicationHub = lazy(
   () =>
     import('@/components/landing/UnifiedCommunicationHub').then((m) => ({
       default: m.UnifiedCommunicationHub,
-    })),
-  { loading: () => <SectionSkeleton />, ssr: false }
-);
+    })));
 
 // Award-Winning Extras
-const AIPoweredFinalCTA = dynamic(
+const AIPoweredFinalCTA = lazy(
   () =>
     import('@/components/landing/AIPoweredFinalCTA').then((m) => ({
       default: m.AIPoweredFinalCTA,
-    })),
-  { loading: () => <SectionSkeleton />, ssr: false }
-);
-const AllInOneSolution = dynamic(
+    })));
+const AllInOneSolution = lazy(
   () =>
-    import('@/components/landing/AllInOneSolution').then((m) => ({ default: m.AllInOneSolution })),
-  { loading: () => <SectionSkeleton />, ssr: false }
-);
-const PaymentIntegrationSection = dynamic(
+    import('@/components/landing/AllInOneSolution').then((m) => ({ default: m.AllInOneSolution })));
+const PaymentIntegrationSection = lazy(
   () =>
     import('@/components/landing/PaymentIntegrationSection').then((m) => ({
       default: m.PaymentIntegrationSection,
-    })),
-  { loading: () => <SectionSkeleton />, ssr: false }
-);
-const InventoryOrderManagement = dynamic(
+    })));
+const InventoryOrderManagement = lazy(
   () =>
     import('@/components/landing/InventoryOrderManagement').then((m) => ({
       default: m.InventoryOrderManagement,
-    })),
-  { loading: () => <SectionSkeleton />, ssr: false }
-);
-const StorefrontUXShowcase = dynamic(
+    })));
+const StorefrontUXShowcase = lazy(
   () =>
     import('@/components/landing/StorefrontUXShowcase').then((m) => ({
       default: m.StorefrontUXShowcase,
-    })),
-  { loading: () => <SectionSkeleton />, ssr: false }
-);
-const CRMMarketingGrowth = dynamic(
+    })));
+const CRMMarketingGrowth = lazy(
   () =>
     import('@/components/landing/CRMMarketingGrowth').then((m) => ({
       default: m.CRMMarketingGrowth,
-    })),
-  { loading: () => <SectionSkeleton />, ssr: false }
-);
-const BanglaNativeLocalization = dynamic(
+    })));
+const BanglaNativeLocalization = lazy(
   () =>
     import('@/components/landing/BanglaNativeLocalization').then((m) => ({
       default: m.BanglaNativeLocalization,
-    })),
-  { loading: () => <SectionSkeleton />, ssr: false }
-);
-const SecuritySpeedInfrastructure = dynamic(
+    })));
+const SecuritySpeedInfrastructure = lazy(
   () =>
     import('@/components/landing/SecuritySpeedInfrastructure').then((m) => ({
       default: m.SecuritySpeedInfrastructure,
-    })),
-  { loading: () => <SectionSkeleton />, ssr: false }
-);
+    })));
 
-const ScalabilityShowcase = dynamic(
+const ScalabilityShowcase = lazy(
   () =>
     import('@/components/landing/ScalabilityShowcase').then((m) => ({
       default: m.ScalabilityShowcase,
-    })),
-  { loading: () => <SectionSkeleton />, ssr: false }
-);
-const PricingSection = dynamic(
-  () => import('@/components/PricingSection').then((m) => ({ default: m.PricingSection })),
-  { loading: () => <SectionSkeleton />, ssr: false }
-);
+    })));
+const PricingSection = lazy(
+  () => import('@/components/PricingSection').then((m) => ({ default: m.PricingSection })));
 
 // ============================================================================
 // LAZY SECTION WRAPPER - Optimized with Intersection Observer
