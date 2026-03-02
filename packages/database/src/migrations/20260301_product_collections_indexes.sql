@@ -6,6 +6,14 @@
 --         causing full table scans on every join.
 -- ============================================================================
 
+-- Create product_collections table if it doesn't exist
+-- (table may already exist in production from an earlier manual migration)
+CREATE TABLE IF NOT EXISTS `product_collections` (
+  `id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+  `product_id` integer NOT NULL REFERENCES `products`(`id`) ON DELETE CASCADE,
+  `collection_id` integer NOT NULL REFERENCES `collections`(`id`) ON DELETE CASCADE
+);
+
 -- Index for looking up all collections a product belongs to (product detail page)
 CREATE INDEX IF NOT EXISTS idx_product_collections_product_id
   ON product_collections(product_id);
