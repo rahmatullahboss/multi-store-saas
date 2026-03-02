@@ -86,10 +86,11 @@ export default defineConfig({
   ],
   
   // Web server configuration
+  // In CI, we start wrangler dev manually before playwright runs, so we reuse the existing server.
   webServer: {
     command: 'npm run dev',
     url: E2E_BASE_URL,
-    reuseExistingServer: false,
+    reuseExistingServer: !!process.env.CI,
     timeout: 120 * 1000,
     // Environment variables for the web server process
     env: {
