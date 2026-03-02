@@ -35,6 +35,9 @@ jobs:
       - name: 📥 Install dependencies
         run: npm ci
 
+      - name: 📥 Fix rollup optional binary for Linux
+        run: npm install @rollup/rollup-linux-x64-gnu --save-optional --force
+
       - name: 🎭 Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
@@ -110,6 +113,9 @@ jobs:
       - name: 📥 Install dependencies
         run: npm ci
 
+      - name: 📥 Fix rollup optional binary for Linux
+        run: npm install @rollup/rollup-linux-x64-gnu --save-optional --force
+
       - name: 🎭 Install Playwright browsers
         run: npx playwright install --with-deps ${{ matrix.browser }}
 
@@ -169,6 +175,9 @@ jobs:
 
       - name: 📥 Install dependencies
         run: npm ci
+
+      - name: 📥 Fix rollup optional binary for Linux
+        run: npm install @rollup/rollup-linux-x64-gnu --save-optional --force
 
       - name: 🎭 Install Playwright browsers
         run: npx playwright install --with-deps chromium webkit
