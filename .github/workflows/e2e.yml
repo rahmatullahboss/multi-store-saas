@@ -53,8 +53,8 @@ jobs:
           NODE_ENV=test
           EOF
 
-      - name: 🗄️ Run migrations (Local DB)
-        run: npx wrangler d1 migrations apply multi-store-saas-db --local
+      - name: 🗄️ Setup Local DB from schema
+        run: npx wrangler d1 execute multi-store-saas-db --local --file=e2e-schema.sql
         working-directory: apps/web
 
       - name: 🌱 Seed E2E test data
@@ -131,8 +131,8 @@ jobs:
           NODE_ENV=test
           EOF
 
-      - name: 🗄️ Run migrations (Local DB)
-        run: npx wrangler d1 migrations apply multi-store-saas-db --local
+      - name: 🗄️ Setup Local DB from schema
+        run: npx wrangler d1 execute multi-store-saas-db --local --file=e2e-schema.sql
         working-directory: apps/web
 
       - name: 🌱 Seed E2E test data
@@ -194,8 +194,8 @@ jobs:
           NODE_ENV=test
           EOF
 
-      - name: 🗄️ Run migrations (Local DB)
-        run: npx wrangler d1 migrations apply multi-store-saas-db --local
+      - name: 🗄️ Setup Local DB from schema
+        run: npx wrangler d1 execute multi-store-saas-db --local --file=e2e-schema.sql
         working-directory: apps/web
 
       - name: 🌱 Seed E2E test data
