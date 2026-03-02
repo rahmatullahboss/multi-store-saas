@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingBag, Sparkles, MessageSquare, BrainCircuit, Bot, Check, Send, Search, BarChart3, TrendingUp, Users, Package, Shirt, Footprints, HelpCircle } from 'lucide-react';
 import { useTranslation } from '@/app/contexts/LanguageContext';
 import { useIsMobile } from '@/hooks/useIsMobile';
@@ -63,14 +62,12 @@ export function AIShowcaseSection() {
         
         {/* Header */}
         <div className="text-center mb-12">
-           <motion.div
-             initial={{ opacity: 0, y: 20 }}
-             whileInView={{ opacity: 1, y: 0 }}
+           <div
              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm mb-6"
            >
              <Sparkles className="w-4 h-4 text-emerald-400" />
              <span className="text-sm font-medium text-emerald-200">{t('landingShowcase_suite')}</span>
-           </motion.div>
+           </div>
            
            <h2 className="text-3xl md:text-5xl font-bold text-white mb-6 leading-relaxed py-2">
              {t('landingShowcase_title')}
@@ -93,7 +90,7 @@ export function AIShowcaseSection() {
               const Icon = tab.icon;
 
               return (
-                <motion.button
+                <button
                   key={tab.id}
                   onClick={() => setActiveTab(index)}
                   className={`relative p-6 rounded-2xl text-left transition-all duration-300 group overflow-hidden ${
@@ -121,28 +118,21 @@ export function AIShowcaseSection() {
                   
                   {/* Progress Bar - Only on desktop */}
                   {isActive && !isPaused && !isMobile && (
-                    <motion.div
-                      layoutId="progress"
-                      initial={{ width: '0%' }}
-                      animate={{ width: '100%' }}
-                      transition={{ duration: 8, ease: 'linear' }}
+                    <div
+                      
                       className="absolute bottom-0 left-0 h-1 bg-gradient-to-r from-emerald-500 to-cyan-500"
                     />
                   )}
-                </motion.button>
+                </button>
               );
             })}
           </div>
 
           {/* Dynamic Content Area */}
           <div className="w-full">
-            <AnimatePresence mode="wait">
-              <motion.div
+            
+              <div
                 key={activeTab}
-                initial={{ opacity: 0, scale: 0.98 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.98 }}
-                transition={{ duration: 0.3 }}
                 className="bg-[#111] border border-white/10 rounded-3xl relative overflow-hidden group min-h-[600px] h-auto flex shadow-2xl"
               >
                  {/** 
@@ -164,10 +154,7 @@ export function AIShowcaseSection() {
                               { title: t('landingShowcase_visitor_feature4'), desc: t('landingShowcase_visitor_feature4_desc') },
                               { title: t('landingShowcase_visitor_feature5'), desc: t('landingShowcase_visitor_feature5_desc') },
                             ].map((item, i) => (
-                              <motion.div 
-                                initial={{ opacity: 0, x: -20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: 0.1 + (i * 0.1) }}
+                              <div 
                                 key={i}
                                 className="flex gap-4"
                               >
@@ -178,7 +165,7 @@ export function AIShowcaseSection() {
                                   <h4 className="font-bold text-white text-base">{item.title}</h4>
                                   {item.desc && <p className="text-white/50 text-sm">{item.desc}</p>}
                                 </div>
-                              </motion.div>
+                              </div>
                             ))}
                           </div>
 
@@ -217,10 +204,7 @@ export function AIShowcaseSection() {
                                 </div>
                               </div>
                               
-                              <motion.div 
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 1 }}
+                              <div 
                                 className="flex gap-3 flex-row-reverse"
                               >
                                 <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex-shrink-0 flex items-center justify-center">
@@ -229,12 +213,9 @@ export function AIShowcaseSection() {
                                 <div className="bg-emerald-600/20 p-3 rounded-2xl rounded-tr-none max-w-[85%] text-sm text-white/90 border border-emerald-500/20">
                                   {t('landingShowcase_visitor_userMsg1')}
                                 </div>
-                              </motion.div>
+                              </div>
 
-                              <motion.div 
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 2.5 }}
+                              <div 
                                 className="flex gap-3"
                               >
                                 <div className="w-8 h-8 rounded-full bg-blue-500/20 flex-shrink-0 flex items-center justify-center">
@@ -248,19 +229,16 @@ export function AIShowcaseSection() {
                                     <li>{t('landingShowcase_visitor_aiResponseBullet3')}</li>
                                   </ul>
                                 </div>
-                              </motion.div>
+                              </div>
                               
                               {/* Typing Indicator */}
-                              <motion.div 
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: [0, 1, 0] }}
-                                transition={{ duration: 2, repeat: Infinity, delay: 4 }}
+                              <div 
                                 className="flex gap-2 ml-11"
                               >
                                  <span className="w-1.5 h-1.5 bg-white/30 rounded-full" />
                                  <span className="w-1.5 h-1.5 bg-white/30 rounded-full" />
                                  <span className="w-1.5 h-1.5 bg-white/30 rounded-full" />
-                              </motion.div>
+                              </div>
                             </div>
 
                             {/* Chat Footer */}
@@ -346,10 +324,7 @@ export function AIShowcaseSection() {
                          </div>
 
                          {/* AI Sidebar (Right) - Slide In Animation */}
-                         <motion.div 
-                           initial={{ x: 100, opacity: 0 }}
-                           animate={{ x: 0, opacity: 1 }}
-                           transition={{ type: 'spring', damping: 20, delay: 0.5 }}
+                         <div 
                            className="w-full lg:w-96 bg-[#151a18] border-t lg:border-t-0 lg:border-l border-emerald-500/20 shadow-[-20px_0_50px_rgba(0,0,0,0.5)] flex flex-col relative lg:absolute lg:right-0 lg:inset-y-0 z-20 h-[400px] lg:h-auto"
                          >
                             <div className="p-4 border-b border-white/5 flex items-center gap-2 bg-emerald-900/10">
@@ -362,10 +337,7 @@ export function AIShowcaseSection() {
                                 <div className="self-end bg-emerald-600/20 border border-emerald-500/20 text-white/90 text-sm p-3 rounded-2xl rounded-tr-none max-w-[90%]">
                                    {t('landingShowcase_merchant_userMsg1')}
                                 </div>
-                                <motion.div 
-                                  initial={{ opacity: 0, scale: 0.95 }}
-                                  animate={{ opacity: 1, scale: 1 }}
-                                  transition={{ delay: 1.5 }}
+                                <div 
                                   className="self-start bg-white/5 border border-white/10 text-white/80 text-sm p-4 rounded-2xl rounded-tl-none w-full"
                                 >
                                    <div className="flex items-center gap-2 mb-2">
@@ -376,7 +348,7 @@ export function AIShowcaseSection() {
                                     <div className="mt-2 text-xs bg-white/5 p-2 rounded border border-white/5">
                                       {t('landingShowcase_merchant_aiResponse2', { percent: 23 })}
                                     </div>
-                                </motion.div>
+                                </div>
                               </div>
                             </div>
 
@@ -389,20 +361,17 @@ export function AIShowcaseSection() {
                                     { icon: Users, text: t('landingShowcase_merchant_suggested2') },
                                     { icon: HelpCircle, text: t('landingShowcase_merchant_suggested3') },
                                   ].map((item, idx) => (
-                                     <motion.button 
-                                       initial={{ opacity: 0, x: 20 }}
-                                       animate={{ opacity: 1, x: 0 }}
-                                       transition={{ delay: 2 + (idx * 0.2) }}
+                                     <button 
                                        key={idx}
                                        className="w-full flex items-center gap-3 p-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/5 transition-colors text-left"
                                      >
                                         <item.icon className="w-4 h-4 text-emerald-500" />
                                         <span className="text-xs text-white/70">{item.text}</span>
-                                     </motion.button>
+                                     </button>
                                   ))}
                                </div>
                             </div>
-                         </motion.div>
+                         </div>
                       </div>
                    </div>
                  )}
@@ -445,10 +414,7 @@ export function AIShowcaseSection() {
                       </div>
 
                       {/* Floating Chat Widget */}
-                      <motion.div 
-                        initial={{ opacity: 0, y: 50, scale: 0.9 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        transition={{ delay: 0.5, type: 'spring' }}
+                      <div 
                         className="absolute bottom-4 right-4 w-[calc(100%-32px)] md:w-80 bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden flex flex-col z-20"
                       >
                          <div className="bg-indigo-600 p-3 flex items-center gap-2 text-white">
@@ -456,18 +422,12 @@ export function AIShowcaseSection() {
                             <span className="font-bold text-sm">{t('landingShowcase_customer_assistantName')}</span>
                          </div>
                          <div className="h-64 bg-gray-50 p-4 flex flex-col overflow-y-auto space-y-3">
-                            <motion.div 
-                               initial={{ opacity: 0, x: 20 }}
-                               animate={{ opacity: 1, x: 0 }}
-                               transition={{ delay: 1 }}
+                            <div 
                                className="self-end bg-indigo-100 text-indigo-900 text-xs p-3 rounded-xl rounded-br-none max-w-[85%]"
                             >
                                {t('landingShowcase_customer_userMsg1')}
-                            </motion.div>
-                            <motion.div 
-                               initial={{ opacity: 0, x: -20 }}
-                               animate={{ opacity: 1, x: 0 }}
-                               transition={{ delay: 2.5 }}
+                            </div>
+                            <div 
                                className="self-start bg-white border border-gray-200 text-gray-800 text-xs p-3 rounded-xl rounded-bl-none shadow-sm max-w-[90%]"
                             >
                                <p className="mb-2">{t('landingShowcase_customer_aiResponse1')}</p>
@@ -485,9 +445,9 @@ export function AIShowcaseSection() {
                                   <button className="px-3 py-1 bg-indigo-600 text-white rounded-full text-[10px] whitespace-nowrap">{t('landingShowcase_customer_yes')}</button>
                                   <button className="px-3 py-1 bg-gray-200 text-gray-600 rounded-full text-[10px] whitespace-nowrap">{t('landingShowcase_customer_otherColor')}</button>
                                 </div>
-                            </motion.div>
+                            </div>
                          </div>
-                      </motion.div>
+                      </div>
 
                       {/* Capabilities Overlay (Left Side) */}
                       <div className="absolute bottom-6 left-6 max-w-xs space-y-2 hidden lg:block">
@@ -495,23 +455,20 @@ export function AIShowcaseSection() {
                            {t('landingShowcase_customer_canAsk')}
                          </div>
                          {[t('landingShowcase_customer_ask1'), t('landingShowcase_customer_ask2'), t('landingShowcase_customer_ask3')].map((q, i) => (
-                            <motion.div 
+                            <div 
                               key={i}
-                              initial={{ opacity: 0, x: -20 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              transition={{ delay: 3 + (i * 0.2) }}
                               className="bg-white/90 backdrop-blur border border-white/20 p-2 rounded-lg text-xs font-medium text-gray-800 shadow-lg flex items-center gap-2"
                             >
                                <MessageSquare className="w-3 h-3 text-indigo-500" />
                                {q}
-                            </motion.div>
+                            </div>
                          ))}
                       </div>
                    </div>
                  )}
 
-              </motion.div>
-            </AnimatePresence>
+              </div>
+            
           </div>
         </div>
 

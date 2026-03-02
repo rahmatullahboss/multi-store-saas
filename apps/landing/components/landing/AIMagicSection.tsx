@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { Bot, Palette, ShoppingBag, Moon, Sun, Bell, ArrowRight } from 'lucide-react';
 import { useTranslation } from '@/app/contexts/LanguageContext';
 import { useIsMobile } from '@/hooks/useIsMobile';
@@ -43,13 +42,9 @@ export function AIMagicSection() {
   return (
     <section className="relative py-24 overflow-hidden bg-[#0A0F0D]">
       {/* Background Ambience */}
-      <motion.div 
-        animate={{ opacity: isNight ? 0.2 : 0 }}
-        className="absolute inset-0 bg-blue-900/20 pointer-events-none transition-opacity duration-1000"
+      <div className="absolute inset-0 bg-blue-900/20 pointer-events-none transition-opacity duration-1000"
       />
-      <motion.div 
-        animate={{ opacity: isNight ? 0 : 0.2 }}
-        className="absolute inset-0 bg-orange-500/10 pointer-events-none transition-opacity duration-1000"
+      <div className="absolute inset-0 bg-orange-500/10 pointer-events-none transition-opacity duration-1000"
       />
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -108,28 +103,21 @@ export function AIMagicSection() {
            {/* Top Info Bar (Time & Status) */}
            <div className="absolute top-0 inset-x-0 h-16 bg-black/40 border-b border-white/5 backdrop-blur-md flex items-center justify-between px-6 z-20">
               <div className="flex items-center gap-3">
-                 <motion.div 
-                   animate={{ rotate: isNight ? 0 : 180, scale: isNight ? 1 : 0 }}
-                   className="absolute"
+                 <div className="absolute"
                  >
                     <Moon className="w-6 h-6 text-blue-300 fill-blue-300 drop-shadow-[0_0_10px_rgba(147,197,253,0.5)]" />
-                 </motion.div>
-                 <motion.div 
-                   animate={{ rotate: isNight ? -180 : 0, scale: isNight ? 0 : 1 }}
-                   className=""
+                 </div>
+                 <div className=""
                  >
                     <Sun className="w-6 h-6 text-orange-400 fill-orange-400 drop-shadow-[0_0_15px_rgba(251,146,60,0.5)]" />
-                 </motion.div>
+                 </div>
                  
                  <div className="ml-8 border-l border-white/10 pl-4 flex flex-col justify-center">
-                    <motion.div 
-                       key={isNight ? 'night' : 'day'}
-                       initial={{ y: 10, opacity: 0 }}
-                       animate={{ y: 0, opacity: 1 }}
-                       className="font-mono text-xl text-white font-bold"
+                    <div 
+                       key={isNight ? 'night' : 'day'} className="font-mono text-xl text-white font-bold"
                     >
                        {isNight ? t('landingMagic_nightTime') : t('landingMagic_morningTime')}
-                    </motion.div>
+                    </div>
                     <div className="text-xs text-white/50 font-medium">
                        {isNight ? t('landingMagic_sleeping') : t('landingMagic_morning')}
                     </div>
@@ -139,13 +127,11 @@ export function AIMagicSection() {
               <div className="flex items-center gap-4">
                  <div className="text-right">
                     <div className="text-xs text-white/40 uppercase">{t('landingMagic_totalSales')}</div>
-                    <motion.div 
-                       key={step >= 2 ? 'sales-up' : 'sales-flat'}
-                       animate={{ scale: step >= 2 ? [1, 1.2, 1] : 1, color: step >= 2 ? '#34D399' : '#ffffff' }}
-                       className="text-lg font-bold font-mono"
+                    <div 
+                       key={step >= 2 ? 'sales-up' : 'sales-flat'} className="text-lg font-bold font-mono"
                     >
                        {step >= 2 ? t('landingMagic_salesValueUp') : t('landingMagic_salesValueFlat')}
-                    </motion.div>
+                    </div>
                  </div>
               </div>
            </div>
@@ -166,40 +152,29 @@ export function AIMagicSection() {
                           <span className="text-[10px] text-emerald-400">{t('landingMagic_chatOnline')}</span>
                        </div>
 
-                       <AnimatePresence>
+                       
                           {/* Customer Msg */}
                           {step >= 1 && (
-                            <motion.div
-                              key="customer-msg"
-                              initial={{ opacity: 0, x: -20, scale: 0.9 }}
-                              animate={{ opacity: 1, x: 0, scale: 1 }}
-                              className="self-start bg-white/10 text-white text-xs p-3 rounded-2xl rounded-tl-none max-w-[85%]"
+                            <div
+                              key="customer-msg" className="self-start bg-white/10 text-white text-xs p-3 rounded-2xl rounded-tl-none max-w-[85%]"
                             >
                               {t('landingMagic_chatUserMsg')}
-                            </motion.div>
+                            </div>
                           )}
 
                           {/* AI Reply */}
                           {step >= 2 && (
-                            <motion.div
-                              key="ai-reply"
-                              initial={{ opacity: 0, x: 20, scale: 0.9 }}
-                              animate={{ opacity: 1, x: 0, scale: 1 }}
-                              transition={{ delay: 0.5 }}
-                              className="self-end bg-emerald-600/20 border border-emerald-500/20 text-white text-xs p-3 rounded-2xl rounded-tr-none max-w-[90%]"
+                            <div
+                              key="ai-reply" className="self-end bg-emerald-600/20 border border-emerald-500/20 text-white text-xs p-3 rounded-2xl rounded-tr-none max-w-[90%]"
                             >
                               {t('landingMagic_chatAiMsg')}
-                            </motion.div>
+                            </div>
                           )}
                           
                           {/* Product Card */}
                           {step >= 2 && (
-                            <motion.div
-                              key="product-card"
-                              initial={{ opacity: 0, y: 10 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              transition={{ delay: 1 }}
-                              className="self-end w-48 bg-[#0A0F0D] border border-white/10 rounded-xl overflow-hidden"
+                            <div
+                              key="product-card" className="self-end w-48 bg-[#0A0F0D] border border-white/10 rounded-xl overflow-hidden"
                             >
                               <div className="h-20 bg-emerald-900/20 flex items-center justify-center">
                                 <ShoppingBag className="w-8 h-8 text-emerald-500/50" />
@@ -209,9 +184,9 @@ export function AIMagicSection() {
                                 <div className="text-[10px] text-white/40">{t('landingMagic_productDetails')}</div>
                                 <div className="mt-2 text-center bg-emerald-500 text-black text-[10px] font-bold py-1 rounded">{t('landingMagic_productConfirmed')}</div>
                               </div>
-                            </motion.div>
+                            </div>
                           )}
-                        </AnimatePresence>
+                        
                     </div>
                  </div>
               </div>
@@ -232,12 +207,9 @@ export function AIMagicSection() {
 
                         {/* Notification Stack */}
                         <div className="absolute top-48 inset-x-4 space-y-2 z-10">
-                           <AnimatePresence>
+                           
                               {step >= 3 && (
-                                <motion.div key="notification"
-                                   initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                                   animate={{ opacity: 1, y: 0, scale: 1 }}
-                                   className="bg-white/90 backdrop-blur-md rounded-2xl p-4 shadow-lg text-black"
+                                <div key="notification" className="bg-white/90 backdrop-blur-md rounded-2xl p-4 shadow-lg text-black"
                                 >
                                    <div className="flex items-center gap-2 mb-2">
                                       <div className="w-5 h-5 bg-[#006A4E] rounded-md flex items-center justify-center">
@@ -249,9 +221,9 @@ export function AIMagicSection() {
                                    <p className="text-xs text-gray-600 mt-1">
                                       {t('landingMagic_notificationDesc')}
                                    </p>
-                                </motion.div>
+                                </div>
                               )}
-                           </AnimatePresence>
+                           
                         </div>
                         
                         <div className="absolute bottom-4 left-0 right-0 flex justify-center">
@@ -264,14 +236,11 @@ export function AIMagicSection() {
 
            {/* Caption */}
            <div className="absolute bottom-6 inset-x-0 text-center z-20">
-              <motion.div 
-                 key={isNight ? 'night-cap' : 'day-cap'}
-                 initial={{ opacity: 0 }}
-                 animate={{ opacity: 1 }}
-                 className="inline-block px-6 py-2 bg-black/60 backdrop-blur border border-white/10 rounded-full text-white/80 text-sm font-medium"
+              <div 
+                 key={isNight ? 'night-cap' : 'day-cap'} className="inline-block px-6 py-2 bg-black/60 backdrop-blur border border-white/10 rounded-full text-white/80 text-sm font-medium"
               >
                  {isNight ? t('landingMagic_captionSleepAi') : t('landingMagic_captionMorningReport')}
-              </motion.div>
+              </div>
            </div>
 
         </div>

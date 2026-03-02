@@ -1,10 +1,25 @@
 import { useRef } from 'react';
-import { motion, useInView } from 'framer-motion';
 import { Users, Shield, Lock, CheckCircle2, UserPlus } from 'lucide-react';
+
+// Simple IntersectionObserver-based useInView (replaces framer-motion)
+function useInViewSimple(ref: React.RefObject<Element | null>, options?: { once?: boolean; margin?: string }) {
+  const [inView, setInView] = React.useState(false);
+  React.useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    if (!('IntersectionObserver' in window)) { setInView(true); return; }
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) { setInView(true); if (options?.once !== false) observer.disconnect(); }
+    }, { rootMargin: options?.margin || '0px' });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+  return inView;
+}
 
 export function TeamManagementSection() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const isInView = useInView(containerRef, { once: true, margin: "-10% 0px" });
+  const isInView = useInViewSimple(containerRef);
 
   const roles = [
     { name: 'Owner', icon: '👑', access: 'Full Access (All Control)' },
@@ -38,11 +53,7 @@ export function TeamManagementSection() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           {/* Dashboard Visual */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={isInView ? { opacity: 1, scale: 1 } : {}}
-            transition={{ duration: 0.6 }}
-            className="bg-gray-900 border border-gray-800 rounded-3xl p-6 lg:p-10 shadow-2xl"
+          <div className="bg-gray-900 border border-gray-800 rounded-3xl p-6 lg:p-10 shadow-2xl"
           >
             <div className="flex items-center justify-between mb-8">
                <h3 className="text-xl font-bold text-white">Team Members</h3>
@@ -101,24 +112,20 @@ export function TeamManagementSection() {
                  </p>
                </div>
             </div>
-          </motion.div>
+          </div>
 
           {/* Features List & Matrix */}
           <div className="space-y-10">
             {/* Roles Grid */}
             <div className="grid grid-cols-2 gap-4">
                {roles.map((role, idx) => (
-                 <motion.div
-                   key={idx}
-                   initial={{ opacity: 0, y: 10 }}
-                   animate={isInView ? { opacity: 1, y: 0 } : {}}
-                   transition={{ delay: 0.2 + (idx * 0.1) }}
-                   className="bg-gray-800/50 p-4 rounded-xl border border-gray-700 hover:border-indigo-500/30 transition-colors"
+                 <div
+                   key={idx} className="bg-gray-800/50 p-4 rounded-xl border border-gray-700 hover:border-indigo-500/30 transition-colors"
                  >
                    <div className="text-2xl mb-2">{role.icon}</div>
                    <h4 className="text-white font-bold text-sm mb-1">{role.name}</h4>
                    <p className="text-xs text-gray-400">{role.access}</p>
-                 </motion.div>
+                 </div>
                ))}
             </div>
 

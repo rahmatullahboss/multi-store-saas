@@ -1,10 +1,25 @@
 import { useRef } from 'react';
-import { motion, useInView } from 'framer-motion';
 import { Layers, Zap } from 'lucide-react';
+
+// Simple IntersectionObserver-based useInView (replaces framer-motion)
+function useInViewSimple(ref: React.RefObject<Element | null>, options?: { once?: boolean; margin?: string }) {
+  const [inView, setInView] = React.useState(false);
+  React.useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    if (!('IntersectionObserver' in window)) { setInView(true); return; }
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) { setInView(true); if (options?.once !== false) observer.disconnect(); }
+    }, { rootMargin: options?.margin || '0px' });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+  return inView;
+}
 
 export function UnifiedCommunicationHub() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const isInView = useInView(containerRef, { once: true, margin: "-10% 0px" });
+  const isInView = useInViewSimple(containerRef);
 
   const channels = [
     { name: 'WhatsApp', icon: '📱', color: 'bg-green-500' },
@@ -35,11 +50,7 @@ export function UnifiedCommunicationHub() {
         <div className="relative h-[500px] flex items-center justify-center">
             
             {/* Center Hub */}
-            <motion.div
-              initial={{ scale: 0.5, opacity: 0 }}
-              animate={isInView ? { scale: 1, opacity: 1 } : {}}
-              transition={{ duration: 0.8, type: "spring" }}
-              className="z-20 bg-gray-900 border border-gray-700 w-48 h-48 rounded-full flex flex-col items-center justify-center shadow-[0_0_50px_rgba(59,130,246,0.3)] relative"
+            <div className="z-20 bg-gray-900 border border-gray-700 w-48 h-48 rounded-full flex flex-col items-center justify-center shadow-[0_0_50px_rgba(59,130,246,0.3)] relative"
             >
                <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center text-white mb-3 shadow-lg">
                   <Zap className="w-8 h-8 fill-white" />
@@ -48,9 +59,9 @@ export function UnifiedCommunicationHub() {
                <p className="text-xs text-gray-500">Central Control</p>
 
                {/* Radiating Circles Animation */}
-               <div className="absolute inset-0 border border-blue-500/30 rounded-full animate-ping opacity-20" style={{ animationDuration: '3s' }} />
-               <div className="absolute -inset-4 border border-purple-500/20 rounded-full animate-pulse" />
-            </motion.div>
+               <div className="absolute inset-0 border border-blue-500/30 rounded-full -ping opacity-20" style={{ animationDuration: '3s' }} />
+               <div className="absolute -inset-4 border border-purple-500/20 rounded-full -pulse" />
+            </div>
 
             {/* Orbiting Channels */}
             {channels.map((channel, idx) => {
@@ -61,18 +72,11 @@ export function UnifiedCommunicationHub() {
               const y = Math.sin(angle) * radius;
 
               return (
-                <motion.div
-                  key={idx}
-                  initial={{ opacity: 0, x: 0, y: 0 }}
-                  animate={isInView ? { opacity: 1, x, y } : {}}
-                  transition={{ delay: 0.5 + (idx * 0.1), duration: 0.8, type: "spring" }}
-                  className="absolute z-10 hidden md:flex flex-col items-center"
+                <div
+                  key={idx} className="absolute z-10 hidden md:flex flex-col items-center"
                 >
                    {/* Connecting Line */}
-                   <motion.div 
-                     initial={{ height: 0 }}
-                     animate={isInView ? { height: radius - 60 } : {}} 
-                     className="absolute top-1/2 left-1/2 w-0.5 bg-gradient-to-b from-gray-700 to-transparent -z-10 origin-top"
+                   <div className="absolute top-1/2 left-1/2 w-0.5 bg-gradient-to-b from-gray-700 to-transparent -z-10 origin-top"
                      style={{ 
                        transform: `rotate(${idx * 90 + 90}deg) translateY(24px)`,
                        height: '100px' // Visual line (simplified, actual drawing lines in CSS/SVG is better but this works for simple viz)
@@ -85,7 +89,7 @@ export function UnifiedCommunicationHub() {
                       </div>
                       <span className="text-white font-semibold text-sm">{channel.name}</span>
                    </div>
-                </motion.div>
+                </div>
               );
             })}
             

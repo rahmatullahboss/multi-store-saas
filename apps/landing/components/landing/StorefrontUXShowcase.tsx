@@ -1,4 +1,3 @@
-import { motion } from 'framer-motion';
 import { 
   Smartphone, Zap, ShoppingCart, Star, 
   Search, Heart, ArrowRight,
@@ -21,14 +20,11 @@ export function StorefrontUXShowcase() {
 
       <div className="max-w-7xl mx-auto px-4 md:px-6 relative z-10">
         <div className="text-center mb-16">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-500/10 border border-purple-500/20 mb-6"
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-500/10 border border-purple-500/20 mb-6"
           >
             <Sparkles className="w-4 h-4 text-purple-500" />
             <span className="text-sm font-medium text-purple-400">Customer Experience</span>
-          </motion.div>
+          </div>
           <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">
             কাস্টমারের শপিং হোক বিরামহীন,<br />
             <span className="text-purple-500">Premium UX</span> এ বিজনেস হোক রঙিন!
@@ -43,10 +39,7 @@ export function StorefrontUXShowcase() {
           {/* Left: Mobile UX Mockup */}
           <div className="relative">
             {/* Phone Mockup 1: Product Listing */}
-            <motion.div
-              initial={{ opacity: 0, x: -40, rotate: -5 }}
-              whileInView={{ opacity: 1, x: 0, rotate: -5 }}
-              className="relative z-10 w-[260px] h-[520px] bg-[#121212] rounded-[2.5rem] border-8 border-white/10 shadow-2xl overflow-hidden hidden md:block"
+            <div className="relative z-10 w-[260px] h-[520px] bg-[#121212] rounded-[2.5rem] border-8 border-white/10 shadow-2xl overflow-hidden hidden md:block"
             >
                <div className="h-full flex flex-col pt-8">
                   <div className="px-5 mb-6">
@@ -65,24 +58,18 @@ export function StorefrontUXShowcase() {
                      ))}
                   </div>
                </div>
-            </motion.div>
+            </div>
 
             {/* Phone Mockup 2: Product Detail (Center) */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              className="relative z-20 mx-auto lg:mx-0 lg:absolute lg:top-1/2 lg:-translate-y-1/2 lg:left-32 w-[280px] h-[580px] bg-white rounded-[2.5rem] border-8 border-gray-100 shadow-2xl overflow-hidden"
+            <div className="relative z-20 mx-auto lg:mx-0 lg:absolute lg:top-1/2 lg:-translate-y-1/2 lg:left-32 w-[280px] h-[580px] bg-white rounded-[2.5rem] border-8 border-gray-100 shadow-2xl overflow-hidden"
             >
                <div className="h-full flex flex-col">
                   <div className="h-64 bg-gray-100 flex items-center justify-center relative">
                      <div className="w-40 h-40 bg-gray-200 rounded-2xl rotate-12" />
-                     <motion.div 
-                        animate={{ scale: [1, 1.2, 1], opacity: [0.5, 0.8, 0.5] }}
-                        transition={{ duration: 2, repeat: Infinity }}
-                        className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center"
+                     <div className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center"
                      >
                         <Heart className="w-5 h-5 text-red-500" />
-                     </motion.div>
+                     </div>
                   </div>
                   <div className="p-6">
                      <div className="flex items-center gap-1 mb-2">
@@ -105,13 +92,10 @@ export function StorefrontUXShowcase() {
                      </button>
                   </div>
                </div>
-            </motion.div>
+            </div>
 
             {/* Floating UI Elements */}
-            <motion.div 
-               animate={{ x: [0, 10, 0] }}
-               transition={{ duration: 4, repeat: Infinity }}
-               className="absolute -right-4 top-1/4 z-30 p-4 rounded-2xl bg-white shadow-2xl border border-gray-100 hidden lg:block"
+            <div className="absolute -right-4 top-1/4 z-30 p-4 rounded-2xl bg-white shadow-2xl border border-gray-100 hidden lg:block"
             >
                <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center"><Zap className="w-4 h-4 text-emerald-600" /></div>
@@ -120,26 +104,22 @@ export function StorefrontUXShowcase() {
                      <p className="text-gray-400 text-[10px]">Optimized for mobile</p>
                   </div>
                </div>
-            </motion.div>
+            </div>
           </div>
 
           {/* Right: Feature Content */}
           <div className="space-y-12">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                {uxFeatures.map((feature, i) => (
-                 <motion.div
-                   key={i}
-                   initial={{ opacity: 0, y: 20 }}
-                   whileInView={{ opacity: 1, y: 0 }}
-                   transition={{ delay: i * 0.1 }}
-                   className="p-6 rounded-2xl bg-white/5 border border-white/5 hover:border-purple-500/30 transition-all group"
+                 <div
+                   key={i} className="p-6 rounded-2xl bg-white/5 border border-white/5 hover:border-purple-500/30 transition-all group"
                  >
                     <div className="w-12 h-12 bg-purple-500/10 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                        <feature.icon className="w-6 h-6 text-purple-500" />
                     </div>
                     <h4 className="text-white font-bold mb-2">{feature.title}</h4>
                     <p className="text-gray-500 text-sm leading-relaxed">{feature.desc}</p>
-                 </motion.div>
+                 </div>
                ))}
             </div>
 
@@ -157,16 +137,13 @@ export function StorefrontUXShowcase() {
                </div>
             </div>
 
-            <motion.div 
-               initial={{ opacity: 0 }}
-               whileInView={{ opacity: 1 }}
-               className="flex items-center gap-4 text-gray-500"
+            <div className="flex items-center gap-4 text-gray-500"
             >
                <div className="flex -space-x-3">
                   {[1,2,3,4].map(i => <div key={i} className="w-10 h-10 rounded-full border-2 border-[#0A0A0F] bg-gray-800" />)}
                </div>
                <p className="text-sm font-medium">৫০০+ স্টোর মালিকদের পছন্দের প্ল্যাটফর্ম</p>
-            </motion.div>
+            </div>
           </div>
 
         </div>

@@ -1,8 +1,8 @@
-export const R2_BASE_URL = process.env.NEXT_PUBLIC_R2_ASSETS_URL;
+export const R2_BASE_URL = process.env.R2_ASSETS_URL;
 
 if (!R2_BASE_URL) {
   console.warn(
-    'Warning: NEXT_PUBLIC_R2_ASSETS_URL is missing. Assets may not load.'
+    'Warning: R2_ASSETS_URL is missing. Assets may not load.'
   );
 }
 

@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { Zap, Check, Bot, Send, Sparkles } from 'lucide-react';
 import { useTranslation } from '@/app/contexts/LanguageContext';
 
@@ -14,8 +13,6 @@ export function VisitorAIShowcase() {
     { text: t('landingOzzylChat_suggestPricing'), action: 2 },
     { text: t('landingOzzylChat_suggestHowToStart'), action: 3 }
   ];
-
-
 
   // Override AI responses for better demo flow if needed, but using existing keys is better for consistency
   const getAIResponse = (action: number) => {
@@ -62,14 +59,12 @@ export function VisitorAIShowcase() {
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-16">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
+          <div
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 mb-6"
           >
             <Sparkles className="w-4 h-4 text-emerald-400" />
             <span className="text-sm font-medium text-emerald-300">{t('landingVisitorAi_newFeature')}</span>
-          </motion.div>
+          </div>
           
           <h2 className="text-4xl md:text-5xl font-bold text-white mb-6 leading-relaxed py-2">
             {t('landingVisitorAi_askAiTitle')}
@@ -90,11 +85,8 @@ export function VisitorAIShowcase() {
               { title: t('landingVisitorAi_feature3Title'), desc: t('landingVisitorAi_feature3Desc') },
               { title: t('landingVisitorAi_feature4Title'), desc: t('landingVisitorAi_feature4Desc') },
             ].map((item, i) => (
-              <motion.div 
+              <div 
                 key={i}
-                initial={{ opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.1 }}
                 className="flex gap-4 group"
               >
                 <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center group-hover:bg-emerald-500/10 group-hover:border-emerald-500/30 transition-colors">
@@ -104,13 +96,10 @@ export function VisitorAIShowcase() {
                   <h3 className="text-xl font-bold text-white mb-1">{item.title}</h3>
                   <p className="text-white/50">{item.desc}</p>
                 </div>
-              </motion.div>
+              </div>
             ))}
             
-            <motion.div
-               initial={{ opacity: 0 }}
-               whileInView={{ opacity: 1 }}
-               transition={{ delay: 0.5 }}
+            <div
                className="pt-8"
             >
               <div className="inline-block p-4 rounded-xl bg-gradient-to-r from-emerald-900/40 to-cyan-900/40 border border-white/10">
@@ -119,16 +108,14 @@ export function VisitorAIShowcase() {
                   {t('landingVisitorAi_saveSalesCostDesc')}
                 </p>
               </div>
-            </motion.div>
+            </div>
           </div>
 
           {/* RIGHT: Chat Demo */}
           <div className="w-full lg:w-7/12 relative">
             <div className="absolute inset-0 bg-emerald-500/20 blur-[100px] rounded-full opacity-30" />
             
-            <motion.div 
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
+            <div 
               className="relative bg-[#111] border border-white/10 rounded-2xl overflow-hidden shadow-2xl shadow-black/50 h-[600px] flex flex-col"
             >
               {/* Chat Header */}
@@ -147,12 +134,10 @@ export function VisitorAIShowcase() {
 
               {/* Chat Area */}
               <div className="flex-1 p-6 overflow-y-auto space-y-4 scrollbar-hide">
-                <AnimatePresence mode='popLayout'>
+                
                   {messages.map((msg) => (
-                    <motion.div
+                    <div
                       key={msg.id}
-                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
                       className={`flex ${msg.role === 'ai' ? 'justify-start' : 'justify-end'}`}
                     >
                       <div 
@@ -164,13 +149,11 @@ export function VisitorAIShowcase() {
                       >
                          {msg.text}
                       </div>
-                    </motion.div>
+                    </div>
                   ))}
                   
                   {isTyping && (
-                    <motion.div 
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
+                    <div 
                       className="flex justify-start"
                     >
                        <div className="bg-white/10 p-3 rounded-2xl rounded-tl-none flex gap-1.5 items-center">
@@ -178,9 +161,9 @@ export function VisitorAIShowcase() {
                          <span className="w-1.5 h-1.5 bg-white/40 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}/>
                          <span className="w-1.5 h-1.5 bg-white/40 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}/>
                        </div>
-                    </motion.div>
+                    </div>
                   )}
-                </AnimatePresence>
+                
                 <div className="h-4" /> 
               </div>
 
@@ -208,7 +191,7 @@ export function VisitorAIShowcase() {
                 </div>
               </div>
 
-            </motion.div>
+            </div>
           </div>
           
         </div>

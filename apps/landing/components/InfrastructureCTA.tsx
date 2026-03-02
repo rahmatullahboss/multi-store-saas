@@ -1,5 +1,3 @@
-'use client';
-
 /**
  * Infrastructure CTA Section
  *
@@ -8,7 +6,6 @@
  */
 
 import { useRef } from 'react';
-import Link from 'next/link';
 import { ArrowRight, Sparkles, Zap, Shield, Globe, Clock, type LucideIcon } from 'lucide-react';
 import { useTranslation } from '@/app/contexts/LanguageContext';
 import { useInView } from '@/hooks/useInView';
@@ -61,18 +58,18 @@ export function InfrastructureCTA() {
     >
       {/* Animated background elements */}
       <div
-        className="absolute top-0 left-0 w-96 h-96 rounded-full blur-3xl animate-float-x"
+        className="absolute top-0 left-0 w-96 h-96 rounded-full blur-3xl -float-x"
         style={{ background: `${COLORS.primary}20` }}
       />
       <div
-        className="absolute bottom-0 right-0 w-96 h-96 rounded-full blur-3xl animate-float-reverse"
+        className="absolute bottom-0 right-0 w-96 h-96 rounded-full blur-3xl -float-reverse"
         style={{ background: `${COLORS.cyan}20` }}
       />
 
       <div className="relative z-10 max-w-4xl mx-auto px-6 text-center">
         {/* Sparkle badge */}
         <div
-          className={`inline-flex items-center gap-2 px-4 py-2 rounded-full mb-8 animate-fade-in-up ${
+          className={`inline-flex items-center gap-2 px-4 py-2 rounded-full mb-8 -fade-in-up ${
             isInView ? 'opacity-100' : 'opacity-0'
           }`}
           style={{
@@ -93,7 +90,7 @@ export function InfrastructureCTA() {
 
         {/* Main headline */}
         <h2
-          className={`text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-6 animate-fade-in-up ${
+          className={`text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-6 -fade-in-up ${
             isInView ? 'opacity-100' : 'opacity-0'
           }`}
           style={{ fontFamily: "'Noto Sans Bengali', 'Inter', sans-serif" }}
@@ -110,14 +107,14 @@ export function InfrastructureCTA() {
           —
           <br />
           {t('infraCtaTitlePart3')}{' '}
-          <span className="inline-block animate-glow-text" style={{ color: COLORS.accent }}>
+          <span className="inline-block -glow-text" style={{ color: COLORS.accent }}>
             FREE!
           </span>
         </h2>
 
         {/* Subheadline */}
         <p
-          className={`text-lg md:text-xl mb-8 max-w-2xl mx-auto animate-fade-in-up ${
+          className={`text-lg md:text-xl mb-8 max-w-2xl mx-auto -fade-in-up ${
             isInView ? 'opacity-100' : 'opacity-0'
           }`}
           style={{ color: COLORS.textMuted, fontFamily: "'Noto Sans Bengali', sans-serif" }}
@@ -127,7 +124,7 @@ export function InfrastructureCTA() {
 
         {/* Benefit pills */}
         <div
-          className={`flex flex-wrap justify-center gap-3 mb-10 animate-fade-in-up ${
+          className={`flex flex-wrap justify-center gap-3 mb-10 -fade-in-up ${
             isInView ? 'opacity-100' : 'opacity-0'
           }`}
         >
@@ -139,14 +136,13 @@ export function InfrastructureCTA() {
 
         {/* CTA Buttons */}
         <div
-          className={`flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in-up ${
+          className={`flex flex-col sm:flex-row items-center justify-center gap-4 -fade-in-up ${
             isInView ? 'opacity-100' : 'opacity-0'
           }`}
         >
           {/* Primary CTA */}
           <div className="transition-transform duration-200 hover:scale-[1.03] active:scale-[0.98]">
-            <Link
-              href="https://app.ozzyl.com/auth/register"
+            <a href="https://app.ozzyl.com/auth/register"
               className="group relative inline-flex items-center gap-3 px-8 py-4 rounded-xl font-bold text-lg overflow-hidden"
               style={{
                 background: `linear-gradient(135deg, ${COLORS.primary} 0%, ${COLORS.primaryLight} 100%)`,
@@ -155,7 +151,7 @@ export function InfrastructureCTA() {
             >
               {/* Glow animation */}
               <div
-                className="absolute inset-0 animate-glow"
+                className="absolute inset-0 -glow"
                 style={{
                   background: `linear-gradient(135deg, ${COLORS.primaryLight} 0%, ${COLORS.accent} 100%)`,
                 }}
@@ -167,16 +163,15 @@ export function InfrastructureCTA() {
               >
                 {t('infraCtaPrimary')}
               </span>
-              <span className="relative animate-nudge-x">
+              <span className="relative -nudge-x">
                 <ArrowRight className="w-5 h-5 text-white" />
               </span>
-            </Link>
+            </a>
           </div>
 
           {/* Secondary CTA */}
           <div className="transition-transform duration-200 hover:scale-[1.02]">
-            <Link
-              href="#demo"
+            <a href="#demo"
               className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-medium text-white/80 hover:text-white transition-colors"
               style={{
                 background: 'rgba(255,255,255,0.05)',
@@ -186,13 +181,13 @@ export function InfrastructureCTA() {
               <span style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}>
                 {t('infraCtaSecondary')}
               </span>
-            </Link>
+            </a>
           </div>
         </div>
 
         {/* Trust line */}
         <p
-          className={`text-sm mt-8 animate-fade-in ${isInView ? 'opacity-100' : 'opacity-0'}`}
+          className={`text-sm mt-8 -fade-in ${isInView ? 'opacity-100' : 'opacity-0'}`}
           style={{ color: COLORS.textMuted }}
         >
           ✓ {t('heroTrust1')} &nbsp;•&nbsp; ✓ {t('heroDemoReady')} &nbsp;•&nbsp; ✓{' '}

@@ -1,5 +1,3 @@
-'use client';
-
 /**
  * Customer Benefits Section - UI/UX Pro Max
  * 
@@ -12,7 +10,6 @@
  * - Glass morphism cards with backdrop-blur
  */
 
-import { motion, useInView } from 'framer-motion';
 import { useRef, useState, useEffect } from 'react';
 import { 
   Chrome, Shield, Zap, Heart, Star, User, 
@@ -20,6 +17,22 @@ import {
   Sparkles, ArrowRight, Gift, Mail, Bell
 } from 'lucide-react';
 import { useTranslation } from '@/app/contexts/LanguageContext';
+
+// Simple IntersectionObserver-based useInView (replaces framer-motion)
+function useInViewSimple(ref: React.RefObject<Element | null>, options?: { once?: boolean; margin?: string }) {
+  const [inView, setInView] = React.useState(false);
+  React.useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    if (!('IntersectionObserver' in window)) { setInView(true); return; }
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) { setInView(true); if (options?.once !== false) observer.disconnect(); }
+    }, { rootMargin: options?.margin || '0px' });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+  return inView;
+}
 
 // ============================================================================
 // DESIGN TOKENS
@@ -52,13 +65,10 @@ const GoogleSignInHeroCard = () => {
   }, []);
 
   return (
-    <motion.div
+    <div
       className="group relative h-full p-8 md:p-10 rounded-[32px] overflow-hidden border border-white/10"
       style={{ backgroundColor: COLORS.card }}
-      whileHover={{ scale: 1.01 }}
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
+      
     >
       {/* Background Effects */}
       <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-transparent to-emerald-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
@@ -116,10 +126,8 @@ const GoogleSignInHeroCard = () => {
                 </div>
 
                 {/* Google Sign-in Button (Highlighted) */}
-                <motion.button
+                <button
                   className="w-full relative overflow-hidden"
-                  animate={isAnimating ? { scale: [1, 1.02, 1] } : {}}
-                  transition={{ duration: 0.6 }}
                 >
                   <div className="relative z-10 flex items-center justify-center gap-3 px-6 py-3.5 bg-white rounded-xl hover:bg-white/95 transition-colors border border-white/20 shadow-lg">
                     <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -135,33 +143,28 @@ const GoogleSignInHeroCard = () => {
                   
                   {/* Pulse effect when animating */}
                   {isAnimating && (
-                    <motion.div
+                    <div
                       className="absolute inset-0 border-2 border-blue-400 rounded-xl"
-                      initial={{ opacity: 1, scale: 1 }}
-                      animate={{ opacity: 0, scale: 1.1 }}
-                      transition={{ duration: 1 }}
+                      
                     />
                   )}
-                </motion.button>
+                </button>
 
                 {/* Success Checkmarks */}
-                <motion.div
+                <div
                   className="flex items-center gap-2 text-emerald-400 text-xs"
-                  initial={{ opacity: 0, y: 5 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3 }}
+                  
                 >
                   <CheckCircle2 className="w-4 h-4" />
                   <span className="font-bengali">নিরাপদ ও দ্রুত লগইন</span>
-                </motion.div>
+                </div>
               </div>
             </div>
 
             {/* Floating Stats */}
-            <motion.div
+            <div
               className="absolute -right-4 top-1/4 bg-blue-500/20 backdrop-blur-xl border border-blue-500/30 rounded-2xl p-3 shadow-xl"
-              animate={{ y: [0, -10, 0] }}
-              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+              
             >
               <div className="flex items-center gap-2">
                 <Zap className="w-4 h-4 text-blue-400" />
@@ -170,12 +173,11 @@ const GoogleSignInHeroCard = () => {
                   <div className="text-white/50 text-xs font-bengali">লগইন সময়</div>
                 </div>
               </div>
-            </motion.div>
+            </div>
 
-            <motion.div
+            <div
               className="absolute -left-4 bottom-1/4 bg-emerald-500/20 backdrop-blur-xl border border-emerald-500/30 rounded-2xl p-3 shadow-xl"
-              animate={{ y: [0, 10, 0] }}
-              transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
+              
             >
               <div className="flex items-center gap-2">
                 <Shield className="w-4 h-4 text-emerald-400" />
@@ -184,7 +186,7 @@ const GoogleSignInHeroCard = () => {
                   <div className="text-white/50 text-xs font-bengali">নিরাপদ</div>
                 </div>
               </div>
-            </motion.div>
+            </div>
           </div>
         </div>
 
@@ -196,23 +198,21 @@ const GoogleSignInHeroCard = () => {
             { icon: User, text: 'কোনো পাসওয়ার্ড মনে রাখার দরকার নেই' },
             { icon: Heart, text: 'বিশ্বস্ত ও সহজ' },
           ].map((feature, i) => (
-            <motion.div
+            <div
               key={i}
               className="flex items-center gap-2 p-2 rounded-lg bg-white/5 border border-white/5"
-              initial={{ opacity: 0, y: 10 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.1 * i }}
+              
+              
             >
               <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
                 <feature.icon className="w-4 h-4 text-blue-400" />
               </div>
               <span className="text-xs text-white/70 font-bengali font-medium">{feature.text}</span>
-            </motion.div>
+            </div>
           ))}
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 };
 
@@ -232,14 +232,11 @@ const BenefitCard = ({
   accentColor?: string;
   delay?: number;
 }) => (
-  <motion.div
+  <div
     className="group relative p-6 rounded-[24px] border border-white/10 overflow-hidden"
     style={{ backgroundColor: COLORS.card }}
-    whileHover={{ scale: 1.02, y: -4 }}
-    initial={{ opacity: 0, y: 20 }}
-    whileInView={{ opacity: 1, y: 0 }}
-    viewport={{ once: true }}
-    transition={{ delay }}
+    
+    
   >
     {/* Hover gradient */}
     <div 
@@ -271,7 +268,7 @@ const BenefitCard = ({
       <h4 className="text-lg font-bold text-white mb-2 font-bengali">{title}</h4>
       <p className="text-white/60 text-sm leading-relaxed font-bengali">{description}</p>
     </div>
-  </motion.div>
+  </div>
 );
 
 // ============================================================================
@@ -280,7 +277,7 @@ const BenefitCard = ({
 export function CustomerBenefitsSection() {
   const { t } = useTranslation();
   const sectionRef = useRef<HTMLDivElement>(null);
-  const isInView = useInView(sectionRef, { once: true, margin: '-10%' });
+  const isInView = useInViewSimple(sectionRef);
 
   const benefits = [
     {
@@ -325,11 +322,9 @@ export function CustomerBenefitsSection() {
 
       <div className="max-w-7xl mx-auto relative z-10">
         {/* Section Header */}
-        <motion.div
+        <div
           className="text-center mb-16"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
+          
         >
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 mb-6 backdrop-blur-sm">
             <Heart className="w-4 h-4 text-blue-400" />
@@ -347,7 +342,7 @@ export function CustomerBenefitsSection() {
           <p className="text-white/60 text-lg max-w-2xl mx-auto font-bengali">
             {t('customerBenefits_subtitle') || 'Google Sign-in সহ আধুনিক ফিচার যা আপনার কাস্টমারদের শপিং অভিজ্ঞতা করবে সহজ ও আনন্দদায়ক'}
           </p>
-        </motion.div>
+        </div>
 
         {/* Layout Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -372,12 +367,10 @@ export function CustomerBenefitsSection() {
         </div>
 
         {/* CTA */}
-        <motion.div
+        <div
           className="text-center mt-16"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.5 }}
+          
+          
         >
           <a
             href="https://app.ozzyl.com/auth/register"
@@ -389,7 +382,7 @@ export function CustomerBenefitsSection() {
           <p className="text-white/40 text-sm mt-4 font-bengali">
             {t('customerBenefits_cta_subtitle') || 'কোনো ক্রেডিট কার্ড লাগবে না • ৭ দিনের ফ্রি ট্রায়াল'}
           </p>
-        </motion.div>
+        </div>
       </div>
     </section>
   );

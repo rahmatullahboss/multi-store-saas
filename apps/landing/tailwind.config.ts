@@ -1,26 +1,18 @@
 import type { Config } from 'tailwindcss';
 
-const config: Config = {
-  content: [
-    './pages/**/*.{js,ts,jsx,tsx,mdx}',
-    './components/**/*.{js,ts,jsx,tsx,mdx}',
-    './app/**/*.{js,ts,jsx,tsx,mdx}',
-  ],
+export default {
+  content: ['./app/**/*.{js,jsx,ts,tsx}', './components/**/*.{js,jsx,ts,tsx}'],
   theme: {
     extend: {
-      colors: {
-        background: 'var(--background)',
-        foreground: 'var(--foreground)',
-      },
       fontFamily: {
-        sans: ['var(--font-inter)', 'sans-serif'],
-        display: ['var(--font-outfit)', 'sans-serif'],
-        jakarta: ['var(--font-jakarta)', 'sans-serif'],
-        space: ['var(--font-space)', 'sans-serif'],
+        inter: ['Inter', 'sans-serif'],
+        outfit: ['Outfit', 'sans-serif'],
+        jakarta: ['Plus Jakarta Sans', 'sans-serif'],
+        space: ['Space Grotesk', 'sans-serif'],
+        display: ['Outfit', 'sans-serif'],
+        bengali: ['Outfit', 'sans-serif'],
       },
     },
   },
   plugins: [],
-};
-
-export default config;
+} satisfies Config;

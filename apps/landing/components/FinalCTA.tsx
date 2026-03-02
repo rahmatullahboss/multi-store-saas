@@ -1,5 +1,3 @@
-'use client';
-
 /**
  * Final CTA Section - "আজই শুরু করুন, Future Build করুন"
  *
@@ -14,7 +12,6 @@
  */
 
 import { useState, useEffect, useRef } from 'react';
-import Link from 'next/link';
 import { ArrowRight, Check, Phone, Mail, Bell, Sparkles, Diamond } from 'lucide-react';
 import { useTranslation } from '@/app/contexts/LanguageContext';
 import { useInView } from '@/hooks/useInView';
@@ -31,8 +28,6 @@ const COLORS = {
   blue: '#3B82F6',
 };
 
-
-
 // ============================================================================
 // GLOWING CTA BUTTON
 // ============================================================================
@@ -42,15 +37,14 @@ const GlowingCTAButton = () => {
     <div className="relative inline-block transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98]">
       {/* Outer glow */}
       <div
-        className="absolute -inset-1 rounded-2xl blur-xl opacity-60 animate-glow"
+        className="absolute -inset-1 rounded-2xl blur-xl opacity-60 -glow"
         style={{
           background: `linear-gradient(135deg, ${COLORS.primary}, ${COLORS.primaryLight}, ${COLORS.accent})`,
         }}
       />
 
       {/* Button */}
-      <Link
-        href="https://app.ozzyl.com/auth/register"
+      <a href="https://app.ozzyl.com/auth/register"
         className="relative flex items-center gap-3 px-10 py-5 bg-gradient-to-r from-[#006A4E] to-[#00875F] text-white font-bold text-xl rounded-2xl shadow-2xl transition-all duration-300 hover:shadow-[#006A4E]/50"
         style={{
           boxShadow: `0 0 40px ${COLORS.primary}40`,
@@ -62,7 +56,7 @@ const GlowingCTAButton = () => {
         <span className="animate-nudge-x">
           <ArrowRight className="w-6 h-6" />
         </span>
-      </Link>
+      </a>
     </div>
   );
 };
@@ -83,7 +77,7 @@ const TrustBadges = () => {
       {badges.map((badge, i) => (
         <div
           key={i}
-          className="flex items-center gap-2 text-white/60 text-sm animate-fade-in-up"
+          className="flex items-center gap-2 text-white/60 text-sm -fade-in-up"
           style={{ animationDelay: `${0.2 + i * 0.1}s` }}
         >
           <badge.icon className="w-4 h-4 text-[#006A4E]" />
@@ -151,7 +145,7 @@ export function FinalCTA({ stats }: FinalCTAProps) {
       <div className="absolute inset-0">
         {/* Gradient orb - top left */}
         <div
-          className="absolute -top-1/4 -left-1/4 w-[600px] h-[600px] rounded-full animate-float-x"
+          className="absolute -top-1/4 -left-1/4 w-[600px] h-[600px] rounded-full -float-x"
           style={{
             background: `radial-gradient(circle, ${COLORS.primary}20 0%, transparent 70%)`,
           }}
@@ -159,7 +153,7 @@ export function FinalCTA({ stats }: FinalCTAProps) {
 
         {/* Gradient orb - bottom right */}
         <div
-          className="absolute -bottom-1/4 -right-1/4 w-[500px] h-[500px] rounded-full animate-float-reverse"
+          className="absolute -bottom-1/4 -right-1/4 w-[500px] h-[500px] rounded-full -float-reverse"
           style={{
             background: `radial-gradient(circle, ${COLORS.violet}15 0%, transparent 70%)`,
           }}
@@ -181,7 +175,7 @@ export function FinalCTA({ stats }: FinalCTAProps) {
 
         {/* Main Headline */}
         <h2
-          className={`text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-8 animate-fade-in-up ${isInView ? 'opacity-100' : 'opacity-0'
+          className={`text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-8 -fade-in-up ${isInView ? 'opacity-100' : 'opacity-0'
             }`}
           style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}
         >
@@ -199,7 +193,7 @@ export function FinalCTA({ stats }: FinalCTAProps) {
 
         {/* Mission Statement Card */}
         <div
-          className={`bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-3xl p-8 mb-10 animate-fade-in-up ${isInView ? 'opacity-100' : 'opacity-0'
+          className={`bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-3xl p-8 mb-10 -fade-in-up ${isInView ? 'opacity-100' : 'opacity-0'
             }`}
         >
           <p
@@ -218,7 +212,7 @@ export function FinalCTA({ stats }: FinalCTAProps) {
 
         {/* Main CTA Button */}
         <div
-          className={`mb-4 animate-fade-in-up ${isInView ? 'opacity-100' : 'opacity-0'}`}
+          className={`mb-4 -fade-in-up ${isInView ? 'opacity-100' : 'opacity-0'}`}
         >
           <GlowingCTAButton />
         </div>
@@ -235,24 +229,22 @@ export function FinalCTA({ stats }: FinalCTAProps) {
 
         {/* Secondary CTAs */}
         <div
-          className={`flex flex-wrap justify-center gap-4 mb-12 animate-fade-in-up ${isInView ? 'opacity-100' : 'opacity-0'
+          className={`flex flex-wrap justify-center gap-4 mb-12 -fade-in-up ${isInView ? 'opacity-100' : 'opacity-0'
             }`}
         >
-          <Link
-            href="mailto:hello@ozzyl.com"
+          <a href="mailto:hello@ozzyl.com"
             className="group flex items-center gap-2 px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-xl text-white/70 hover:text-white transition-all duration-300"
           >
             <Mail className="w-4 h-4" />
             <span>📧 {t('finalCtaSecondaryCall')}</span>
-          </Link>
+          </a>
 
-          <Link
-            href="/contact"
+          <a href="/contact"
             className="group flex items-center gap-2 px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-xl text-white/70 hover:text-white transition-all duration-300"
           >
             <Mail className="w-4 h-4" />
             <span>📧 {t('finalCtaSecondaryMail')}</span>
-          </Link>
+          </a>
         </div>
 
       </div>

@@ -1,5 +1,3 @@
-'use client';
-
 /**
  * UI/UX Pro Max - Pricing Section
  *
@@ -7,9 +5,7 @@
  * Visualizes the massive value provided vs the low cost.
  */
 
-import { motion } from 'framer-motion';
 import { useState } from 'react';
-import Link from 'next/link';
 import {
   Check,
   Sparkles,
@@ -45,11 +41,7 @@ const ValueItem = ({
 }) => {
   const { lang } = useTranslation();
   return (
-    <motion.div
-      initial={{ opacity: 0, x: -20 }}
-      whileInView={{ opacity: 1, x: 0 }}
-      viewport={{ once: true }}
-      transition={{ delay, duration: 0.5 }}
+    <div
       className="flex items-center justify-between p-4 rounded-xl mb-3 border backdrop-blur-md relative overflow-hidden group"
       style={{
         backgroundColor: 'rgba(255, 255, 255, 0.03)',
@@ -83,7 +75,7 @@ const ValueItem = ({
           {lang === 'bn' ? 'প্রতি মাস' : 'Per Month'}
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 };
 
@@ -124,8 +116,7 @@ const PricingCard = ({ plan, isAnnual }: { plan: Plan; isAnnual: boolean }) => {
       : formatPrice(price).replace('.00', '');
 
   return (
-    <motion.div
-      whileHover={{ y: -8 }}
+    <div
       className={`relative p-8 rounded-[32px] border h-full flex flex-col ${
         isPopular
           ? 'bg-gradient-to-b from-[#1E293B] to-[#0F172A] border-emerald-500/50 shadow-2xl shadow-emerald-900/20'
@@ -191,8 +182,7 @@ const PricingCard = ({ plan, isAnnual }: { plan: Plan; isAnnual: boolean }) => {
       </div>
 
       {/* CTA Button */}
-      <Link
-        href={plan.href}
+      <a href={plan.href}
         className={`w-full py-4 rounded-2xl font-bold text-sm transition-all relative z-10 group overflow-hidden flex items-center justify-center ${
           isPopular
             ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-black shadow-lg hover:shadow-emerald-500/25'
@@ -206,8 +196,8 @@ const PricingCard = ({ plan, isAnnual }: { plan: Plan; isAnnual: boolean }) => {
         {isPopular && (
           <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
         )}
-      </Link>
-    </motion.div>
+      </a>
+    </div>
   );
 };
 
@@ -393,47 +383,33 @@ export function PricingSection() {
       <div className="max-w-7xl mx-auto relative z-10">
         {/* Header */}
         <div className="text-center mb-20">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+          <div
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 mb-6 backdrop-blur-sm"
           >
             <Zap className="w-4 h-4 text-emerald-400" />
             <span className="text-sm font-medium text-emerald-300">{TEXT.headerTag}</span>
-          </motion.div>
+          </div>
 
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.1 }}
+          <h2
             className={`text-3xl md:text-5xl font-bold text-white mb-6 ${lang === 'bn' ? 'font-bengali' : ''}`}
           >
             {TEXT.headerTitle}{' '}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">
               {TEXT.headerHighlight}
             </span>
-          </motion.h2>
+          </h2>
 
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.2 }}
+          <p
             className="text-white/60 max-w-2xl mx-auto text-lg"
           >
             {TEXT.headerDesc}
-          </motion.p>
+          </p>
         </div>
 
         {/* Value Comparison / Value Stack */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-24 mb-24 items-center">
           {/* Left: The PROBLEM (High Cost Elsewhere) */}
-          <motion.div
-            initial={{ opacity: 0, x: -30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
+          <div
             className="relative"
           >
             <div className="absolute -left-10 top-1/2 -translate-y-1/2 w-1 h-3/4 bg-red-500/20 rounded-full hidden md:block" />
@@ -456,13 +432,10 @@ export function PricingSection() {
                 </div>
               </div>
             </div>
-          </motion.div>
+          </div>
 
           {/* Right: The SOLUTION (Our Offer) */}
-          <motion.div
-            initial={{ opacity: 0, x: 30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
+          <div
             className="relative p-8 rounded-[40px] border border-emerald-500/30 bg-gradient-to-br from-emerald-900/10 to-teal-900/10 backdrop-blur-md overflow-hidden"
           >
             {/* Background Beams */}
@@ -501,7 +474,7 @@ export function PricingSection() {
                 </div>
               </div>
             </div>
-          </motion.div>
+          </div>
         </div>
 
         {/* Toggle (Monthly / Annual) */}
@@ -530,31 +503,24 @@ export function PricingSection() {
         {/* Pricing Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch pt-4">
           {plans.map((plan, idx) => (
-            <motion.div
+            <div
               key={idx}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.1 * idx }}
               className="h-full"
             >
               <PricingCard plan={plan} isAnnual={isAnnual} />
-            </motion.div>
+            </div>
           ))}
         </div>
 
         {/* Guarantee Banner */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true }}
+        <div
           className="mt-20 max-w-3xl mx-auto text-center"
         >
           <div className="inline-flex items-center gap-3 px-6 py-3 rounded-2xl bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border border-emerald-500/20">
             <Shield className="w-5 h-5 text-emerald-400" />
             <span className="text-sm font-medium text-emerald-100">{TEXT.guarantee}</span>
           </div>
-        </motion.div>
+        </div>
       </div>
     </section>
   );

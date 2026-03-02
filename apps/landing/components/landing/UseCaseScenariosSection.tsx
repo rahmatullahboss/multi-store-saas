@@ -1,8 +1,6 @@
 import { useRef } from 'react';
-import { motion, useScroll, useTransform } from 'framer-motion';
 import { useTranslation } from '@/app/contexts/LanguageContext';
 import { Shirt, Utensils, Laptop, ShoppingBag, ArrowRight, Check } from 'lucide-react';
-import Link from 'next/link';
 
 export function UseCaseScenariosSection() {
   const { lang } = useTranslation();
@@ -11,8 +9,6 @@ export function UseCaseScenariosSection() {
     target: containerRef,
     offset: ["start end", "end start"]
   });
-
-  const opacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0, 1, 1, 0]);
 
   const TEXT = {
     en: {
@@ -100,20 +96,15 @@ export function UseCaseScenariosSection() {
       <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-5" />
 
       <div className="max-w-7xl mx-auto px-4 relative z-10">
-        <motion.div style={{ opacity }} className="text-center mb-16">
+        <div style={{ opacity }} className="text-center mb-16">
           <h2 className="text-3xl md:text-5xl font-bold text-white mb-4">{TEXT.title}</h2>
           <p className="text-white/60 text-lg max-w-2xl mx-auto">{TEXT.subtitle}</p>
-        </motion.div>
+        </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           {TEXT.cases.map((item, i) => (
-            <motion.div
-              key={item.id}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: i * 0.1 }}
-              viewport={{ once: true }}
-              className="group relative bg-white/[0.03] hover:bg-white/[0.05] border border-white/10 rounded-2xl p-6 transition-colors duration-300"
+            <div
+              key={item.id} className="group relative bg-white/[0.03] hover:bg-white/[0.05] border border-white/10 rounded-2xl p-6 transition-colors duration-300"
             >
               <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${item.color} flex items-center justify-center mb-6 shadow-lg`}>
                 <item.icon className="w-6 h-6 text-white" />
@@ -135,13 +126,12 @@ export function UseCaseScenariosSection() {
                 ))}
               </ul>
 
-              <Link 
-                href={`/templates?category=${item.id}`}
+              <a href={`/templates?category=${item.id}`}
                 className="inline-flex items-center gap-2 text-sm font-medium text-white/40 hover:text-white transition-colors group-hover:translate-x-1 duration-300"
               >
                 {TEXT.cta} <ArrowRight className="w-4 h-4" />
-              </Link>
-            </motion.div>
+              </a>
+            </div>
           ))}
         </div>
       </div>

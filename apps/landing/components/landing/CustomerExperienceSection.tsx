@@ -1,4 +1,3 @@
-import { motion, AnimatePresence } from 'framer-motion';
 import { Star, MessageSquareQuote, CheckCircle2, ThumbsUp, RotateCcw, Wallet, ArrowRightLeft } from 'lucide-react';
 import { useState, useEffect, type ComponentType } from 'react';
 
@@ -53,13 +52,13 @@ export function CustomerExperienceSection() {
           
           {/* Visual Side: Review Cards Stack Or Returns Portal */}
           <div className="relative h-[500px] flex items-center justify-center perspective-[1000px]">
-             <AnimatePresence mode='wait'>
+             
                 {activeTab === 'reviews' ? (
                    <ReviewsVisual key="reviews" reviews={REVIEWS} activeReview={activeReview} />
                 ) : (
                    <ReturnsVisual key="returns" />
                 )}
-             </AnimatePresence>
+             
           </div>
 
           {/* Text Content */}
@@ -87,10 +86,8 @@ export function CustomerExperienceSection() {
                </button>
             </div>
 
-            <motion.div
+            <div
               key={activeTab}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
               className="mb-6"
             >
                {activeTab === 'reviews' ? (
@@ -114,8 +111,7 @@ export function CustomerExperienceSection() {
                     </p>
                  </>
                )}
-            </motion.div>
-
+            </div>
 
             <div className="grid sm:grid-cols-2 gap-4">
               {activeTab === 'reviews' ? (
@@ -159,7 +155,6 @@ export function CustomerExperienceSection() {
 
 // --- Visual Components ---
 
-
 interface Review {
   id: number;
   user: string;
@@ -173,7 +168,7 @@ interface Review {
 
 function ReviewsVisual({ reviews, activeReview }: { reviews: Review[], activeReview: number }) {
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="relative w-full h-full flex items-center justify-center">
+    <div className="relative w-full h-full flex items-center justify-center">
         {/* Background Glow */}
         <div className="absolute inset-0 bg-yellow-500/10 blur-[100px] rounded-full pointer-events-none mix-blend-screen" />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-gradient-to-r from-yellow-500/20 to-orange-500/20 rounded-full blur-[80px] animate-pulse" />
@@ -183,19 +178,11 @@ function ReviewsVisual({ reviews, activeReview }: { reviews: Review[], activeRev
           const offset = (i - activeReview + reviews.length) % reviews.length;
           
           return (
-            <motion.div
+            <div
               key={review.id}
               className={`absolute w-full max-w-md p-6 rounded-[24px] shadow-2xl backdrop-blur-xl border border-white/10 transition-all duration-700 ${
                 isActive ? 'bg-white/[0.05] border-yellow-500/30' : 'bg-white/[0.02]'
               }`}
-              animate={{
-                y: offset * 30 - (isActive ? 30 : 0),
-                scale: isActive ? 1.05 : 0.9 - offset * 0.05,
-                zIndex: reviews.length - offset,
-                opacity: isActive ? 1 : 0.4 - offset * 0.1,
-                rotateX: isActive ? 0 : 5,
-              }}
-              transition={{ duration: 0.6, type: "spring", stiffness: 100 }}
               style={{
                 transformStyle: 'preserve-3d',
                 boxShadow: isActive ? '0 25px 50px -12px rgba(234, 179, 8, 0.15)' : 'none'
@@ -244,7 +231,7 @@ function ReviewsVisual({ reviews, activeReview }: { reviews: Review[], activeRev
                           review.product.includes('Saree') ? "https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=100&h=100&fit=crop&fm=webp&q=80" :
                           review.product.includes('Earbuds') ? "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=100&h=100&fit=crop&fm=webp&q=80" :
                           "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=100&h=100&fit=crop&fm=webp&q=80"
-                      } 
+                      }
                       className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
                       loading="lazy" 
                       alt={review.product} 
@@ -256,16 +243,16 @@ function ReviewsVisual({ reviews, activeReview }: { reviews: Review[], activeRev
                   <ThumbsUp className="w-3 h-3" /> <span className="font-mono">{review.likes}</span>
                 </div>
               </div>
-            </motion.div>
+            </div>
           );
         })}
-    </motion.div>
+    </div>
   )
 }
 
 function ReturnsVisual() {
   return (
-    <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="relative w-full max-w-sm">
+    <div className="relative w-full max-w-sm">
         {/* Phone Mockup or Portal Card */}
         <div className="bg-[#0F1419] border border-white/10 rounded-[32px] overflow-hidden shadow-2xl relative">
             <div className="h-10 bg-[#151a21] border-b border-white/5 flex items-center justify-center text-xs text-white/40 font-mono">
@@ -319,7 +306,7 @@ function ReturnsVisual() {
                </button>
             </div>
         </div>
-    </motion.div>
+    </div>
   )
 }
 
@@ -337,8 +324,7 @@ function FeatureBox({ icon: Icon, title, desc, color }: FeatureBoxProps) {
   }
   
   return (
-    <motion.div 
-      whileHover={{ y: -5, backgroundColor: 'rgba(255, 255, 255, 0.05)' }}
+    <div 
       className="bg-white/[0.02] border border-white/5 rounded-2xl p-6 transition-all duration-300 group hover:border-white/10 hover:shadow-lg"
     >
       <div className={`w-12 h-12 rounded-xl bg-gradient-to-br border flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 ${colors[color].replace('group-hover:text-yellow-400', '').replace('group-hover:text-red-400', '')}`}>
@@ -346,6 +332,6 @@ function FeatureBox({ icon: Icon, title, desc, color }: FeatureBoxProps) {
       </div>
       <h4 className={`text-white font-bold mb-2 transition-colors ${color === 'yellow' ? 'group-hover:text-yellow-400' : 'group-hover:text-red-400'}`}>{title}</h4>
       <p className="text-sm text-gray-400 leading-relaxed group-hover:text-gray-300">{desc}</p>
-    </motion.div>
+    </div>
   );
 }

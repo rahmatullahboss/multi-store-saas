@@ -91,7 +91,7 @@ export function CountdownTimer({
         <p className="text-gray-600 font-medium">{finalExpiredText}</p>
       </div>
     );
-  }
+}
 
   // Compact variant - single line
   if (variant === 'compact') {
@@ -105,7 +105,7 @@ export function CountdownTimer({
         </span>
       </div>
     );
-  }
+}
 
   // Banner variant - full width
   if (variant === 'banner') {
@@ -138,7 +138,7 @@ export function CountdownTimer({
         </div>
       </div>
     );
-  }
+}
 
   // Default variant - boxes
   return (
@@ -178,7 +178,6 @@ export function CountdownTimer({
       </div>
     </div>
   );
-}
 
 /**
  * Stock Counter Component
@@ -250,7 +249,6 @@ export function StockCounter({
       )}
     </div>
   );
-}
 
 /**
  * Social Proof Popup Component

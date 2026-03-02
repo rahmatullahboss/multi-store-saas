@@ -1,36 +1,6 @@
-# Dependencies
 node_modules
-.pnp
-.pnp.js
-
-# Build output
-.next
-out
-dist
-build
-
-# Testing
-coverage
-
-# Misc
-.DS_Store
-*.pem
-
-# Debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Local env files
-.env
-.env*.local
-
-# Vercel
-.vercel
-
-# TypeScript
-*.tsbuildinfo
-next-env.d.ts
-
-# Turbopack
-.turbo
+/.cache
+/build
+/.env
+.dev.vars
+.wrangler

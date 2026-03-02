@@ -1,5 +1,3 @@
-'use client';
-
 /**
  * Scalability Showcase Section
  * 
@@ -13,7 +11,6 @@
  */
 
 import { useState, useEffect, useRef } from 'react';
-import { motion, useInView, useAnimation } from 'framer-motion';
 import { 
   Server, 
   Activity, 
@@ -26,6 +23,22 @@ import {
   XCircle
 } from 'lucide-react';
 import { ScrollReveal } from '@/components/animations';
+
+// Simple IntersectionObserver-based useInView (replaces framer-motion)
+function useInViewSimple(ref: React.RefObject<Element | null>, options?: { once?: boolean; margin?: string }) {
+  const [inView, setInView] = React.useState(false);
+  React.useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    if (!('IntersectionObserver' in window)) { setInView(true); return; }
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) { setInView(true); if (options?.once !== false) observer.disconnect(); }
+    }, { rootMargin: options?.margin || '0px' });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+  return inView;
+}
 
 // ============================================================================
 // DESIGN TOKENS
@@ -81,16 +94,15 @@ const TrafficGraph = ({ isOzzyl, isStressTest }: { isOzzyl: boolean; isStressTes
         if (!isOzzyl && isStressTest && height < 10) color = COLORS.danger; // Crashed
         
         return (
-          <motion.div
+          <div
             key={i}
             className="flex-1 rounded-t-sm min-w-[4px]"
-            initial={{ height: `${height}%` }}
-            animate={{ 
+            style={{
               height: `${height}%`,
               backgroundColor: color,
               opacity: (!isOzzyl && isStressTest && height < 10) ? 0.5 : 1
             }}
-            transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+            
           />
         );
       })}
@@ -104,7 +116,7 @@ const TrafficGraph = ({ isOzzyl, isStressTest }: { isOzzyl: boolean; isStressTes
 export function ScalabilityShowcase() {
   const [isStressTest, setIsStressTest] = useState(false);
   const containerRef = useRef(null);
-  const isInView = useInView(containerRef, { once: true, margin: "-100px" });
+  const isInView = useInViewSimple(containerRef);
 
   // Auto-start stress test when in view
   useEffect(() => {
@@ -124,17 +136,14 @@ export function ScalabilityShowcase() {
         {/* Header */}
         <ScrollReveal>
           <div className="text-center mb-16">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
+            <div
               className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#006A4E]/30 bg-[#006A4E]/10 backdrop-blur-sm mb-6"
             >
               <Activity className="w-4 h-4 text-[#10B981]" />
               <span className="text-sm font-bold text-[#10B981] uppercase tracking-wider">
                 Unbeatable Reliability
               </span>
-            </motion.div>
+            </div>
 
             <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6" style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}>
               আনলিমিটেড ট্রাফিক? <span className="text-[#10B981]">নো টেনশন!</span>
@@ -149,11 +158,7 @@ export function ScalabilityShowcase() {
         <div className="grid md:grid-cols-2 gap-8 lg:gap-12 items-stretch">
           
           {/* TRADITIONAL HOSTING CARD */}
-          <motion.div
-            initial={{ opacity: 0, x: -50 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
+          <div
             className="rounded-3xl border border-white/5 bg-white/[0.02] overflow-hidden relative group"
           >
             {/* Status Bar */}
@@ -196,16 +201,13 @@ export function ScalabilityShowcase() {
                 
                 {/* Crash Overlay */}
                 {isStressTest && (
-                  <motion.div 
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: [0, 1, 0, 1] }}
-                    transition={{ repeat: Infinity, duration: 2 }}
+                  <div 
                     className="absolute inset-0 flex items-center justify-center bg-red-500/10 backdrop-blur-[2px]"
                   >
                     <div className="bg-red-500/20 border border-red-500/50 px-4 py-2 rounded text-red-400 font-mono text-xs font-bold">
                       SERVER OVERLOAD
                     </div>
-                  </motion.div>
+                  </div>
                 )}
               </div>
 
@@ -230,15 +232,10 @@ export function ScalabilityShowcase() {
             {isStressTest && (
               <div className="absolute inset-0 border-2 border-red-500/20 rounded-3xl pointer-events-none animate-pulse" />
             )}
-          </motion.div>
-
+          </div>
 
           {/* OZZYL SCALABLE CARD */}
-          <motion.div
-            initial={{ opacity: 0, x: 50 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
+          <div
             className="rounded-3xl border border-[#10B981]/30 bg-gradient-to-b from-[#10B981]/5 to-transparent overflow-hidden relative shadow-[0_0_50px_-20px_rgba(16,185,129,0.2)]"
           >
             {/* Status Bar */}
@@ -294,16 +291,12 @@ export function ScalabilityShowcase() {
                 </li>
               </ul>
             </div>
-          </motion.div>
+          </div>
 
         </div>
 
         {/* CTA Banner */}
-        <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.5 }}
+        <div
             className="mt-16 text-center"
         >
              <button
@@ -319,7 +312,7 @@ export function ScalabilityShowcase() {
             <p className="mt-4 text-sm text-white/30">
                Click to simulate unlimited traffic load
             </p>
-        </motion.div>
+        </div>
 
       </div>
     </section>

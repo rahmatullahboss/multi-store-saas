@@ -1,5 +1,3 @@
-'use client';
-
 /**
  * Trust Section - স্বচ্ছতাই আমাদের শক্তি
  *
@@ -13,9 +11,7 @@
  * 4. Public Roadmap - Transparent progress tracking
  */
 
-import { motion, AnimatePresence } from 'framer-motion';
 import { useEffect, useState, useRef } from 'react';
-import Link from 'next/link';
 import {
   Mail,
   MessageCircle,
@@ -136,19 +132,12 @@ const AnimatedNumber = ({
 // ============================================================================
 const FoundersMessage = () => {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 40 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-100px' }}
-      transition={{ duration: 0.8 }}
+    <div
       className="relative"
     >
       {/* Section Header */}
       <div className="text-center mb-12">
-        <motion.span
-          initial={{ opacity: 0, scale: 0.9 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true }}
+        <span
           className="inline-block px-4 py-1.5 rounded-full text-sm font-medium mb-4"
           style={{
             background: `${COLORS.primary}15`,
@@ -157,7 +146,7 @@ const FoundersMessage = () => {
           }}
         >
           💬 Founder এর কথা
-        </motion.span>
+        </span>
         <h2
           className="text-3xl md:text-4xl font-bold text-white mb-4"
           style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}
@@ -195,11 +184,7 @@ const FoundersMessage = () => {
 
         <div className="relative flex flex-col lg:flex-row items-center lg:items-start gap-8 lg:gap-12">
           {/* Founder Photo */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.2 }}
+          <div
             className="relative flex-shrink-0"
           >
             <div
@@ -232,15 +217,11 @@ const FoundersMessage = () => {
                 Founder & Developer
               </p>
             </div>
-          </motion.div>
+          </div>
 
           {/* Message Content */}
           <div className="flex-1 text-center lg:text-left">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.3 }}
+            <div
               className="space-y-4"
               style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}
             >
@@ -270,14 +251,10 @@ const FoundersMessage = () => {
                 🤝 <span className="text-white">Early Adopter</span> রা আমাদের সাথে Product Build
                 করার সুযোগ পাবেন। আপনার Feedback সরাসরি Feature হবে।
               </p>
-            </motion.div>
+            </div>
 
             {/* Contact Options */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.4 }}
+            <div
               className="flex flex-wrap justify-center lg:justify-start gap-3 mt-8"
             >
               <a
@@ -341,11 +318,11 @@ const FoundersMessage = () => {
                   Support Call
                 </span>
               </a>
-            </motion.div>
+            </div>
           </div>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 };
 
@@ -410,19 +387,12 @@ const LiveTransparencyDashboard = ({ stats }: { stats?: LiveStats }) => {
   ];
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 40 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-100px' }}
-      transition={{ duration: 0.8 }}
+    <div
       className="mt-20"
     >
       {/* Section Header */}
       <div className="text-center mb-12">
-        <motion.span
-          initial={{ opacity: 0, scale: 0.9 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true }}
+        <span
           className="inline-block px-4 py-1.5 rounded-full text-sm font-medium mb-4"
           style={{
             background: `${COLORS.primary}15`,
@@ -431,7 +401,7 @@ const LiveTransparencyDashboard = ({ stats }: { stats?: LiveStats }) => {
           }}
         >
           📊 Live Stats
-        </motion.span>
+        </span>
         <h2
           className="text-3xl md:text-4xl font-bold text-white mb-4"
           style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}
@@ -455,13 +425,8 @@ const LiveTransparencyDashboard = ({ stats }: { stats?: LiveStats }) => {
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {statItems.map((stat, index) => (
-          <motion.div
+          <div
             key={stat.label}
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: index * 0.1 }}
-            whileHover={{ y: -4, transition: { duration: 0.2 } }}
             className="relative overflow-hidden rounded-2xl p-6 text-center"
             style={{
               background: `linear-gradient(135deg, ${COLORS.backgroundCard}, ${stat.color}08)`,
@@ -471,18 +436,14 @@ const LiveTransparencyDashboard = ({ stats }: { stats?: LiveStats }) => {
             }}
           >
             {/* Pulse Animation */}
-            <AnimatePresence>
+            
               {stat.isPulsing && (
-                <motion.div
-                  initial={{ scale: 0, opacity: 0.5 }}
-                  animate={{ scale: 2.5, opacity: 0 }}
-                  exit={{ opacity: 0 }}
+                <div
                   className="absolute inset-0 rounded-2xl"
                   style={{ background: stat.color }}
-                  transition={{ duration: 1 }}
                 />
               )}
-            </AnimatePresence>
+            
 
             {/* Icon */}
             <div
@@ -493,22 +454,18 @@ const LiveTransparencyDashboard = ({ stats }: { stats?: LiveStats }) => {
             </div>
 
             {/* Value */}
-            <motion.div
+            <div
               className="text-4xl md:text-5xl font-bold text-white mb-2"
-              animate={stat.isPulsing ? { scale: [1, 1.1, 1] } : {}}
-              transition={{ duration: 0.5 }}
             >
               <AnimatedNumber value={stat.value} suffix={stat.suffix} />
-            </motion.div>
+            </div>
 
             {/* Label with Live Indicator */}
             <div className="flex items-center justify-center gap-2">
               {stat.label === 'Signups' && (
-                <motion.div
+                <div
                   className="w-2 h-2 rounded-full"
                   style={{ background: '#10B981' }}
-                  animate={{ scale: [1, 1.2, 1], opacity: [0.7, 1, 0.7] }}
-                  transition={{ duration: 2, repeat: Infinity }}
                 />
               )}
               <span style={{ color: COLORS.textSubtle }} className="text-sm">
@@ -523,23 +480,19 @@ const LiveTransparencyDashboard = ({ stats }: { stats?: LiveStats }) => {
                 </span>
               )}
             </div>
-          </motion.div>
+          </div>
         ))}
       </div>
 
       {/* Transparency Note */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
-        viewport={{ once: true }}
-        transition={{ delay: 0.4 }}
+      <div
         className="text-center mt-8"
       >
         <p className="inline-flex items-center gap-2 text-sm" style={{ color: COLORS.textSubtle }}>
           💡 এগুলো Real Numbers — Fake কিছু না
         </p>
-      </motion.div>
-    </motion.div>
+      </div>
+    </div>
   );
 };
 
@@ -579,19 +532,12 @@ const EarlyAdopterBenefits = () => {
   ];
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 40 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-100px' }}
-      transition={{ duration: 0.8 }}
+    <div
       className="mt-20"
     >
       {/* Section Header */}
       <div className="text-center mb-12">
-        <motion.span
-          initial={{ opacity: 0, scale: 0.9 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true }}
+        <span
           className="inline-block px-4 py-1.5 rounded-full text-sm font-medium mb-4"
           style={{
             background: `${COLORS.accent}15`,
@@ -600,7 +546,7 @@ const EarlyAdopterBenefits = () => {
           }}
         >
           🚀 Early Adopter হওয়ার সুবিধা
-        </motion.span>
+        </span>
         <h2
           className="text-3xl md:text-4xl font-bold text-white mb-4"
           style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}
@@ -628,13 +574,8 @@ const EarlyAdopterBenefits = () => {
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {benefits.map((benefit, index) => (
-            <motion.div
+            <div
               key={benefit.title}
-              initial={{ opacity: 0, x: index % 2 === 0 ? -20 : 20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.1 }}
-              whileHover={{ scale: 1.02, transition: { duration: 0.2 } }}
               className="flex items-start gap-4 p-5 rounded-2xl transition-all duration-300"
               style={{
                 background: `${benefit.color}08`,
@@ -667,20 +608,15 @@ const EarlyAdopterBenefits = () => {
                   {benefit.description}
                 </p>
               </div>
-            </motion.div>
+            </div>
           ))}
         </div>
 
         {/* CTA Button */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.4 }}
+        <div
           className="text-center mt-10"
         >
-          <Link
-            href="https://app.ozzyl.com/auth/register"
+          <a href="https://app.ozzyl.com/auth/register"
             className="group inline-flex items-center gap-3 px-8 py-4 rounded-xl font-semibold text-black transition-all duration-300 hover:scale-[1.02]"
             style={{
               background: `linear-gradient(135deg, ${COLORS.accent}, ${COLORS.accentLight})`,
@@ -689,16 +625,14 @@ const EarlyAdopterBenefits = () => {
             }}
           >
             🎉 Early Adopter হিসেবে Join করুন
-            <motion.span
-              animate={{ x: [0, 4, 0] }}
-              transition={{ duration: 1.5, repeat: Infinity }}
+            <span
             >
               <ArrowRight className="w-5 h-5" />
-            </motion.span>
-          </Link>
-        </motion.div>
+            </span>
+          </a>
+        </div>
       </div>
-    </motion.div>
+    </div>
   );
 };
 
@@ -758,19 +692,12 @@ const PublicRoadmap = () => {
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 40 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-100px' }}
-      transition={{ duration: 0.8 }}
+    <div
       className="mt-20"
     >
       {/* Section Header */}
       <div className="text-center mb-12">
-        <motion.span
-          initial={{ opacity: 0, scale: 0.9 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true }}
+        <span
           className="inline-block px-4 py-1.5 rounded-full text-sm font-medium mb-4"
           style={{
             background: `${COLORS.primary}15`,
@@ -779,7 +706,7 @@ const PublicRoadmap = () => {
           }}
         >
           🗺️ আমাদের ROADMAP
-        </motion.span>
+        </span>
         <h2
           className="text-3xl md:text-4xl font-bold text-white mb-4"
           style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}
@@ -817,11 +744,7 @@ const PublicRoadmap = () => {
         </div>
 
         {/* Action Buttons */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.5 }}
+        <div
           className="flex flex-wrap justify-center gap-4 mt-10"
         >
           <a
@@ -859,9 +782,9 @@ const PublicRoadmap = () => {
               Feature Request করুন
             </span>
           </a>
-        </motion.div>
+        </div>
       </div>
-    </motion.div>
+    </div>
   );
 };
 
@@ -881,11 +804,7 @@ const RoadmapColumn = ({
   index: number;
 }) => {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ delay: index * 0.15 }}
+    <div
     >
       {/* Column Header */}
       <div className="flex items-center gap-2 mb-4">
@@ -898,12 +817,8 @@ const RoadmapColumn = ({
       {/* Items */}
       <div className="space-y-2">
         {items.map((item, idx) => (
-          <motion.div
+          <div
             key={item.name}
-            initial={{ opacity: 0, x: -10 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.1 + idx * 0.05 }}
             className="flex items-center gap-3 p-3 rounded-xl transition-all duration-300 hover:bg-white/5"
             style={{
               background: `${config.color}08`,
@@ -917,11 +832,9 @@ const RoadmapColumn = ({
               {config.label.includes('DONE') ? (
                 <Check className="w-3.5 h-3.5" style={{ color: config.color }} />
               ) : config.label.includes('BUILDING') ? (
-                <motion.div
+                <div
                   className="w-2 h-2 rounded-full"
                   style={{ background: config.color }}
-                  animate={{ scale: [1, 1.3, 1] }}
-                  transition={{ duration: 1.5, repeat: Infinity }}
                 />
               ) : (
                 <Clock className="w-3.5 h-3.5" style={{ color: config.color }} />
@@ -930,10 +843,10 @@ const RoadmapColumn = ({
             <span style={{ color: COLORS.textMuted }} className="text-sm">
               {item.name}
             </span>
-          </motion.div>
+          </div>
         ))}
       </div>
-    </motion.div>
+    </div>
   );
 };
 

@@ -1,10 +1,25 @@
 import { useRef } from 'react';
-import { motion, useInView } from 'framer-motion';
 import { Star, CheckCircle2, Camera } from 'lucide-react';
+
+// Simple IntersectionObserver-based useInView (replaces framer-motion)
+function useInViewSimple(ref: React.RefObject<Element | null>, options?: { once?: boolean; margin?: string }) {
+  const [inView, setInView] = React.useState(false);
+  React.useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    if (!('IntersectionObserver' in window)) { setInView(true); return; }
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) { setInView(true); if (options?.once !== false) observer.disconnect(); }
+    }, { rootMargin: options?.margin || '0px' });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+  return inView;
+}
 
 export function ProductReviewsSection() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const isInView = useInView(containerRef, { once: true, margin: "-10% 0px" });
+  const isInView = useInViewSimple(containerRef);
 
   const reviews = [
     { name: 'আরিফ হোসেন', rating: 5, date: '2 days ago', text: 'দারুণ Quality! Delivery ও অনেক দ্রুত হয়েছে। আবার কিনব।', verified: true, photo: true },
@@ -30,11 +45,7 @@ export function ProductReviewsSection() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Stats Card */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={isInView ? { opacity: 1, scale: 1 } : {}}
-            transition={{ duration: 0.5 }}
-            className="md:col-span-1 bg-gradient-to-br from-gray-900 to-gray-800 border border-gray-700 rounded-3xl p-8 flex flex-col justify-center items-center text-center shadow-lg"
+          <div className="md:col-span-1 bg-gradient-to-br from-gray-900 to-gray-800 border border-gray-700 rounded-3xl p-8 flex flex-col justify-center items-center text-center shadow-lg"
           >
              <h3 className="text-6xl font-black text-white mb-2">4.8</h3>
              <div className="flex gap-1 mb-4">
@@ -50,28 +61,20 @@ export function ProductReviewsSection() {
                       <Star className="w-3 h-3 text-gray-500" />
                    </div>
                    <div className="flex-1 h-2 bg-gray-700/50 rounded-full overflow-hidden">
-                      <motion.div 
-                        initial={{ width: 0 }}
-                        animate={isInView ? { width: star === 5 ? '85%' : star === 4 ? '10%' : '2%' } : {}}
-                        transition={{ duration: 1, delay: 0.5 }}
-                        className="h-full bg-yellow-400 rounded-full" 
+                      <div className="h-full bg-yellow-400 rounded-full" 
                       />
                    </div>
                    <span className="text-xs text-gray-500 w-8 text-right">{star === 5 ? '85%' : star === 4 ? '10%' : '2%'}</span>
                  </div>
                ))}
              </div>
-          </motion.div>
+          </div>
 
           {/* Feature Highlight Cards */}
           <div className="md:col-span-2 space-y-6">
             {reviews.map((review, idx) => (
-              <motion.div
-                key={idx}
-                initial={{ opacity: 0, x: 20 }}
-                animate={isInView ? { opacity: 1, x: 0 } : {}}
-                transition={{ duration: 0.5, delay: idx * 0.15 }}
-                className="bg-gray-800/50 border border-gray-700 rounded-2xl p-6 relative hover:bg-gray-800 transition-colors"
+              <div
+                key={idx} className="bg-gray-800/50 border border-gray-700 rounded-2xl p-6 relative hover:bg-gray-800 transition-colors"
               >
                 <div className="flex justify-between items-start mb-3">
                   <div className="flex items-center gap-3">
@@ -106,7 +109,7 @@ export function ProductReviewsSection() {
                      <CheckCircle2 className="w-3 h-3" /> Verified Purchase
                    </span>
                 )}
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>

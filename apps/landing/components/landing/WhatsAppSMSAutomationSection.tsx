@@ -1,11 +1,26 @@
 import { useRef, useState, useEffect } from 'react';
-import { motion, useInView } from 'framer-motion';
 import { MessageCircle, Bell, Zap, ShoppingCart, Truck, Gift, Check } from 'lucide-react';
 import { ASSETS } from '@/config/assets';
 
+// Simple IntersectionObserver-based useInView (replaces framer-motion)
+function useInViewSimple(ref: React.RefObject<Element | null>, options?: { once?: boolean; margin?: string }) {
+  const [inView, setInView] = React.useState(false);
+  React.useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    if (!('IntersectionObserver' in window)) { setInView(true); return; }
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) { setInView(true); if (options?.once !== false) observer.disconnect(); }
+    }, { rootMargin: options?.margin || '0px' });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+  return inView;
+}
+
 export function WhatsAppSMSAutomationSection() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const isInView = useInView(containerRef, { once: true, margin: "-10% 0px" });
+  const isInView = useInViewSimple(containerRef);
   const [activeMessage, setActiveMessage] = useState(0);
 
   const messages = [
@@ -79,11 +94,7 @@ export function WhatsAppSMSAutomationSection() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           
           {/* Left Content */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={isInView ? { opacity: 1, x: 0 } : {}}
-            transition={{ duration: 0.6 }}
-          >
+          <div>
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-500/10 border border-green-500/20 mb-6">
               <MessageCircle className="w-4 h-4 text-green-400" />
               <span className="text-sm font-semibold text-green-400">Automated Engagement</span>
@@ -128,14 +139,10 @@ export function WhatsAppSMSAutomationSection() {
                 </div>
               ))}
             </div>
-          </motion.div>
+          </div>
 
           {/* Right Visual - Phone Simulator */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={isInView ? { opacity: 1, scale: 1 } : {}}
-            transition={{ duration: 0.6 }}
-            className="relative mx-auto"
+          <div className="relative mx-auto"
           >
              {/* Abstract Glow */}
              <div className="absolute inset-0 bg-green-500/20 blur-[100px] rounded-full pointer-events-none" />
@@ -175,48 +182,32 @@ export function WhatsAppSMSAutomationSection() {
                  </div>
                  
                  {messages.map((msg, idx) => (
-                   <motion.div
-                     key={idx}
-                     initial={{ opacity: 0, y: 20, scale: 0.9 }}
-                     animate={{ 
-                       opacity: activeMessage >= idx ? 1 : 0.4, 
-                       y: activeMessage >= idx ? 0 : 20,
-                       scale: activeMessage >= idx ? 1 : 0.9,
-                       filter: activeMessage >= idx ? 'blur(0px)' : 'blur(2px)'
-                     }}
-                     transition={{ duration: 0.4 }}
-                     className="flex flex-col gap-1 items-start max-w-[85%]"
+                   <div
+                     key={idx} className="flex flex-col gap-1 items-start max-w-[85%]"
                    >
                      <div className="bg-white rounded-lg rounded-tl-none p-3 shadow-sm text-xs text-gray-800 relative group">
                         {msg.content}
                         <span className="absolute bottom-1 right-2 text-[9px] text-gray-400">{msg.time}</span>
                      </div>
-                   </motion.div>
+                   </div>
                  ))}
                  
                  {/* Typing Indicator */}
                  {activeMessage < messages.length - 1 && (
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      className="bg-white px-3 py-2 rounded-full w-fit shadow-sm"
+                    <div className="bg-white px-3 py-2 rounded-full w-fit shadow-sm"
                     >
                       <div className="flex gap-1">
-                        <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" />
-                        <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce delay-100" />
-                        <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce delay-200" />
+                        <div className="w-1.5 h-1.5 bg-gray-400 rounded-full -bounce" />
+                        <div className="w-1.5 h-1.5 bg-gray-400 rounded-full -bounce delay-100" />
+                        <div className="w-1.5 h-1.5 bg-gray-400 rounded-full -bounce delay-200" />
                       </div>
-                    </motion.div>
+                    </div>
                  )}
                </div>
              </div>
 
              {/* ROI Stats Card */}
-             <motion.div 
-               initial={{ opacity: 0, y: 20 }}
-               animate={isInView ? { opacity: 1, y: 0 } : {}}
-               transition={{ delay: 1, duration: 0.5 }}
-               className="absolute top-1/2 -right-12 translate-y-1/2 bg-white text-gray-900 p-4 rounded-xl shadow-2xl border border-gray-100 hidden md:block w-48"
+             <div className="absolute top-1/2 -right-12 translate-y-1/2 bg-white text-gray-900 p-4 rounded-xl shadow-2xl border border-gray-100 hidden md:block w-48"
              >
                <h4 className="text-xs font-bold text-gray-500 uppercase mb-2">Impact</h4>
                <div className="space-y-3">
@@ -239,8 +230,8 @@ export function WhatsAppSMSAutomationSection() {
                    </div>
                  </div>
                </div>
-             </motion.div>
-          </motion.div>
+             </div>
+          </div>
         
         </div>
       </div>

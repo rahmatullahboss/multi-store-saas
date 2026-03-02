@@ -1,4 +1,3 @@
-import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { 
   Languages, MessageSquare, Headphones, 
@@ -17,7 +16,6 @@ export function BanglaNativeLocalization() {
     return () => clearInterval(interval);
   }, []);
 
-
   return (
     <section className="relative py-24 bg-[#0A0A0F] overflow-hidden">
       {/* Background Flag Inspired Accents */}
@@ -29,10 +27,7 @@ export function BanglaNativeLocalization() {
           
           {/* Left: Language Toggle Animation & Dashboard Mockup */}
           <div className="relative">
-             <motion.div
-               initial={{ opacity: 0, x: -30 }}
-               whileInView={{ opacity: 1, x: 0 }}
-               className="bg-[#121217] border border-white/10 rounded-[2.5rem] shadow-2xl p-6 md:p-10 relative overflow-hidden"
+             <div className="bg-[#121217] border border-white/10 rounded-[2.5rem] shadow-2xl p-6 md:p-10 relative overflow-hidden"
              >
                 {/* Language Toggle UI */}
                 <div className="flex items-center justify-between mb-10">
@@ -45,11 +40,8 @@ export function BanglaNativeLocalization() {
                    
                    <div className="flex items-center bg-black/40 p-1.5 rounded-2xl border border-white/5 relative">
                       {/* Slider Background */}
-                      <motion.div 
-                        className="absolute inset-y-1.5 bg-emerald-600 rounded-xl shadow-lg shadow-emerald-600/20"
-                        animate={{ x: isBangla ? 0 : 70 }}
-                        initial={false}
-                        style={{ width: 66 }}
+                      <div 
+                        className="absolute inset-y-1.5 bg-emerald-600 rounded-xl shadow-lg shadow-emerald-600/20" style={{ width: 66 }}
                       />
                       <button 
                         onClick={() => setIsBangla(true)}
@@ -70,14 +62,9 @@ export function BanglaNativeLocalization() {
 
                 {/* Dashboard Stats Mockup (Animated Translation) */}
                 <div className="space-y-6 relative">
-                   <AnimatePresence mode="wait">
-                      <motion.div
-                        key={isBangla ? 'bn' : 'en'}
-                        initial={{ opacity: 0, y: 5 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -5 }}
-                        transition={{ duration: 0.3 }}
-                        className="grid grid-cols-2 gap-4"
+                   
+                      <div
+                        key={isBangla ? 'bn' : 'en'} className="grid grid-cols-2 gap-4"
                       >
                          <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
                             <p className="text-gray-500 text-[10px] uppercase font-bold mb-1">
@@ -91,8 +78,8 @@ export function BanglaNativeLocalization() {
                             </p>
                             <h4 className="text-xl font-bold text-white">৫টি</h4>
                          </div>
-                      </motion.div>
-                   </AnimatePresence>
+                      </div>
+                   
 
                    {/* Sidebar Nav Mockup */}
                    <div className="space-y-3">
@@ -103,42 +90,33 @@ export function BanglaNativeLocalization() {
                       ].map((item, i) => (
                         <div key={i} className="flex items-center gap-4 p-3 rounded-xl bg-white/[0.02] border border-transparent hover:border-white/5 transition-all">
                            <item.icon className="w-5 h-5 text-gray-600" />
-                           <AnimatePresence mode="wait">
-                              <motion.span
-                                key={isBangla ? 'bn' : 'en'}
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                className="text-sm font-medium text-gray-400"
+                           
+                              <span
+                                key={isBangla ? 'bn' : 'en'} className="text-sm font-medium text-gray-400"
                               >
                                  {isBangla ? item.bn : item.en}
-                              </motion.span>
-                           </AnimatePresence>
+                              </span>
+                           
                         </div>
                       ))}
                    </div>
                 </div>
 
                 {/* Mouse Interaction Overlay */}
-                <motion.div 
-                   animate={{ x: [150, 280, 150], y: [120, 110, 120] }}
-                   transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-                   className="absolute pointer-events-none z-30"
+                <div className="absolute pointer-events-none z-30"
                 >
                    <MousePointer2 className="w-5 h-5 text-white drop-shadow-xl" />
-                </motion.div>
-             </motion.div>
+                </div>
+             </div>
           </div>
 
           {/* Right: Text Content & Local Highlights */}
           <div>
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 mb-8"
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 mb-8"
             >
               <MapPin className="w-4 h-4 text-emerald-500" />
               <span className="text-sm font-medium text-emerald-400">Proudly Made for Bangladesh</span>
-            </motion.div>
+            </div>
 
             <h2 className="text-4xl md:text-5xl font-bold text-white mb-8 leading-relaxed py-2">
               আপনার ভাষায়,<br /> 
@@ -155,19 +133,15 @@ export function BanglaNativeLocalization() {
                  { title: 'দেশি পেমেন্ট মেথড', desc: 'বিকাশ, নগদ, রকেটের মতো সব লোকাল পেমেন্ট সাপোর্ট।', icon: CheckCircle2 },
                  { title: 'বাংলা কাস্টমার সাপোর্ট', desc: 'সরাসরি হেডফোনে বা চ্যাটে বাংলায় কথা বলুন আমাদের টিমের সাথে।', icon: Headphones },
                ].map((item, i) => (
-                 <motion.div 
-                   key={i}
-                   initial={{ opacity: 0, y: 10 }}
-                   whileInView={{ opacity: 1, y: 0 }}
-                   transition={{ delay: i * 0.1 }}
-                   className="flex items-start gap-4"
+                 <div 
+                   key={i} className="flex items-start gap-4"
                  >
                     <div className="mt-1"><item.icon className="w-5 h-5 text-emerald-500" /></div>
                     <div>
                        <h4 className="font-bold text-white mb-1">{item.title}</h4>
                        <p className="text-sm text-gray-500">{item.desc}</p>
                     </div>
-                 </motion.div>
+                 </div>
                ))}
             </div>
 

@@ -1,5 +1,3 @@
-'use client';
-
 /**
  * Ozzyl AI Chat Widget
  * Enterprise-grade visitor chatbot for the marketing landing page
@@ -16,7 +14,6 @@
  */
 
 import { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { Send, X, User, Loader2, ArrowRight, Phone } from 'lucide-react';
 import { useTranslation } from '@/app/contexts/LanguageContext';
 import { AIResponseRendererDark } from '@/components/ui/AIResponseRenderer';
@@ -53,10 +50,10 @@ export function OzzylAIChatWidget() {
     },
   ]);
 
-  // Update initial message when language changes
+  // Update  message when language changes
   useEffect(() => {
     setMessages((prev) => {
-      // Only update if the first message is the initial greeting and hasn't been deleted
+      // Only update if the first message is the  greeting and hasn't been deleted
       if (prev.length > 0 && prev[0].id === '1' && prev[0].role === 'assistant') {
         const newMessages = [...prev];
         newMessages[0] = {
@@ -259,21 +256,13 @@ export function OzzylAIChatWidget() {
   return (
     <>
       {/* Floating Chat Button with Brand Logo */}
-      <AnimatePresence>
+      
         {!isOpen && (
           <>
             {/* Greeting Popup */}
-            <AnimatePresence>
+            
               {showGreeting && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20, scale: 0.8 }}
-                  animate={{
-                    opacity: 1,
-                    y: [0, -15, 0], // Jump/Bounce animation
-                    scale: 1,
-                  }}
-                  exit={{ opacity: 0, y: 10, scale: 0.9 }}
-                  transition={{
+                <div transition={{
                     y: { duration: 0.6, ease: 'easeOut', times: [0, 0.5, 1] },
                     opacity: { duration: 0.3 },
                     scale: { duration: 0.3 },
@@ -295,7 +284,7 @@ export function OzzylAIChatWidget() {
                       loading="lazy"
                       decoding="async"
                     />
-                    <span className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-[#051510] animate-pulse" />
+                    <span className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-[#051510] -pulse" />
                   </div>
                   <div>
                     <h4 className="text-sm font-bold text-white mb-0.5">Ozzyl AI</h4>
@@ -309,20 +298,12 @@ export function OzzylAIChatWidget() {
                     className="absolute -bottom-2 right-8 w-4 h-4 transform rotate-45 border-r border-b border-[#006A4E]/30"
                     style={{ background: '#051510' }}
                   />
-                </motion.div>
+                </div>
               )}
-            </AnimatePresence>
+            
 
             {/* Main Button */}
-            <motion.button
-              initial={{ scale: 0, opacity: 0 }}
-              animate={{
-                scale: 1,
-                opacity: 1,
-                y: hasShownGreeting ? 0 : [0, -8, 0], // Single bounce only on first show
-              }}
-              exit={{ scale: 0, opacity: 0 }}
-              transition={{
+            <button transition={{
                 y: { delay: 1.5, duration: 0.4, ease: 'easeOut' },
               }}
               onClick={() => setIsOpen(true)}
@@ -333,7 +314,7 @@ export function OzzylAIChatWidget() {
               }}
             >
               {/* Animated ring */}
-              <span className="absolute inset-0 rounded-full bg-white/10 animate-ping opacity-30" />
+              <span className="absolute inset-0 rounded-full bg-white/10 -ping opacity-30" />
               {/* Inner glow */}
               <div className="absolute inset-1 bg-gradient-to-br from-white/20 to-transparent rounded-full opacity-50" />
               {/* Logo */}
@@ -345,21 +326,16 @@ export function OzzylAIChatWidget() {
                 decoding="async"
               />
               {/* Online indicator */}
-              <span className="absolute top-0 right-0 w-4 h-4 bg-green-400 rounded-full border-2 border-white z-20 animate-pulse" />
-            </motion.button>
+              <span className="absolute top-0 right-0 w-4 h-4 bg-green-400 rounded-full border-2 border-white z-20 -pulse" />
+            </button>
           </>
         )}
-      </AnimatePresence>
+      
 
       {/* Chat Panel */}
-      <AnimatePresence>
+      
         {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-            className="fixed bottom-6 right-6 z-50 w-[380px] max-w-[calc(100vw-48px)] h-[600px] max-h-[calc(100vh-100px)] flex flex-col overflow-hidden rounded-2xl shadow-2xl shadow-black/80"
+          <div className="fixed bottom-6 right-6 z-50 w-[380px] max-w-[calc(100vw-48px)] h-[600px] max-h-[calc(100vh-100px)] flex flex-col overflow-hidden rounded-2xl shadow-2xl shadow-black/80"
             style={{
               background: 'linear-gradient(180deg, #111A16 0%, #0A0F0D 100%)',
               border: '1px solid rgba(0, 106, 78, 0.3)',
@@ -483,7 +459,7 @@ export function OzzylAIChatWidget() {
                     className="w-full py-3 bg-[#006A4E] hover:bg-[#005740] text-white font-medium rounded-xl transition flex items-center justify-center gap-2 shadow-lg shadow-[#006A4E]/20"
                   >
                     {isLoading ? (
-                      <Loader2 className="w-5 h-5 animate-spin" />
+                      <Loader2 className="w-5 h-5 -spin" />
                     ) : (
                       t('landingOzzylChat_startChat') || 'Start Chat'
                     )}
@@ -495,11 +471,8 @@ export function OzzylAIChatWidget() {
                 {/* Messages */}
                 <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
                   {messages.map((msg) => (
-                    <motion.div
-                      key={msg.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className={`flex items-start gap-2 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}
+                    <div
+                      key={msg.id} className={`flex items-start gap-2 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}
                     >
                       {/* Avatar */}
                       <div
@@ -528,34 +501,31 @@ export function OzzylAIChatWidget() {
                           <AIResponseRendererDark response={msg.content} />
                         )}
                       </div>
-                    </motion.div>
+                    </div>
                   ))}
 
                   {/* Typing indicator */}
                   {isLoading && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="flex items-start gap-2"
+                    <div className="flex items-start gap-2"
                     >
                       <div className="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center">
                         <img src={ASSETS.brand.logoSmall} alt="Ozzyl" className="w-6 h-6" />
                       </div>
                       <div className="bg-white/5 border border-white/5 px-4 py-3 rounded-2xl rounded-tl-sm flex gap-1.5">
                         <span
-                          className="w-2 h-2 bg-[#006A4E] rounded-full animate-bounce"
+                          className="w-2 h-2 bg-[#006A4E] rounded-full -bounce"
                           style={{ animationDelay: '0ms' }}
                         />
                         <span
-                          className="w-2 h-2 bg-[#006A4E] rounded-full animate-bounce"
+                          className="w-2 h-2 bg-[#006A4E] rounded-full -bounce"
                           style={{ animationDelay: '150ms' }}
                         />
                         <span
-                          className="w-2 h-2 bg-[#006A4E] rounded-full animate-bounce"
+                          className="w-2 h-2 bg-[#006A4E] rounded-full -bounce"
                           style={{ animationDelay: '300ms' }}
                         />
                       </div>
-                    </motion.div>
+                    </div>
                   )}
 
                   <div ref={messagesEndRef} />
@@ -599,7 +569,7 @@ export function OzzylAIChatWidget() {
                       className="p-2.5 bg-gradient-to-r from-[#006A4E] to-[#00875F] hover:from-[#005740] hover:to-[#006A4E] text-white rounded-xl disabled:opacity-50 disabled:cursor-not-allowed transition shadow-lg shadow-[#006A4E]/30"
                     >
                       {isLoading ? (
-                        <Loader2 className="w-5 h-5 animate-spin" />
+                        <Loader2 className="w-5 h-5 -spin" />
                       ) : (
                         <Send className="w-5 h-5" />
                       )}
@@ -619,9 +589,9 @@ export function OzzylAIChatWidget() {
                 <ArrowRight className="w-3.5 h-3.5" />
               </a>
             </div>
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
+      
     </>
   );
 }

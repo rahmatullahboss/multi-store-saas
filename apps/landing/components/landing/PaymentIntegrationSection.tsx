@@ -1,4 +1,3 @@
-import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { ShieldCheck, CreditCard, Smartphone, CheckCircle2, Lock, Zap, ArrowRight, Globe } from 'lucide-react';
 
@@ -38,14 +37,11 @@ export function PaymentIntegrationSection() {
           
           {/* Left: Content */}
           <div>
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-pink-500/10 border border-pink-500/20 mb-8"
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-pink-500/10 border border-pink-500/20 mb-8"
             >
               <CreditCard className="w-4 h-4 text-pink-500" />
               <span className="text-sm font-medium text-pink-400">Payment Integration</span>
-            </motion.div>
+            </div>
             
             <h2 className="text-4xl md:text-5xl font-bold text-white mb-8 leading-tight">
               পেমেন্ট নিয়ে নেই কোন টেনশন,<br />
@@ -58,12 +54,8 @@ export function PaymentIntegrationSection() {
 
             <div className="space-y-6">
               {steps.map((step, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, x: -20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  transition={{ delay: i * 0.1 }}
-                  className={`flex items-start gap-4 p-4 rounded-2xl transition-all duration-500 ${
+                <div
+                  key={i} className={`flex items-start gap-4 p-4 rounded-2xl transition-all duration-500 ${
                     activeStep === i ? 'bg-white/10 border border-white/20' : 'opacity-50'
                   }`}
                 >
@@ -74,7 +66,7 @@ export function PaymentIntegrationSection() {
                     <h4 className={`font-bold mb-1 ${activeStep === i ? 'text-white' : 'text-gray-400'}`}>{step.title}</h4>
                     <p className="text-sm text-gray-500">{step.desc}</p>
                   </div>
-                </motion.div>
+                </div>
               ))}
             </div>
           </div>
@@ -82,10 +74,7 @@ export function PaymentIntegrationSection() {
           {/* Right: Visual Mockup */}
           <div className="relative">
             {/* Payment Phone Mockup */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              className="relative mx-auto w-[300px] h-[600px] rounded-[3rem] border-8 border-white/10 bg-[#121212] shadow-2xl overflow-hidden"
+            <div className="relative mx-auto w-[300px] h-[600px] rounded-[3rem] border-8 border-white/10 bg-[#121212] shadow-2xl overflow-hidden"
             >
               {/* Screen Content */}
               <div className="h-full flex flex-col">
@@ -105,7 +94,7 @@ export function PaymentIntegrationSection() {
                   {/* Payment Options */}
                   <div className="space-y-3 mb-8">
                     {gateways.map((gate, i) => (
-                      <motion.div
+                      <div
                         key={i}
                         className={`p-4 rounded-xl border flex items-center justify-between transition-all ${
                           i === 0 ? 'bg-white/10 border-pink-500/50' : 'bg-white/5 border-white/5'
@@ -120,17 +109,15 @@ export function PaymentIntegrationSection() {
                         <div className={`w-5 h-5 rounded-full border-2 ${i === 0 ? 'border-pink-500 bg-pink-500' : 'border-white/20'}`}>
                            {i === 0 && <div className="w-full h-full flex items-center justify-center text-[10px] text-white">✓</div>}
                         </div>
-                      </motion.div>
+                      </div>
                     ))}
                   </div>
 
                   {/* CTA */}
-                  <motion.button
-                    whileTap={{ scale: 0.95 }}
-                    className="w-full py-4 rounded-xl bg-pink-500 text-white font-bold shadow-lg shadow-pink-500/30 flex items-center justify-center gap-2"
+                  <button className="w-full py-4 rounded-xl bg-pink-500 text-white font-bold shadow-lg shadow-pink-500/30 flex items-center justify-center gap-2"
                   >
                     পেমেন্ট কনফার্ম করুন <ArrowRight className="w-4 h-4" />
-                  </motion.button>
+                  </button>
 
                   <div className="mt-6 flex items-center justify-center gap-2 text-[10px] text-gray-500">
                     <Lock className="w-3 h-3" /> 256-bit Encrypted SSL Secure
@@ -139,33 +126,23 @@ export function PaymentIntegrationSection() {
               </div>
 
               {/* Success Overlay (Step 3) */}
-              <AnimatePresence>
+              
                 {activeStep === 3 && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 100 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -100 }}
-                    className="absolute inset-0 bg-[#0A0A0F] flex flex-col items-center justify-center p-8 z-20"
+                  <div className="absolute inset-0 bg-[#0A0A0F] flex flex-col items-center justify-center p-8 z-20"
                   >
-                    <motion.div
-                      initial={{ scale: 0 }}
-                      animate={{ scale: [0, 1.2, 1] }}
-                      className="w-20 h-20 rounded-full bg-emerald-500 flex items-center justify-center mb-6"
+                    <div className="w-20 h-20 rounded-full bg-emerald-500 flex items-center justify-center mb-6"
                     >
                       <CheckCircle2 className="w-10 h-10 text-white" />
-                    </motion.div>
+                    </div>
                     <h3 className="text-xl font-bold text-white mb-2">পেমেন্ট সফল হয়েছে!</h3>
                     <p className="text-sm text-center text-gray-400">অর্ডার কনফার্মেশনের জন্য কাস্টমারকে একটি এসএমএস পাঠানো হয়েছে।</p>
-                  </motion.div>
+                  </div>
                 )}
-              </AnimatePresence>
-            </motion.div>
+              
+            </div>
 
             {/* Floating Trust Badges */}
-            <motion.div
-              animate={{ y: [0, -10, 0] }}
-              transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-              className="absolute -right-8 top-1/4 p-4 rounded-2xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl"
+            <div className="absolute -right-8 top-1/4 p-4 rounded-2xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl"
             >
               <div className="flex items-center gap-3">
                  <ShieldCheck className="w-6 h-6 text-emerald-500" />
@@ -174,12 +151,9 @@ export function PaymentIntegrationSection() {
                     <p className="text-gray-500 text-[10px]">Real-time detection</p>
                  </div>
               </div>
-            </motion.div>
+            </div>
 
-            <motion.div
-              animate={{ y: [0, 10, 0] }}
-              transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
-              className="absolute -left-12 bottom-1/4 p-4 rounded-2xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl"
+            <div className="absolute -left-12 bottom-1/4 p-4 rounded-2xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl"
             >
               <div className="flex items-center gap-3">
                  <Zap className="w-6 h-6 text-yellow-500" />
@@ -188,7 +162,7 @@ export function PaymentIntegrationSection() {
                     <p className="text-gray-500 text-[10px]">Direct to balance</p>
                  </div>
               </div>
-            </motion.div>
+            </div>
           </div>
         </div>
       </div>

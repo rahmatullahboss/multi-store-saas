@@ -6,9 +6,6 @@
  * - Reduced blur on mobile
  * - Respects prefers-reduced-motion
  */
-'use client';
-
-import { motion, useReducedMotion } from 'framer-motion';
 
 interface MorphingBlobProps {
   color: string;
@@ -46,7 +43,7 @@ export function MorphingBlob({
   }
 
   return (
-    <motion.div
+    <div
       className={`absolute pointer-events-none ${className}`}
       style={{
         ...position,
@@ -57,21 +54,8 @@ export function MorphingBlob({
         filter: 'blur(60px)',
         opacity: 0.4,
       }}
-      animate={{
-        // Simpler animation - just scale and opacity
-        scale: [1, 1.05, 1],
-        opacity: [0.4, 0.5, 0.4],
-      }}
-      transition={{
-        // Much longer duration = less CPU work
-        duration: 20,
-        ease: 'easeInOut',
-        repeat: Infinity,
-        delay,
-      }}
       // CSS optimization hints
-      initial={{ borderRadius: '50%' }}
-    />
+      />
   );
 }
 

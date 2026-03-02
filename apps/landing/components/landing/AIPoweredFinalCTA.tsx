@@ -1,6 +1,4 @@
 import { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import Link from 'next/link';
 import { Bot, Send, ArrowRight, Zap, CheckCircle2, MessageSquare, Phone } from 'lucide-react';
 import { useTranslation } from '@/app/contexts/LanguageContext';
 
@@ -63,16 +61,14 @@ export function AIPoweredFinalCTA() {
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           {/* Left: Text & CTA */}
           <div className="text-center lg:text-left">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
+            <div
               className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 mb-6"
             >
               <Bot className="w-4 h-4 text-emerald-400" />
               <span className="text-sm font-bold text-emerald-400">
                 {t('landingFinalCTA_limitedOffer')}
               </span>
-            </motion.div>
+            </div>
 
             <h2 className="text-4xl md:text-5xl lg:text-6xl font-black text-white mb-6 leading-tight">
               {t('landingFinalCTA_ctaMainTitle')}
@@ -83,8 +79,7 @@ export function AIPoweredFinalCTA() {
             </p>
 
             <div className="flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start mb-10">
-              <Link
-                href="https://app.ozzyl.com/auth/register"
+              <a href="https://app.ozzyl.com/auth/register"
                 className="relative group w-full sm:w-auto"
               >
                 <div className="absolute -inset-1 bg-gradient-to-r from-emerald-500 to-cyan-500 rounded-xl blur opacity-40 group-hover:opacity-75 transition duration-1000 group-hover:duration-200 animate-pulse" />
@@ -94,7 +89,7 @@ export function AIPoweredFinalCTA() {
                     {t('landingFinalCTA_aiIncluded')}
                   </span>
                 </div>
-              </Link>
+              </a>
             </div>
 
             <div className="flex flex-wrap justify-center lg:justify-start gap-x-6 gap-y-3 text-sm text-white/50">
@@ -130,10 +125,7 @@ export function AIPoweredFinalCTA() {
           </div>
 
           {/* Right: AI Chat Demo */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.2 }}
+          <div
             className="relative max-w-md mx-auto w-full"
           >
             <div className="absolute inset-0 bg-emerald-500/20 blur-[100px] rounded-full" />
@@ -162,10 +154,8 @@ export function AIPoweredFinalCTA() {
               {/* Messages Area */}
               <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#0A0F0D]">
                 {messages.map((msg) => (
-                  <motion.div
+                  <div
                     key={msg.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
                     className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'}`}
                   >
                     <div
@@ -176,7 +166,7 @@ export function AIPoweredFinalCTA() {
                     >
                       {msg.text}
                     </div>
-                  </motion.div>
+                  </div>
                 ))}
                 <div ref={messagesEndRef} />
               </div>
@@ -206,7 +196,7 @@ export function AIPoweredFinalCTA() {
                 </div>
               </div>
             </div>
-          </motion.div>
+          </div>
         </div>
       </div>
     </section>

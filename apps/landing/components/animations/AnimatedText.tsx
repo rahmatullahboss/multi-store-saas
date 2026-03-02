@@ -2,9 +2,6 @@
  * Animated Text Reveal Component - OPTIMIZED
  * Simplified animations with reduced motion support
  */
-'use client';
-
-import { motion, useReducedMotion } from 'framer-motion';
 import { ReactNode } from 'react';
 
 interface AnimatedTextProps {
@@ -58,27 +55,24 @@ export function AnimatedText({
     },
   };
 
-  const MotionTag = motion[tag] as typeof motion.span;
+  const span = tag as keyof JSX.IntrinsicElements;
 
   return (
-    <MotionTag
-      variants={container}
+    <span
       initial="hidden"
       whileInView="visible"
-      viewport={{ once: true }}
       className={`inline-flex flex-wrap ${className}`}
     >
       {items.map((item, index) => (
-        <motion.span
+        <span
           key={index}
-          variants={child}
           className="inline-block"
           style={{ marginRight: type === 'words' ? '0.3em' : undefined }}
         >
           {item}
-        </motion.span>
+        </span>
       ))}
-    </MotionTag>
+    </span>
   );
 }
 
@@ -126,18 +120,11 @@ export function Typewriter({ text, className = '', speed = 50 }: TypewriterProps
   }
 
   return (
-    <motion.span
+    <span
       className={className}
-      initial={{ width: 0 }}
-      whileInView={{ width: 'auto' }}
-      viewport={{ once: true }}
-      transition={{
-        duration: text.length * (speed / 1000),
-        ease: 'linear',
-      }}
       style={{ overflow: 'hidden', whiteSpace: 'nowrap', display: 'inline-block' }}
     >
       {text}
-    </motion.span>
+    </span>
   );
 }

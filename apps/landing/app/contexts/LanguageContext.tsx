@@ -1,10 +1,8 @@
-'use client';
-
 import { createContext, useContext, ReactNode, useState } from 'react';
-import { t as translate, Language } from '@/utils/i18n';
+import { t as translate, Language } from '~/utils/i18n';
 
 interface LanguageContextType {
-  t: (key: string, options?: any) => string;
+  t: (key: string, options?: Record<string, string | number>) => string;
   lang: Language;
   setLang: (lang: Language) => void;
 }
@@ -18,10 +16,13 @@ const LanguageContext = createContext<LanguageContextType>({
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const [lang, setLang] = useState<Language>('bn');
 
-  const t = (key: string, options?: any) => translate(key as any, lang, options);
+  const t = (key: string, options?: Record<string, string | number>) =>
+    translate(key as Parameters<typeof translate>[0], lang, options);
 
   return (
-    <LanguageContext.Provider value={{ t, lang, setLang }}>{children}</LanguageContext.Provider>
+    <LanguageContext.Provider value={{ t, lang, setLang }}>
+      {children}
+    </LanguageContext.Provider>
   );
 }
 

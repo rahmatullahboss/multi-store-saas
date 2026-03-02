@@ -1,5 +1,3 @@
-'use client';
-
 /**
  * CDN Explainer Component - "সহজ বাংলায় বুঝুন"
  *
@@ -13,7 +11,6 @@
  * - Speed counters showing the difference
  */
 
-import { motion, useInView, AnimatePresence } from 'framer-motion';
 import { useRef, useState, useEffect, useCallback } from 'react';
 import {
   HelpCircle,
@@ -27,6 +24,22 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/useIsMobile';
+
+// Simple useInView (replaces framer-motion)
+function useInViewSimple(ref: React.RefObject<Element | null>, options?: { once?: boolean; margin?: string }) {
+  const [inView, setInView] = React.useState(false);
+  React.useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    if (!('IntersectionObserver' in window)) { setInView(true); return; }
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) { setInView(true); if (options?.once !== false) observer.disconnect(); }
+    }, { rootMargin: options?.margin || '0px' });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+  return inView;
+}
 
 // ============================================================================
 // DESIGN TOKENS
@@ -58,7 +71,7 @@ interface DataPacketProps {
 
 const DataPacket = ({ isAnimating, duration, color, delay = 0 }: DataPacketProps) => {
   return (
-    <motion.div
+    <div
       className="absolute w-4 h-4 rounded-full"
       style={{
         background: `radial-gradient(circle, ${color} 0%, ${color}80 50%, transparent 100%)`,
@@ -66,21 +79,6 @@ const DataPacket = ({ isAnimating, duration, color, delay = 0 }: DataPacketProps
         left: 0,
         top: '50%',
         transform: 'translateY(-50%)',
-      }}
-      initial={{ x: 0, opacity: 0 }}
-      animate={
-        isAnimating
-          ? {
-              x: ['0%', '100%'],
-              opacity: [0, 1, 1, 0],
-            }
-          : { x: 0, opacity: 0 }
-      }
-      transition={{
-        duration,
-        delay,
-        ease: 'linear',
-        times: [0, 0.1, 0.9, 1],
       }}
     />
   );
@@ -108,15 +106,13 @@ const ConnectionLine = ({ progress, color, isDashed }: ConnectionLineProps) => {
       />
 
       {/* Progress line */}
-      <motion.div
+      <div
         className="absolute h-full rounded-full"
         style={{
           background: `linear-gradient(90deg, ${color}80, ${color})`,
           boxShadow: `0 0 10px ${color}50`,
+          width: `${progress * 100}%`,
         }}
-        initial={{ width: '0%' }}
-        animate={{ width: `${progress}%` }}
-        transition={{ duration: 0.1 }}
       />
     </div>
   );
@@ -143,26 +139,16 @@ const LocationNode = ({
   emoji,
 }: LocationNodeProps) => {
   return (
-    <motion.div
+    <div
       className="flex flex-col items-center gap-2"
-      animate={isActive ? { scale: [1, 1.05, 1] } : {}}
-      transition={{ duration: 0.5 }}
     >
-      <motion.div
+      <div
         className="w-16 h-16 rounded-2xl flex items-center justify-center relative"
         style={{
           background: `${color}20`,
           border: `2px solid ${color}40`,
           boxShadow: isActive ? `0 0 30px ${color}40` : 'none',
         }}
-        animate={
-          isActive
-            ? {
-                borderColor: [color + '40', color, color + '40'],
-              }
-            : {}
-        }
-        transition={{ duration: 1, repeat: Infinity }}
       >
         {emoji ? (
           <span className="text-2xl">{emoji}</span>
@@ -172,17 +158,12 @@ const LocationNode = ({
 
         {/* Pulse ring when active */}
         {isActive && (
-          <motion.div
+          <div
             className="absolute inset-0 rounded-2xl"
             style={{ border: `2px solid ${color}` }}
-            animate={{
-              scale: [1, 1.3, 1.3],
-              opacity: [0.5, 0, 0],
-            }}
-            transition={{ duration: 1.5, repeat: Infinity }}
           />
         )}
-      </motion.div>
+      </div>
 
       <div className="text-center">
         <p className="text-white text-sm font-medium">{label}</p>
@@ -192,7 +173,7 @@ const LocationNode = ({
           </p>
         )}
       </div>
-    </motion.div>
+    </div>
   );
 };
 
@@ -231,15 +212,12 @@ const ScenarioCard = ({
   const color = isGood ? COLORS.green : COLORS.red;
 
   return (
-    <motion.div
+    <div
       className="rounded-2xl p-6 relative overflow-hidden"
       style={{
         background: `linear-gradient(135deg, ${color}05 0%, ${color}02 100%)`,
         border: `1px solid ${color}20`,
       }}
-      initial={{ opacity: 0, y: 30 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
     >
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
@@ -252,14 +230,13 @@ const ScenarioCard = ({
             {titleBn}
           </p>
         </div>
-        <motion.div
+        <div
           className={`px-3 py-1 rounded-full text-xs font-bold ${
             isGood ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
           }`}
-          animate={isComplete ? { scale: [1, 1.1, 1] } : {}}
         >
           {isGood ? '⚡ FAST' : '🐢 SLOW'}
-        </motion.div>
+        </div>
       </div>
 
       {/* Visual Journey */}
@@ -308,20 +285,16 @@ const ScenarioCard = ({
             {currentTime.toFixed(1)}s
           </span>
           {isComplete && (
-            <motion.span
-              initial={{ opacity: 0, scale: 0 }}
-              animate={{ opacity: 1, scale: 1 }}
+            <span
               className="text-sm"
             >
               ⏱️
-            </motion.span>
+            </span>
           )}
         </div>
 
         {isComplete && (
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
+          <div
             className="flex items-center gap-2"
           >
             <span className="text-2xl">{isGood ? '😊' : '😫'}</span>
@@ -331,10 +304,10 @@ const ScenarioCard = ({
             >
               {isGood ? 'Super Fast!' : 'অনেক Slow!'}
             </span>
-          </motion.div>
+          </div>
         )}
       </div>
-    </motion.div>
+    </div>
   );
 };
 
@@ -343,7 +316,7 @@ const ScenarioCard = ({
 // ============================================================================
 export function CDNExplainer() {
   const sectionRef = useRef<HTMLElement>(null);
-  const isInView = useInView(sectionRef, { once: false, margin: '-100px' });
+  const isInView = useInViewSimple(sectionRef);
 
   const [isAnimating, setIsAnimating] = useState(false);
   const [slowTime, setSlowTime] = useState(0);
@@ -440,23 +413,18 @@ export function CDNExplainer() {
     >
       {/* Background */}
       <div className="absolute inset-0">
-        <motion.div
+        <div
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[400px] rounded-full"
           style={{
             background: `radial-gradient(ellipse, ${COLORS.cyan}08 0%, transparent 70%)`,
           }}
-          animate={{ scale: [1, 1.1, 1] }}
-          transition={{ duration: 10, repeat: Infinity }}
         />
       </div>
 
       <div className="relative z-10 max-w-5xl mx-auto px-6">
         {/* Section Header */}
         <div className="text-center mb-12">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.6 }}
+          <div
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full border backdrop-blur-sm mb-6"
             style={{
               backgroundColor: `${COLORS.accent}10`,
@@ -470,36 +438,27 @@ export function CDNExplainer() {
             >
               সহজ বাংলায় বুঝুন
             </span>
-          </motion.div>
+          </div>
 
-          <motion.h2
-            initial={{ opacity: 0, y: 30 }}
-            animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.6, delay: 0.1 }}
+          <h2
             className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4"
             style={{ fontFamily: "'Noto Sans Bengali', 'Inter', sans-serif" }}
           >
             🤔 CDN কি জিনিস?
-          </motion.h2>
+          </h2>
 
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.6, delay: 0.2 }}
+          <p
             className="text-lg max-w-2xl mx-auto"
             style={{ color: COLORS.textMuted, fontFamily: "'Noto Sans Bengali', sans-serif" }}
           >
             CDN মানে Content Delivery Network। এটা আপনার Website কে
             <span className="text-white font-semibold"> পৃথিবীর কাছের Server থেকে</span> দ্রুত সার্ভ
             করে।
-          </motion.p>
+          </p>
         </div>
 
         {/* Comparison Grid */}
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.8, delay: 0.3 }}
+        <div
           className="grid md:grid-cols-2 gap-6 mb-8"
         >
           {/* Without CDN - Competitors use Singapore */}
@@ -533,16 +492,13 @@ export function CDNExplainer() {
             progress={fastProgress}
             isComplete={fastComplete}
           />
-        </motion.div>
+        </div>
 
         {/* Replay Button */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={isInView ? { opacity: 1 } : {}}
-          transition={{ delay: 0.5 }}
+        <div
           className="flex justify-center mb-10"
         >
-          <motion.button
+          <button
             onClick={handleReplay}
             disabled={isAnimating}
             className="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all disabled:opacity-50"
@@ -553,19 +509,14 @@ export function CDNExplainer() {
               color: COLORS.text,
               fontFamily: "'Noto Sans Bengali', sans-serif",
             }}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.98 }}
-          >
+            >
             <RefreshCw className={`w-5 h-5 ${isAnimating ? 'animate-spin' : ''}`} />
             🔄 আবার দেখুন
-          </motion.button>
-        </motion.div>
+          </button>
+        </div>
 
         {/* Key Insight Box */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.6, delay: 0.6 }}
+        <div
           className="rounded-2xl p-6 text-center"
           style={{
             background:
@@ -612,13 +563,10 @@ export function CDNExplainer() {
               </span>
             </div>
           </div>
-        </motion.div>
+        </div>
 
         {/* Visual Difference Stats */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={isInView ? { opacity: 1 } : {}}
-          transition={{ delay: 0.8 }}
+        <div
           className="mt-8 grid grid-cols-3 gap-4 text-center"
         >
           {[
@@ -626,18 +574,13 @@ export function CDNExplainer() {
             { value: '40%', label: 'বেশি Sales', color: COLORS.cyan },
             { value: '99.9%', label: 'Uptime', color: COLORS.accent },
           ].map((stat, index) => (
-            <motion.div
+            <div
               key={index}
               className="p-4 rounded-xl"
               style={{
                 background: 'rgba(255,255,255,0.02)',
                 border: '1px solid rgba(255,255,255,0.05)',
-              }}
-              initial={{ opacity: 0, y: 20 }}
-              animate={isInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ delay: 0.9 + index * 0.1 }}
-              whileHover={{ borderColor: 'rgba(255,255,255,0.1)' }}
-            >
+              }}>
               <p className="text-2xl font-bold" style={{ color: stat.color }}>
                 {stat.value}
               </p>
@@ -647,9 +590,9 @@ export function CDNExplainer() {
               >
                 {stat.label}
               </p>
-            </motion.div>
+            </div>
           ))}
-        </motion.div>
+        </div>
       </div>
     </section>
   );

@@ -1,7 +1,5 @@
 'use client';
 
-import Link from 'next/link';
-import Image from 'next/image';
 import { ArrowRight, Phone, MessageCircle, Mail, Facebook, Instagram } from 'lucide-react';
 import { useTranslation } from '@/app/contexts/LanguageContext';
 import { ASSETS } from '@/config/assets';
@@ -17,8 +15,7 @@ export function Footer() {
           {/* Brand Section */}
           <div className="sm:col-span-2 md:col-span-1 text-center sm:text-left">
             <div className="flex items-center justify-center sm:justify-start gap-3 mb-4">
-              <Image
-                src={ASSETS.brand.logoWhite}
+              <img                 src={ASSETS.brand.logoWhite}
                 alt="Ozzyl"
                 className="h-10 w-auto"
                 width={103}
@@ -34,36 +31,32 @@ export function Footer() {
             <h4 className="text-[#006A4E] font-semibold mb-4">{t('footerProduct')}</h4>
             <ul className="space-y-2">
               <li>
-                <Link
-                  href="/#features"
+                <a href="/#features"
                   className="text-white/50 hover:text-[#00875F] transition text-sm"
                 >
                   {t('footerLinkFeatures')}
-                </Link>
+                </a>
               </li>
               <li>
-                <Link
-                  href="/pricing"
+                <a href="/pricing"
                   className="text-white/50 hover:text-[#00875F] transition text-sm"
                 >
                   {t('footerLinkPricing')}
-                </Link>
+                </a>
               </li>
               <li>
-                <Link
-                  href="/tutorials"
+                <a href="/tutorials"
                   className="text-white/50 hover:text-[#00875F] transition text-sm"
                 >
                   {t('footerLinkTemplates')}
-                </Link>
+                </a>
               </li>
               <li>
-                <Link
-                  href="/templates"
+                <a href="/templates"
                   className="text-white/50 hover:text-[#00875F] transition text-sm"
                 >
                   {t('footerLinkIntegrations')}
-                </Link>
+                </a>
               </li>
             </ul>
           </div>
@@ -97,12 +90,11 @@ export function Footer() {
                 </a>
               </li>
               <li>
-                <Link
-                  href="/contact"
+                <a href="/contact"
                   className="text-white/50 hover:text-[#00875F] transition text-sm"
                 >
                   {t('footerLinkContact')}
-                </Link>
+                </a>
               </li>
             </ul>
           </div>
@@ -112,28 +104,25 @@ export function Footer() {
             <h4 className="text-[#006A4E] font-semibold mb-4">{t('footerLegal')}</h4>
             <ul className="space-y-2">
               <li>
-                <Link
-                  href="/privacy"
+                <a href="/privacy"
                   className="text-white/50 hover:text-[#00875F] transition text-sm"
                 >
                   {t('footerLinkPrivacy')}
-                </Link>
+                </a>
               </li>
               <li>
-                <Link
-                  href="/terms"
+                <a href="/terms"
                   className="text-white/50 hover:text-[#00875F] transition text-sm"
                 >
                   {t('footerLinkTerms')}
-                </Link>
+                </a>
               </li>
               <li>
-                <Link
-                  href="/refund"
+                <a href="/refund"
                   className="text-white/50 hover:text-[#00875F] transition text-sm"
                 >
                   {t('footerLinkRefund')}
-                </Link>
+                </a>
               </li>
             </ul>
           </div>
@@ -142,8 +131,7 @@ export function Footer() {
 
       {/* 2. Try Now Section (Full Width) */}
       <div className="w-full border-y border-white/5">
-        <Link
-          href="/register"
+        <a href="/register"
           className="group relative flex items-center justify-between w-full py-24 md:py-32 px-4 md:px-12 hover:bg-white/5 transition-colors duration-500 overflow-hidden"
         >
           {/* Centered Content */}
@@ -152,8 +140,7 @@ export function Footer() {
             <div className="grid place-items-center w-full px-4 md:px-8">
               {/* Logo (Default) */}
               <div className="col-start-1 row-start-1 w-full transition-transform duration-500 group-hover:-translate-y-full opacity-100 group-hover:opacity-0 flex justify-center">
-                <Image
-                  src={ASSETS.brand.logoWhite}
+                <img                   src={ASSETS.brand.logoWhite}
                   alt="Ozzyl"
                   width={1200}
                   height={400}
@@ -176,7 +163,7 @@ export function Footer() {
           <div className="ml-auto w-16 h-16 md:w-24 md:h-24 rounded-full border border-white/20 flex items-center justify-center group-hover:bg-[#00875F] group-hover:border-[#00875F] transition-all duration-500 group-hover:scale-110 relative z-10 bg-[#0A0F0D] group-hover:bg-[#00875F]">
             <ArrowRight className="w-8 h-8 md:w-12 md:h-12 text-white transform group-hover:-rotate-45 transition-transform duration-500" />
           </div>
-        </Link>
+        </a>
       </div>
 
       {/* 3. Copyright Section (Constrained) */}
@@ -189,14 +176,13 @@ export function Footer() {
               { icon: Facebook, label: 'Facebook' },
               { icon: Instagram, label: 'Instagram' },
             ].map((social, i) => (
-              <Link
-                key={i}
+              <a                 key={i}
                 href="#"
                 className="w-10 h-10 bg-[#006A4E]/10 hover:bg-[#006A4E]/20 border border-[#006A4E]/20 rounded-xl flex items-center justify-center transition"
                 title={social.label}
               >
                 <social.icon className="w-5 h-5 text-[#00875F]" />
-              </Link>
+              </a>
             ))}
           </div>
         </div>

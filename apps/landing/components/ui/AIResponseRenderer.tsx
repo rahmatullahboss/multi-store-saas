@@ -328,7 +328,7 @@ export function AIResponseRendererDark({ response, className = '' }: AIResponseR
       )}
     </div>
   );
-  
+
   const DarkAlertBox = ({ data }: { data: AlertData }) => {
     const colors = {
       info: 'border-blue-500/30 bg-blue-500/10',

@@ -1,12 +1,9 @@
-'use client';
-
 /**
  * Fraud Detection Section
  * 
  * Highlights the AI-powered fraud detection capabilities.
  */
 
-import { motion } from 'framer-motion';
 import { 
   ShieldAlert, 
   ShieldCheck, 
@@ -69,12 +66,7 @@ export const FraudDetectionSection = () => {
   ];
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 40 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-100px' }}
-      transition={{ duration: 0.8 }}
-      className="relative py-24 overflow-hidden"
+    <div className="relative py-24 overflow-hidden"
     >
       {/* Background Glow */}
       <div 
@@ -85,11 +77,7 @@ export const FraudDetectionSection = () => {
       <div className="max-w-6xl mx-auto px-4 relative z-10">
         {/* Section Header */}
         <div className="text-center mb-16">
-          <motion.span
-            initial={{ opacity: 0, scale: 0.9 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-medium mb-4"
+          <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-medium mb-4"
             style={{
               background: `${COLORS.accent}15`,
               color: COLORS.accentLight,
@@ -98,7 +86,7 @@ export const FraudDetectionSection = () => {
           >
             <ShieldAlert className="w-4 h-4" />
             Advanced Protection
-          </motion.span>
+          </span>
           <h2
             className="text-3xl md:text-5xl font-bold text-white mb-6"
             style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}
@@ -123,13 +111,8 @@ export const FraudDetectionSection = () => {
           {/* Left: Features Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {features.map((feature, index) => (
-              <motion.div
-                key={feature.title}
-                initial={{ opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-                className="p-6 rounded-2xl border backdrop-blur-sm transition-all duration-300 hover:scale-[1.02]"
+              <div
+                key={feature.title} className="p-6 rounded-2xl border backdrop-blur-sm transition-all duration-300 hover:scale-[1.02]"
                 style={{
                   background: `linear-gradient(135deg, ${COLORS.backgroundCard}, ${feature.color}05)`,
                   borderColor: `${feature.color}20`
@@ -147,16 +130,12 @@ export const FraudDetectionSection = () => {
                 <p className="text-sm leading-relaxed" style={{ color: COLORS.textMuted }}>
                   {feature.description}
                 </p>
-              </motion.div>
+              </div>
             ))}
           </div>
 
           {/* Right: Visual Representation */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            className="relative"
+          <div className="relative"
           >
             {/* Mock Card */}
             <div 
@@ -222,9 +201,9 @@ export const FraudDetectionSection = () => {
             {/* Decorative Elements */}
             <div className="absolute -top-6 -right-6 w-24 h-24 bg-red-500/20 rounded-full blur-2xl -z-10" />
             <div className="absolute -bottom-6 -left-6 w-32 h-32 bg-orange-500/20 rounded-full blur-2xl -z-10" />
-          </motion.div>
+          </div>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 };

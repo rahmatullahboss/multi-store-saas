@@ -1,5 +1,3 @@
-'use client';
-
 /**
  * ServerSideTrackingSection
  *
@@ -352,7 +350,7 @@ export function ServerSideTrackingSection() {
         {/* ── Bottom CTA strip ── */}
         <div className="rounded-2xl border border-emerald-500/20 bg-gradient-to-br from-emerald-500/5 to-blue-500/5 p-8 md:p-10 text-center">
           <div className="flex items-center justify-center gap-2 mb-3">
-            <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <div className="w-2 h-2 rounded-full bg-emerald-400 -pulse" />
             <span className="text-emerald-400 text-sm font-semibold">এখনই সক্রিয়</span>
           </div>
           <h3 className="text-white text-2xl md:text-3xl font-bold mb-3">

@@ -1,5 +1,3 @@
-'use client';
-
 /**
  * Premium CTA Button - PERFORMANCE OPTIMIZED
  * Removed heavy particle effects and simplified animations
@@ -9,7 +7,6 @@
  * - Respects prefers-reduced-motion
  */
 
-import { motion, useReducedMotion } from 'framer-motion';
 import { ReactNode, useRef, useState } from 'react';
 import { Sparkles } from 'lucide-react';
 
@@ -66,6 +63,7 @@ export function PremiumCTAButton({
       )}
     </>
   );
+}
 
   const commonProps = {
     ref: ref as any,
@@ -80,25 +78,21 @@ export function PremiumCTAButton({
 
   if (href) {
     return (
-      <motion.a
+      <a
         {...commonProps}
         href={href}
-        whileHover={shouldReduceMotion ? {} : { scale: 1.05 }}
-        whileTap={shouldReduceMotion ? {} : { scale: 0.98 }}
       >
         {buttonContent}
-      </motion.a>
+      </a>
     );
   }
 
   return (
-    <motion.button
+    <button
       {...commonProps}
       onClick={onClick}
-      whileHover={shouldReduceMotion ? {} : { scale: 1.05 }}
-      whileTap={shouldReduceMotion ? {} : { scale: 0.98 }}
     >
       {buttonContent}
-    </motion.button>
+    </button>
   );
 }

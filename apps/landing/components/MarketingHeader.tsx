@@ -1,8 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { useLocation } from '@remix-run/react';
 import { Store, Menu, X, ArrowLeft, Globe } from 'lucide-react';
 import { MagneticButton } from '@/components/animations/MagneticButton';
 import { useTranslation } from '@/app/contexts/LanguageContext';
@@ -10,7 +9,7 @@ import { ASSETS } from '@/config/assets';
 
 export function MarketingHeader({ showBackToHome = false }: { showBackToHome?: boolean }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const pathname = usePathname();
+  const pathname = useLocation().pathname;
   const { lang, setLang, t } = useTranslation();
 
   const isActive = (path: string) => pathname === path;
@@ -25,7 +24,7 @@ export function MarketingHeader({ showBackToHome = false }: { showBackToHome?: b
         <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-50" />
         
         <div className="flex items-center justify-between relative z-10">
-          <Link href="/" className="flex items-center gap-3 group">
+          <a href="/" className="flex items-center gap-3 group">
             <div className="relative">
               <div className="absolute inset-0 bg-[#006A4E]/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               <img
@@ -36,44 +35,40 @@ export function MarketingHeader({ showBackToHome = false }: { showBackToHome?: b
                 height="40"
               />
             </div>
-          </Link>
+          </a>
 
           <div className="flex items-center gap-3">
             {!showBackToHome ? (
               <>
                 {!isActive('/features') && (
-                  <Link
-                    href="/features"
+                  <a href="/features"
                     className={`hidden md:block font-medium text-sm px-4 py-2 rounded-xl transition-all duration-300 ${
                       isActive('/features') ? 'text-[#00875F] bg-[#00875F]/10' : 'text-white/60 hover:text-white hover:bg-white/5'
                     }`}
                   >
                     {t('navFeatures')}
-                  </Link>
+                  </a>
                 )}
                 {!isActive('/integrations') && (
-                  <Link
-                    href="/integrations"
+                  <a href="/integrations"
                     className={`hidden md:block font-medium text-sm px-4 py-2 rounded-xl transition-all duration-300 ${
                       isActive('/integrations') ? 'text-[#00875F] bg-[#00875F]/10' : 'text-white/60 hover:text-white hover:bg-white/5'
                     }`}
                   >
                     {t('navIntegrations')}
-                  </Link>
+                  </a>
                 )}
                 {!isActive('/pricing') && (
-                  <Link
-                    href="/pricing"
+                  <a href="/pricing"
                     className={`hidden md:block font-medium text-sm px-4 py-2 rounded-xl transition-all duration-300 ${
                       isActive('/pricing') ? 'text-[#00875F] bg-[#00875F]/10' : 'text-white/60 hover:text-white hover:bg-white/5'
                     }`}
                   >
                     {t('navBilling')}
-                  </Link>
+                  </a>
                 )}
                 {!isActive('/tutorials') && (
-                  <Link
-                    href="/tutorials"
+                  <a href="/tutorials"
                     className={`hidden md:block font-medium text-sm px-4 py-2 rounded-xl transition-all duration-300 ${
                       isActive('/tutorials')
                         ? 'text-[#00875F] bg-[#00875F]/10'
@@ -81,7 +76,7 @@ export function MarketingHeader({ showBackToHome = false }: { showBackToHome?: b
                     }`}
                   >
                     {t('navTutorials')}
-                  </Link>
+                  </a>
                 )}
                 
                 {/* Language Toggle - Hidden */}
@@ -94,32 +89,29 @@ export function MarketingHeader({ showBackToHome = false }: { showBackToHome?: b
                   <span className="relative top-[1px]">{lang === 'en' ? 'EN' : 'BN'}</span>
                 </button> */}
 
-                <Link
-                  href="https://app.ozzyl.com/auth/login"
+                <a href="https://app.ozzyl.com/auth/login"
                   className="hidden sm:block text-white/70 hover:text-white font-medium text-sm px-5 py-2 transition-colors relative hover:shadow-[0_0_20px_rgba(255,255,255,0.1)] rounded-xl"
                 >
                   {t('login')}
-                </Link>
+                </a>
                 
                 <MagneticButton>
-                  <Link
-                    href="https://app.ozzyl.com/auth/register"
+                  <a href="https://app.ozzyl.com/auth/register"
                     className="hidden sm:inline-flex items-center justify-center px-6 py-2.5 bg-gradient-to-r from-[#006A4E] to-[#00875F] hover:from-[#005740] hover:to-[#006A4E] text-white font-semibold rounded-xl text-sm transition-all shadow-[0_4px_20px_rgba(0,106,78,0.3)] hover:shadow-[0_4px_25px_rgba(0,106,78,0.5)] active:scale-[0.98]"
                   >
                     {t('register')}
-                  </Link>
+                  </a>
                 </MagneticButton>
               </>
             ) : (
               // Back to Home mode
               <>
-                <Link
-                  href="/"
+                <a href="/"
                   className="hidden sm:flex items-center gap-2 text-white/60 hover:text-white font-medium text-sm px-4 py-2 transition"
                 >
                   <ArrowLeft className="w-4 h-4" />
                   {t('backToHome')}
-                </Link>
+                </a>
                 {/* Divider and Language Toggle - Hidden */}
                 {/* <div className="h-6 w-[1px] bg-white/10 hidden sm:block mx-1" />
                 
@@ -133,12 +125,11 @@ export function MarketingHeader({ showBackToHome = false }: { showBackToHome?: b
                 </button> */}
 
                 <MagneticButton>
-                  <Link
-                    href="https://app.ozzyl.com/auth/register"
+                  <a href="https://app.ozzyl.com/auth/register"
                     className="px-5 py-2.5 bg-gradient-to-r from-[#006A4E] to-[#00875F] hover:from-[#005740] hover:to-[#006A4E] text-white font-semibold rounded-xl text-sm transition-all shadow-lg hover:shadow-xl active:scale-[0.98]"
                   >
                     {t('register')}
-                  </Link>
+                  </a>
                 </MagneticButton>
               </>
             )}
@@ -164,8 +155,7 @@ export function MarketingHeader({ showBackToHome = false }: { showBackToHome?: b
             <div className="flex flex-col gap-2 pb-2">
                 {!showBackToHome ? (
                   <>
-                    <Link
-                      href="/features"
+                    <a href="/features"
                       className={`font-medium text-sm px-4 py-3 rounded-xl hover:bg-white/5 transition flex items-center justify-between group ${
                         isActive('/features') ? 'text-[#00875F] bg-[#00875F]/5' : 'text-white/70 hover:text-white'
                       }`}
@@ -173,9 +163,8 @@ export function MarketingHeader({ showBackToHome = false }: { showBackToHome?: b
                     >
                       {t('navFeatures')}
                       <span className="opacity-0 group-hover:opacity-100 transition-opacity text-xs">→</span>
-                    </Link>
-                    <Link
-                      href="/integrations"
+                    </a>
+                    <a href="/integrations"
                       className={`font-medium text-sm px-4 py-3 rounded-xl hover:bg-white/5 transition flex items-center justify-between group ${
                         isActive('/integrations') ? 'text-[#00875F] bg-[#00875F]/5' : 'text-white/70 hover:text-white'
                       }`}
@@ -183,9 +172,8 @@ export function MarketingHeader({ showBackToHome = false }: { showBackToHome?: b
                     >
                       {t('navIntegrations')}
                       <span className="opacity-0 group-hover:opacity-100 transition-opacity text-xs">→</span>
-                    </Link>
-                    <Link
-                      href="/pricing"
+                    </a>
+                    <a href="/pricing"
                       className={`font-medium text-sm px-4 py-3 rounded-xl hover:bg-white/5 transition flex items-center justify-between group ${
                         isActive('/pricing') ? 'text-[#00875F] bg-[#00875F]/5' : 'text-white/70 hover:text-white'
                       }`}
@@ -193,9 +181,8 @@ export function MarketingHeader({ showBackToHome = false }: { showBackToHome?: b
                     >
                       {t('navBilling')}
                       <span className="opacity-0 group-hover:opacity-100 transition-opacity text-xs">→</span>
-                    </Link>
-                    <Link
-                      href="/tutorials"
+                    </a>
+                    <a href="/tutorials"
                       className={`font-medium text-sm px-4 py-3 rounded-xl hover:bg-white/5 transition flex items-center justify-between group ${
                         isActive('/tutorials') ? 'text-[#00875F] bg-[#00875F]/5' : 'text-white/70 hover:text-white'
                       }`}
@@ -203,9 +190,8 @@ export function MarketingHeader({ showBackToHome = false }: { showBackToHome?: b
                     >
                       {t('navTutorials')}
                       <span className="opacity-0 group-hover:opacity-100 transition-opacity text-xs">→</span>
-                    </Link>
-                    <Link
-                      href="/contact"
+                    </a>
+                    <a href="/contact"
                       className={`font-medium text-sm px-4 py-3 rounded-xl hover:bg-white/5 transition flex items-center justify-between group ${
                         isActive('/contact')
                           ? 'text-[#00875F] bg-[#00875F]/5'
@@ -215,34 +201,31 @@ export function MarketingHeader({ showBackToHome = false }: { showBackToHome?: b
                     >
                       {t('contactSupport')}
                       <span className="opacity-0 group-hover:opacity-100 transition-opacity text-xs">→</span>
-                    </Link>
+                    </a>
                     <div className="h-[1px] bg-white/5 my-1" />
-                    <Link
-                      href="https://app.ozzyl.com/auth/login"
+                    <a href="https://app.ozzyl.com/auth/login"
                       className="text-white/70 hover:text-white font-medium text-sm px-4 py-3 rounded-xl hover:bg-white/5 transition text-center"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       {t('login')}
-                    </Link>
+                    </a>
                   </>
                 ) : (
-                  <Link
-                    href="/"
+                  <a href="/"
                     className="text-white/70 hover:text-white font-medium text-sm px-4 py-3 rounded-xl hover:bg-white/5 transition flex items-center gap-2"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     <ArrowLeft className="w-4 h-4" />
                     {t('backToHome')}
-                  </Link>
+                  </a>
                 )}
 
-                <Link
-                  href="https://app.ozzyl.com/auth/register"
+                <a href="https://app.ozzyl.com/auth/register"
                   className="mx-2 px-4 py-3 bg-gradient-to-r from-[#006A4E] to-[#00875F] text-white font-bold rounded-xl text-sm text-center shadow-lg shadow-[#006A4E]/25 mt-1 active:scale-[0.98] transition-transform"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   {t('register')}
-                </Link>
+                </a>
             </div>
           </div>
         )}

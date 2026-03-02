@@ -1,5 +1,4 @@
 
-import { motion } from 'framer-motion';
 import { Shield, Users, Terminal, Lock, TrendingUp } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
@@ -27,14 +26,12 @@ export function BusinessManagementSection() {
 
       <div className="max-w-7xl mx-auto px-4 md:px-6 relative z-10">
         <div className="text-center mb-16">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            whileInView={{ opacity: 1, scale: 1 }}
+          <div
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-500/10 border border-purple-500/20 mb-6"
           >
             <Shield className="w-4 h-4 text-purple-500" />
             <span className="text-sm font-medium text-purple-400">Enterprise Control</span>
-          </motion.div>
+          </div>
           <h2 className="text-3xl md:text-5xl font-bold text-white mb-6 leading-relaxed py-2">
             আপনার ফুল টিম,<br />
             <span className="text-purple-500">এক ড্যাশবোর্ডে</span>
@@ -46,10 +43,7 @@ export function BusinessManagementSection() {
 
         <div className="grid lg:grid-cols-3 gap-8 items-start">
           {/* Card 1: Team & Roles - Premium Glass */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+          <div
             className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-[32px] p-8 hover:border-purple-500/30 transition-all duration-500 group relative overflow-hidden h-full shadow-2xl"
           >
             <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
@@ -65,14 +59,10 @@ export function BusinessManagementSection() {
               <RoleItem role="Store Manager" access="Orders & Products" color="blue" />
               <RoleItem role="Support Agent" access="Chat Only" color="emerald" />
             </div>
-          </motion.div>
+          </div>
 
           {/* Card 2: Activity Logs (Centerpiece) - Terminal Glass */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.1 }}
+          <div
             className="bg-[#0A0F0D] border border-white/10 rounded-[32px] p-1 relative overflow-hidden shadow-[0_0_50px_rgba(168,85,247,0.15)] lg:-mt-6 lg:mb-6"
           >
             <div className="absolute inset-0 bg-gradient-to-b from-purple-500/10 to-transparent pointer-events-none" />
@@ -102,15 +92,8 @@ export function BusinessManagementSection() {
 
                    <div className="relative z-0 pt-4">
                        {LOGS.map((log, i) => (
-                         <motion.div
+                         <div
                            key={i}
-                           initial={{ opacity: 0.3 }}
-                           animate={{ 
-                             opacity: i === activeLog ? 1 : 0.2,
-                             y: i === activeLog ? 0 : 0,
-                             x: i === activeLog ? 0 : 0,
-                             scale: i === activeLog ? 1.02 : 1
-                           }}
                            className={`flex gap-3 p-3 rounded-xl transition-all duration-500 items-start ${
                                i === activeLog 
                                ? 'bg-white/[0.08] border border-white/10 shadow-lg backdrop-blur-sm' 
@@ -124,29 +107,23 @@ export function BusinessManagementSection() {
                                </span>
                                <span className="text-gray-300 leading-tight">{log.action}</span>
                            </div>
-                         </motion.div>
+                         </div>
                        ))}
                    </div>
                    
                    {/* Blinking Cursor */}
                    <div className="flex items-center gap-2 p-3 mt-2 border border-dashed border-white/10 rounded-xl">
                      <span className="text-purple-500 font-bold">➜</span>
-                     <motion.span 
-                       animate={{ opacity: [0, 1, 0] }}
-                       transition={{ duration: 0.8, repeat: Infinity }}
+                     <span 
                        className="w-2 h-4 bg-purple-500 shadow-[0_0_10px_rgba(168,85,247,0.5)]"
                      />
                    </div>
                 </div>
             </div>
-          </motion.div>
+          </div>
 
           {/* Card 3: Staff Performance - Premium Glass */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.2 }}
+          <div
             className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-[32px] p-8 hover:border-emerald-500/30 transition-all duration-500 group h-full shadow-2xl relative overflow-hidden"
           >
              <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
@@ -166,7 +143,7 @@ export function BusinessManagementSection() {
             <button className="w-full mt-6 py-3.5 rounded-xl bg-white/5 hover:bg-white/10 text-white font-bold flex items-center justify-center gap-2.5 transition-all duration-300 border border-white/10 group/btn">
                View Full Report
             </button>
-          </motion.div>
+          </div>
 
         </div>
       </div>
@@ -201,7 +178,6 @@ function RoleItem({ role, access, color }: RoleItemProps) {
     </div>
   );
 }
-
 
 interface PerformanceItemProps {
   name: string;

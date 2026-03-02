@@ -1,4 +1,3 @@
-import { motion } from 'framer-motion';
 import { Check, X, Zap, Clock, TrendingUp, Smile, Cpu } from 'lucide-react';
 import { useTranslation } from '@/app/contexts/LanguageContext';
 
@@ -72,10 +71,7 @@ export function AISocialProofSection() {
              
              {/* Data Rows */}
              {comparisonData.map((item, i) => (
-                <motion.div 
-                   initial={{ opacity: 0, y: 10 }}
-                   whileInView={{ opacity: 1, y: 0 }}
-                   transition={{ delay: i * 0.1 }}
+                <div 
                    key={i} 
                    className={`grid grid-cols-4 p-4 items-center border-b border-white/5 last:border-0 ${item.highlight ? 'bg-emerald-900/20' : 'hover:bg-white/5'}`}
                 >
@@ -87,7 +83,7 @@ export function AISocialProofSection() {
                    <div className="text-center flex justify-center">{item.visitor ? <Check className="w-6 h-6 text-emerald-400" /> : <X className="w-5 h-5 text-white/20" />}</div>
                    <div className="text-center flex justify-center">{item.merchant ? <Check className="w-6 h-6 text-emerald-400" /> : <X className="w-5 h-5 text-white/20" />}</div>
                    <div className="text-center flex justify-center">{item.customer ? <Check className="w-6 h-6 text-emerald-400" /> : <X className="w-5 h-5 text-white/20" />}</div>
-                </motion.div>
+                </div>
              ))}
            </div>
         </div>
@@ -95,10 +91,7 @@ export function AISocialProofSection() {
         {/* Value Proposition Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-20">
            {benefits.map((item, i) => (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 + (i * 0.1) }}
+              <div
                 key={i}
                 className="bg-white/5 border border-white/10 rounded-xl p-6 hover:border-emerald-500/30 transition-colors group"
               >
@@ -107,7 +100,7 @@ export function AISocialProofSection() {
                  </div>
                  <h3 className="text-lg font-bold text-white mb-1">{item.title}</h3>
                  <p className="text-sm text-white/60">{item.sub}</p>
-              </motion.div>
+              </div>
            ))}
         </div>
 

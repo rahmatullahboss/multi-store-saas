@@ -1,17 +1,30 @@
 import { useRef } from 'react';
-import { motion, useScroll, useTransform, useInView } from 'framer-motion';
 import { Truck, Package, MapPin, Printer, CheckCircle2, Wallet } from 'lucide-react';
+
+// Simple IntersectionObserver-based useInView (replaces framer-motion)
+function useInViewSimple(ref: React.RefObject<Element | null>, options?: { once?: boolean; margin?: string }) {
+  const [inView, setInView] = React.useState(false);
+  React.useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    if (!('IntersectionObserver' in window)) { setInView(true); return; }
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) { setInView(true); if (options?.once !== false) observer.disconnect(); }
+    }, { rootMargin: options?.margin || '0px' });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+  return inView;
+}
 
 export function CourierIntegrationSection() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const isInView = useInView(containerRef, { once: true, margin: "-10% 0px" });
+  const isInView = useInViewSimple(containerRef);
   
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start end", "end start"]
   });
-
-  const y = useTransform(scrollYProgress, [0, 1], [50, -50]);
 
   const couriers = [
     { name: 'Steadfast', color: '#00D1FF', time: '1-2 Days', cost: '৳60' },
@@ -28,11 +41,7 @@ export function CourierIntegrationSection() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10" ref={containerRef}>
         {/* Section Header */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-16 lg:mb-24"
+        <div className="text-center mb-16 lg:mb-24"
         >
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 mb-6">
             <Truck className="w-4 h-4 text-blue-400" />
@@ -44,28 +53,22 @@ export function CourierIntegrationSection() {
           <p className="text-xl text-gray-400 max-w-2xl mx-auto">
             বাংলাদেশের সব বড় Courier — এক Dashboard এ! আর ম্যানুয়ালি অর্ডার এন্ট্রি দিতে হবে না।
           </p>
-        </motion.div>
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           {/* Left Side: Features & Flow */}
           <div className="space-y-12">
             {/* Courier Logos Grid */}
-            <motion.div 
-              initial={{ opacity: 0, x: -20 }}
-              animate={isInView ? { opacity: 1, x: 0 } : {}}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="bg-gray-900/50 border border-gray-800 rounded-3xl p-8 backdrop-blur-sm"
+            <div className="bg-gray-900/50 border border-gray-800 rounded-3xl p-8 backdrop-blur-sm"
             >
               <h3 className="text-lg font-semibold text-white mb-6 flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                <span className="w-2 h-2 rounded-full bg-green-500 -pulse" />
                 Integrated Partners
               </h3>
               <div className="grid grid-cols-3 gap-6">
                 {couriers.map((courier) => (
-                  <motion.div
-                    key={courier.name}
-                    whileHover={{ scale: 1.05 }}
-                    className="flex flex-col items-center justify-center p-4 bg-gray-800/50 rounded-2xl border border-gray-700/50 hover:border-blue-500/30 transition-colors"
+                  <div
+                    key={courier.name} className="flex flex-col items-center justify-center p-4 bg-gray-800/50 rounded-2xl border border-gray-700/50 hover:border-blue-500/30 transition-colors"
                   >
                     <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-3`} style={{ backgroundColor: `${courier.color}20` }}>
                       <span className="font-bold" style={{ color: courier.color }}>{courier.name[0]}</span>
@@ -74,10 +77,10 @@ export function CourierIntegrationSection() {
                     <div className="flex items-center gap-1 mt-2 text-xs text-green-400 bg-green-400/10 px-2 py-0.5 rounded-full">
                       <CheckCircle2 className="w-3 h-3" /> Ready
                     </div>
-                  </motion.div>
+                  </div>
                 ))}
               </div>
-            </motion.div>
+            </div>
 
             {/* Workflow Steps */}
             <div className="space-y-6">
@@ -104,12 +107,8 @@ export function CourierIntegrationSection() {
                   bg: "bg-green-400/10"
                 }
               ].map((step, idx) => (
-                <motion.div
-                  key={idx}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={isInView ? { opacity: 1, y: 0 } : {}}
-                  transition={{ duration: 0.5, delay: 0.4 + (idx * 0.1) }}
-                  className="flex items-start gap-4 p-4 rounded-xl hover:bg-gray-800/30 transition-colors"
+                <div
+                  key={idx} className="flex items-start gap-4 p-4 rounded-xl hover:bg-gray-800/30 transition-colors"
                 >
                   <div className={`flex-shrink-0 w-12 h-12 rounded-xl ${step.bg} flex items-center justify-center`}>
                     <step.icon className={`w-6 h-6 ${step.color}`} />
@@ -118,13 +117,13 @@ export function CourierIntegrationSection() {
                     <h4 className="text-lg font-semibold text-white mb-2">{step.title}</h4>
                     <p className="text-gray-400">{step.desc}</p>
                   </div>
-                </motion.div>
+                </div>
               ))}
             </div>
           </div>
 
           {/* Right Side: Interactive Demo Card */}
-          <motion.div
+          <div
             style={{ y }}
             className="relative"
           >
@@ -205,10 +204,7 @@ export function CourierIntegrationSection() {
             </div>
 
             {/* Feature Floating Cards */}
-            <motion.div 
-              animate={{ y: [0, 10, 0] }}
-              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute -right-8 top-20 bg-gray-900 border border-gray-800 p-4 rounded-2xl shadow-xl z-20 hidden md:block"
+            <div className="absolute -right-8 top-20 bg-gray-900 border border-gray-800 p-4 rounded-2xl shadow-xl z-20 hidden md:block"
             >
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-blue-500/10 rounded-lg">
@@ -219,12 +215,9 @@ export function CourierIntegrationSection() {
                   <p className="text-sm font-bold text-white">Generated!</p>
                 </div>
               </div>
-            </motion.div>
+            </div>
 
-            <motion.div 
-              animate={{ y: [0, -10, 0] }}
-              transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-              className="absolute -left-8 bottom-20 bg-gray-900 border border-gray-800 p-4 rounded-2xl shadow-xl z-20 hidden md:block"
+            <div className="absolute -left-8 bottom-20 bg-gray-900 border border-gray-800 p-4 rounded-2xl shadow-xl z-20 hidden md:block"
             >
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-purple-500/10 rounded-lg">
@@ -235,8 +228,8 @@ export function CourierIntegrationSection() {
                   <p className="text-sm font-bold text-white">Live Update</p>
                 </div>
               </div>
-            </motion.div>
-          </motion.div>
+            </div>
+          </div>
         </div>
 
         {/* Bottom Comparison */}

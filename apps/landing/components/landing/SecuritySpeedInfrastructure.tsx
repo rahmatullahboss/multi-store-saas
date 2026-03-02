@@ -1,4 +1,3 @@
-import { motion } from 'framer-motion';
 import { 
   ShieldCheck, Globe, Lock, 
   Server, Cloud, Activity,
@@ -27,14 +26,12 @@ export function SecuritySpeedInfrastructure() {
 
       <div className="max-w-7xl mx-auto px-4 md:px-6 relative z-10">
         <div className="text-center mb-20">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            whileInView={{ opacity: 1, scale: 1 }}
+          <div
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 mb-6"
           >
             <ShieldCheck className="w-4 h-4 text-blue-500" />
             <span className="text-sm font-medium text-blue-400">Enterprise Infrastructure</span>
-          </motion.div>
+          </div>
           <h2 className="text-3xl md:text-5xl font-bold text-white mb-6 leading-relaxed py-2">
             দুর্ভেদ্য নিরাপত্তা, <span className="text-blue-500">Unmatched</span> গতি<br />
           </h2>
@@ -50,14 +47,12 @@ export function SecuritySpeedInfrastructure() {
              {/* Animated Connections Line */}
              <div className="absolute inset-0 z-0">
                  <svg className="w-full h-full opacity-20">
-                    <motion.path
+                    <path
                       d="M 50 150 Q 250 50 450 150 T 850 150"
                       fill="none"
                       stroke="url(#gradient-line)"
                       strokeWidth="2"
-                      initial={{ pathLength: 0 }}
-                      animate={{ pathLength: 1 }}
-                      transition={{ duration: 4, repeat: Infinity, ease: 'linear' }}
+                      
                     />
                     <defs>
                        <linearGradient id="gradient-line" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -70,9 +65,7 @@ export function SecuritySpeedInfrastructure() {
 
              <div className="relative z-10 space-y-12">
                 {/* Node 1: Global Edge */}
-                <motion.div 
-                   initial={{ opacity: 0, x: -20 }}
-                   whileInView={{ opacity: 1, x: 0 }}
+                <div 
                    className="flex items-center gap-6"
                 >
                    <div className="w-16 h-16 rounded-2xl bg-blue-500/20 flex items-center justify-center border border-blue-500/30 group-hover:shadow-[0_0_30px_rgba(59,130,246,0.3)] transition-all">
@@ -82,13 +75,10 @@ export function SecuritySpeedInfrastructure() {
                       <h4 className="text-xl font-bold text-white mb-1">Global Edge Network</h4>
                       <p className="text-sm text-gray-500">৩০০+ শহরে ডিস্ট্রিবিউটেড ডাটা সেন্টার</p>
                    </div>
-                </motion.div>
+                </div>
 
                 {/* Node 2: Multi-tenant Logic */}
-                <motion.div 
-                   initial={{ opacity: 0, x: -20 }}
-                   whileInView={{ opacity: 1, x: 0 }}
-                   transition={{ delay: 0.2 }}
+                <div 
                    className="flex items-center gap-6 ml-12"
                 >
                    <div className="w-16 h-16 rounded-2xl bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30 group-hover:shadow-[0_0_30px_rgba(16,185,129,0.3)] transition-all">
@@ -98,13 +88,10 @@ export function SecuritySpeedInfrastructure() {
                       <h4 className="text-xl font-bold text-white mb-1">Multi-Tenant Isolation</h4>
                       <p className="text-sm text-gray-500">প্রতিটি স্টোরের জন্য আইসোলেটেড সিকিউর এনভায়রনমেন্ট</p>
                    </div>
-                </motion.div>
+                </div>
 
                 {/* Node 3: Your Store */}
-                <motion.div 
-                   initial={{ opacity: 0, x: -20 }}
-                   whileInView={{ opacity: 1, x: 0 }}
-                   transition={{ delay: 0.4 }}
+                <div 
                    className="flex items-center gap-6"
                 >
                    <div className="w-16 h-16 rounded-2xl bg-purple-500/20 flex items-center justify-center border border-purple-500/30 group-hover:shadow-[0_0_30px_rgba(168,85,247,0.3)] transition-all">
@@ -114,7 +101,7 @@ export function SecuritySpeedInfrastructure() {
                       <h4 className="text-xl font-bold text-white mb-1">99.9% Uptime SLA</h4>
                       <p className="text-sm text-gray-500">আপনার স্টোর থাকবে সবসময় অনলাইনে</p>
                    </div>
-                </motion.div>
+                </div>
              </div>
 
              {/* Performance Meter */}
@@ -130,11 +117,8 @@ export function SecuritySpeedInfrastructure() {
           {/* Right: Feature Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
              {securityFeatures.map((feature, i) => (
-               <motion.div
+               <div
                  key={i}
-                 initial={{ opacity: 0, y: 20 }}
-                 whileInView={{ opacity: 1, y: 0 }}
-                 transition={{ delay: i * 0.1 }}
                  className="space-y-4 group"
                >
                   <div className="w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center group-hover:bg-blue-500/20 transition-all border border-white/5 group-hover:border-blue-500/30">
@@ -142,7 +126,7 @@ export function SecuritySpeedInfrastructure() {
                   </div>
                   <h4 className="text-xl font-bold text-white">{feature.title}</h4>
                   <p className="text-gray-500 text-sm leading-relaxed">{feature.desc}</p>
-               </motion.div>
+               </div>
              ))}
              
              {/* Cloudflare Badge Accent */}

@@ -5,16 +5,14 @@
  * Wrapper around Next.js Image with optimizations
  */
 
-import Image, { ImageProps } from 'next/image';
 
-interface OptimizedImageProps extends Omit<ImageProps, 'src'> {
+interface OptimizedImageProps extends Omit<React.ImgHTMLAttributes<HTMLImageElement>, 'src'> {
   src: string;
 }
 
 export function OptimizedImage({ src, alt, className = '', ...props }: OptimizedImageProps) {
   return (
-    <Image
-      src={src}
+    <img       src={src}
       alt={alt}
       className={className}
       loading="lazy"

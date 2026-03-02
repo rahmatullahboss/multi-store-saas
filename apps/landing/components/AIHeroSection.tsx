@@ -15,7 +15,6 @@
 
 import { useEffect, useRef, useState, ReactNode } from 'react';
 import { useInView } from '@/hooks/useInView';
-import Link from 'next/link';
 import {
   Play,
   Check,
@@ -364,8 +363,7 @@ export function AIHeroSection({ theme = 'dark', totalUsers = 0 }: HeroProps) {
 
             {/* CTAs */}
             <div className="flex flex-wrap gap-4 mb-10 animate-fade-in-up">
-              <Link
-                href="https://app.ozzyl.com/auth/register"
+              <a href="https://app.ozzyl.com/auth/register"
                 className="group relative px-8 py-3.5 rounded-xl font-semibold text-white overflow-hidden transition-all hover:shadow-lg hover:shadow-green-500/25 active:scale-95"
                 style={{
                   background: `linear-gradient(135deg, ${colors.primary} 0%, ${colors.primaryLight} 100%)`,
@@ -375,7 +373,7 @@ export function AIHeroSection({ theme = 'dark', totalUsers = 0 }: HeroProps) {
                 <span className="relative flex items-center gap-2">
                   <RocketIcon /> {t('heroAiCta')}
                 </span>
-              </Link>
+              </a>
             </div>
 
             {/* Trust Badges */}

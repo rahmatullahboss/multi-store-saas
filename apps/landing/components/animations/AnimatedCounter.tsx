@@ -2,10 +2,23 @@
  * Animated Counter Component - OPTIMIZED
  * Counts up with reduced motion support
  */
-'use client';
-
 import { useEffect, useRef, useState } from 'react';
-import { motion, useInView, useReducedMotion } from 'framer-motion';
+
+// Simple useInView (replaces framer-motion)
+function useInViewSimple(ref: React.RefObject<Element | null>, options?: { once?: boolean; margin?: string }) {
+  const [inView, setInView] = React.useState(false);
+  React.useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    if (!('IntersectionObserver' in window)) { setInView(true); return; }
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) { setInView(true); if (options?.once !== false) observer.disconnect(); }
+    }, { rootMargin: options?.margin || '0px' });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+  return inView;
+}
 
 interface AnimatedCounterProps {
   end: number;
@@ -24,7 +37,7 @@ export function AnimatedCounter({
 }: AnimatedCounterProps) {
   const [count, setCount] = useState(0);
   const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: '-100px' });
+  const isInView = useInViewSimple(ref);
   const hasAnimated = useRef(false);
   const shouldReduceMotion = useReducedMotion();
 
@@ -73,16 +86,13 @@ export function AnimatedCounter({
   }
 
   return (
-    <motion.span
+    <span
       ref={ref}
       className={className}
-      initial={{ opacity: 0, y: 10 }}
-      animate={isInView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.3 }}
     >
       {prefix}
       {count.toLocaleString()}
       {suffix}
-    </motion.span>
+    </span>
   );
 }

@@ -1,5 +1,3 @@
-'use client';
-
 /**
  * Interactive Store Demo - "দেখুন কত সহজ - Try It Now"
  *
@@ -12,9 +10,7 @@
  * - Celebration animation on completion
  */
 
-import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
 import { Check, ShoppingCart, Sparkles, ArrowRight, Store, Package } from 'lucide-react';
 
 // ============================================================================
@@ -97,26 +93,14 @@ const Confetti = () => {
   return (
     <div className="absolute inset-0 pointer-events-none overflow-hidden">
       {confettiPieces.map((piece) => (
-        <motion.div
+        <div
           key={piece.id}
           className="absolute w-2 h-2 rounded-full"
           style={{
             left: `${piece.x}%`,
             top: '-10px',
             backgroundColor: piece.color,
-          }}
-          initial={{ y: 0, opacity: 1, rotate: 0 }}
-          animate={{
-            y: '100vh',
-            opacity: 0,
-            rotate: 360 * piece.rotateDirection,
-          }}
-          transition={{
-            duration: piece.duration,
-            delay: piece.delay,
-            ease: 'easeIn',
-          }}
-        />
+          }} />
       ))}
     </div>
   );
@@ -135,15 +119,12 @@ const ProgressIndicator = ({ currentStep, totalSteps }: ProgressIndicatorProps) 
     <div className="flex items-center gap-2 mb-6">
       {Array.from({ length: totalSteps }, (_, i) => (
         <div key={i} className="flex items-center">
-          <motion.div
+          <div
             className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all ${
               i + 1 <= currentStep
                 ? 'bg-gradient-to-r from-[#006A4E] to-[#00875F] text-white'
                 : 'bg-white/10 text-white/40'
-            }`}
-            animate={i + 1 === currentStep ? { scale: [1, 1.1, 1] } : {}}
-            transition={{ duration: 0.3 }}
-          >
+            }`}>
             {i + 1 <= currentStep ? (
               i + 1 < currentStep ? (
                 <Check className="w-4 h-4" />
@@ -153,19 +134,16 @@ const ProgressIndicator = ({ currentStep, totalSteps }: ProgressIndicatorProps) 
             ) : (
               i + 1
             )}
-          </motion.div>
+          </div>
           {i < totalSteps - 1 && (
-            <motion.div
+            <div
               className="w-8 h-0.5 mx-1"
               style={{
                 background:
                   i + 1 < currentStep
                     ? 'linear-gradient(90deg, #006A4E, #00875F)'
                     : 'rgba(255, 255, 255, 0.1)',
-              }}
-              animate={i + 1 < currentStep ? { scaleX: [0, 1] } : {}}
-              transition={{ duration: 0.3 }}
-            />
+              }} />
           )}
         </div>
       ))}
@@ -200,81 +178,53 @@ const LivePreview = ({
   const displayPrice = productPrice || '০';
 
   return (
-    <motion.div
+    <div
       className="relative rounded-2xl overflow-hidden border backdrop-blur-xl"
       style={{
         backgroundColor: 'rgba(255, 255, 255, 0.03)',
         borderColor: `${activeColor}30`,
-      }}
-      initial={{ opacity: 0, x: 20 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.5 }}
-    >
+      }}>
       {/* Celebration overlay */}
-      <AnimatePresence>
+      
         {isComplete && (
           <>
             <Confetti />
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-black/60 backdrop-blur-sm z-20 flex flex-col items-center justify-center"
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm z-20 flex flex-col items-center justify-center"
             >
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: [0, 1.2, 1] }}
-                transition={{ duration: 0.5 }}
-                className="w-20 h-20 rounded-full flex items-center justify-center mb-4"
+              <div className="w-20 h-20 rounded-full flex items-center justify-center mb-4"
                 style={{
                   background: `linear-gradient(135deg, ${activeColor}, ${template?.gradientTo || activeColor})`,
-                }}
-              >
+                }}>
                 <Check className="w-10 h-10 text-white" />
-              </motion.div>
-              <motion.p
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-                className="text-2xl font-bold text-white mb-2"
+              </div>
+              <p className="text-2xl font-bold text-white mb-2"
               >
                 🎉 দেখলেন? এটুকুই!
-              </motion.p>
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.5 }}
-                className="text-white/60 mb-6"
+              </p>
+              <p className="text-white/60 mb-6"
               >
                 এতটুকু সহজ Store বানানো!
-              </motion.p>
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.7 }}
-              >
-                <Link
-                  href="https://app.ozzyl.com/auth/register"
+              </p>
+              <div >
+                <a href="https://app.ozzyl.com/auth/register"
                   className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-white transition-transform hover:scale-105"
                   style={{
                     background: `linear-gradient(135deg, ${activeColor}, ${template?.gradientTo || activeColor})`,
                     boxShadow: `0 0 30px ${activeColor}60`,
-                  }}
-                >
+                  }}>
                   এই Store টা Save করতে Sign Up করুন
                   <ArrowRight className="w-5 h-5" />
-                </Link>
-              </motion.div>
-            </motion.div>
+                </a>
+              </div>
+            </div>
           </>
         )}
-      </AnimatePresence>
+      
 
       {/* Preview label */}
       <div
         className="flex items-center gap-2 px-4 py-2 border-b"
-        style={{ borderColor: 'rgba(255, 255, 255, 0.1)' }}
-      >
+        style={{ borderColor: 'rgba(255, 255, 255, 0.1)' }}>
         <div className="flex items-center gap-1.5">
           <div className="w-2.5 h-2.5 rounded-full bg-red-500/70" />
           <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/70" />
@@ -284,113 +234,86 @@ const LivePreview = ({
       </div>
 
       {/* Store header */}
-      <motion.div
+      <div
         className="p-4 transition-all duration-500"
         style={{
           background: template
             ? `linear-gradient(135deg, ${activeColor}40, ${activeColor}20)`
             : 'linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05))',
-        }}
-        layout
-      >
+        }}>
         <div className="flex items-center gap-3">
-          <motion.div
+          <div
             className="w-10 h-10 rounded-xl flex items-center justify-center"
             style={{
               background: template
                 ? `linear-gradient(135deg, ${activeColor}, ${template.gradientTo})`
                 : 'rgba(255, 255, 255, 0.1)',
-            }}
-            animate={template ? { scale: [0.8, 1.1, 1] } : {}}
-            transition={{ duration: 0.3 }}
-          >
+            }}>
             {template ? (
               <span className="text-lg">{template.icon}</span>
             ) : (
               <Store className="w-5 h-5 text-white/40" />
             )}
-          </motion.div>
+          </div>
           <div>
-            <motion.h3
+            <h3
               className="text-lg font-bold text-white"
-              key={displayName}
-              initial={{ opacity: 0.5 }}
-              animate={{ opacity: 1 }}
-            >
+              key={displayName} >
               {displayName}
-            </motion.h3>
+            </h3>
             <p className="text-sm text-white/50">
               {template ? `${template.nameBn} Store` : 'আপনার Store'}
             </p>
           </div>
         </div>
-      </motion.div>
+      </div>
 
       {/* Product grid */}
       <div className="p-4">
-        <AnimatePresence mode="wait">
+        
           {productName || productPrice ? (
-            <motion.div
-              key="product-card"
-              initial={{ opacity: 0, y: 10, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="rounded-xl border overflow-hidden"
+            <div
+              key="product-card" className="rounded-xl border overflow-hidden"
               style={{
                 backgroundColor: 'rgba(255, 255, 255, 0.05)',
                 borderColor: 'rgba(255, 255, 255, 0.1)',
-              }}
-            >
+              }}>
               <div
                 className="aspect-square flex items-center justify-center"
                 style={{
                   background: template
                     ? `linear-gradient(135deg, ${activeColor}20, ${activeColor}10)`
                     : 'rgba(255, 255, 255, 0.05)',
-                }}
-              >
+                }}>
                 <Package className="w-12 h-12" style={{ color: activeColor }} />
               </div>
               <div className="p-3">
-                <motion.p
+                <p
                   className="font-medium text-white truncate"
-                  key={displayProduct}
-                  initial={{ opacity: 0.5 }}
-                  animate={{ opacity: 1 }}
-                >
+                  key={displayProduct} >
                   {displayProduct}
-                </motion.p>
-                <motion.p
+                </p>
+                <p
                   className="text-lg font-bold mt-1"
                   style={{ color: activeColor }}
-                  key={displayPrice}
-                  initial={{ opacity: 0.5 }}
-                  animate={{ opacity: 1 }}
-                >
+                  key={displayPrice} >
                   ৳{displayPrice}
-                </motion.p>
-                <motion.button
+                </p>
+                <button
                   className="w-full mt-3 py-2 rounded-lg text-sm font-medium text-white flex items-center justify-center gap-2"
                   style={{
                     background: template
                       ? `linear-gradient(135deg, ${activeColor}, ${template.gradientTo})`
                       : 'rgba(255, 255, 255, 0.1)',
-                  }}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
+                  }}>
                   <ShoppingCart className="w-4 h-4" />
                   Add to Cart
-                </motion.button>
+                </button>
               </div>
-            </motion.div>
+            </div>
           ) : (
-            <motion.div
-              key="placeholder"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="grid grid-cols-2 gap-3"
+            <div
+              key="placeholder" className="grid grid-cols-2 gap-3"
             >
               {[1, 2].map((i) => (
                 <div
@@ -399,19 +322,18 @@ const LivePreview = ({
                   style={{
                     backgroundColor: 'rgba(255, 255, 255, 0.02)',
                     borderColor: 'rgba(255, 255, 255, 0.05)',
-                  }}
-                >
+                  }}>
                   <div className="text-center text-white/20">
                     <Package className="w-8 h-8 mx-auto mb-2" />
                     <span className="text-xs">Product {i}</span>
                   </div>
                 </div>
               ))}
-            </motion.div>
+            </div>
           )}
-        </AnimatePresence>
+        
       </div>
-    </motion.div>
+    </div>
   );
 };
 
@@ -458,66 +380,49 @@ export function InteractiveStoreDemo() {
   return (
     <section
       className="py-16 px-4 relative overflow-hidden"
-      style={{ backgroundColor: COLORS.background }}
-    >
+      style={{ backgroundColor: COLORS.background }}>
       {/* Background gradient orbs */}
-      <motion.div
+      <div
         className="absolute top-1/4 left-1/4 w-[500px] h-[500px] rounded-full blur-3xl opacity-20"
-        style={{ background: `radial-gradient(circle, ${COLORS.primary}, transparent)` }}
-        animate={{ scale: [1, 1.2, 1], opacity: [0.15, 0.25, 0.15] }}
-        transition={{ duration: 8, repeat: Infinity }}
-      />
-      <motion.div
+        style={{ background: `radial-gradient(circle, ${COLORS.primary}, transparent)` }} />
+      <div
         className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] rounded-full blur-3xl opacity-15"
-        style={{ background: `radial-gradient(circle, ${COLORS.accent}, transparent)` }}
-        animate={{ scale: [1.2, 1, 1.2], opacity: [0.2, 0.1, 0.2] }}
-        transition={{ duration: 10, repeat: Infinity }}
-      />
+        style={{ background: `radial-gradient(circle, ${COLORS.accent}, transparent)` }} />
 
       <div className="relative max-w-6xl mx-auto">
         {/* Section header */}
-        <motion.div
-          className="text-center mb-12"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-        >
-          <motion.div
+        <div
+          className="text-center mb-12" >
+          <div
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full border mb-6"
             style={{
               backgroundColor: `${COLORS.primary}15`,
               borderColor: `${COLORS.primary}30`,
-            }}
-          >
+            }}>
             <span className="text-lg">🎮</span>
             <span className="text-sm font-medium" style={{ color: COLORS.primary }}>
               Interactive Demo
             </span>
-          </motion.div>
+          </div>
           <h2
             className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4"
-            style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}
-          >
+            style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}>
             নিজে Try করুন — <span style={{ color: COLORS.accent }}>৩০ সেকেন্ডে</span> Store বানান
           </h2>
           <p className="text-lg text-white/50 max-w-2xl mx-auto">
             কোনো Sign Up লাগবে না, শুধু নিচের ৩টি Step Follow করুন
           </p>
-        </motion.div>
+        </div>
 
         {/* Main content grid */}
         <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-start">
           {/* Left: Interactive Form */}
-          <motion.div
+          <div
             className="p-6 md:p-8 rounded-3xl border backdrop-blur-xl"
             style={{
               backgroundColor: 'rgba(255, 255, 255, 0.03)',
               borderColor: 'rgba(255, 255, 255, 0.1)',
-            }}
-            initial={{ opacity: 0, x: -20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-          >
+            }}>
             <ProgressIndicator currentStep={currentStep} totalSteps={3} />
 
             {/* Step 1: Template Selection */}
@@ -530,7 +435,7 @@ export function InteractiveStoreDemo() {
               </h3>
               <div className="grid grid-cols-3 gap-3">
                 {templates.map((template) => (
-                  <motion.button
+                  <button
                     key={template.id}
                     className={`relative p-4 rounded-xl border text-center transition-all ${
                       selectedTemplate?.id === template.id
@@ -545,48 +450,35 @@ export function InteractiveStoreDemo() {
                           ? `${template.color}15`
                           : 'rgba(255, 255, 255, 0.02)',
                     }}
-                    onClick={() => setSelectedTemplate(template)}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    <motion.span
-                      className="text-3xl block mb-2"
-                      animate={selectedTemplate?.id === template.id ? { scale: [1, 1.2, 1] } : {}}
-                    >
+                    onClick={() => setSelectedTemplate(template)}>
+                    <span
+                      className="text-3xl block mb-2">
                       {template.icon}
-                    </motion.span>
+                    </span>
                     <span className="text-sm text-white/70">{template.nameBn}</span>
                     {selectedTemplate?.id === template.id && (
-                      <motion.div
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        className="absolute -top-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center"
-                        style={{ backgroundColor: template.color }}
-                      >
+                      <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center"
+                        style={{ backgroundColor: template.color }}>
                         <Check className="w-3 h-3 text-white" />
-                      </motion.div>
+                      </div>
                     )}
-                  </motion.button>
+                  </button>
                 ))}
               </div>
             </div>
 
             {/* Step 2: Store Name */}
-            <AnimatePresence>
+            <>
               {currentStep >= 2 && (
-                <motion.div
-                  className="mb-8"
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                >
+                <div
+                  className="mb-8" >
                   <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
                     <span className="w-6 h-6 rounded-full bg-gradient-to-r from-[#006A4E] to-[#00875F] text-white text-xs flex items-center justify-center font-bold">
                       2
                     </span>
                     আপনার Store এর নাম দিন
                   </h3>
-                  <motion.input
+                  <input
                     type="text"
                     value={storeName}
                     onChange={(e) => setStoreName(e.target.value)}
@@ -595,23 +487,16 @@ export function InteractiveStoreDemo() {
                     style={{
                       borderColor:
                         storeName.length >= 3 ? `${COLORS.primary}50` : 'rgba(255, 255, 255, 0.1)',
-                    }}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    autoFocus
+                    }} autoFocus
                   />
-                </motion.div>
+                </div>
               )}
-            </AnimatePresence>
+            </>
 
             {/* Step 3: Add Product */}
-            <AnimatePresence>
+            <>
               {currentStep >= 3 && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                >
+                <div >
                   <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
                     <span className="w-6 h-6 rounded-full bg-gradient-to-r from-[#006A4E] to-[#00875F] text-white text-xs flex items-center justify-center font-bold">
                       3
@@ -619,7 +504,7 @@ export function InteractiveStoreDemo() {
                     একটা Product যোগ করুন
                   </h3>
                   <div className="grid grid-cols-2 gap-3">
-                    <motion.input
+                    <input
                       type="text"
                       value={productName}
                       onChange={(e) => setProductName(e.target.value)}
@@ -629,17 +514,10 @@ export function InteractiveStoreDemo() {
                         borderColor: productName
                           ? `${COLORS.primary}50`
                           : 'rgba(255, 255, 255, 0.1)',
-                      }}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      autoFocus
+                      }} autoFocus
                     />
-                    <motion.div
-                      className="relative"
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.1 }}
-                    >
+                    <div
+                      className="relative" >
                       <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/50">
                         ৳
                       </span>
@@ -655,25 +533,22 @@ export function InteractiveStoreDemo() {
                             : 'rgba(255, 255, 255, 0.1)',
                         }}
                       />
-                    </motion.div>
+                    </div>
                   </div>
-                </motion.div>
+                </div>
               )}
-            </AnimatePresence>
+            </>
 
             {/* Reset button */}
             {isComplete && (
-              <motion.button
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                onClick={resetDemo}
+              <button onClick={resetDemo}
                 className="mt-6 text-sm text-white/40 hover:text-white/60 transition flex items-center gap-2"
               >
                 <Sparkles className="w-4 h-4" />
                 আবার Try করুন
-              </motion.button>
+              </button>
             )}
-          </motion.div>
+          </div>
 
           {/* Right: Live Preview */}
           <div className="lg:sticky lg:top-24">

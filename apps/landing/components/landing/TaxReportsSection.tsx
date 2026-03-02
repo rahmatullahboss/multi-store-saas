@@ -1,10 +1,25 @@
 import { useRef } from 'react';
-import { motion, useInView } from 'framer-motion';
 import { FileText, Download, TrendingUp } from 'lucide-react';
+
+// Simple IntersectionObserver-based useInView (replaces framer-motion)
+function useInViewSimple(ref: React.RefObject<Element | null>, options?: { once?: boolean; margin?: string }) {
+  const [inView, setInView] = React.useState(false);
+  React.useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    if (!('IntersectionObserver' in window)) { setInView(true); return; }
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) { setInView(true); if (options?.once !== false) observer.disconnect(); }
+    }, { rootMargin: options?.margin || '0px' });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+  return inView;
+}
 
 export function TaxReportsSection() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const isInView = useInView(containerRef, { once: true, margin: "-10% 0px" });
+  const isInView = useInViewSimple(containerRef);
 
   const stats = [
     { label: 'Total Revenue', value: '৳12,45,000', change: '+12%', color: 'text-white' },
@@ -57,10 +72,8 @@ export function TaxReportsSection() {
           </div>
 
           {/* Right: Dashboard Visual */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={isInView ? { opacity: 1, x: 0 } : {}}
-            transition={{ duration: 0.6 }}
+          <div
+            
             className="bg-[#0F1115] border border-gray-800 rounded-3xl p-6 lg:p-8 shadow-2xl"
           >
              <div className="flex justify-between items-center mb-8">
@@ -114,7 +127,7 @@ export function TaxReportsSection() {
                   <Download className="w-4 h-4" /> Download Report
                 </button>
              </div>
-          </motion.div>
+          </div>
 
         </div>
       </div>

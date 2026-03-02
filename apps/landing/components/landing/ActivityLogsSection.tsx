@@ -1,10 +1,25 @@
 import { useRef } from 'react';
-import { motion, useInView } from 'framer-motion';
 import { ClipboardList, ShieldAlert, History, User } from 'lucide-react';
+
+// Simple IntersectionObserver-based useInView (replaces framer-motion)
+function useInViewSimple(ref: React.RefObject<Element | null>, options?: { once?: boolean; margin?: string }) {
+  const [inView, setInView] = React.useState(false);
+  React.useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    if (!('IntersectionObserver' in window)) { setInView(true); return; }
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) { setInView(true); if (options?.once !== false) observer.disconnect(); }
+    }, { rootMargin: options?.margin || '0px' });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+  return inView;
+}
 
 export function ActivityLogsSection() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const isInView = useInView(containerRef, { once: true, margin: "-10% 0px" });
+  const isInView = useInViewSimple(containerRef);
 
   const logs = [
     { time: '3:45 PM', user: 'রাসেল', action: 'updated Order #12345', details: 'Status: Processing → Shipped', ip: '103.123.xxx.xxx', type: 'info' },
@@ -52,15 +67,11 @@ export function ActivityLogsSection() {
           </div>
 
           {/* Right: Live Feed Mockup */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={isInView ? { opacity: 1, x: 0 } : {}}
-            transition={{ duration: 0.6 }}
-            className="order-1 lg:order-2 bg-[#0F1115] border border-gray-800 rounded-3xl p-6 lg:p-8 shadow-2xl relative"
+          <div className="order-1 lg:order-2 bg-[#0F1115] border border-gray-800 rounded-3xl p-6 lg:p-8 shadow-2xl relative"
           >
              <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-800">
                <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                 <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" /> Live Activity Feed
+                 <span className="w-2 h-2 bg-green-500 rounded-full -pulse" /> Live Activity Feed
                </h3>
                <button className="text-xs text-gray-500 hover:text-white transition">Export Logs</button>
              </div>
@@ -70,12 +81,8 @@ export function ActivityLogsSection() {
                 <div className="absolute left-[19px] top-4 bottom-4 w-0.5 bg-gray-800" />
 
                 {logs.map((log, idx) => (
-                  <motion.div
-                    key={idx}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={isInView ? { opacity: 1, x: 0 } : {}}
-                    transition={{ delay: 0.3 + (idx * 0.1) }}
-                    className="relative flex gap-4 bg-gray-900/50 p-4 rounded-xl border border-gray-800 hover:border-gray-700 transition cursor-default z-10"
+                  <div
+                    key={idx} className="relative flex gap-4 bg-gray-900/50 p-4 rounded-xl border border-gray-800 hover:border-gray-700 transition cursor-default z-10"
                   >
                     <div className={`w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center border-4 border-[#0F1115] ${
                       log.type === 'danger' ? 'bg-red-500 text-white' : 
@@ -95,14 +102,14 @@ export function ActivityLogsSection() {
                       <p className="text-xs text-gray-400 mt-1">{log.details}</p>
                       <p className="text-[10px] text-gray-600 mt-1 font-mono">IP: {log.ip}</p>
                     </div>
-                  </motion.div>
+                  </div>
                 ))}
              </div>
              
              <div className="mt-6 text-center">
                <button className="text-sm text-gray-500 hover:text-white transition">Load More Activity...</button>
              </div>
-          </motion.div>
+          </div>
         
         </div>
       </div>

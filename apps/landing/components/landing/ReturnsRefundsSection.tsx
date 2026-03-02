@@ -1,10 +1,25 @@
 import { useRef } from 'react';
-import { motion, useInView } from 'framer-motion';
 import { RotateCcw, Check, X, MessageSquare } from 'lucide-react';
+
+// Simple IntersectionObserver-based useInView (replaces framer-motion)
+function useInViewSimple(ref: React.RefObject<Element | null>, options?: { once?: boolean; margin?: string }) {
+  const [inView, setInView] = React.useState(false);
+  React.useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    if (!('IntersectionObserver' in window)) { setInView(true); return; }
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) { setInView(true); if (options?.once !== false) observer.disconnect(); }
+    }, { rootMargin: options?.margin || '0px' });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+  return inView;
+}
 
 export function ReturnsRefundsSection() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const isInView = useInView(containerRef, { once: true, margin: "-10% 0px" });
+  const isInView = useInViewSimple(containerRef);
 
   return (
     <div className="py-24 bg-[#0A0A0F] relative overflow-hidden" ref={containerRef}>
@@ -12,10 +27,8 @@ export function ReturnsRefundsSection() {
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           {/* Left: Workflow Visual */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={isInView ? { opacity: 1, x: 0 } : {}}
-            transition={{ duration: 0.6 }}
+          <div
+            
             className="bg-[#0F1115] border border-gray-800 rounded-3xl p-8 shadow-2xl relative"
           >
              {/* Admin Dashboard Mockup */}
@@ -28,10 +41,8 @@ export function ReturnsRefundsSection() {
 
              <div className="space-y-4">
                 {/* Request Card 1 */}
-                <motion.div 
-                   initial={{ scale: 0.95, opacity: 0 }}
-                   animate={isInView ? { scale: 1, opacity: 1 } : {}}
-                   transition={{ delay: 0.3 }}
+                <div 
+                   
                    className="bg-gray-800/50 rounded-xl p-4 border border-gray-700"
                 >
                    <div className="flex justify-between items-start mb-3">
@@ -56,7 +67,7 @@ export function ReturnsRefundsSection() {
                         <MessageSquare className="w-4 h-4" />
                       </button>
                    </div>
-                </motion.div>
+                </div>
 
                 {/* Request Card 2 (Processed) */}
                 <div className="bg-gray-800/20 rounded-xl p-4 border border-gray-800 opacity-60">
@@ -77,8 +88,7 @@ export function ReturnsRefundsSection() {
                <div className="w-0.5 h-16 bg-gradient-to-b from-purple-500 to-green-500 mx-auto -my-4" />
                <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white border-4 border-[#0A0A0F] z-10">3</div>
              </div>
-          </motion.div>
-
+          </div>
 
           {/* Right: Content */}
           <div className="lg:pl-8">

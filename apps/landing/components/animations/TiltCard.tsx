@@ -2,9 +2,6 @@
  * 3D Tilt Card Effect Component - OPTIMIZED
  * Simplified tilt effect with reduced motion support
  */
-'use client';
-
-import { motion, useMotionValue, useSpring, useTransform, useReducedMotion } from 'framer-motion';
 import { ReactNode, useRef } from 'react';
 
 interface TiltCardProps {
@@ -22,9 +19,6 @@ export function TiltCard({
 }: TiltCardProps) {
   const ref = useRef<HTMLDivElement>(null);
   const shouldReduceMotion = useReducedMotion();
-
-  const x = useMotionValue(0.5);
-  const y = useMotionValue(0.5);
 
   // Softer spring config for less CPU usage
   const springConfig = { stiffness: 200, damping: 25 };
@@ -63,7 +57,7 @@ export function TiltCard({
   }
 
   return (
-    <motion.div
+    <div
       ref={ref}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
@@ -72,7 +66,6 @@ export function TiltCard({
         rotateY,
         transformStyle: 'preserve-3d',
       }}
-      whileHover={{ scale: 1.02 }}
       transition={{ scale: { duration: 0.2 } }}
       className={`relative ${className}`}
     >
@@ -82,6 +75,6 @@ export function TiltCard({
         style={{ background: glowColor }}
       />
       {children as any}
-    </motion.div>
+    </div>
   );
 }

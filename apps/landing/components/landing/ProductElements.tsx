@@ -99,7 +99,6 @@ ${t('landingProduct_orderMsg_thanks')}`;
       {displayButtonText}
     </button>
   );
-}
 
 /**
  * Product Image Gallery
@@ -217,7 +216,6 @@ export function ProductGallery({
       )}
     </div>
   );
-}
 
 /**
  * Product Variant Selector
@@ -297,7 +295,7 @@ export function VariantSelector({
         )}
       </div>
     );
-  }
+}
 
   // Dropdown
   if (displayType === 'dropdown') {
@@ -326,7 +324,7 @@ export function VariantSelector({
         </select>
       </div>
     );
-  }
+}
 
   // Default: Button pills
   return (

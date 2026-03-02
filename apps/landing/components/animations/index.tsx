@@ -23,7 +23,6 @@ export function useReducedMotion(): boolean {
   }, []);
 
   return prefersReducedMotion;
-}
 
 // Simple scroll-triggered reveal using CSS animations
 interface ScrollRevealProps {
@@ -54,7 +53,6 @@ interface StaggerContainerProps {
 
 export function StaggerContainer({ children, className = '' }: StaggerContainerProps) {
   return <div className={className}>{children as any}</div>;
-}
 
 // Stagger item with CSS animation
 interface StaggerItemProps {

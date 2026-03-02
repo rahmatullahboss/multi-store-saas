@@ -6,7 +6,6 @@
  */
 
 import { useState } from 'react';
-import { motion } from 'framer-motion';
 import { Check, Gift, Sparkles } from 'lucide-react';
 import { OptimizedImage } from '@/components/OptimizedImage';
 import { useTranslation } from '@/app/contexts/LanguageContext';
@@ -57,10 +56,7 @@ export function OrderBumpCheckbox({
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
+    <div
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onClick={() => onToggle(bump.id, !isSelected)}
@@ -74,38 +70,28 @@ export function OrderBumpCheckbox({
     >
       {/* Animated Border Pulse for Attention */}
       {!isSelected && (
-        <motion.div
+        <div
           className="absolute inset-0 rounded-xl border-2 border-amber-400"
-          animate={{
-            opacity: [0.5, 1, 0.5],
-            scale: [1, 1.01, 1],
-          }}
-          transition={{
-            duration: 2,
-            repeat: Infinity,
-            ease: 'easeInOut',
-          }}
+          
         />
       )}
       
       {/* Gift Badge */}
       <div className="absolute -top-3 left-4">
-        <motion.div
-          animate={isHovered ? { rotate: [0, -10, 10, 0] } : {}}
-          transition={{ duration: 0.5 }}
+        <div
+          
           className="flex items-center gap-1 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 px-3 py-1 text-xs font-bold text-white shadow-md"
         >
           <Gift className="h-3 w-3" />
           <span>{t('landingOrderBump_specialOffer')}</span>
           <Sparkles className="h-3 w-3" />
-        </motion.div>
+        </div>
       </div>
 
       <div className="mt-2 flex items-start gap-4">
         {/* Checkbox */}
         <div className="flex-shrink-0 pt-1">
-          <motion.div
-            animate={isSelected ? { scale: [1, 1.2, 1] } : {}}
+          <div
             className={`
               flex h-6 w-6 items-center justify-center rounded-md border-2 transition-all
               ${isSelected 
@@ -115,15 +101,13 @@ export function OrderBumpCheckbox({
             `}
           >
             {isSelected && (
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ type: 'spring', stiffness: 500 }}
+              <div
+                
               >
                 <Check className="h-4 w-4 text-white" />
-              </motion.div>
+              </div>
             )}
-          </motion.div>
+          </div>
         </div>
 
         {/* Product Image */}
@@ -185,19 +169,16 @@ export function OrderBumpCheckbox({
 
       {/* Selected Indicator */}
       {isSelected && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
+        <div
           className="absolute -right-2 -top-2"
         >
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500 shadow-lg">
             <Check className="h-5 w-5 text-white" />
           </div>
-        </motion.div>
+        </div>
       )}
-    </motion.div>
+    </div>
   );
-}
 
 /**
  * Order Bumps Container

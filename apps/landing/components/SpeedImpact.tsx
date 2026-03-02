@@ -1,5 +1,3 @@
-'use client';
-
 /**
  * Speed Impact Section - "Speed = Sales"
  *
@@ -84,7 +82,7 @@ const AnimatedNumber = ({
   return (
     <span
       ref={ref}
-      className={`${className} animate-fade-in-up ${isInView ? 'opacity-100' : 'opacity-0'}`}
+      className={`${className} -fade-in-up ${isInView ? 'opacity-100' : 'opacity-0'}`}
       style={{ color }}
     >
       {prefix}
@@ -122,7 +120,7 @@ const StatCard = ({
   return (
     <div
       ref={ref}
-      className={`rounded-xl p-5 relative overflow-hidden group animate-fade-in-up ${
+      className={`rounded-xl p-5 relative overflow-hidden group -fade-in-up ${
         isInView ? 'opacity-100' : 'opacity-0'
       }`}
       style={{
@@ -183,7 +181,7 @@ const ComparisonTable = ({ isInView }: ComparisonTableProps) => {
 
   return (
     <div
-      className={`rounded-2xl overflow-hidden animate-fade-in-up ${isInView ? 'opacity-100' : 'opacity-0'}`}
+      className={`rounded-2xl overflow-hidden -fade-in-up ${isInView ? 'opacity-100' : 'opacity-0'}`}
       style={{
         background:
           'linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)',
@@ -244,7 +242,7 @@ const ComparisonTable = ({ isInView }: ComparisonTableProps) => {
       ].map((row, index) => (
         <div
           key={index}
-          className={`grid grid-cols-3 gap-4 p-4 ${row.isHighlight ? 'bg-white/[0.02]' : ''} animate-fade-in-left ${
+          className={`grid grid-cols-3 gap-4 p-4 ${row.isHighlight ? 'bg-white/[0.02]' : ''} -fade-in-left ${
             isInView ? 'opacity-100' : 'opacity-0'
           }`}
           style={{ borderBottom: index < 3 ? `1px solid ${COLORS.border}` : 'none', animationDelay: `${row.delay}s` }}
@@ -284,7 +282,7 @@ const ComparisonTable = ({ isInView }: ComparisonTableProps) => {
 
       {/* Difference Highlight */}
       <div
-        className={`p-4 text-center animate-fade-in-up ${
+        className={`p-4 text-center -fade-in-up ${
           animationComplete ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
         }`}
         style={{
@@ -303,7 +301,7 @@ const ComparisonTable = ({ isInView }: ComparisonTableProps) => {
             <span className="animate-glow-text">৳48,000</span>{' '}
             বেশি শুধু Speed এর জন্য!
           </p>
-          {animationComplete && <span className="text-2xl animate-pop">💰</span>}
+          {animationComplete && <span className="text-2xl -pop">💰</span>}
         </div>
       </div>
     </div>
@@ -326,7 +324,7 @@ export function SpeedImpact() {
       {/* Background */}
       <div className="absolute inset-0">
         <div
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] rounded-full animate-pulse-soft"
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] rounded-full -pulse-soft"
           style={{
             background: `radial-gradient(ellipse, ${COLORS.accent}08 0%, transparent 70%)`,
           }}
@@ -337,7 +335,7 @@ export function SpeedImpact() {
         {/* Section Header */}
         <div className="text-center mb-12">
           <div
-            className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border backdrop-blur-sm mb-6 animate-fade-in-up ${
+            className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border backdrop-blur-sm mb-6 -fade-in-up ${
               isInView ? 'opacity-100' : 'opacity-0'
             }`}
             style={{
@@ -352,7 +350,7 @@ export function SpeedImpact() {
           </div>
 
           <h2
-            className={`text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 animate-fade-in-up ${
+            className={`text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 -fade-in-up ${
               isInView ? 'opacity-100' : 'opacity-0'
             }`}
             style={{ fontFamily: "'Noto Sans Bengali', 'Inter', sans-serif" }}
@@ -361,7 +359,7 @@ export function SpeedImpact() {
           </h2>
 
           <p
-            className={`text-lg max-w-2xl mx-auto animate-fade-in-up ${
+            className={`text-lg max-w-2xl mx-auto -fade-in-up ${
               isInView ? 'opacity-100' : 'opacity-0'
             }`}
             style={{ color: COLORS.textMuted, fontFamily: "'Noto Sans Bengali', sans-serif" }}
@@ -401,7 +399,7 @@ export function SpeedImpact() {
 
         {/* Real Example Section */}
         <div
-          className={`mb-8 animate-fade-in-up ${isInView ? 'opacity-100' : 'opacity-0'}`}
+          className={`mb-8 -fade-in-up ${isInView ? 'opacity-100' : 'opacity-0'}`}
           style={{ animationDelay: '0.3s' }}
         >
           <div className="flex items-center justify-center gap-2 mb-6">
@@ -427,7 +425,7 @@ export function SpeedImpact() {
         </div>
 
         {/* Final CTA */}
-        <div className={`text-center animate-fade-in-up ${isInView ? 'opacity-100' : 'opacity-0'}`}>
+        <div className={`text-center -fade-in-up ${isInView ? 'opacity-100' : 'opacity-0'}`}>
           <div
             className="inline-flex items-center gap-3 px-8 py-4 rounded-2xl transition-transform duration-200 hover:scale-[1.02]"
             style={{
@@ -456,7 +454,7 @@ export function SpeedImpact() {
 
           {/* Source attribution */}
           <p
-            className={`text-xs mt-4 animate-fade-in ${isInView ? 'opacity-100' : 'opacity-0'}`}
+            className={`text-xs mt-4 -fade-in ${isInView ? 'opacity-100' : 'opacity-0'}`}
             style={{ color: COLORS.textSubtle }}
           >
             * Source: Google/SOASTA Research, Amazon Internal Studies

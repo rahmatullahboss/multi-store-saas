@@ -12,9 +12,6 @@
  */
 
 import { useState, useRef, useEffect, useMemo } from 'react';
-import dynamic from 'next/dynamic';
-import Link from 'next/link';
-import Image from 'next/image';
 import { Rocket } from 'lucide-react';
 import { useTranslation } from '@/app/contexts/LanguageContext';
 import { ClientOnly } from '@/components/LazySection';
@@ -565,13 +562,12 @@ export function MarketingLanding({ stats }: { stats?: MarketingStats }) {
 
       {/* Sticky CTA FAB */}
       <div className="fixed bottom-6 right-6 z-40">
-        <Link
-          href="https://app.ozzyl.com/auth/register"
+        <a href="https://app.ozzyl.com/auth/register"
           className="flex items-center justify-center gap-2 px-5 py-3 sm:px-6 sm:py-4 bg-gradient-to-r from-[#006A4E] to-[#00875F] text-white font-bold rounded-full text-sm sm:text-base shadow-xl shadow-[#006A4E]/40 hover:shadow-2xl hover:shadow-[#006A4E]/50 active:scale-[0.95] hover:scale-[1.05] transition-all duration-200"
         >
           <Rocket className="w-4 h-4 sm:w-5 sm:h-5" />
           {t('getStarted')}
-        </Link>
+        </a>
       </div>
 
       {/* Visitor AI Chat Widget */}

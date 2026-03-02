@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from '@/app/contexts/LanguageContext';
 import { Check, ChevronDown, ChevronUp, Clock } from 'lucide-react';
 
@@ -120,13 +119,8 @@ export function FeatureMatrixSection() {
 
         <div className="space-y-4">
           {TEXT.categories.map((cat, i) => (
-            <motion.div
-              key={cat.id}
-              initial={{ opacity: 0, y: 10 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.1 }}
-              viewport={{ once: true }}
-              className="border border-white/10 rounded-xl overflow-hidden bg-white/[0.02]"
+            <div
+              key={cat.id} className="border border-white/10 rounded-xl overflow-hidden bg-white/[0.02]"
             >
               <button
                 onClick={() => setOpenCategory(openCategory === cat.id ? null : cat.id)}
@@ -140,14 +134,9 @@ export function FeatureMatrixSection() {
                 )}
               </button>
 
-              <AnimatePresence>
+              
                 {openCategory === cat.id && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: "auto", opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className="border-t border-white/5"
+                  <div className="border-t border-white/5"
                   >
                     <div className="p-6 grid md:grid-cols-2 gap-4">
                       {cat.items.map((item, idx) => (
@@ -157,7 +146,7 @@ export function FeatureMatrixSection() {
                               <Check className="w-3.5 h-3.5 text-emerald-500" />
                             </div>
                           ) : (
-                            <div className="w-6 h-6 rounded-full bg-blue-500/10 flex items-center justify-center flex-shrink-0 animate-pulse">
+                            <div className="w-6 h-6 rounded-full bg-blue-500/10 flex items-center justify-center flex-shrink-0 -pulse">
                               <Clock className="w-3.5 h-3.5 text-blue-400" />
                             </div>
                           )}
@@ -172,10 +161,10 @@ export function FeatureMatrixSection() {
                         </div>
                       ))}
                     </div>
-                  </motion.div>
+                  </div>
                 )}
-              </AnimatePresence>
-            </motion.div>
+              
+            </div>
           ))}
         </div>
       </div>

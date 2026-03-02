@@ -1,5 +1,3 @@
-'use client';
-
 /**
  * Technical Specs Section - "Under the Hood"
  * 
@@ -13,8 +11,23 @@
  * - Bengali summary for non-tech users
  */
 
-import { motion, AnimatePresence, useInView } from 'framer-motion';
 import { useRef, useState } from 'react';
+
+// Simple useInView (replaces framer-motion)
+function useInViewSimple(ref: React.RefObject<Element | null>, options?: { once?: boolean; margin?: string }) {
+  const [inView, setInView] = React.useState(false);
+  React.useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    if (!('IntersectionObserver' in window)) { setInView(true); return; }
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) { setInView(true); if (options?.once !== false) observer.disconnect(); }
+    }, { rootMargin: options?.margin || '0px' });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+  return inView;
+}
 import { 
   Settings, 
   ChevronDown, 
@@ -156,10 +169,7 @@ const AccordionItem = ({ spec, isOpen, onToggle, index }: AccordionItemProps) =>
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.1 }}
+    <div
       className="rounded-xl overflow-hidden"
       style={{
         background: isOpen 
@@ -169,23 +179,19 @@ const AccordionItem = ({ spec, isOpen, onToggle, index }: AccordionItemProps) =>
       }}
     >
       {/* Header */}
-      <motion.button
+      <button
         onClick={onToggle}
         className="w-full flex items-center justify-between p-5 text-left transition-colors"
-        whileHover={{ backgroundColor: 'rgba(255,255,255,0.02)' }}
-      >
+        >
         <div className="flex items-center gap-4">
-          <motion.div
+          <div
             className="w-10 h-10 rounded-lg flex items-center justify-center"
             style={{ 
               background: `${spec.color}20`,
               boxShadow: isOpen ? `0 0 20px ${spec.color}30` : 'none',
-            }}
-            animate={isOpen ? { scale: [1, 1.1, 1] } : {}}
-            transition={{ duration: 0.3 }}
-          >
+            }}>
             <Icon className="w-5 h-5" style={{ color: spec.color }} />
-          </motion.div>
+          </div>
           
           <div>
             <h3 className="text-white font-mono font-semibold text-sm tracking-wider">
@@ -197,35 +203,26 @@ const AccordionItem = ({ spec, isOpen, onToggle, index }: AccordionItemProps) =>
           </div>
         </div>
         
-        <motion.div
-          animate={{ rotate: isOpen ? 180 : 0 }}
-          transition={{ duration: 0.3 }}
+        <div
           className="w-8 h-8 rounded-lg flex items-center justify-center"
           style={{ background: 'rgba(255,255,255,0.05)' }}
         >
           <ChevronDown className="w-5 h-5" style={{ color: COLORS.textMuted }} />
-        </motion.div>
-      </motion.button>
+        </div>
+      </button>
       
       {/* Content */}
-      <AnimatePresence>
+      
         {isOpen && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.3 }}
+          <div
             className="overflow-hidden"
           >
             <div className="px-5 pb-5">
               {/* Specs list */}
               <div className="space-y-3 mb-4">
                 {spec.specs.map((item, i) => (
-                  <motion.div
+                  <div
                     key={i}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: i * 0.05 }}
                     className="flex items-start gap-3"
                   >
                     <div 
@@ -236,7 +233,7 @@ const AccordionItem = ({ spec, isOpen, onToggle, index }: AccordionItemProps) =>
                       <span className="text-white/80 text-sm font-medium">{item.label}:</span>
                       <span className="text-white/50 text-sm ml-2">{item.value}</span>
                     </div>
-                  </motion.div>
+                  </div>
                 ))}
               </div>
               
@@ -265,16 +262,14 @@ const AccordionItem = ({ spec, isOpen, onToggle, index }: AccordionItemProps) =>
                     <Terminal className="w-3 h-3" />
                     <span>config.yaml</span>
                   </div>
-                  <motion.button
+                  <button
                     onClick={handleCopy}
                     className="flex items-center gap-1.5 px-2 py-1 rounded text-xs transition-colors"
                     style={{ 
                       background: copied ? 'rgba(16, 185, 129, 0.2)' : 'rgba(255,255,255,0.05)',
                       color: copied ? COLORS.green : COLORS.textMuted,
                     }}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
+                    >
                     {copied ? (
                       <>
                         <Check className="w-3 h-3" />
@@ -286,7 +281,7 @@ const AccordionItem = ({ spec, isOpen, onToggle, index }: AccordionItemProps) =>
                         Copy
                       </>
                     )}
-                  </motion.button>
+                  </button>
                 </div>
                 
                 {/* Code content */}
@@ -314,10 +309,10 @@ const AccordionItem = ({ spec, isOpen, onToggle, index }: AccordionItemProps) =>
                 </pre>
               </div>
             </div>
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
-    </motion.div>
+      
+    </div>
   );
 };
 
@@ -325,19 +320,18 @@ const AccordionItem = ({ spec, isOpen, onToggle, index }: AccordionItemProps) =>
 // CLOUDFLARE BADGE
 // ============================================================================
 const CloudflareBadge = () => (
-  <motion.div
+  <div
     className="inline-flex items-center gap-2 px-4 py-2 rounded-full"
     style={{
       background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(249, 115, 22, 0.1) 100%)',
       border: '1px solid rgba(245, 158, 11, 0.2)',
     }}
-    whileHover={{ scale: 1.05 }}
-  >
+    >
     <Cloud className="w-4 h-4" style={{ color: COLORS.orange }} />
     <span className="text-sm font-medium" style={{ color: COLORS.orange }}>
       Powered by Cloudflare
     </span>
-  </motion.div>
+  </div>
 );
 
 // ============================================================================
@@ -345,7 +339,7 @@ const CloudflareBadge = () => (
 // ============================================================================
 export function TechnicalSpecs() {
   const sectionRef = useRef<HTMLElement>(null);
-  const isInView = useInView(sectionRef, { once: true, margin: '-100px' });
+  const isInView = useInViewSimple(sectionRef);
   const [openId, setOpenId] = useState<string | null>('cdn');
   
   const handleToggle = (id: string) => {
@@ -370,23 +364,18 @@ export function TechnicalSpecs() {
         />
         
         {/* Gradient orb */}
-        <motion.div
+        <div
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] rounded-full"
           style={{
             background: `radial-gradient(ellipse, ${COLORS.primary}08 0%, transparent 70%)`,
           }}
-          animate={{ scale: [1, 1.1, 1] }}
-          transition={{ duration: 10, repeat: Infinity }}
         />
       </div>
       
       <div className="relative z-10 max-w-4xl mx-auto px-6">
         {/* Section Header */}
         <div className="text-center mb-12">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.6 }}
+          <div
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full border backdrop-blur-sm mb-6"
             style={{ 
               backgroundColor: 'rgba(255,255,255,0.03)',
@@ -397,34 +386,25 @@ export function TechnicalSpecs() {
             <span style={{ color: COLORS.textMuted }} className="text-sm font-mono">
               TECHNICAL SPECS
             </span>
-          </motion.div>
+          </div>
           
-          <motion.h2
-            initial={{ opacity: 0, y: 30 }}
-            animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.6, delay: 0.1 }}
+          <h2
             className="text-3xl md:text-4xl font-bold text-white mb-4 font-mono"
           >
             Under the Hood{' '}
             <span style={{ color: COLORS.textSubtle }}>// For the curious</span>
-          </motion.h2>
+          </h2>
           
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.6, delay: 0.2 }}
+          <p
             className="text-lg"
             style={{ color: COLORS.textMuted }}
           >
             Enterprise-grade infrastructure powering your store
-          </motion.p>
+          </p>
         </div>
         
         {/* Accordion Container */}
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.8, delay: 0.3 }}
+        <div
           className="space-y-3 mb-12"
         >
           {TECH_SPECS.map((spec, index) => (
@@ -436,13 +416,10 @@ export function TechnicalSpecs() {
               index={index}
             />
           ))}
-        </motion.div>
+        </div>
         
         {/* Simple Summary for non-tech users */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.6, delay: 0.6 }}
+        <div
           className="text-center p-6 rounded-2xl"
           style={{
             background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, rgba(6, 182, 212, 0.05) 100%)',
@@ -463,23 +440,17 @@ export function TechnicalSpecs() {
           <p className="text-sm mt-2" style={{ color: COLORS.textSubtle, fontFamily: "'Noto Sans Bengali', sans-serif" }}>
             হ্যাকার আক্রমণ থেকে সুরক্ষিত, ২৪/৭ অনলাইন থাকবে।
           </p>
-        </motion.div>
+        </div>
         
         {/* Cloudflare Badge */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={isInView ? { opacity: 1 } : {}}
-          transition={{ delay: 0.8 }}
+        <div
           className="flex justify-center mt-8"
         >
           <CloudflareBadge />
-        </motion.div>
+        </div>
         
         {/* Additional tech labels */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={isInView ? { opacity: 1 } : {}}
-          transition={{ delay: 0.9 }}
+        <div
           className="flex flex-wrap justify-center gap-3 mt-6"
         >
           {[
@@ -489,7 +460,7 @@ export function TechnicalSpecs() {
             { icon: Lock, label: 'TLS 1.3' },
             { icon: Cpu, label: 'Zero Cold Start' },
           ].map((item, index) => (
-            <motion.div
+            <div
               key={index}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs"
               style={{
@@ -497,16 +468,12 @@ export function TechnicalSpecs() {
                 border: '1px solid rgba(255,255,255,0.05)',
                 color: COLORS.textSubtle,
               }}
-              whileHover={{ 
-                borderColor: 'rgba(255,255,255,0.1)',
-                color: COLORS.textMuted,
-              }}
-            >
+              >
               <item.icon className="w-3 h-3" />
               <span className="font-mono">{item.label}</span>
-            </motion.div>
+            </div>
           ))}
-        </motion.div>
+        </div>
       </div>
     </section>
   );

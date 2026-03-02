@@ -1,10 +1,25 @@
 import { useRef } from 'react';
-import { motion, useInView } from 'framer-motion';
 import { MessageCircle, User } from 'lucide-react';
+
+// Simple IntersectionObserver-based useInView (replaces framer-motion)
+function useInViewSimple(ref: React.RefObject<Element | null>, options?: { once?: boolean; margin?: string }) {
+  const [inView, setInView] = React.useState(false);
+  React.useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    if (!('IntersectionObserver' in window)) { setInView(true); return; }
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) { setInView(true); if (options?.once !== false) observer.disconnect(); }
+    }, { rootMargin: options?.margin || '0px' });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+  return inView;
+}
 
 export function MessengerIntegrationSection() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const isInView = useInView(containerRef, { once: true, margin: "-10% 0px" });
+  const isInView = useInViewSimple(containerRef);
 
   return (
     <div className="py-24 bg-[#0F1115] overflow-hidden" ref={containerRef}>
@@ -26,24 +41,20 @@ export function MessengerIntegrationSection() {
            {/* Connection Visual */}
           <div className="flex justify-between items-center mb-12 relative z-10">
              {/* Store */}
-             <motion.div 
-               initial={{ x: -50, opacity: 0 }}
-               animate={isInView ? { x: 0, opacity: 1 } : {}}
-               transition={{ duration: 0.6 }}
+             <div 
+               
                className="bg-gray-800 p-6 rounded-2xl border border-gray-700 text-center w-48 shadow-lg"
              >
                 <div className="w-16 h-16 bg-gray-700 rounded-full mx-auto mb-4 flex items-center justify-center">
                   <span className="text-2xl">🏪</span>
                 </div>
                 <h3 className="text-white font-bold">Your Store</h3>
-             </motion.div>
+             </div>
 
              {/* Connection Line */}
              <div className="flex-1 h-0.5 bg-gray-700 relative mx-4">
-                <motion.div 
-                  initial={{ scaleX: 0 }}
-                  animate={isInView ? { scaleX: 1 } : {}}
-                  transition={{ duration: 1, delay: 0.5 }}
+                <div 
+                  
                   className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-500 to-transparent bg-[length:200%_100%] animate-shimmer"
                 />
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#0F1115] px-3 text-xs text-blue-400 font-mono">
@@ -52,24 +63,20 @@ export function MessengerIntegrationSection() {
              </div>
 
              {/* Messenger */}
-             <motion.div 
-               initial={{ x: 50, opacity: 0 }}
-               animate={isInView ? { x: 0, opacity: 1 } : {}}
-               transition={{ duration: 0.6 }}
+             <div 
+               
                className="bg-blue-600 p-6 rounded-2xl border border-blue-500 text-center w-48 shadow-lg shadow-blue-500/20"
              >
                 <div className="w-16 h-16 bg-white rounded-full mx-auto mb-4 flex items-center justify-center">
                   <MessageCircle className="w-8 h-8 text-blue-600 fill-blue-600" />
                 </div>
                 <h3 className="text-white font-bold">Messenger</h3>
-             </motion.div>
+             </div>
           </div>
 
           {/* Aggregated Dashboard Mockup */}
-          <motion.div
-             initial={{ y: 50, opacity: 0 }}
-             animate={isInView ? { y: 0, opacity: 1 } : {}}
-             transition={{ delay: 0.8, duration: 0.6 }}
+          <div
+             
              className="bg-[#111318] border border-gray-800 rounded-2xl overflow-hidden shadow-2xl"
           >
              <div className="flex border-b border-gray-800">
@@ -143,7 +150,7 @@ export function MessengerIntegrationSection() {
                    </div>
                 </div>
              </div>
-          </motion.div>
+          </div>
 
           <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
              <div className="p-4">

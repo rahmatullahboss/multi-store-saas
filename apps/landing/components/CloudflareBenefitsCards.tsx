@@ -1,5 +1,3 @@
-'use client';
-
 /**
  * Cloudflare Benefits Cards - Enterprise-Grade Features
  *
@@ -11,11 +9,26 @@
  * - Tooltip with more details
  */
 
-import { motion, useInView } from 'framer-motion';
 import { useRef, useState } from 'react';
 import { type LucideIcon, Shield } from 'lucide-react';
 import { LottieIcon } from '@/components/ui/LottieIcon';
 import { LOTTIE_ANIMATIONS } from '@/lib/lottie-animations';
+
+// Simple useInView (replaces framer-motion)
+function useInViewSimple(ref: React.RefObject<Element | null>, options?: { once?: boolean; margin?: string }) {
+  const [inView, setInView] = React.useState(false);
+  React.useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    if (!('IntersectionObserver' in window)) { setInView(true); return; }
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) { setInView(true); if (options?.once !== false) observer.disconnect(); }
+    }, { rootMargin: options?.margin || '0px' });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+  return inView;
+}
 
 // ============================================================================
 // DESIGN TOKENS - Matching Infrastructure Section theme
@@ -144,66 +157,45 @@ const BenefitCardComponent = ({ benefit, index }: BenefitCardComponentProps) => 
   const lottieIconSrc = iconMap[benefit.icon as unknown as string] || LOTTIE_ANIMATIONS.zap;
 
   return (
-    <motion.div
+    <div
       className="relative group flex-shrink-0 w-[280px] sm:w-[300px]"
-      initial={{ opacity: 0, y: 40 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ delay: index * 0.1, duration: 0.5 }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <motion.div
+      <div
         className="relative h-full p-6 rounded-2xl backdrop-blur-xl border transition-all duration-500 cursor-pointer overflow-hidden"
         style={{
           background: benefit.gradient,
           borderColor: isHovered ? `${benefit.color}50` : 'rgba(255,255,255,0.1)',
-        }}
-        animate={{
-          y: isHovered ? -8 : 0,
           boxShadow: isHovered
-            ? `0 20px 40px ${benefit.color}30, 0 8px 16px rgba(0,0,0,0.3)`
+            ? `0 0 30px ${benefit.color}30, 0 8px 16px rgba(0,0,0,0.3)`
             : '0 4px 12px rgba(0,0,0,0.2)',
         }}
-        transition={{ duration: 0.3 }}
       >
         {/* Background gradient shift on hover */}
-        <motion.div
+        <div
           className="absolute inset-0 rounded-2xl opacity-0"
           style={{
             background: `radial-gradient(circle at ${isHovered ? '30% 30%' : '50% 50%'}, ${benefit.color}25 0%, transparent 70%)`,
           }}
-          animate={{ opacity: isHovered ? 1 : 0 }}
-          transition={{ duration: 0.4 }}
         />
 
         {/* Glow effect */}
-        <motion.div
+        <div
           className="absolute -inset-1 rounded-2xl opacity-0 pointer-events-none"
           style={{
             background: `linear-gradient(135deg, ${benefit.color}30 0%, transparent 50%)`,
           }}
-          animate={{ opacity: isHovered ? 0.5 : 0 }}
-          transition={{ duration: 0.3 }}
         />
 
         {/* Content */}
         <div className="relative z-10">
           {/* Icon with animation */}
-          <motion.div
+          <div
             className="w-14 h-14 rounded-xl flex items-center justify-center mb-4"
             style={{
               background: `linear-gradient(135deg, ${benefit.color}30 0%, ${benefit.color}10 100%)`,
               border: `1px solid ${benefit.color}40`,
-            }}
-            animate={{
-              scale: isHovered ? [1, 1.1, 1] : 1,
-              rotate: isHovered ? [0, -5, 5, 0] : 0,
-            }}
-            transition={{
-              duration: 0.6,
-              repeat: isHovered ? Infinity : 0,
-              repeatDelay: 0.5,
             }}
           >
             <LottieIcon 
@@ -213,7 +205,7 @@ const BenefitCardComponent = ({ benefit, index }: BenefitCardComponentProps) => 
               autoplay={isHovered}
               className="transition-transform"
             />
-          </motion.div>
+          </div>
 
           {/* Title */}
           <div className="mb-3">
@@ -242,35 +234,24 @@ const BenefitCardComponent = ({ benefit, index }: BenefitCardComponentProps) => 
           {/* Specs */}
           <div className="space-y-2">
             {benefit.specs.map((spec, i) => (
-              <motion.div
+              <div
                 key={i}
                 className="flex items-center gap-2 text-sm"
-                initial={{ opacity: 0, x: -10 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 + i * 0.1 + 0.3 }}
               >
                 <div className="w-1.5 h-1.5 rounded-full" style={{ background: benefit.color }} />
                 <span style={{ color: COLORS.textMuted }}>{spec}</span>
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>
 
         {/* Tooltip on hover */}
-        <motion.div
+        <div
           className="absolute left-0 right-0 -bottom-2 mx-4 px-4 py-3 rounded-xl backdrop-blur-md border z-20"
           style={{
             background: 'rgba(0,0,0,0.85)',
             borderColor: `${benefit.color}40`,
           }}
-          initial={{ opacity: 0, y: 10, scale: 0.95 }}
-          animate={{
-            opacity: isHovered ? 1 : 0,
-            y: isHovered ? 0 : 10,
-            scale: isHovered ? 1 : 0.95,
-          }}
-          transition={{ duration: 0.2, delay: isHovered ? 0.3 : 0 }}
         >
           <p
             className="text-sm"
@@ -281,9 +262,9 @@ const BenefitCardComponent = ({ benefit, index }: BenefitCardComponentProps) => 
           >
             💡 {benefit.tooltip}
           </p>
-        </motion.div>
-      </motion.div>
-    </motion.div>
+        </div>
+      </div>
+    </div>
   );
 };
 
@@ -292,7 +273,7 @@ const BenefitCardComponent = ({ benefit, index }: BenefitCardComponentProps) => 
 // ============================================================================
 export function CloudflareBenefitsCards() {
   const sectionRef = useRef<HTMLElement>(null);
-  const isInView = useInView(sectionRef, { once: true, margin: '-100px' });
+  const isInView = useInViewSimple(sectionRef);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
@@ -323,27 +304,17 @@ export function CloudflareBenefitsCards() {
     >
       {/* Background Elements */}
       <div className="absolute inset-0">
-        <motion.div
+        <div
           className="absolute top-1/3 left-1/4 w-[600px] h-[400px] rounded-full"
           style={{
             background: `radial-gradient(ellipse, ${COLORS.primary}10 0%, transparent 70%)`,
           }}
-          animate={{
-            scale: [1, 1.2, 1],
-            opacity: [0.3, 0.5, 0.3],
-          }}
-          transition={{ duration: 10, repeat: Infinity }}
         />
-        <motion.div
+        <div
           className="absolute bottom-1/4 right-1/4 w-[500px] h-[300px] rounded-full"
           style={{
             background: `radial-gradient(ellipse, ${COLORS.cyan}10 0%, transparent 70%)`,
           }}
-          animate={{
-            scale: [1.1, 1, 1.1],
-            opacity: [0.2, 0.4, 0.2],
-          }}
-          transition={{ duration: 12, repeat: Infinity }}
         />
       </div>
 
@@ -361,10 +332,7 @@ export function CloudflareBenefitsCards() {
         {/* Section Header */}
         <div className="text-center mb-12">
           {/* Badge */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.6 }}
+          <div
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full border backdrop-blur-sm mb-6"
             style={{
               backgroundColor: `${COLORS.primary}10`,
@@ -375,13 +343,10 @@ export function CloudflareBenefitsCards() {
             <span style={{ color: COLORS.primary }} className="text-sm font-medium">
               ENTERPRISE-GRADE FEATURES
             </span>
-          </motion.div>
+          </div>
 
           {/* Title */}
-          <motion.h2
-            initial={{ opacity: 0, y: 30 }}
-            animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.6, delay: 0.1 }}
+          <h2
             className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4"
             style={{ fontFamily: "'Noto Sans Bengali', 'Inter', sans-serif" }}
           >
@@ -394,24 +359,21 @@ export function CloudflareBenefitsCards() {
             >
               আপনার জন্য FREE
             </span>
-          </motion.h2>
+          </h2>
 
           {/* Subtitle */}
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.6, delay: 0.2 }}
+          <p
             className="text-lg max-w-2xl mx-auto"
             style={{ color: COLORS.textMuted, fontFamily: "'Noto Sans Bengali', sans-serif" }}
           >
             বড় কোম্পানিগুলোর মতো Technology এখন আপনার ছোট ব্যবসার জন্য, কোনো খরচ ছাড়াই।
-          </motion.p>
+          </p>
         </div>
 
         {/* Cards Container */}
         <div className="relative">
           {/* Scroll indicators/buttons */}
-          <motion.button
+          <button
             onClick={() => scroll('left')}
             className="absolute left-0 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full backdrop-blur-md border flex items-center justify-center transition-all duration-300 hidden md:flex"
             style={{
@@ -420,8 +382,6 @@ export function CloudflareBenefitsCards() {
               opacity: canScrollLeft ? 1 : 0.3,
               cursor: canScrollLeft ? 'pointer' : 'not-allowed',
             }}
-            whileHover={canScrollLeft ? { scale: 1.1 } : {}}
-            whileTap={canScrollLeft ? { scale: 0.95 } : {}}
             aria-label="Scroll left"
           >
             <svg
@@ -437,9 +397,9 @@ export function CloudflareBenefitsCards() {
                 d="M15 19l-7-7 7-7"
               />
             </svg>
-          </motion.button>
+          </button>
 
-          <motion.button
+          <button
             onClick={() => scroll('right')}
             className="absolute right-0 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full backdrop-blur-md border flex items-center justify-center transition-all duration-300 hidden md:flex"
             style={{
@@ -448,8 +408,6 @@ export function CloudflareBenefitsCards() {
               opacity: canScrollRight ? 1 : 0.3,
               cursor: canScrollRight ? 'pointer' : 'not-allowed',
             }}
-            whileHover={canScrollRight ? { scale: 1.1 } : {}}
-            whileTap={canScrollRight ? { scale: 0.95 } : {}}
             aria-label="Scroll right"
           >
             <svg
@@ -460,7 +418,7 @@ export function CloudflareBenefitsCards() {
             >
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
-          </motion.button>
+          </button>
 
           {/* Gradient masks */}
           <div className="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-[#0A0F0D] to-transparent z-10 pointer-events-none hidden md:block" />
@@ -486,23 +444,17 @@ export function CloudflareBenefitsCards() {
           </div>
 
           {/* Scroll hint on mobile */}
-          <motion.div
+          <div
             className="flex justify-center gap-2 mt-4 md:hidden"
-            initial={{ opacity: 0 }}
-            animate={isInView ? { opacity: 1 } : {}}
-            transition={{ delay: 1 }}
           >
             <span className="text-xs" style={{ color: COLORS.textSubtle }}>
               ← Swipe to see more →
             </span>
-          </motion.div>
+          </div>
         </div>
 
         {/* Bottom CTA */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ delay: 0.8 }}
+        <div
           className="text-center mt-12"
         >
           <div
@@ -518,7 +470,7 @@ export function CloudflareBenefitsCards() {
               <span style={{ color: COLORS.accent }}>বিশ্বমানের Technology</span>
             </span>
           </div>
-        </motion.div>
+        </div>
       </div>
 
       {/* Custom scrollbar hide styles */}

@@ -1,5 +1,3 @@
-'use client';
-
 /**
  * UI/UX Pro Max - Infrastructure Section
  *
@@ -9,7 +7,6 @@
  * - Interactive Server Nodes
  */
 
-import { motion, useMotionValue, useTransform } from 'framer-motion';
 import { Zap, Shield, Clock, Server, type LucideIcon } from 'lucide-react';
 import { ClientOnly } from '@/components/LazySection';
 import { ScrollReveal } from '@/components/animations';
@@ -88,19 +85,14 @@ const WorldMap = () => {
 
       {/* Server Nodes */}
       {SERVERS.map((server) => (
-        <motion.div
+        <div
           key={server.id}
           className="absolute"
           style={{ left: `${server.x}%`, top: `${server.y}%` }}
-          initial={{ scale: 0 }}
-          whileInView={{ scale: 1 }}
-          viewport={{ once: true }}
         >
           {/* Ping Wave */}
-          <motion.div
+          <div
             className={`absolute -inset-4 rounded-full border ${server.type === 'edge' ? 'border-[#00DDA2]' : 'border-blue-500'}`}
-            animate={{ scale: [0.5, 2], opacity: [1, 0] }}
-            transition={{ duration: 2, repeat: Infinity }}
           />
           {/* Core */}
           <div
@@ -113,19 +105,16 @@ const WorldMap = () => {
           >
             {server.name}
           </div>
-        </motion.div>
+        </div>
       ))}
 
       {/* Connection Lines (Simulated) */}
       <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-30">
-        <motion.path
+        <path
           d="M 68 42 L 72 55 M 68 42 L 45 28 M 68 42 L 25 35" // Scaled coords to % roughly
           stroke="#00DDA2"
           strokeWidth="0.5"
           fill="none"
-          initial={{ pathLength: 0 }}
-          whileInView={{ pathLength: 1 }}
-          transition={{ duration: 2 }}
           // Note: SVG coords in % don't work directly in path 'd' usually without viewBox calc,
           // but for this visual abstracted component we'll assume a viewBox mapping or correct later.
           // For safety, let's use line elements which support % better in some contexts or CSS.
@@ -152,16 +141,10 @@ const StatCard3D = ({
   sublabel: string;
   color: string;
 }) => {
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
-
-  const rotateX = useTransform(y, [-100, 100], [10, -10]);
-  const rotateY = useTransform(x, [-100, 100], [-10, 10]);
 
   return (
-    <motion.div
+    <div
       style={{ x, y, rotateX, rotateY, z: 100 }}
-      whileHover={{ scale: 1.02 }}
       className="relative p-6 rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl overflow-hidden group"
       onMouseMove={(e) => {
         const rect = e.currentTarget.getBoundingClientRect();
@@ -193,7 +176,7 @@ const StatCard3D = ({
         <div className="text-white/70 font-medium mb-1">{label}</div>
         <div className="text-white/30 text-xs mt-auto">{sublabel}</div>
       </div>
-    </motion.div>
+    </div>
   );
 };
 
@@ -211,17 +194,14 @@ export function InfrastructureSection() {
       <div className="max-w-7xl mx-auto px-6 relative z-10">
         <ScrollReveal>
           <div className="text-center mb-16">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
+            <div
               className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#00DDA2]/30 bg-[#00DDA2]/10 backdrop-blur-sm mb-6"
             >
               <Zap className="w-4 h-4 text-[#00DDA2]" />
               <span className="text-sm font-bold text-[#00DDA2] uppercase tracking-wider">
                 Enterprise Grade
               </span>
-            </motion.div>
+            </div>
 
             <h2 className="text-4xl md:text-6xl font-bold text-white mb-6">
               বিশ্বমানের <span className="text-[#00DDA2]">ইনফ্রাস্ট্রাকচার</span>

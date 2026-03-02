@@ -1,18 +1,10 @@
 import { useRef } from 'react';
-import { motion, useScroll, useTransform } from 'framer-motion';
 import { useTranslation } from '@/app/contexts/LanguageContext';
 import { BarChart3, TrendingUp, Users, DollarSign, ArrowUpRight, ShoppingBag, Eye, MousePointerClick } from 'lucide-react';
 
 export function AnalyticsInsightsSection() {
   const { lang } = useTranslation();
   const containerRef = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start end", "end start"]
-  });
-
-  const y = useTransform(scrollYProgress, [0, 1], [100, -100]);
-  const opacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0, 1, 1, 0]);
 
   const TEXT = {
     en: {
@@ -85,10 +77,7 @@ export function AnalyticsInsightsSection() {
       <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-teal-500/10 blur-[100px] rounded-full" />
 
       <div className="max-w-7xl mx-auto px-4 relative z-10">
-        <motion.div 
-          style={{ opacity, y }}
-          className="text-center mb-16"
-        >
+        <div className="text-center mb-16">
           <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm font-medium mb-6">
             <BarChart3 className="w-4 h-4" />
             {TEXT.badge}
@@ -99,16 +88,11 @@ export function AnalyticsInsightsSection() {
           <p className="text-xl text-white/60 max-w-2xl mx-auto">
             {TEXT.subtitle}
           </p>
-        </motion.div>
+        </div>
 
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Left: Dashboard Mockup */}
-          <motion.div 
-            initial={{ opacity: 0, x: -50 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-            className="relative"
+          <div className="relative"
           >
             <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/20 to-teal-500/20 blur-2xl rounded-[3rem]" />
             <div className="relative bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-2xl p-6 md:p-8 shadow-2xl">
@@ -134,11 +118,9 @@ export function AnalyticsInsightsSection() {
               {/* Chart Placeholder (simplified) */}
               <div className="bg-white/5 rounded-xl p-6 border border-white/5 mb-8 h-48 relative overflow-hidden flex items-end justify-between gap-2">
                 {[40, 60, 45, 70, 55, 80, 65, 90, 75, 100, 85, 95].map((h, i) => (
-                  <motion.div 
+                  <div 
                     key={i}
-                    initial={{ height: 0 }}
-                    whileInView={{ height: `${h}%` }}
-                    transition={{ duration: 1, delay: i * 0.05 }}
+                    style={{ height: `${h}%` }}
                     className="w-full bg-gradient-to-t from-emerald-500/20 to-emerald-500/60 rounded-t-sm"
                   />
                 ))}
@@ -174,7 +156,7 @@ export function AnalyticsInsightsSection() {
                 </div>
               </div>
             </div>
-          </motion.div>
+          </div>
 
           {/* Right: Insight Cards */}
           <div className="grid gap-6">
@@ -184,14 +166,8 @@ export function AnalyticsInsightsSection() {
               { title: TEXT.insights.status.title, desc: TEXT.insights.status.desc, icon: Eye },
               { title: TEXT.insights.breakdown.title, desc: TEXT.insights.breakdown.desc, icon: DollarSign }
             ].map((card, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, x: 50 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.5, delay: i * 0.1 }}
-                viewport={{ once: true }}
-                whileHover={{ scale: 1.02, backgroundColor: "rgba(255,255,255,0.05)" }}
-                className="bg-white/[0.03] border border-white/10 rounded-xl p-6 flex items-start gap-4"
+              <div
+                key={i} className="bg-white/[0.03] border border-white/10 rounded-xl p-6 flex items-start gap-4"
               >
                 <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-500/20 to-teal-500/20 flex items-center justify-center flex-shrink-0">
                   <card.icon className="w-6 h-6 text-emerald-400" />
@@ -200,17 +176,13 @@ export function AnalyticsInsightsSection() {
                   <h3 className="text-lg font-bold text-white mb-1">{card.title}</h3>
                   <p className="text-white/60 text-sm">{card.desc}</p>
                 </div>
-              </motion.div>
+              </div>
             ))}
 
-            <motion.div 
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              transition={{ delay: 0.6 }}
-              className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4 text-center mt-4"
+            <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4 text-center mt-4"
             >
               <p className="text-emerald-300 font-medium italic">"{TEXT.quote}"</p>
-            </motion.div>
+            </div>
           </div>
         </div>
       </div>

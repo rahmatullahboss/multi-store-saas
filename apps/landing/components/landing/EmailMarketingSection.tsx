@@ -1,10 +1,25 @@
 import { useRef } from 'react';
-import { motion, useInView } from 'framer-motion';
 import { Mail, Clock, DollarSign, LayoutTemplate, ShoppingCart } from 'lucide-react';
+
+// Simple IntersectionObserver-based useInView (replaces framer-motion)
+function useInViewSimple(ref: React.RefObject<Element | null>, options?: { once?: boolean; margin?: string }) {
+  const [inView, setInView] = React.useState(false);
+  React.useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    if (!('IntersectionObserver' in window)) { setInView(true); return; }
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) { setInView(true); if (options?.once !== false) observer.disconnect(); }
+    }, { rootMargin: options?.margin || '0px' });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+  return inView;
+}
 
 export function EmailMarketingSection() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const isInView = useInView(containerRef, { once: true, margin: "-10% 0px" });
+  const isInView = useInViewSimple(containerRef);
 
   const templates = [
     { name: 'Welcome Email', color: 'bg-blue-500', icon: '👋' },
@@ -51,32 +66,26 @@ export function EmailMarketingSection() {
                   </svg>
                </div>
 
-               <motion.div 
-                 initial={{ opacity: 0, y: -20 }}
-                 animate={isInView ? { opacity: 1, y: 0 } : {}}
-                 transition={{ delay: 0.2 }}
+               <div 
+                 
                  className="z-10 bg-blue-500/10 border border-blue-500/30 px-6 py-3 rounded-xl text-blue-300 font-medium flex items-center gap-2 mb-8"
                >
                  <ShoppingCart className="w-4 h-4" /> New Order Placed
-               </motion.div>
+               </div>
 
-               <motion.div 
-                 initial={{ opacity: 0, scale: 0.5 }}
-                 animate={isInView ? { opacity: 1, scale: 1 } : {}}
-                 transition={{ delay: 0.4 }}
+               <div 
+                 
                  className="z-10 bg-gray-800 border border-gray-700 px-4 py-2 rounded-full text-gray-400 text-sm flex items-center gap-2 mb-8"
                >
                  <Clock className="w-3 h-3" /> Wait 3 Days
-               </motion.div>
+               </div>
 
-               <motion.div 
-                 initial={{ opacity: 0, y: 20 }}
-                 animate={isInView ? { opacity: 1, y: 0 } : {}}
-                 transition={{ delay: 0.6 }}
+               <div 
+                 
                  className="z-10 bg-green-500/10 border border-green-500/30 px-6 py-3 rounded-xl text-green-300 font-medium flex items-center gap-2"
                >
                  <Mail className="w-4 h-4" /> Send Review Request
-               </motion.div>
+               </div>
             </div>
           </div>
 

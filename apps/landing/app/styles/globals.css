@@ -1,4 +1,6 @@
-@import 'tailwindcss';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 /* ============================================
    PERFORMANCE OPTIMIZED ANIMATIONS
@@ -231,6 +233,15 @@
   }
 }
 
+@keyframes skeleton-pulse {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
 /* Animation utility classes */
 .animate-fade-in-up {
   animation: fadeInUp 0.5s ease-out forwards;
@@ -319,7 +330,7 @@
 
 /* Base styles */
 body {
-  font-family: var(--font-inter), sans-serif;
+  font-family: var(--font-inter), 'Inter', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -330,7 +341,7 @@ h3,
 h4,
 h5,
 h6 {
-  font-family: var(--font-outfit), sans-serif;
+  font-family: var(--font-outfit), 'Outfit', sans-serif;
 }
 
 /* Utility classes */
@@ -369,15 +380,6 @@ h6 {
 }
 
 /* Skeleton loading animation - lightweight */
-@keyframes skeleton-pulse {
-  0% {
-    background-position: 200% 0;
-  }
-  100% {
-    background-position: -200% 0;
-  }
-}
-
 .skeleton {
   background: linear-gradient(90deg, #1a1a2e 25%, #2a2a4e 50%, #1a1a2e 75%);
   background-size: 200% 100%;

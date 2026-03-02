@@ -12,7 +12,6 @@
 'use client';
 
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
-import Link from 'next/link';
 import { Check, ArrowRight, Sparkles, Rocket } from 'lucide-react';
 import { useTranslation } from '@/app/contexts/LanguageContext';
 import { ClientOnly } from '@/components/LazySection';
@@ -374,8 +373,7 @@ export function AwardWinningHero({ theme = 'dark', totalUsers = 0 }: HeroProps) 
 
             {/* CTA Buttons - Primary + Secondary */}
             <div className="flex flex-wrap gap-4 mb-4 md:mb-6 animate-fade-in-up">
-              <Link
-                href="https://app.ozzyl.com/auth/register"
+              <a href="https://app.ozzyl.com/auth/register"
                 className="group relative px-6 md:px-8 py-3 md:py-4 rounded-xl font-semibold text-white overflow-hidden flex items-center gap-2 transition-all hover:scale-[1.02] hover:-translate-y-0.5"
                 style={{
                   background: `linear-gradient(135deg, ${colors.primary} 0%, ${colors.primaryLight} 100%)`,
@@ -386,10 +384,9 @@ export function AwardWinningHero({ theme = 'dark', totalUsers = 0 }: HeroProps) 
                 <span className="relative z-10 animate-nudge-x">
                   <ArrowRight className="w-5 h-5" />
                 </span>
-              </Link>
+              </a>
               {/* Secondary CTA — Low-friction (Direct Response: Curiosity formula) */}
-              <Link
-                href="#pricing"
+              <a href="#pricing"
                 className="group px-6 md:px-8 py-3 md:py-4 rounded-xl font-semibold flex items-center gap-2 transition-all hover:scale-[1.02] hover:-translate-y-0.5 border"
                 style={{
                   color: colors.text,
@@ -400,7 +397,7 @@ export function AwardWinningHero({ theme = 'dark', totalUsers = 0 }: HeroProps) 
               >
                 <span>{t('heroCtaSecondary') || 'প্ল্যান দেখুন'}</span>
                 <ArrowRight className="w-4 h-4 opacity-60 group-hover:translate-x-1 transition-transform" />
-              </Link>
+              </a>
             </div>
 
 

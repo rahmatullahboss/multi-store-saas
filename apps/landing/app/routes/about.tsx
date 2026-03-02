@@ -1,15 +1,18 @@
-import { Metadata } from 'next';
+import type { MetaFunction } from '@remix-run/cloudflare';
 import { MarketingHeader } from '@/components/MarketingHeader';
 import { Footer } from '@/components/Footer';
-import { OzzylAIChatWidget } from '@/components/landing/OzzylAIChatWidget';
 import { ClientOnly } from '@/components/LazySection';
+import { OzzylAIChatWidget } from '@/components/landing/OzzylAIChatWidget';
 import { Store, Heart, Rocket, Users, Globe, Target } from 'lucide-react';
 
-export const metadata: Metadata = {
-  title: 'আমাদের সম্পর্কে - Ozzyl | বাংলাদেশী ই-কমার্স প্ল্যাটফর্ম',
-  description:
-    'Ozzyl - বাংলাদেশী উদ্যোক্তাদের জন্য তৈরি সম্পূর্ণ ই-কমার্স প্ল্যাটফর্ম। আমাদের মিশন ও ভিশন জানুন।',
-};
+export const meta: MetaFunction = () => [
+  { title: 'আমাদের সম্পর্কে - Ozzyl | বাংলাদেশী ই-কমার্স প্ল্যাটফর্ম' },
+  {
+    name: 'description',
+    content:
+      'Ozzyl - বাংলাদেশী উদ্যোক্তাদের জন্য তৈরি সম্পূর্ণ ই-কমার্স প্ল্যাটফর্ম। আমাদের মিশন ও ভিশন জানুন।',
+  },
+];
 
 export default function AboutPage() {
   return (
@@ -88,10 +91,7 @@ export default function AboutPage() {
         </div>
       </main>
 
-      {/* Footer */}
       <Footer />
-
-      {/* Chat Widget */}
       <ClientOnly>
         <OzzylAIChatWidget />
       </ClientOnly>

@@ -1,4 +1,3 @@
-import { motion } from 'framer-motion';
 import { 
   Users, TrendingUp, Tag, UserCheck, BellRing, Rocket
 } from 'lucide-react';
@@ -14,14 +13,12 @@ export function CRMMarketingGrowth() {
           
           {/* Left: Content */}
           <div className="w-full lg:w-5/12">
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              whileInView={{ opacity: 1, x: 0 }}
+            <div
               className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-500/10 border border-indigo-500/20 mb-8"
             >
               <TrendingUp className="w-4 h-4 text-indigo-500" />
               <span className="text-sm font-medium text-indigo-400">Marketing & Growth</span>
-            </motion.div>
+            </div>
 
             <h2 className="text-4xl md:text-5xl font-bold text-white mb-8 leading-relaxed py-2">
               কাস্টমার রিলেশনশিপ হোক <br /> আরও <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-purple-500">গভীর</span>
@@ -37,11 +34,8 @@ export function CRMMarketingGrowth() {
                  { title: 'Marketing Automation', desc: 'অপারিত কার্ট রিকভারি এবং অটোমেটিক ডিসকাউন্ট অফার।', icon: BellRing },
                  { title: 'Custom Campaigns', desc: 'টার্গেটেড অডিয়েন্সের কাছে পৌঁছান কার্যকরভাবে।', icon: Rocket },
                ].map((item, i) => (
-                 <motion.div 
+                 <div 
                    key={i}
-                   initial={{ opacity: 0, x: -20 }}
-                   whileInView={{ opacity: 1, x: 0 }}
-                   transition={{ delay: i * 0.1 }}
                    className="flex gap-4"
                  >
                     <div className="p-3 bg-indigo-500/10 rounded-2xl border border-indigo-500/20">
@@ -51,7 +45,7 @@ export function CRMMarketingGrowth() {
                         <h4 className="text-xl font-bold text-white mb-1">{item.title}</h4>
                         <p className="text-gray-500 text-sm leading-relaxed">{item.desc}</p>
                     </div>
-                 </motion.div>
+                 </div>
                ))}
             </div>
           </div>
@@ -59,9 +53,7 @@ export function CRMMarketingGrowth() {
           {/* Right: Visual Showcase */}
           <div className="w-full lg:w-7/12 relative">
              {/* Main Dashboard Panel Mockup */}
-             <motion.div
-               initial={{ opacity: 0, scale: 0.95 }}
-               whileInView={{ opacity: 1, scale: 1 }}
+             <div
                className="bg-[#121217] border border-white/10 rounded-3xl shadow-2xl overflow-hidden p-6 md:p-8"
              >
                 <div className="flex items-center justify-between mb-8">
@@ -80,11 +72,8 @@ export function CRMMarketingGrowth() {
                       { name: 'তানজিলা হক', tags: ['New'], amount: '৳২,৫০০', orders: 1 },
                       { name: 'মেহেদী হাসান', tags: ['Loyal'], amount: '৳১৮,৪০০', orders: 3 },
                     ].map((customer, i) => (
-                      <motion.div
+                      <div
                         key={i}
-                        initial={{ opacity: 0, y: 10 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        transition={{ delay: i * 0.1 }}
                         className="p-4 rounded-2xl bg-white/5 border border-white/5 flex items-center justify-between group hover:bg-white/[0.08] transition-all"
                       >
                         <div className="flex items-center gap-4">
@@ -104,7 +93,7 @@ export function CRMMarketingGrowth() {
                            <p className="text-xs font-bold text-white">{customer.amount}</p>
                            <p className="text-[10px] text-gray-600">{customer.orders} Orders</p>
                         </div>
-                      </motion.div>
+                      </div>
                     ))}
                 </div>
 
@@ -133,23 +122,19 @@ export function CRMMarketingGrowth() {
                        </div>
                     </div>
                 </div>
-             </motion.div>
+             </div>
 
              {/* Floating UI Badges */}
-             <motion.div
-               animate={{ x: [0, 5, 0], y: [0, -5, 0] }}
-               transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+             <div
                className="absolute -top-6 -right-6 p-4 rounded-3xl bg-white/10 backdrop-blur-xl border border-white/10 shadow-2xl z-20"
              >
                 <div className="flex items-center gap-3">
                    <div className="p-2 bg-pink-500/20 rounded-xl"><Tag className="w-4 h-4 text-pink-500" /></div>
                    <p className="text-white text-xs font-bold">New Coupon Created!</p>
                 </div>
-             </motion.div>
+             </div>
 
-             <motion.div
-               animate={{ x: [0, -5, 0], y: [0, 5, 0] }}
-               transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
+             <div
                className="absolute -bottom-4 -left-12 p-4 rounded-3xl bg-white/10 backdrop-blur-xl border border-white/10 shadow-2xl z-20"
              >
                 <div className="flex items-center gap-3">
@@ -159,7 +144,7 @@ export function CRMMarketingGrowth() {
                        <p className="text-gray-500 text-[10px]">Email Campaign Impact</p>
                    </div>
                 </div>
-             </motion.div>
+             </div>
           </div>
         </div>
       </div>

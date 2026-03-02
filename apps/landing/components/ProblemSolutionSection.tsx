@@ -1,5 +1,3 @@
-'use client';
-
 /**
  * Problem-Solution Section - UI/UX Pro Max
  * 
@@ -10,11 +8,26 @@
  * - Right panel: Solution (Green/teal undertones, liquid noise)
  */
 
-import { motion, useInView, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { useRef, useState, useEffect } from 'react';
 import { X, Check, Sparkles, Facebook, Code, FileSpreadsheet, DollarSign, HelpCircle, Palette, Rocket, PartyPopper, ArrowRight } from 'lucide-react';
 import { useTranslation } from '@/app/contexts/LanguageContext';
 import { ClientOnly } from '@/components/LazySection';
+
+// Simple IntersectionObserver-based useInView (replaces framer-motion)
+function useInViewSimple(ref: React.RefObject<Element | null>, options?: { once?: boolean; margin?: string }) {
+  const [inView, setInView] = React.useState(false);
+  React.useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    if (!('IntersectionObserver' in window)) { setInView(true); return; }
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) { setInView(true); if (options?.once !== false) observer.disconnect(); }
+    }, { rootMargin: options?.margin || '0px' });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+  return inView;
+}
 
 // ============================================================================
 // DESIGN TOKENS
@@ -44,19 +57,12 @@ const LiquidBackground = ({ type }: { type: 'problem' | 'solution' }) => {
   
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      <motion.div
+      <div
         className="absolute -top-[20%] -left-[20%] w-[140%] h-[140%] opacity-[0.1]"
         style={{
           background: `radial-gradient(circle at 50% 50%, ${color}, transparent 70%)`,
           filter: 'blur(80px)',
-        }}
-        animate={{
-          scale: [1, 1.1, 1],
-          x: type === 'problem' ? [0, 20, 0] : [0, -20, 0],
-          y: [0, 30, 0],
-        }}
-        transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
-      />
+        }} />
       <div 
         className="absolute inset-0 opacity-[0.05]" 
         style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }} 
@@ -89,7 +95,7 @@ const Confetti = ({ isActive }: { isActive: boolean }) => {
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none z-20">
       {pieces.map((p) => (
-        <motion.div
+        <div
           key={p.id}
           className="absolute rounded-full"
           style={{
@@ -98,11 +104,7 @@ const Confetti = ({ isActive }: { isActive: boolean }) => {
             width: p.size,
             height: p.size,
             backgroundColor: p.color,
-          }}
-          initial={{ y: 0, opacity: 1 }}
-          animate={{ y: 400, opacity: 0, rotate: 360 }}
-          transition={{ duration: 2, delay: p.delay, ease: "easeOut" }}
-        />
+          }} />
       ))}
     </div>
   );
@@ -127,12 +129,7 @@ const GlassCard = ({ children, className = '', type = 'mid' }: { children: React
 // PAIN POINT CARD
 // ============================================================================
 const PainPointCard = ({ icon: Icon, text, delay = 0 }: { icon: any, text: string, delay?: number }) => (
-  <motion.div
-    initial={{ opacity: 0, x: -20 }}
-    whileInView={{ opacity: 1, x: 0 }}
-    viewport={{ once: true }}
-    transition={{ delay }}
-    className="group"
+  <div className="group"
   >
     <div className="relative p-3 rounded-xl border border-red-500/10 bg-red-500/5 hover:bg-red-500/10 transition-colors backdrop-blur-sm">
       <div className="flex items-center gap-3">
@@ -145,51 +142,38 @@ const PainPointCard = ({ icon: Icon, text, delay = 0 }: { icon: any, text: strin
         </div>
       </div>
     </div>
-  </motion.div>
+  </div>
 );
 
 // ============================================================================
 // SOLUTION STEP
 // ============================================================================
 const SolutionStep = ({ number, text, isComplete, delay = 0 }: { number: string, text: string, isComplete: boolean, delay?: number }) => (
-  <motion.div
-    initial={{ opacity: 0, x: 20 }}
-    whileInView={{ opacity: 1, x: 0 }}
-    viewport={{ once: true }}
-    transition={{ delay }}
-    className="flex items-center gap-4 relative"
+  <div className="flex items-center gap-4 relative"
   >
     {/* Connecting Line */}
     <div className="absolute left-[15px] top-8 bottom-[-16px] w-[2px] bg-white/5 last:hidden" />
 
-    <motion.div
+    <div
       className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 border relative z-10"
       style={{
         backgroundColor: isComplete ? COLORS.solution.orb : 'transparent',
         borderColor: isComplete ? COLORS.solution.orb : 'rgba(255,255,255,0.2)',
         color: isComplete ? '#000' : 'rgba(255,255,255,0.4)',
-      }}
-      animate={isComplete ? { scale: [1, 1.2, 1] } : {}}
-      transition={{ duration: 0.4 }}
-    >
+      }}>
       {isComplete ? <Check className="w-4 h-4" /> : <span className="text-xs font-bold">{number}</span>}
-    </motion.div>
+    </div>
     
     <div className="flex-1 py-1">
       <p className={`text-sm font-medium transition-colors duration-300 font-bengali ${isComplete ? 'text-white' : 'text-white/40'}`}>
         {text}
       </p>
       {isComplete && (
-        <motion.div 
-          layoutId="highlight"
-          className="h-[2px] bg-emerald-500/50 mt-1 rounded-full"
-          initial={{ width: 0 }}
-          animate={{ width: '100%' }}
-          transition={{ duration: 0.8 }}
-        />
+        <div 
+          className="h-[2px] bg-emerald-500/50 mt-1 rounded-full" />
       )}
     </div>
-  </motion.div>
+  </div>
 );
 
 // ============================================================================
@@ -197,7 +181,7 @@ const SolutionStep = ({ number, text, isComplete, delay = 0 }: { number: string,
 // ============================================================================
 export function ProblemSolutionSection() {
   const sectionRef = useRef<HTMLDivElement>(null);
-  const isInView = useInView(sectionRef, { once: true, margin: '-10%' });
+  const isInView = useInViewSimple(sectionRef);
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
   const [showConfetti, setShowConfetti] = useState(false);
   const { t } = useTranslation();
@@ -230,30 +214,21 @@ export function ProblemSolutionSection() {
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.03),transparent_70%)]" />
 
       <div className="max-w-6xl mx-auto relative z-10">
-        <motion.div 
-          className="text-center mb-16"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-        >
+        <div 
+          className="text-center mb-16" >
           <h2 className="text-3xl md:text-5xl font-bold text-white mb-4 font-bengali leading-tight">
             {t('problemHeaderTitle1')} <span className="text-red-400">{t('problemHeaderTitle2')}</span> {t('problemHeaderTitle3')}{' '}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400">
               {t('problemHeaderTitle4')}
             </span>
           </h2>
-        </motion.div>
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
           
           {/* PROBLEM PANEL (Red) */}
-          <motion.div
-            className="relative rounded-3xl overflow-hidden border border-white/5 bg-white/5" // Standard glass base
-            initial={{ x: -50, opacity: 0 }}
-            whileInView={{ x: 0, opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ type: "spring", damping: 20 }}
-          >
+          <div
+            className="relative rounded-3xl overflow-hidden border border-white/5 bg-white/5">
             <LiquidBackground type="problem" />
             <div className="relative p-6 md:p-10 z-10 h-full flex flex-col">
               <div className="flex items-center gap-4 mb-8">
@@ -271,30 +246,19 @@ export function ProblemSolutionSection() {
                 ))}
               </div>
             </div>
-          </motion.div>
+          </div>
 
           {/* ARROW */}
           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 hidden lg:block">
-            <motion.div
-              className="w-16 h-16 rounded-full bg-gradient-to-r from-red-500 to-emerald-500 flex items-center justify-center shadow-lg shadow-emerald-500/20"
-              initial={{ scale: 0 }}
-              whileInView={{ scale: 1 }}
-              viewport={{ once: true }}
-              whileHover={{ rotate: 180 }}
-              transition={{ type: "spring" }}
-            >
+            <div
+              className="w-16 h-16 rounded-full bg-gradient-to-r from-red-500 to-emerald-500 flex items-center justify-center shadow-lg shadow-emerald-500/20" >
               <ArrowRight className="w-8 h-8 text-white" />
-            </motion.div>
+            </div>
           </div>
 
           {/* SOLUTION PANEL (Green) */}
-          <motion.div
-            className="relative rounded-3xl overflow-hidden border border-white/10 bg-white/5"
-            initial={{ x: 50, opacity: 0 }}
-            whileInView={{ x: 0, opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ type: "spring", damping: 20, delay: 0.2 }}
-          >
+          <div
+            className="relative rounded-3xl overflow-hidden border border-white/10 bg-white/5" >
             <LiquidBackground type="solution" />
             <ClientOnly><Confetti isActive={showConfetti} /></ClientOnly>
             
@@ -314,14 +278,11 @@ export function ProblemSolutionSection() {
                 ))}
               </div>
 
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: completedSteps.length === 3 ? 1 : 0, y: completedSteps.length === 3 ? 0 : 10 }}
-                className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center gap-2"
+              <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center gap-2"
               >
                 <PartyPopper className="w-5 h-5 text-emerald-400" />
                 <span className="font-bold text-emerald-100 font-bengali">{t('problemSuccess')} 🎉</span>
-              </motion.div>
+              </div>
 
               <div className="flex flex-wrap gap-2 mt-6">
                 {['No Coding', 'Drag & Drop', 'Instant Launch'].map((tag, i) => (
@@ -331,7 +292,7 @@ export function ProblemSolutionSection() {
                 ))}
               </div>
             </div>
-          </motion.div>
+          </div>
 
         </div>
       </div>

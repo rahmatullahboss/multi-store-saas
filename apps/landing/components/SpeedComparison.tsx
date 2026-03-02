@@ -1,5 +1,3 @@
-'use client';
-
 /**
  * Speed Comparison Component - "দেখুন পার্থক্যটা"
  * 
@@ -14,10 +12,25 @@
  * - Emotional impact messaging about conversion rates
  */
 
-import { motion, AnimatePresence, useInView } from 'framer-motion';
 import { useRef, useState, useEffect, useCallback } from 'react';
 import { Zap, RefreshCw, TrendingUp, Clock, ShoppingCart, AlertTriangle, CheckCircle2, Loader2 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/useIsMobile';
+
+// Simple useInView (replaces framer-motion)
+function useInViewSimple(ref: React.RefObject<Element | null>, options?: { once?: boolean; margin?: string }) {
+  const [inView, setInView] = React.useState(false);
+  React.useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    if (!('IntersectionObserver' in window)) { setInView(true); return; }
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) { setInView(true); if (options?.once !== false) observer.disconnect(); }
+    }, { rootMargin: options?.margin || '0px' });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+  return inView;
+}
 
 // ============================================================================
 // DESIGN TOKENS
@@ -43,69 +56,54 @@ const SkeletonLoader = ({ progress }: { progress: number }) => {
     <div className="space-y-3">
       {/* Header skeleton */}
       <div className="flex items-center gap-3">
-        <motion.div 
+        <div 
           className="w-10 h-10 rounded-lg bg-white/10"
-          animate={{ opacity: [0.3, 0.6, 0.3] }}
-          transition={{ duration: 1.5, repeat: Infinity }}
         />
         <div className="flex-1 space-y-2">
-          <motion.div 
+          <div 
             className="h-3 rounded bg-white/10"
             style={{ width: `${Math.min(progress * 30, 70)}%` }}
-            animate={{ opacity: [0.3, 0.6, 0.3] }}
-            transition={{ duration: 1.5, repeat: Infinity, delay: 0.1 }}
           />
-          <motion.div 
+          <div 
             className="h-2 rounded bg-white/10"
             style={{ width: `${Math.min(progress * 20, 50)}%` }}
-            animate={{ opacity: [0.3, 0.6, 0.3] }}
-            transition={{ duration: 1.5, repeat: Infinity, delay: 0.2 }}
           />
         </div>
       </div>
       
       {/* Image skeleton */}
-      <motion.div 
+      <div 
         className="w-full aspect-square rounded-xl bg-white/10 flex items-center justify-center"
-        animate={{ opacity: [0.2, 0.4, 0.2] }}
-        transition={{ duration: 1.5, repeat: Infinity }}
       >
         <Loader2 className="w-8 h-8 text-white/20 animate-spin" />
-      </motion.div>
+      </div>
       
       {/* Content skeletons */}
       <div className="space-y-2">
-        <motion.div 
+        <div 
           className="h-3 rounded bg-white/10"
           style={{ width: `${Math.min(progress * 25, 90)}%` }}
-          animate={{ opacity: [0.3, 0.6, 0.3] }}
-          transition={{ duration: 1.5, repeat: Infinity, delay: 0.3 }}
         />
-        <motion.div 
+        <div 
           className="h-3 rounded bg-white/10"
           style={{ width: `${Math.min(progress * 20, 70)}%` }}
-          animate={{ opacity: [0.3, 0.6, 0.3] }}
-          transition={{ duration: 1.5, repeat: Infinity, delay: 0.4 }}
         />
       </div>
       
       {/* Button skeleton */}
-      <motion.div 
+      <div 
         className="h-10 rounded-lg bg-white/10"
         style={{ width: `${Math.min(progress * 30, 100)}%` }}
-        animate={{ opacity: [0.3, 0.5, 0.3] }}
-        transition={{ duration: 1.5, repeat: Infinity, delay: 0.5 }}
       />
       
       {/* Loading bar at bottom */}
       <div className="h-1 rounded-full bg-white/10 overflow-hidden mt-4">
-        <motion.div
+        <div
           className="h-full rounded-full"
           style={{ 
             width: `${progress}%`,
             background: `linear-gradient(90deg, ${COLORS.red}80, ${COLORS.red})`,
           }}
-          transition={{ duration: 0.1 }}
         />
       </div>
     </div>
@@ -117,109 +115,78 @@ const SkeletonLoader = ({ progress }: { progress: number }) => {
 // ============================================================================
 const LoadedStore = () => {
   return (
-    <motion.div 
+    <div 
       className="space-y-3"
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.3, ease: 'easeOut' }}
     >
       {/* Header */}
       <div className="flex items-center gap-3">
-        <motion.div 
+        <div 
           className="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center"
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ type: 'spring', stiffness: 500, damping: 20 }}
         >
           <ShoppingCart className="w-5 h-5 text-white" />
-        </motion.div>
+        </div>
         <div className="flex-1">
-          <motion.p 
+          <p 
             className="text-white font-semibold text-sm"
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.1 }}
           >
             ফ্যাশন স্টোর বিডি
-          </motion.p>
-          <motion.p 
+          </p>
+          <p 
             className="text-white/50 text-xs"
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.15 }}
           >
             Premium Fashion
-          </motion.p>
+          </p>
         </div>
       </div>
       
       {/* Product Image */}
-      <motion.div 
+      <div 
         className="w-full aspect-square rounded-xl bg-gradient-to-br from-violet-500/20 to-blue-600/20 border border-white/10 overflow-hidden relative"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.1 }}
       >
         {/* Fake product image */}
         <div className="absolute inset-0 flex items-center justify-center">
-          <motion.div
+          <div
             className="text-6xl"
-            initial={{ scale: 0, rotate: -20 }}
-            animate={{ scale: 1, rotate: 0 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 15, delay: 0.2 }}
           >
             👕
-          </motion.div>
+          </div>
         </div>
         
         {/* Badge */}
-        <motion.div
+        <div
           className="absolute top-2 right-2 px-2 py-1 bg-red-500 text-white text-xs font-bold rounded"
-          initial={{ opacity: 0, scale: 0 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.3, type: 'spring' }}
         >
           -30%
-        </motion.div>
-      </motion.div>
+        </div>
+      </div>
       
       {/* Product Info */}
-      <motion.div 
+      <div 
         className="space-y-1"
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
       >
         <p className="text-white font-medium text-sm">Premium Cotton T-Shirt</p>
         <div className="flex items-center gap-2">
           <span className="text-emerald-400 font-bold">৳ 699</span>
           <span className="text-white/40 line-through text-xs">৳ 999</span>
         </div>
-      </motion.div>
+      </div>
       
       {/* Buy Button */}
-      <motion.button
+      <button
         className="w-full py-2.5 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-semibold text-sm flex items-center justify-center gap-2"
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.25 }}
-        whileHover={{ scale: 1.02 }}
-      >
+        >
         <ShoppingCart className="w-4 h-4" />
         অর্ডার করুন
-      </motion.button>
+      </button>
       
       {/* Success indicator */}
-      <motion.div
+      <div
         className="flex items-center justify-center gap-2 text-emerald-400 text-xs"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.35 }}
       >
         <CheckCircle2 className="w-4 h-4" />
         Ready to sell!
-      </motion.div>
-    </motion.div>
+      </div>
+    </div>
   );
 };
 
@@ -228,29 +195,25 @@ const LoadedStore = () => {
 // ============================================================================
 const Timer = ({ time, isComplete, isSlow }: { time: number; isComplete: boolean; isSlow: boolean }) => {
   return (
-    <motion.div 
+    <div 
       className={`flex items-center gap-2 px-3 py-2 rounded-lg ${
         isComplete 
           ? isSlow ? 'bg-red-500/20 text-red-400' : 'bg-emerald-500/20 text-emerald-400'
           : 'bg-white/10 text-white'
       }`}
-      animate={isComplete ? { scale: [1, 1.1, 1] } : {}}
-      transition={{ duration: 0.3 }}
     >
       <Clock className="w-4 h-4" />
       <span className="font-mono font-bold text-lg">
         {time.toFixed(1)}s
       </span>
       {isComplete && (
-        <motion.span
-          initial={{ opacity: 0, scale: 0 }}
-          animate={{ opacity: 1, scale: 1 }}
+        <span
           className="text-xs"
         >
           ⏱️
-        </motion.span>
+        </span>
       )}
-    </motion.div>
+    </div>
   );
 };
 
@@ -259,7 +222,7 @@ const Timer = ({ time, isComplete, isSlow }: { time: number; isComplete: boolean
 // ============================================================================
 export function SpeedComparison() {
   const sectionRef = useRef<HTMLElement>(null);
-  const isInView = useInView(sectionRef, { once: false, margin: '-100px' });
+  const isInView = useInViewSimple(sectionRef);
   
   const [isRacing, setIsRacing] = useState(false);
   const [slowTime, setSlowTime] = useState(0);
@@ -353,15 +316,11 @@ export function SpeedComparison() {
     >
       {/* Background gradient */}
       <div className="absolute inset-0">
-        <motion.div
+        <div
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] rounded-full"
           style={{
             background: `radial-gradient(ellipse, ${COLORS.primary}10 0%, transparent 70%)`,
           }}
-          animate={{
-            scale: [1, 1.1, 1],
-          }}
-          transition={{ duration: 8, repeat: Infinity }}
         />
       </div>
       
@@ -378,10 +337,7 @@ export function SpeedComparison() {
       <div className="relative z-10 max-w-5xl mx-auto px-6">
         {/* Section Header */}
         <div className="text-center mb-12">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.6 }}
+          <div
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full border backdrop-blur-sm mb-6"
             style={{ 
               backgroundColor: `${COLORS.accent}10`,
@@ -392,12 +348,9 @@ export function SpeedComparison() {
             <span style={{ color: COLORS.accent }} className="text-sm font-medium">
               SPEED COMPARISON
             </span>
-          </motion.div>
+          </div>
           
-          <motion.h2
-            initial={{ opacity: 0, y: 30 }}
-            animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.6, delay: 0.1 }}
+          <h2
             className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4"
             style={{ fontFamily: "'Noto Sans Bengali', 'Inter', sans-serif" }}
           >
@@ -410,24 +363,18 @@ export function SpeedComparison() {
             >
               পার্থক্যটা
             </span>
-          </motion.h2>
+          </h2>
           
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.6, delay: 0.2 }}
+          <p
             className="text-lg max-w-2xl mx-auto"
             style={{ color: COLORS.textMuted, fontFamily: "'Noto Sans Bengali', sans-serif" }}
           >
             সাধারণ Hosting বনাম আমাদের Cloudflare-powered Platform
-          </motion.p>
+          </p>
         </div>
         
         {/* Race Container */}
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.8, delay: 0.3 }}
+        <div
           className="relative rounded-3xl overflow-hidden p-8 md:p-12"
           style={{
             background: 'linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)',
@@ -435,11 +382,8 @@ export function SpeedComparison() {
           }}
         >
           {/* VS Badge */}
-          <motion.div
+          <div
             className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 hidden md:flex"
-            initial={{ scale: 0 }}
-            animate={isInView ? { scale: 1 } : {}}
-            transition={{ delay: 0.5, type: 'spring' }}
           >
             <div 
               className="w-14 h-14 rounded-full flex items-center justify-center font-bold text-lg"
@@ -450,23 +394,20 @@ export function SpeedComparison() {
             >
               VS
             </div>
-          </motion.div>
+          </div>
           
           {/* Side by side comparison */}
           <div className="grid md:grid-cols-2 gap-8 md:gap-16">
             {/* Slow Side */}
             <div className="text-center">
-              <motion.div
+              <div
                 className="flex items-center justify-center gap-2 mb-4"
-                initial={{ opacity: 0 }}
-                animate={isInView ? { opacity: 1 } : {}}
-                transition={{ delay: 0.3 }}
               >
                 <AlertTriangle className="w-5 h-5 text-red-400" />
                 <h3 className="text-lg font-semibold text-white/80" style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}>
                   সাধারণ Hosting
                 </h3>
-              </motion.div>
+              </div>
               
               <div 
                 className="rounded-2xl p-6 min-h-[320px] relative overflow-hidden"
@@ -475,19 +416,17 @@ export function SpeedComparison() {
                   border: '1px solid rgba(239, 68, 68, 0.2)',
                 }}
               >
-                <AnimatePresence mode="wait">
+                
                   {!slowComplete ? (
                     <SkeletonLoader key="skeleton" progress={slowProgress} />
                   ) : (
-                    <motion.div
+                    <div
                       key="loaded"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                    >
+                      >
                       <LoadedStore />
-                    </motion.div>
+                    </div>
                   )}
-                </AnimatePresence>
+                
               </div>
               
               <div className="mt-4 flex justify-center">
@@ -495,30 +434,25 @@ export function SpeedComparison() {
               </div>
               
               {slowComplete && (
-                <motion.p
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
+                <p
                   className="mt-3 text-red-400/80 text-sm"
                   style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}
                 >
                   😩 গ্রাহক অপেক্ষা করতে করতে চলে গেছে...
-                </motion.p>
+                </p>
               )}
             </div>
             
             {/* Fast Side */}
             <div className="text-center">
-              <motion.div
+              <div
                 className="flex items-center justify-center gap-2 mb-4"
-                initial={{ opacity: 0 }}
-                animate={isInView ? { opacity: 1 } : {}}
-                transition={{ delay: 0.3 }}
               >
                 <Zap className="w-5 h-5 text-emerald-400" />
                 <h3 className="text-lg font-semibold text-white/80" style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}>
                   আমাদের Platform
                 </h3>
-              </motion.div>
+              </div>
               
               <div 
                 className="rounded-2xl p-6 min-h-[320px] relative overflow-hidden"
@@ -527,23 +461,20 @@ export function SpeedComparison() {
                   border: '1px solid rgba(16, 185, 129, 0.2)',
                 }}
               >
-                <AnimatePresence mode="wait">
+                
                   {!fastComplete ? (
-                    <motion.div
+                    <div
                       key="loading"
                       className="h-full flex items-center justify-center"
-                      exit={{ opacity: 0 }}
-                    >
-                      <motion.div
+                      >
+                      <div
                         className="w-12 h-12 rounded-full border-4 border-emerald-500/30 border-t-emerald-500"
-                        animate={{ rotate: 360 }}
-                        transition={{ duration: 0.3, repeat: Infinity, ease: 'linear' }}
                       />
-                    </motion.div>
+                    </div>
                   ) : (
                     <LoadedStore key="loaded" />
                   )}
-                </AnimatePresence>
+                
               </div>
               
               <div className="mt-4 flex justify-center">
@@ -551,26 +482,21 @@ export function SpeedComparison() {
               </div>
               
               {fastComplete && (
-                <motion.p
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
+                <p
                   className="mt-3 text-emerald-400/80 text-sm"
                   style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}
                 >
                   🎉 তাৎক্ষণিক! গ্রাহক কেনাকাটা করছে!
-                </motion.p>
+                </p>
               )}
             </div>
           </div>
           
           {/* Replay Button */}
-          <motion.div
+          <div
             className="flex justify-center mt-8"
-            initial={{ opacity: 0 }}
-            animate={isInView ? { opacity: 1 } : {}}
-            transition={{ delay: 0.6 }}
           >
-            <motion.button
+            <button
               onClick={handleReplay}
               disabled={isRacing}
               className="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all disabled:opacity-50"
@@ -579,22 +505,17 @@ export function SpeedComparison() {
                 border: '1px solid rgba(255,255,255,0.1)',
                 color: COLORS.text,
               }}
-              whileHover={{ scale: 1.05, borderColor: 'rgba(255,255,255,0.2)' }}
-              whileTap={{ scale: 0.98 }}
-            >
+              >
               <RefreshCw className={`w-5 h-5 ${isRacing ? 'animate-spin' : ''}`} />
               <span style={{ fontFamily: "'Noto Sans Bengali', sans-serif" }}>
                 🔄 আবার দেখুন
               </span>
-            </motion.button>
-          </motion.div>
-        </motion.div>
+            </button>
+          </div>
+        </div>
         
         {/* Impact Stats */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.6, delay: 0.5 }}
+        <div
           className="mt-12 text-center"
         >
           <div 
@@ -614,13 +535,10 @@ export function SpeedComparison() {
               </p>
             </div>
           </div>
-        </motion.div>
+        </div>
         
         {/* Additional context */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={isInView ? { opacity: 1 } : {}}
-          transition={{ delay: 0.7 }}
+        <div
           className="mt-8 flex flex-wrap justify-center gap-6 text-sm"
           style={{ color: COLORS.textSubtle }}
         >
@@ -636,7 +554,7 @@ export function SpeedComparison() {
             <div className="w-2 h-2 rounded-full bg-violet-400" />
             <span>Smart Caching</span>
           </div>
-        </motion.div>
+        </div>
       </div>
     </section>
   );

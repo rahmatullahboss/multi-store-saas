@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Type, Image as ImageIcon, MousePointer2, LayoutTemplate, 
   Smartphone, Eye, RotateCcw, Copy, Save, CheckCircle2,
@@ -127,14 +126,12 @@ export function DragDropBuilderShowcase() {
         
         {/* Header */}
         <div className="text-center mb-16">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
+          <div
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-500/10 border border-purple-500/20 mb-6"
           >
             <Move className="w-4 h-4 text-purple-400" />
             <span className="text-sm font-medium text-purple-300">{t('landingDragDrop_title')}</span>
-          </motion.div>
+          </div>
           
           <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
             🎨 {t('landingDragDrop_title')} — <span className="text-purple-400">{t('landingDragDrop_customizeAsYouWish')}</span>
@@ -163,19 +160,12 @@ export function DragDropBuilderShowcase() {
                     
                     {/* Simulated Ghost Widget for Animation */}
                     {w.id === 'review' && animationStep >= 2 && animationStep < 3 && (
-                      <motion.div
-                        layoutId="ghost-widget"
+                      <div
+                        
                         className="absolute inset-0 bg-purple-600 rounded-lg z-50 flex items-center justify-center shadow-2xl opacity-80"
-                        initial={{ x: 0, y: 0 }}
-                        animate={{ 
-                          x: 300, // Move to canvas center approx
-                          y: 150,
-                          scale: 1.1
-                        }}
-                        transition={{ duration: 0.8, ease: "easeInOut" }}
                       >
                          <w.icon className="w-8 h-8 text-white" />
-                      </motion.div>
+                      </div>
                     )}
                   </div>
                 ))}
@@ -193,13 +183,10 @@ export function DragDropBuilderShowcase() {
 
                {/* Elements List */}
                <div className="space-y-4 max-w-2xl mx-auto">
-                 <AnimatePresence>
+                 
                    {canvasElements.map((el) => (
-                     <motion.div
+                     <div
                        key={`${el.type}-${el.id}`}
-                       initial={{ opacity: 0, height: 0 }}
-                       animate={{ opacity: 1, height: 'auto' }}
-                       exit={{ opacity: 0, height: 0 }}
                        className={`w-full rounded-lg border-2 border-dashed transition-colors duration-300 relative group
                          ${el.type === 'review' ? 'bg-purple-500/10 border-purple-500/50' : 'bg-white/5 border-white/5 hover:border-white/20'}
                        `}
@@ -247,39 +234,31 @@ export function DragDropBuilderShowcase() {
 
                         {/* Hover Overlay */}
                         <div className="absolute inset-0 bg-transparent group-hover:border-blue-500/50 border-2 border-transparent rounded-lg pointer-events-none transition-colors" />
-                     </motion.div>
+                     </div>
                    ))}
-                 </AnimatePresence>
+                 
 
                  {/* Drop Zone Indicator */}
-                 <motion.div 
-                    animate={{ 
-                      height: activeDrop ? 100 : 0,
-                      opacity: activeDrop ? 1 : 0,
-                      marginBottom: activeDrop ? 16 : 0
-                    }}
+                 <div 
                     className="w-full rounded-lg border-2 border-dashed border-purple-500 bg-purple-500/10 flex items-center justify-center overflow-hidden"
                  >
                     <span className="text-purple-400 text-sm font-medium">{t('landingDragDrop_dropHere')}</span>
-                 </motion.div>
+                 </div>
 
                </div>
 
                {/* Animated Cursor */}
                {animationStep > 0 && (
-                  <motion.div
-                    className="absolute z-[60] pointer-events-none"
-                    initial={{ x: 50, y: 300 }} // Initial sidebar pos approx
-                    animate={
-                      animationStep === 1 ? { x: 50, y: 300 } : // Start
-                      animationStep === 2 ? { x: 400, y: 450 } : // Move to canvas drop zone
-                      animationStep === 3 ? { x: 450, y: 500, opacity: 0 } : // Drop and vanish
-                      { x: 50, y: 300 }
-                    }
-                    transition={{ duration: animationStep === 2 ? 0.8 : 0.5 }}
+                  <div
+                    className="absolute z-[60] pointer-events-none transition-all duration-500"
+                    style={{
+                      left: animationStep === 2 ? 400 : animationStep === 3 ? 450 : 50,
+                      top: animationStep === 2 ? 450 : animationStep === 3 ? 500 : 300,
+                      opacity: animationStep === 3 ? 0 : 1,
+                    }}
                   >
                     <MousePointer2 className="w-6 h-6 text-white fill-black drop-shadow-xl" />
-                  </motion.div>
+                  </div>
                )}
 
             </div>
@@ -289,10 +268,7 @@ export function DragDropBuilderShowcase() {
         {/* Feature Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {features.map((feature, i) => (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.1 }}
+            <div
               key={i}
               className="bg-white/5 border border-white/5 rounded-2xl p-6 hover:bg-white/10 transition-colors group"
             >
@@ -301,7 +277,7 @@ export function DragDropBuilderShowcase() {
                </div>
                <h3 className="text-xl font-bold text-white mb-2">{feature.title}</h3>
                <p className="text-white/60">{feature.desc}</p>
-            </motion.div>
+            </div>
           ))}
         </div>
 
