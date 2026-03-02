@@ -54,7 +54,7 @@ jobs:
           EOF
 
       - name: 🗄️ Run migrations (Local DB)
-        run: npx wrangler d1 migrations apply multi-store-saas-db --local --migrations-dir ../../packages/database/src/migrations
+        run: npx wrangler d1 migrations apply multi-store-saas-db --local
         working-directory: apps/web
 
       - name: 🌱 Seed E2E test data
@@ -132,7 +132,7 @@ jobs:
           EOF
 
       - name: 🗄️ Run migrations (Local DB)
-        run: npx wrangler d1 migrations apply multi-store-saas-db --local --migrations-dir ../../packages/database/src/migrations
+        run: npx wrangler d1 migrations apply multi-store-saas-db --local
         working-directory: apps/web
 
       - name: 🌱 Seed E2E test data
@@ -195,7 +195,7 @@ jobs:
           EOF
 
       - name: 🗄️ Run migrations (Local DB)
-        run: npx wrangler d1 migrations apply multi-store-saas-db --local --migrations-dir ../../packages/database/src/migrations
+        run: npx wrangler d1 migrations apply multi-store-saas-db --local
         working-directory: apps/web
 
       - name: 🌱 Seed E2E test data
