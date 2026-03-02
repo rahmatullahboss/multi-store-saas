@@ -355,13 +355,13 @@ jobs:
           NODE_ENV: production
           CI: true
 
-      - name: 🚀 Deploy landing to Cloudflare Pages
+      - name: 🚀 Deploy landing to Cloudflare Workers
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: apps/landing
-          command: pages deploy ./build/client --project-name=ozzyl-landing --branch=main
+          command: deploy
 
   # ============================================================================
   # 6. NOTIFY SUCCESS
