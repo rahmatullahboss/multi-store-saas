@@ -1,7 +1,7 @@
 name = "ozzyl-landing"
 compatibility_date = "2025-04-14"
 compatibility_flags = ["nodejs_compat"]
-main = "./build/server/index.js"
+main = "./worker.ts"
 assets = { directory = "./build/client" }
 
 [vars]
