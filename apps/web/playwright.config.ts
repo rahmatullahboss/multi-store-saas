@@ -90,7 +90,7 @@ export default defineConfig({
   webServer: {
     command: 'npm run dev',
     url: E2E_BASE_URL,
-    reuseExistingServer: !!process.env.CI,
+    reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,
     // Environment variables for the web server process
     env: {
