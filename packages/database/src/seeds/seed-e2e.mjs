@@ -62,11 +62,11 @@ async function seedDatabase() {
     console.log('✅ Generated password hash');
     
     // Build SQL commands
-    const storeSQL = `INSERT OR IGNORE INTO stores (id, name, subdomain, currency, mode, created_at) VALUES (1, '${TEST_STORE_NAME}', '${TEST_SUBDOMAIN}', 'BDT', 'live', strftime('%s', 'now'));`;
+    const storeSQL = `INSERT OR IGNORE INTO stores (id, name, subdomain, created_at) VALUES (1, '${TEST_STORE_NAME}', '${TEST_SUBDOMAIN}', strftime('%s', 'now'));`;
     
     const userSQL = `INSERT OR IGNORE INTO users (id, email, password_hash, name, store_id, role, created_at) VALUES (1, '${TEST_EMAIL}', '${passwordHash}', 'Test Merchant', 1, 'merchant', strftime('%s', 'now'));`;
     
-    const productSQL = `INSERT OR IGNORE INTO products (id, store_id, title, slug, price, description, status, inventory, created_at) VALUES (1, 1, 'Test Product', 'test-product', 500, 'A test product for E2E testing', 'active', 100, strftime('%s', 'now'));`;
+    const productSQL = `INSERT OR IGNORE INTO products (id, store_id, title, price, description, inventory, is_published, created_at) VALUES (1, 1, 'Test Product', 500, 'A test product for E2E testing', 100, 1, strftime('%s', 'now'));`;
     
     // Execute via wrangler d1 execute
     console.log('📦 Creating test store...');
