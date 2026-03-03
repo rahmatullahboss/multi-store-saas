@@ -4,7 +4,7 @@ import { useLoaderData, useFetcher } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, desc } from 'drizzle-orm';
 import { stores, creditPurchases } from '@db/schema';
-import { getSession } from '~/services/auth.server';
+import { requireTenant } from '~/lib/tenant-guard.server';
 import { getCreditHistory } from '~/utils/credit.server';
 import { Crown, Sparkles, CreditCard, Check, Zap, Coins, History, ArrowUpRight, ArrowDownLeft, Clock, CheckCircle2, XCircle, Phone, Hash } from 'lucide-react';
 import { toast } from 'sonner';
@@ -23,15 +23,11 @@ export const meta = () => [
 ];
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const { env } = context.cloudflare;
-  const session = await getSession(request, env);
-  const storeId = session.get('storeId');
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'billing',
+  });
 
-  if (!storeId) {
-    throw new Error('Unauthorized');
-  }
-
-  const db = drizzle(env.DB);
+  const db = drizzle(context.cloudflare.env.DB);
   const store = await db
     .select({ aiCredits: stores.aiCredits })
     .from(stores)
@@ -57,15 +53,11 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, context }: ActionFunctionArgs) {
-  const { env } = context.cloudflare;
-  const session = await getSession(request, env);
-  const storeId = session.get('storeId');
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'billing',
+  });
 
-  if (!storeId) {
-    return json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
-  const db = drizzle(env.DB);
+  const db = drizzle(context.cloudflare.env.DB);
   const formData = await request.formData();
   const packageId = formData.get('packageId') as string;
   const transactionId = formData.get('transactionId') as string;

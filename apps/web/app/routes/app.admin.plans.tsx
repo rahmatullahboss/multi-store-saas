@@ -24,7 +24,7 @@ import {
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, like, or, desc } from 'drizzle-orm';
 import { stores, users } from '@db/schema';
-import { requireUserId } from '~/services/auth.server';
+import { requireSuperAdmin } from '~/services/auth.server';
 import { getBulkUsageStats, PLAN_LIMITS, type PlanType } from '~/utils/plans.server';
 import {
   Crown,
@@ -101,18 +101,8 @@ const PLAN_OPTIONS = [
 // LOADER - Fetch all stores and pending payments (admin only)
 // ============================================================================
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const userId = await requireUserId(request, context.cloudflare.env);
+  await requireSuperAdmin(request, context.cloudflare.env, context.cloudflare.env.DB);
   const db = drizzle(context.cloudflare.env.DB);
-
-  // Check if user is admin
-  const user = await db
-    .select({ role: users.role })
-    .from(users)
-    .where(eq(users.id, userId))
-    .limit(1);
-  if (!user[0] || user[0].role !== 'admin') {
-    throw new Response('Unauthorized - Admin access required', { status: 403 });
-  }
 
   // Get search query
   const url = new URL(request.url);
@@ -215,18 +205,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 // ACTION - Update store plan or verify/reject payment (admin only)
 // ============================================================================
 export async function action({ request, context }: ActionFunctionArgs) {
-  const userId = await requireUserId(request, context.cloudflare.env);
+  await requireSuperAdmin(request, context.cloudflare.env, context.cloudflare.env.DB);
   const db = drizzle(context.cloudflare.env.DB);
-
-  // Check if user is admin
-  const user = await db
-    .select({ role: users.role })
-    .from(users)
-    .where(eq(users.id, userId))
-    .limit(1);
-  if (!user[0] || user[0].role !== 'admin') {
-    return json({ error: 'Unauthorized' }, { status: 403 });
-  }
 
   const formData = await request.formData();
   const actionType = formData.get('actionType') as string;

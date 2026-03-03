@@ -27,6 +27,7 @@ import {
   aiChatLimit,
   checkoutLimit,
   cartLimit,
+  proxyImageLimit,
 } from './middleware/rate-limit';
 import { requestTracker } from './lib/debug/request-tracker';
 import { productsApi } from './api/products';
@@ -321,6 +322,7 @@ app.use('/api/ai-orchestrator', aiChatLimit());
 app.use('/checkout', checkoutLimit()); // 30 req/min - Page loads
 app.use('/checkout/*', checkoutLimit()); // 30 req/min - All checkout routes
 app.use('/cart', cartLimit()); // 50 req/min - Cart operations (separate limit)
+app.use('/api/proxy-image', proxyImageLimit()); // 60 req/min - Proxy image abuse guard
 
 // Apply tenant middleware to all routes except platform health checks.
 // This keeps /api/health usable on workers.dev even when hostname→store mapping doesn't exist.
@@ -634,9 +636,29 @@ export default {
       (async () => {
         const { createDb } = await import('../app/lib/db.server');
         const { runScheduledTasks } = await import('../app/services/scheduler.server');
-        const db = createDb(env.DB);
-        const results = await runScheduledTasks(db, env);
-        console.log('[CRON] Scheduled tasks completed:', JSON.stringify(results));
+
+        const runTasks = async () => {
+          const db = createDb(env.DB);
+          const results = await runScheduledTasks(db, env);
+          console.log('[CRON] Scheduled tasks completed:', JSON.stringify(results));
+        };
+
+        if (env.SENTRY_DSN && env.ENVIRONMENT !== 'development') {
+          const { init, captureException } = await import('@sentry/remix');
+          init({
+            dsn: env.SENTRY_DSN,
+            environment: env.ENVIRONMENT || 'production',
+          });
+          try {
+            await runTasks();
+          } catch (error) {
+            console.error('[CRON] Fatal error:', error);
+            captureException(error);
+            throw error;
+          }
+        } else {
+          await runTasks();
+        }
       })()
     );
   },

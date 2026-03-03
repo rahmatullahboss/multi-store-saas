@@ -32,6 +32,22 @@ export async function loader({ request }: LoaderFunctionArgs) {
       return new Response('Image host not allowed', { status: 403 });
     }
 
+    const referer = request.headers.get('referer') || '';
+    const origin = request.headers.get('origin') || '';
+    const allowedRefererPattern = /^https?:\/\/(.*\.)?ozzyl\.com/;
+    // Require at least one of referer or origin to be from a trusted source.
+    // Empty referer alone is not sufficient — origin must also be absent (e.g. same-origin navigations).
+    const hasReferer = referer.length > 0;
+    const hasOrigin = origin.length > 0;
+    const isFromTrustedSource =
+      (!hasReferer && !hasOrigin) || // direct server-to-server / same-origin (no headers at all)
+      (hasReferer && allowedRefererPattern.test(referer)) ||
+      (hasOrigin && allowedRefererPattern.test(origin));
+
+    if (!isFromTrustedSource) {
+      return new Response('Forbidden', { status: 403 });
+    }
+
     const imageResponse = await fetch(parsed.toString(), {
       // Wrangler/Workers typing for `cf` varies; cast to keep strict TS happy.
       cf: { cacheEverything: true, cacheTtl: DEFAULT_CACHE_TTL_SECONDS } as any,
@@ -53,7 +69,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       status: 200,
       headers: {
         'Content-Type': contentType,
-        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Origin': 'https://ozzyl.com',
         'Cache-Control': `public, s-maxage=${DEFAULT_CACHE_TTL_SECONDS}, max-age=86400, stale-while-revalidate=604800`,
       },
     });
