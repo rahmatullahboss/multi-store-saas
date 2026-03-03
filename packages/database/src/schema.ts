@@ -1799,9 +1799,23 @@ export const adminAuditLogs = sqliteTable(
     storeId: integer('store_id')
       .notNull()
       .references(() => stores.id, { onDelete: 'cascade' }),
+    // actor_id remains NOT NULL with FK to users for 'user' type actors.
+    // For system/api_key/webhook actors, pass sentinel value 0 and set
+    // actorType + actorName. See 0096_audit_actor_field.sql for rationale.
     actorId: integer('actor_id')
       .notNull()
       .references(() => users.id), // Who performed the action
+    // Added by 0096_audit_actor_field.sql — discriminates actor origin.
+    actorType: text('actor_type')
+      .$type<'user' | 'api_key' | 'system' | 'webhook'>()
+      .notNull()
+      .default('user'),
+    // Denormalized display label — survives user deletion / key rotation.
+    // 'user'    → users.email  (e.g. "rahmatullahzisan@gmail.com")
+    // 'api_key' → key name + prefix (e.g. "My WooCommerce Store (ak_••••abcd)")
+    // 'system'  → cron/worker name (e.g. "cron/courier-sync")
+    // 'webhook' → topic slug (e.g. "wc/order.created")
+    actorName: text('actor_name'),
     action: text('action').notNull(), // e.g., "update_settings", "delete_user"
     resource: text('resource').notNull(), // e.g., "settings", "users"
     resourceId: text('resource_id'), // ID of the affected resource
@@ -1814,6 +1828,9 @@ export const adminAuditLogs = sqliteTable(
     index('admin_audit_logs_store_idx').on(table.storeId),
     index('admin_audit_logs_actor_idx').on(table.actorId),
     index('admin_audit_logs_action_idx').on(table.storeId, table.action),
+    // Added by 0096: filter by actor type in /admin/audit-logs UI
+    index('idx_audit_logs_actor_type').on(table.actorType),
+    index('idx_audit_logs_store_actor_type').on(table.storeId, table.actorType),
   ]
 );
 
