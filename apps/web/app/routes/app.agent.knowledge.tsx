@@ -4,7 +4,7 @@ import { useLoaderData, useActionData, useNavigation, Form, useSubmit } from '@r
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, desc } from 'drizzle-orm';
 import * as schema from '../../db/schema';
-import { requireUserId, getStoreId } from '~/services/auth.server';
+import { requireTenant } from '~/lib/tenant-guard.server';
 import { indexDocuments, deleteDocuments, chunkText, type VectorDocument, type Env as RagEnv } from '~/services/rag.server';
 import { useState, useRef, useEffect } from 'react';
 import { Plus, Trash2, RefreshCw, FileText, Globe, Type, Upload, AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
@@ -18,8 +18,9 @@ interface RouteEnv extends RagEnv {
 }
 
 export const loader = async ({ request, context }: LoaderFunctionArgs) => {
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  if (!storeId) throw new Response('Unauthorized', { status: 401 });
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'analytics',
+  });
   const db = drizzle(context.cloudflare.env.DB as D1Database, { schema });
 
   // Fetch Agent
@@ -42,8 +43,9 @@ export const loader = async ({ request, context }: LoaderFunctionArgs) => {
 
 export const action = async ({ request, context }: ActionFunctionArgs) => {
   const env = context.cloudflare.env as unknown as RouteEnv;
-  const storeId = await getStoreId(request, context.cloudflare.env);
-    if (!storeId) throw new Response('Unauthorized', { status: 401 });
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'analytics',
+  });
     const db = drizzle(env.DB, { schema });
 
   // Verify Agent Ownership

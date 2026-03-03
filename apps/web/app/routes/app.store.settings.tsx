@@ -18,7 +18,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { eq } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
 import { stores } from '@db/schema';
-import { requireUserId, getStoreId } from '~/services/auth.server';
+import { requireTenant } from '~/lib/tenant-guard.server';
 import {
   getUnifiedStorefrontSettings,
   saveUnifiedStorefrontSettingsWithCacheInvalidation,
@@ -90,10 +90,10 @@ type TabId = (typeof TABS)[number]['id'];
 // LOADER
 // ============================================================================
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  await requireUserId(request, context.cloudflare.env);
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'settings',
+  });
   const db = drizzle(context.cloudflare.env.DB);
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  if (!storeId) throw new Response('Store not found', { status: 404 });
 
   const storeResult = await db.select().from(stores).where(eq(stores.id, storeId)).limit(1);
   const store = storeResult[0];
@@ -121,10 +121,10 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 // ACTION
 // ============================================================================
 export async function action({ request, context }: ActionFunctionArgs) {
-  await requireUserId(request, context.cloudflare.env);
+  const { storeId, userId } = await requireTenant(request, context, {
+    requirePermission: 'settings',
+  });
   const db = drizzle(context.cloudflare.env.DB);
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  if (!storeId) return json({ error: 'Store not found' }, { status: 404 });
 
   const storeResult = await db.select().from(stores).where(eq(stores.id, storeId)).limit(1);
   const store = storeResult[0];

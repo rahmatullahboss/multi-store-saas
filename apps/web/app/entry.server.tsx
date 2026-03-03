@@ -18,8 +18,7 @@ import i18n from './i18n';
 import i18next from './services/i18n.server';
 import { resolve } from 'node:path';
 
-// Track if Sentry is initialized
-let isSentryInitialized = false;
+// Sentry initialization is idempotent in Workers; avoid module-level state.
 
 /**
  * Environment interface for Sentry initialization
@@ -36,9 +35,6 @@ interface SentryEnv {
  * Skips initialization in development and when DSN is not configured
  */
 function initSentry(env: SentryEnv) {
-  // Skip if already initialized or not production
-  if (isSentryInitialized) return;
-
   const environment = env.ENVIRONMENT || env.NODE_ENV || 'production';
   const isEnabled = environment !== 'development' && environment !== 'test';
 
@@ -89,7 +85,6 @@ function initSentry(env: SentryEnv) {
       },
     });
 
-    isSentryInitialized = true;
     console.log('[Sentry] Successfully initialized:', { environment });
   } catch (error) {
     console.error('[Sentry] Failed to initialize:', error);
@@ -136,15 +131,12 @@ export default async function handleRequest(
           // Log streaming rendering errors from inside the shell
           console.error('[SSR Error]', error);
 
-          // Capture in Sentry if in production
-          if (isSentryInitialized) {
-            Sentry.captureException(error, {
-              extra: {
-                url: request.url,
-                userAgent: request.headers.get('user-agent'),
-              },
-            });
-          }
+          Sentry.captureException(error, {
+            extra: {
+              url: request.url,
+              userAgent: request.headers.get('user-agent'),
+            },
+          });
 
           responseStatusCode = 500;
         },
@@ -164,15 +156,13 @@ export default async function handleRequest(
     // Handle critical SSR failures
     console.error('[Critical SSR Error]', error);
 
-    if (isSentryInitialized) {
-      Sentry.captureException(error, {
-        level: 'fatal',
-        extra: {
-          url: request.url,
-          userAgent: request.headers.get('user-agent'),
-        },
-      });
-    }
+    Sentry.captureException(error, {
+      level: 'fatal',
+      extra: {
+        url: request.url,
+        userAgent: request.headers.get('user-agent'),
+      },
+    });
 
     throw error;
   }

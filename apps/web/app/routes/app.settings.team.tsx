@@ -17,7 +17,8 @@ import { Form, useLoaderData, useActionData, useNavigation, useFetcher } from '@
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and, isNull, desc, gt } from 'drizzle-orm';
 import { users, stores, staffInvites } from '@db/schema';
-import { requireUserId, getStoreId } from '~/services/auth.server';
+import { requireTenant } from '~/lib/tenant-guard.server';
+import { assertWithinLimit } from '~/lib/plan-gate.server';
 import { createEmailService } from '~/services/email.server';
 import { logActivity } from '~/lib/activity.server';
 import { 
@@ -40,12 +41,9 @@ export const meta: MetaFunction = () => {
 // LOADER - Fetch team members and pending invites
 // ============================================================================
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const userId = await requireUserId(request, context.cloudflare.env);
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  
-  if (!storeId) {
-    throw new Response('Store not found', { status: 404 });
-  }
+  const { userId, storeId } = await requireTenant(request, context, {
+    requirePermission: 'team',
+  });
 
   const db = drizzle(context.cloudflare.env.DB);
 
@@ -120,12 +118,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 // ACTION - Handle invite, revoke, remove
 // ============================================================================
 export async function action({ request, context }: ActionFunctionArgs) {
-  const userId = await requireUserId(request, context.cloudflare.env);
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  
-  if (!storeId) {
-    return json({ error: 'Store not found' }, { status: 404 });
-  }
+  const { userId, storeId, planType } = await requireTenant(request, context, {
+    requirePermission: 'team',
+  });
 
   const db = drizzle(context.cloudflare.env.DB);
   const formData = await request.formData();
@@ -207,6 +202,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
       if (existingInvite[0]) {
         return json({ error: 'invitePending' }, { status: 400 });
       }
+
+      await assertWithinLimit(context.cloudflare.env.DB, storeId, planType, 'staff');
 
       // Generate token
       const token = crypto.randomUUID();

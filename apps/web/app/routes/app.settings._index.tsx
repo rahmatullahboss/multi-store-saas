@@ -29,7 +29,7 @@ import {
   savedLandingConfigs,
   emailCampaigns,
 } from '@db/schema';
-import { getStoreId, getUserId } from '~/services/auth.server';
+import { requireTenant } from '~/lib/tenant-guard.server';
 import { logAuditAction } from '~/services/audit.server';
 import { KVCache, CACHE_KEYS } from '~/services/kv-cache.server';
 import {
@@ -94,10 +94,9 @@ const RESERVED_SUBDOMAINS = new Set(['app', 'www']);
 // LOADER - Fetch store data
 // ============================================================================
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  if (!storeId) {
-    throw new Response('Unauthorized', { status: 401 });
-  }
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'settings',
+  });
 
   const db = drizzle(context.cloudflare.env.DB);
 
@@ -196,10 +195,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 // ACTION - Update store settings (with server-side validation)
 // ============================================================================
 export async function action({ request, context }: ActionFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  if (!storeId) {
-    return json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const { storeId, userId } = await requireTenant(request, context, {
+    requirePermission: 'settings',
+  });
 
   const formData = await request.formData();
   const intent = formData.get('intent') as string;
@@ -211,19 +209,14 @@ export async function action({ request, context }: ActionFunctionArgs) {
     const feedback = formData.get('feedback') as string;
 
     // Get the authenticated user ID (owner performing the deletion)
-    const currentUserId = await getUserId(request, context.cloudflare.env);
-    if (!currentUserId) {
-      return json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Verify the authenticated user actually owns this store (prevents impersonation abuse)
+    // Owner verification (defense-in-depth even after requireTenant)
     const ownerCheck = await db
       .select({ storeId: users.storeId })
       .from(users)
-      .where(eq(users.id, currentUserId))
+      .where(eq(users.id, userId))
       .limit(1);
     if (ownerCheck[0]?.storeId !== storeId) {
-      console.error(`[STORE_DELETE] Ownership check failed: user ${currentUserId} does not own store ${storeId}`);
+      console.error(`[STORE_DELETE] Ownership check failed: user ${userId} does not own store ${storeId}`);
       return json({ error: 'Forbidden' }, { status: 403 });
     }
 
@@ -244,7 +237,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     try {
       await logAuditAction(context.cloudflare.env, {
         storeId,
-        actorId: currentUserId,
+        actorId: userId,
         action: 'delete',
         resource: 'store',
         resourceId: storeId,
@@ -276,7 +269,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     ]);
 
     // Confirm deletion succeeded
-    console.warn(`[STORE_DELETE] Store ${storeId} successfully deleted by user ${currentUserId}`);
+    console.warn(`[STORE_DELETE] Store ${storeId} successfully deleted by user ${userId}`);
 
     // Invalidate cache so deleted store is immediately inaccessible
     const kvNamespace = context.cloudflare.env.STORE_CACHE;

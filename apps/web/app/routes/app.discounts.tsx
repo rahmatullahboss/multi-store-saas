@@ -16,7 +16,7 @@ import { Form, useLoaderData, useActionData, useNavigation } from '@remix-run/re
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and } from 'drizzle-orm';
 import { discounts, stores } from '@db/schema';
-import { getStoreId } from '~/services/auth.server';
+import { requireTenant } from '~/lib/tenant-guard.server';
 import {
   Tag,
   Plus,
@@ -41,10 +41,9 @@ export const meta: MetaFunction = () => {
 // LOADER
 // ============================================================================
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  if (!storeId) {
-    throw new Response('Store not found', { status: 404 });
-  }
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'products',
+  });
 
   const db = drizzle(context.cloudflare.env.DB);
 
@@ -63,10 +62,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 // ACTION
 // ============================================================================
 export async function action({ request, context }: ActionFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  if (!storeId) {
-    return json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'products',
+  });
 
   const formData = await request.formData();
   const intent = formData.get('intent') as string;

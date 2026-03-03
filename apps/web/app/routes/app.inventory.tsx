@@ -24,7 +24,7 @@ import {
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, desc, and, inArray } from 'drizzle-orm';
 import { activityLogs, products, stores, users } from '@db/schema';
-import { getStoreId, getUserId } from '~/services/auth.server';
+import { requireTenant } from '~/lib/tenant-guard.server';
 import {
   AlertTriangle,
   Package,
@@ -52,10 +52,9 @@ export const meta: MetaFunction = () => {
 // LOADER
 // ============================================================================
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  if (!storeId) {
-    throw new Response('Store not found', { status: 404 });
-  }
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'products',
+  });
 
   const db = drizzle(context.cloudflare.env.DB);
 
@@ -112,15 +111,13 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 // ACTION - Update stock levels
 // ============================================================================
 export async function action({ request, context }: ActionFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  if (!storeId) {
-    return json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const { storeId, userId } = await requireTenant(request, context, {
+    requirePermission: 'products',
+  });
 
   const formData = await request.formData();
   const intent = formData.get('intent') as string;
   const db = drizzle(context.cloudflare.env.DB);
-  const userId = await getUserId(request, context.cloudflare.env);
   const ipAddress = request.headers.get('CF-Connecting-IP') || undefined;
 
   if (intent === 'adjustStock') {

@@ -19,17 +19,16 @@ import { useLoaderData } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and } from 'drizzle-orm';
 import { landingPages, stores } from '@db/schema';
-import { getStoreId } from '~/services/auth.server';
+import { requireTenant } from '~/lib/tenant-guard.server';
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   return [{ title: data?.pageName ? `Preview: ${data.pageName}` : 'Page Preview' }];
 };
 
 export async function loader({ request, params, context }: LoaderFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  if (!storeId) {
-    throw new Response('Unauthorized', { status: 401 });
-  }
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'pages',
+  });
 
   const pageId = params.pageId;
   if (!pageId) {

@@ -14,7 +14,7 @@ import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
 import { stores } from '@db/schema';
 import { z } from 'zod';
-import { getStoreId, getUserId } from '~/services/auth.server';
+import { requireTenant } from '~/lib/tenant-guard.server';
 import { logActivity } from '~/lib/activity.server';
 import {
   getUnifiedStorefrontSettings,
@@ -53,10 +53,9 @@ function isValidNavigationUrl(url: string): boolean {
 export const meta: MetaFunction = () => [{ title: 'Navigation Settings' }];
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  if (!storeId) {
-    throw new Response('Store not found', { status: 404 });
-  }
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'settings',
+  });
 
   const db = drizzle(context.cloudflare.env.DB);
   const store = await db
@@ -83,12 +82,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, context }: ActionFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  if (!storeId) {
-    return json({ error: 'Unauthorized' }, { status: 401 });
-  }
-  const userId = await getUserId(request, context.cloudflare.env);
-
+  const { storeId, userId } = await requireTenant(request, context, {
+    requirePermission: 'settings',
+  });
   const formData = await request.formData();
   const menuJson = formData.get('headerMenu') as string | null;
   const footerColumnsJson = formData.get('footerColumns') as string | null;

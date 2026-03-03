@@ -14,7 +14,7 @@ import type { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/cloudfla
 import { json } from '@remix-run/cloudflare';
 import { drizzle } from 'drizzle-orm/d1';
 import { migrateAllStoresToUnifiedSettings } from '~/services/unified-storefront-settings.server';
-import { getUserId } from '~/services/auth.server';
+import { requireSuperAdmin } from '~/services/auth.server';
 
 export async function loader({ request: _request, context: _context }: LoaderFunctionArgs) {
   // Simple health check
@@ -26,17 +26,8 @@ export async function loader({ request: _request, context: _context }: LoaderFun
 }
 
 export async function action({ request, context }: ActionFunctionArgs) {
-  // Only allow in development or with admin auth
-  const url = new URL(request.url);
-  const isDev = url.hostname.includes('localhost') || url.hostname.includes('127.0.0.1');
-
-  if (!isDev) {
-    // Check admin auth
-    const userId = await getUserId(request, context.cloudflare.env);
-    if (!userId) {
-      return json({ error: 'Unauthorized' }, { status: 401 });
-    }
-  }
+  // Always require super admin (no localhost bypass)
+  await requireSuperAdmin(request, context.cloudflare.env, context.cloudflare.env.DB);
 
   let body: { dryRun?: boolean } = {};
   try {

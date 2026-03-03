@@ -19,7 +19,8 @@ import { drizzle } from 'drizzle-orm/d1';
 import { eq, desc } from 'drizzle-orm';
 import { orders, stores } from '@db/schema';
 import * as schema from '@db/schema';
-import { getStoreId, getSession, commitSession } from '~/services/auth.server';
+import { getSession, commitSession } from '~/services/auth.server';
+import { requireTenant } from '~/lib/tenant-guard.server';
 import {
   Package,
   ShoppingCart,
@@ -50,7 +51,9 @@ export const meta: MetaFunction = () => {
 };
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env);
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'analytics',
+  });
   if (!storeId) {
     // User has no store — show create-new-store UI in dashboard (not onboarding)
     return json({ storeDeleted: true });

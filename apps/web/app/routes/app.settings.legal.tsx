@@ -17,7 +17,8 @@ import { eq, desc } from 'drizzle-orm';
 
 import { stores, users } from '@db/schema';
 import { policyVersions, generatePolicyVersionId } from '@db/schema_versions';
-import { getSession, getStoreId } from '~/services/auth.server';
+import { getSession } from '~/services/auth.server';
+import { requireTenant } from '~/lib/tenant-guard.server';
 import { getPolicyContent } from '~/lib/policies';
 import { useState } from 'react';
 import { FileText, Eye, Save, RotateCcw, ChevronDown, ChevronUp, ExternalLink, ArrowLeft } from 'lucide-react';
@@ -29,10 +30,9 @@ export const meta: MetaFunction = () => [
 ];
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  if (!storeId) {
-    throw redirect('/auth/login');
-  }
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'settings',
+  });
 
   const db = drizzle(context.cloudflare.env.DB);
   const [store] = await db
@@ -90,17 +90,14 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, context }: ActionFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  if (!storeId) {
-    return json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const { storeId, userId } = await requireTenant(request, context, {
+    requirePermission: 'settings',
+  });
 
   const formData = await request.formData();
   const intent = formData.get('intent') as string;
   
   const db = drizzle(context.cloudflare.env.DB);
-  const session = await getSession(request, context.cloudflare.env);
-  const userId = session.get('userId');
   let changedBy: string | null = null;
   if (userId) {
     const user = await db

@@ -3,7 +3,7 @@ import { useLoaderData, useActionData, Form, useNavigation, Link } from '@remix-
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, desc, and } from 'drizzle-orm';
 import { apiKeys, webhooks } from '@db/schema';
-import { getSession } from '~/services/auth.server';
+import { requireTenant } from '~/lib/tenant-guard.server';
 import { generateApiKey, revokeApiKey } from '~/services/api.server';
 import { registerWebhook } from '~/services/webhook.server';
 import { useState, useEffect, useRef } from 'react';
@@ -13,14 +13,10 @@ import { useTranslation } from '~/contexts/LanguageContext';
 import { GlassCard } from '~/components/ui/GlassCard';
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const env = context.cloudflare.env;
-  const db = drizzle(env.DB);
-  const session = await getSession(request, env);
-  const storeId = session.get('storeId');
-
-  if (!storeId) {
-    throw new Response('Unauthorized', { status: 401 });
-  }
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'settings',
+  });
+  const db = drizzle(context.cloudflare.env.DB);
 
   const [keys, hooks] = await Promise.all([
     db.select().from(apiKeys).where(eq(apiKeys.storeId, storeId)).orderBy(desc(apiKeys.createdAt)),
@@ -31,12 +27,11 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, context }: ActionFunctionArgs) {
-  const env = context.cloudflare.env;
-  const rawDb: D1Database = env.DB;
-  const session = await getSession(request, env);
-  const storeId = session.get('storeId');
+  const { storeId, userId } = await requireTenant(request, context, {
+    requirePermission: 'settings',
+  });
+  const rawDb: D1Database = context.cloudflare.env.DB;
 
-  if (!storeId) return json({ error: 'Unauthorized' }, { status: 401 });
 
   const formData = await request.formData();
   const intent = formData.get('intent');

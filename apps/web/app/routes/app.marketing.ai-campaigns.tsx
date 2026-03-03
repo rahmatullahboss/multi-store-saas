@@ -13,7 +13,7 @@ import { useLoaderData, useFetcher, Link } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, sql } from 'drizzle-orm';
 import { customers, stores } from '@db/schema';
-import { getStoreId } from '~/services/auth.server';
+import { requireTenant } from '~/lib/tenant-guard.server';
 import {
   Users, 
   Crown, 
@@ -86,10 +86,9 @@ const SEGMENTS = [
 ];
 
 export async function loader({ context, request }: LoaderFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  if (!storeId) {
-    throw new Response('Unauthorized', { status: 401 });
-  }
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'customers',
+  });
   
   const db = drizzle(context.cloudflare.env.DB);
   

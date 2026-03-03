@@ -23,7 +23,7 @@ import {
 import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
 import { stores } from '@db/schema';
-import { getStoreId, getUserId } from '~/services/auth.server';
+import { requireTenant } from '~/lib/tenant-guard.server';
 import { canUseCustomDomain, type PlanType } from '~/utils/plans.server';
 import {
   createCustomHostname,
@@ -77,10 +77,9 @@ const RESERVED_SUBDOMAINS = new Set([
 ]);
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  if (!storeId) {
-    throw new Response('unauthorized', { status: 401 });
-  }
+  const { storeId } = await requireTenant(request, context, {
+    requireFeature: 'allow_custom_domain',
+  });
 
   const db = drizzle(context.cloudflare.env.DB);
   const store = await db.select().from(stores).where(eq(stores.id, storeId)).limit(1);
@@ -133,11 +132,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, context }: ActionFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  if (!storeId) {
-    return json<ActionData>({ error: 'unauthorized' }, { status: 401 });
-  }
-  const userId = await getUserId(request, context.cloudflare.env);
+  const { storeId, userId } = await requireTenant(request, context, {
+    requireFeature: 'allow_custom_domain',
+  });
 
   const db = drizzle(context.cloudflare.env.DB);
   const env = context.cloudflare.env as CloudflareEnv;

@@ -10,7 +10,7 @@ import { useLoaderData, Form, Link, useNavigation } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { abTests, abTestVariants, abTestAssignments, products, stores } from '@db/schema';
 import { eq, and, desc } from 'drizzle-orm';
-import { getStoreId } from '~/services/auth.server';
+import { requireTenant } from '~/lib/tenant-guard.server';
 import { calculateSignificance } from '~/utils/ab-testing.server';
 import {
   ArrowLeft,
@@ -28,10 +28,9 @@ import {
 import { formatPrice } from '~/utils/formatPrice';
 
 export async function loader({ params, request, context }: LoaderFunctionArgs) {
-  const storeId = await getStoreId(request, context as unknown as Env);
-  if (!storeId) {
-    throw new Response('Unauthorized', { status: 401 });
-  }
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'analytics',
+  });
 
   const testId = Number(params.id);
   if (!testId) {
@@ -107,8 +106,9 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
 }
 
 export async function action({ params, request, context }: ActionFunctionArgs) {
-  const storeId = await getStoreId(request, context as unknown as Env);
-  if (!storeId) throw new Response('Unauthorized', { status: 401 });
+  const { storeId, userId } = await requireTenant(request, context, {
+    requirePermission: 'analytics',
+  });
 
   const testId = Number(params.id);
   const db = drizzle(context.cloudflare.env.DB);

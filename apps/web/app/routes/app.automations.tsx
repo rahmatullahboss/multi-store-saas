@@ -10,7 +10,7 @@ import { useLoaderData, Link, Form, useNavigation } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { emailAutomations, emailAutomationSteps } from '@db/schema';
 import { eq, desc, and } from 'drizzle-orm';
-import { getStoreId } from '~/services/auth.server';
+import { requireTenant } from '~/lib/tenant-guard.server';
 import { Plus, Mail, Trash2, Edit2, Play, Pause, Clock, ShoppingCart, UserPlus, Package, TrendingUp } from 'lucide-react';
 
 const TRIGGER_LABELS: Record<string, { label: string; icon: React.ReactNode; color: string }> = {
@@ -21,10 +21,9 @@ const TRIGGER_LABELS: Record<string, { label: string; icon: React.ReactNode; col
 };
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  if (!storeId) {
-    throw new Response('Unauthorized', { status: 401 });
-  }
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'orders',
+  });
 
   const db = drizzle(context.cloudflare.env.DB);
 
@@ -55,10 +54,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, context }: ActionFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  if (!storeId) {
-    throw new Response('Unauthorized', { status: 401 });
-  }
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'orders',
+  });
 
   const db = drizzle(context.cloudflare.env.DB);
   const formData = await request.formData();

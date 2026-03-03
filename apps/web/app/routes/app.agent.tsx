@@ -3,7 +3,7 @@ import { useLoaderData, Link, Outlet, useLocation } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, count, sql } from 'drizzle-orm';
 import * as schema from '../../db/schema';
-import { getStoreId } from '~/services/auth.server';
+import { requireTenant } from '~/lib/tenant-guard.server';
 import { Sparkles, MessageSquare, Settings, Book, Bot, Zap, TrendingUp } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { ASSETS } from '~/config/assets';
@@ -11,7 +11,9 @@ import { LazyAreaChart } from '~/components/charts/LazyAreaChart';
 import { Coins } from 'lucide-react';
 
 export const loader = async ({ request, context }: LoaderFunctionArgs) => {
-  const storeId = await getStoreId(request, context.cloudflare.env);
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'analytics',
+  });
   if (!storeId) throw new Response('Unauthorized', { status: 401 }); // Or redirect to login
 
   const db = drizzle(context.cloudflare.env.DB, { schema });

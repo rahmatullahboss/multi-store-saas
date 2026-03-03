@@ -12,7 +12,7 @@ import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
 import { stores } from '@db/schema';
 import { parseLandingConfig, defaultLandingConfig, type LandingConfig } from '@db/types';
-import { requireUserId, getStoreId } from '~/services/auth.server';
+import { requireTenant } from '~/lib/tenant-guard.server';
 import { getAllTemplates, DEFAULT_TEMPLATE_ID } from '~/templates/registry';
 import { Check, ExternalLink, Palette, Eye, Sparkles, Zap, Leaf, Crown, Smartphone, X, Monitor, Tablet, ArrowRight } from 'lucide-react';
 import { useEffect, useState, useCallback } from 'react';
@@ -91,9 +91,9 @@ const MOCK_TESTIMONIALS = [
 // LOADER
 // ============================================================================
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  await requireUserId(request, context.cloudflare.env);
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  if (!storeId) throw new Response('Store not found', { status: 404 });
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'settings',
+  });
 
   const db = drizzle(context.cloudflare.env.DB);
   const store = await db.select().from(stores).where(eq(stores.id, storeId)).limit(1);
@@ -116,9 +116,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 // ACTION
 // ============================================================================
 export async function action({ request, context }: ActionFunctionArgs) {
-  await requireUserId(request, context.cloudflare.env);
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  if (!storeId) throw new Response('Store not found', { status: 404 });
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'settings',
+  });
 
   const formData = await request.formData();
   const templateId = formData.get('templateId') as string;

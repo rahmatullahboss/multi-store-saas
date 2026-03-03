@@ -14,7 +14,7 @@ import { useState } from 'react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and, desc } from 'drizzle-orm';
 import { orderBumps, products, stores } from '@db/schema';
-import { getStoreId } from '~/services/auth.server';
+import { requireTenant } from '~/lib/tenant-guard.server';
 import { useTranslation } from '~/contexts/LanguageContext';
 import {
   Gift,
@@ -37,8 +37,9 @@ export const meta: MetaFunction = () => {
 // LOADER
 // ============================================================================
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  if (!storeId) throw new Response('Unauthorized', { status: 401 });
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'settings',
+  });
 
   const db = drizzle(context.cloudflare.env.DB);
 
@@ -92,8 +93,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 // ACTION
 // ============================================================================
 export async function action({ request, context }: ActionFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  if (!storeId) throw new Response('Unauthorized', { status: 401 });
+  const { storeId, userId } = await requireTenant(request, context, {
+    requirePermission: 'settings',
+  });
 
   const db = drizzle(context.cloudflare.env.DB);
   const formData = await request.formData();

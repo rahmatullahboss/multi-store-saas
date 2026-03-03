@@ -12,7 +12,7 @@ import { useLoaderData, useActionData, Form, useNavigation, Link } from '@remix-
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and } from 'drizzle-orm';
 import { shippingZones, stores } from '@db/schema';
-import { getStoreId, getUserId } from '~/services/auth.server';
+import { requireTenant } from '~/lib/tenant-guard.server';
 import { Truck, Plus, Edit2, Trash2, ArrowLeft, Loader2, MapPin } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from '~/contexts/LanguageContext';
@@ -45,10 +45,9 @@ const simpleShippingSchema = z.object({
 });
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  if (!storeId) {
-    throw new Response('Unauthorized', { status: 401 });
-  }
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'settings',
+  });
 
   const db = drizzle(context.cloudflare.env.DB);
 
@@ -70,11 +69,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, context }: ActionFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  if (!storeId) {
-    throw new Response('Unauthorized', { status: 401 });
-  }
-  const userId = await getUserId(request, context.cloudflare.env);
+  const { storeId, userId } = await requireTenant(request, context, {
+    requirePermission: 'settings',
+  });
 
   const formData = await request.formData();
   const intent = formData.get('intent') as string;

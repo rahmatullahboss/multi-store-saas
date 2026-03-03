@@ -9,7 +9,7 @@ import { useLoaderData, Link, Form } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { supportTickets, stores } from '@db/schema';
 import { eq, desc, and, sql } from 'drizzle-orm';
-import { getStoreId } from '~/services/auth.server';
+import { requireTenant } from '~/lib/tenant-guard.server';
 import { 
   Ticket, 
   Plus, 
@@ -23,10 +23,9 @@ import {
 } from 'lucide-react';
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  if (!storeId) {
-    throw new Response('Unauthorized', { status: 401 });
-  }
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'settings',
+  });
   
   const db = drizzle(context.cloudflare.env.DB);
   const url = new URL(request.url);

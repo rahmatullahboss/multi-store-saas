@@ -16,7 +16,7 @@ import { drizzle } from 'drizzle-orm/d1';
 import { eq, and } from 'drizzle-orm';
 import { stores, products } from '@db/schema';
 import { parseLandingConfig, defaultLandingConfig, type LandingConfig } from '@db/types';
-import { getStoreId } from '~/services/auth.server';
+import { requireTenant } from '~/lib/tenant-guard.server';
 import { formatPrice } from '~/lib/formatting';
 import {
   Loader2,
@@ -48,10 +48,9 @@ export const meta: MetaFunction = () => {
 // LOADER - Fetch store data and products
 // ============================================================================
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  if (!storeId) {
-    throw new Response('Store not found', { status: 404 });
-  }
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'settings',
+  });
 
   const db = drizzle(context.cloudflare.env.DB);
 
@@ -93,10 +92,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 // ACTION - Update landing settings
 // ============================================================================
 export async function action({ request, context }: ActionFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  if (!storeId) {
-    return json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const { storeId, userId } = await requireTenant(request, context, {
+    requirePermission: 'settings',
+  });
 
   const formData = await request.formData();
   const featuredProductId = formData.get('featuredProductId') as string;

@@ -10,16 +10,15 @@ import { useLoaderData, Form, useActionData, useNavigation, Link } from '@remix-
 import { drizzle } from 'drizzle-orm/d1';
 import { upsellOffers, products, stores } from '@db/schema';
 import { eq, desc, and } from 'drizzle-orm';
-import { getStoreId } from '~/services/auth.server';
+import { requireTenant } from '~/lib/tenant-guard.server';
 import { useState } from 'react';
 import { Plus, Trash2, ArrowRight, ArrowUpRight, ArrowDownRight, Eye, CheckCircle, ArrowLeft } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  if (!storeId) {
-    throw new Response('Unauthorized', { status: 401 });
-  }
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'settings',
+  });
 
   const db = drizzle(context.cloudflare.env.DB);
 
@@ -77,10 +76,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, context }: ActionFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  if (!storeId) {
-    throw new Response('Unauthorized', { status: 401 });
-  }
+  const { storeId, userId } = await requireTenant(request, context, {
+    requirePermission: 'settings',
+  });
 
   const db = drizzle(context.cloudflare.env.DB);
   const formData = await request.formData();

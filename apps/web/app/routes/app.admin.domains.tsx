@@ -10,7 +10,7 @@ import { Form, useLoaderData, useNavigation, useRevalidator } from '@remix-run/r
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, isNotNull, or } from 'drizzle-orm';
 import { stores, users } from '@db/schema';
-import { requireUserId } from '~/services/auth.server';
+import { requireSuperAdmin } from '~/services/auth.server';
 import { 
   getHostnameStatus, 
   deleteCustomHostname,
@@ -41,14 +41,8 @@ interface DomainEntry {
 }
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const userId = await requireUserId(request, context.cloudflare.env);
+  await requireSuperAdmin(request, context.cloudflare.env, context.cloudflare.env.DB);
   const db = drizzle(context.cloudflare.env.DB);
-  
-  // Check if user is admin
-  const user = await db.select().from(users).where(eq(users.id, userId)).limit(1);
-  if (!user[0] || user[0].role !== 'admin') {
-    throw new Response('Unauthorized', { status: 403 });
-  }
   
   const env = context.cloudflare.env as CloudflareEnv;
   const cloudflareConfigured = isCloudflareConfigured(env);
@@ -96,15 +90,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, context }: ActionFunctionArgs) {
-  const userId = await requireUserId(request, context.cloudflare.env);
+  await requireSuperAdmin(request, context.cloudflare.env, context.cloudflare.env.DB);
   const db = drizzle(context.cloudflare.env.DB);
   const env = context.cloudflare.env as CloudflareEnv;
-  
-  // Check if user is admin
-  const user = await db.select().from(users).where(eq(users.id, userId)).limit(1);
-  if (!user[0] || user[0].role !== 'admin') {
-    throw new Response('Unauthorized', { status: 403 });
-  }
   
   const formData = await request.formData();
   const storeId = Number(formData.get('storeId'));

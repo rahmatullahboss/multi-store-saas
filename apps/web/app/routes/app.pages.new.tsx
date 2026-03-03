@@ -9,23 +9,21 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/cloudflare';
 import { json, redirect } from '@remix-run/cloudflare';
 import { Form, useActionData, useNavigation } from '@remix-run/react';
-import { getStoreId } from '~/services/auth.server';
+import { requireTenant } from '~/lib/tenant-guard.server';
 import { ArrowLeft, Loader2, Plus } from 'lucide-react';
 import { Link } from '@remix-run/react';
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  if (!storeId) {
-    throw redirect('/auth/login');
-  }
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'customers',
+  });
   return json({ storeId });
 }
 
 export async function action({ request, context }: ActionFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  if (!storeId) {
-    return json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'customers',
+  });
 
   const formData = await request.formData();
   const title = formData.get('title')?.toString().trim() || '';

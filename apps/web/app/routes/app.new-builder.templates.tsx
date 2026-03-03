@@ -15,7 +15,7 @@ import { drizzle } from 'drizzle-orm/d1';
 import { eq, count } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 
-import { requireAuth } from '~/lib/auth.server';
+import { requireTenant } from '~/lib/tenant-guard.server';
 import { builderPages } from '@db/schema_page_builder';
 import {
   getAllBuilderTemplates,
@@ -28,21 +28,23 @@ import { TemplateGallery } from '~/components/builder/TemplateGallery';
 // ============================================================================
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const { store } = await requireAuth(request, context);
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'pages',
+  });
   const db = drizzle(context.cloudflare.env.DB);
 
   // Get existing pages count — scoped to this store (multi-tenancy)
   const [{ value: pagesCount }] = await db
     .select({ value: count() })
     .from(builderPages)
-    .where(eq(builderPages.storeId, store.id));
+    .where(eq(builderPages.storeId, storeId));
 
   const templates = getAllBuilderTemplates();
 
   return json({
     templates,
     pagesCount: pagesCount ?? 0,
-    storeId: store.id,
+    storeId,
   });
 }
 
@@ -51,7 +53,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 // ============================================================================
 
 export async function action({ request, context }: ActionFunctionArgs) {
-  const { store } = await requireAuth(request, context);
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'pages',
+  });
   const db = drizzle(context.cloudflare.env.DB);
   const rawDb = context.cloudflare.env.DB;
 
@@ -65,7 +69,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
     await db.insert(builderPages).values({
       id: pageId,
-      storeId: store.id,
+      storeId,
       slug,
       title: 'নতুন পেজ',
       status: 'draft',
@@ -119,7 +123,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     // Insert page — store_id always scoped (multi-tenancy safety)
     await db.insert(builderPages).values({
       id: pageId,
-      storeId: store.id,
+      storeId,
       slug,
       title: template.nameBn,
       status: 'draft',

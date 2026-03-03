@@ -24,7 +24,7 @@ import { drizzle } from 'drizzle-orm/d1';
 import type { DrizzleD1Database } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
 import { stores } from '@db/schema';
-import { getStoreId, getUserId } from '~/services/auth.server';
+import { requireTenant } from '~/lib/tenant-guard.server';
 import {
   Search,
   Loader2,
@@ -63,7 +63,9 @@ const SeoSettingsSchema = z.object({
 // LOADER
 // ============================================================================
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env);
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'settings',
+  });
   if (!storeId) {
     throw new Response('Unauthorized', { status: 401 });
   }
@@ -112,7 +114,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 // ACTION
 // ============================================================================
 export async function action({ request, context }: ActionFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env);
+  const { storeId, userId } = await requireTenant(request, context, {
+    requirePermission: 'settings',
+  });
   if (!storeId) {
     return json({ error: 'unauthorized' }, { status: 401 });
   }

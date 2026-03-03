@@ -12,7 +12,7 @@ import { useLoaderData, Form, useNavigation, Link, useActionData } from '@remix-
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and, ne, desc } from 'drizzle-orm';
 import { discounts, stores } from '@db/schema';
-import { getStoreId } from '~/services/auth.server';
+import { requireTenant } from '~/lib/tenant-guard.server';
 import { Tag, Plus, Edit2, Trash2, ArrowLeft, Loader2, Percent, DollarSign, CheckCircle } from 'lucide-react';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from '~/contexts/LanguageContext';
@@ -26,10 +26,9 @@ export const meta: MetaFunction = () => {
 const DISCOUNT_CODE_REGEX = /^[A-Z0-9_-]{3,32}$/;
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  if (!storeId) {
-    throw new Response('Unauthorized', { status: 401 });
-  }
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'coupons',
+  });
 
   const db = drizzle(context.cloudflare.env.DB);
 
@@ -48,10 +47,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, context }: ActionFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  if (!storeId) {
-    throw new Response('Unauthorized', { status: 401 });
-  }
+  const { storeId, userId } = await requireTenant(request, context, {
+    requirePermission: 'coupons',
+  });
 
   const formData = await request.formData();
   const intent = formData.get('intent') as string;

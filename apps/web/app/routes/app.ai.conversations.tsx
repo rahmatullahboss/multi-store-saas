@@ -10,7 +10,7 @@ import { useLoaderData, Link } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, desc, sql } from 'drizzle-orm';
 import { aiConversations, messages } from '@db/schema';
-import { getSession } from '~/services/auth.server';
+import { requireTenant } from '~/lib/tenant-guard.server';
 import { useState } from 'react';
 import { MessageSquare, User, Phone, Clock, ChevronDown, ChevronUp, Bot, ArrowLeft } from 'lucide-react';
 
@@ -34,13 +34,9 @@ interface Message {
 }
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const { env } = context.cloudflare;
-  const session = await getSession(request, env);
-  const storeId = session.get('storeId');
-
-  if (!storeId) {
-    throw new Response('Unauthorized', { status: 401 });
-  }
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'analytics',
+  });
 
   const db = drizzle(env.DB);
 

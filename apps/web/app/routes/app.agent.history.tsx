@@ -3,7 +3,7 @@ import { useLoaderData, useSearchParams, Form, useSubmit, Link } from '@remix-ru
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, desc } from 'drizzle-orm';
 import * as schema from '../../db/schema';
-import { getStoreId } from '~/services/auth.server';
+import { requireTenant } from '~/lib/tenant-guard.server';
 import { Bot, User, Clock, Search, MessageSquare, ArrowLeft, Phone } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { ClientDate, ClientTime } from '~/components/ui/ClientDate';
@@ -35,8 +35,9 @@ function parseMessageContent(content: string): string {
 }
 
 export const loader = async ({ request, context }: LoaderFunctionArgs) => {
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  if (!storeId) throw redirect('/auth/login');
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'analytics',
+  });
   
   const db = drizzle(context.cloudflare.env.DB, { schema });
   const url = new URL(request.url);

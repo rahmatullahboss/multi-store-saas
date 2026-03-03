@@ -11,7 +11,7 @@
 import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
 import { json } from '@remix-run/cloudflare';
 import { useLoaderData, Link } from '@remix-run/react';
-import { requireAuth } from '~/lib/auth.server';
+import { requireTenant } from '~/lib/tenant-guard.server';
 import { getPageAnalytics, getSectionHeatmap } from '~/lib/analytics/analytics.server';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and } from 'drizzle-orm';
@@ -37,7 +37,9 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 // ── Loader ────────────────────────────────────────────────────────────────────
 
 export async function loader({ request, params, context }: LoaderFunctionArgs) {
-  const { store } = await requireAuth(request, context);
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'analytics',
+  });
   const pageId = params.pageId;
 
   if (!pageId) {
@@ -52,7 +54,7 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
   const [page] = await odb
     .select({ id: builderPages.id, title: builderPages.title, slug: builderPages.slug })
     .from(builderPages)
-    .where(and(eq(builderPages.id, pageId), eq(builderPages.storeId, store.id)))
+    .where(and(eq(builderPages.id, pageId), eq(builderPages.storeId, storeId)))
     .limit(1);
 
   if (!page) {
@@ -61,8 +63,8 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
 
   // Fetch last 7 days analytics + today's section heatmap — parallel
   const [analytics, sectionStats] = await Promise.all([
-    getPageAnalytics(db, pageId, store.id, 7),
-    getSectionHeatmap(db, pageId, store.id),
+    getPageAnalytics(db, pageId, storeId, 7),
+    getSectionHeatmap(db, pageId, storeId),
   ]);
 
   return json({

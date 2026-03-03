@@ -16,7 +16,7 @@ import { useLoaderData, Form, useNavigation, Link, useSearchParams } from '@remi
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and, desc } from 'drizzle-orm';
 import { abandonedCarts, stores } from '@db/schema';
-import { getStoreId } from '~/services/auth.server';
+import { requireTenant } from '~/lib/tenant-guard.server';
 import {
   ShoppingCart,
   Mail,
@@ -41,10 +41,9 @@ export const meta: MetaFunction = () => {
 // LOADER
 // ============================================================================
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  if (!storeId) {
-    throw new Response('Store not found', { status: 404 });
-  }
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'orders',
+  });
 
   const db = drizzle(context.cloudflare.env.DB);
 
@@ -124,10 +123,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 // ACTION - Update cart status
 // ============================================================================
 export async function action({ request, context }: ActionFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  if (!storeId) {
-    return json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'orders',
+  });
 
   const formData = await request.formData();
   const intent = formData.get('intent') as string;

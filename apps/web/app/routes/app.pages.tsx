@@ -17,7 +17,7 @@ import { drizzle } from 'drizzle-orm/d1';
 import { eq, desc, and } from 'drizzle-orm';
 import { landingPages, stores } from '@db/schema';
 import { builderPages } from '@db/schema_page_builder';
-import { getStoreId } from '~/services/auth.server';
+import { requireTenant } from '~/lib/tenant-guard.server';
 import { Plus, Edit, Trash2, ExternalLink, FileText, Layers, Palette } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { useState } from 'react';
@@ -30,10 +30,9 @@ export const meta: MetaFunction = () => {
 // LOADER
 // ============================================================================
 export async function loader({ request, context }: LoaderFunctionArgs) {
-    const storeId = await getStoreId(request, context.cloudflare.env);
-    if (!storeId) {
-        throw new Response('Unauthorized', { status: 401 });
-    }
+    const { storeId } = await requireTenant(request, context, {
+      requirePermission: 'customers',
+    });
 
     const db = drizzle(context.cloudflare.env.DB);
 
@@ -99,8 +98,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 // ACTION (Delete)
 // ============================================================================
 export async function action({ request, context }: ActionFunctionArgs) {
-    const storeId = await getStoreId(request, context.cloudflare.env);
-    if (!storeId) return json({ error: 'Unauthorized' }, { status: 401 });
+    const { storeId } = await requireTenant(request, context, {
+      requirePermission: 'customers',
+    });
 
     const formData = await request.formData();
     const intent = formData.get('intent');

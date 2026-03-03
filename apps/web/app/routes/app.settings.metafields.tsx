@@ -10,7 +10,7 @@ import { useLoaderData, useFetcher, Link } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { and, eq } from 'drizzle-orm';
 import { useState, useEffect } from 'react';
-import { requireAuth } from '~/lib/auth.server';
+import { requireTenant } from '~/lib/tenant-guard.server';
 import { metafieldDefinitions, type MetafieldDefinition, type MetafieldType, type MetafieldOwnerType } from '@db/schema_metafields';
 import { 
   Plus, Trash2, Edit2, Database, Package, FolderOpen, Store, FileText,
@@ -42,25 +42,29 @@ const OWNER_TYPES: { value: MetafieldOwnerType; label: string; icon: React.React
 
 // Loader
 export const loader: LoaderFunction = async ({ request, context }) => {
-  const { store } = await requireAuth(request, context);
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'settings',
+  });
 
   const db = drizzle(context.cloudflare.env.DB);
   
   const definitions = await db.select().from(metafieldDefinitions)
-    .where(eq(metafieldDefinitions.storeId, store.id));
+    .where(eq(metafieldDefinitions.storeId, storeId));
 
   return json({
     definitions: definitions.map(d => ({
       ...d,
       validations: d.validations ? JSON.parse(d.validations) : null,
     })),
-    storeId: store.id,
+    storeId,
   });
 };
 
 // Action
 export const action: ActionFunction = async ({ request, context }) => {
-  const { store } = await requireAuth(request, context);
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'settings',
+  });
 
   const db = drizzle(context.cloudflare.env.DB);
   const formData = await request.formData();
@@ -71,12 +75,12 @@ export const action: ActionFunction = async ({ request, context }) => {
 
     // Verify the metafield definition belongs to the current store before deleting
     const existing = await db.select().from(metafieldDefinitions).where(
-      and(eq(metafieldDefinitions.id, id), eq(metafieldDefinitions.storeId, store.id))
+      and(eq(metafieldDefinitions.id, id), eq(metafieldDefinitions.storeId, storeId))
     ).get();
     if (!existing) throw new Response('Not found', { status: 404 });
 
     await db.delete(metafieldDefinitions)
-      .where(and(eq(metafieldDefinitions.id, id), eq(metafieldDefinitions.storeId, store.id)));
+      .where(and(eq(metafieldDefinitions.id, id), eq(metafieldDefinitions.storeId, storeId)));
     return json({ success: true });
   }
 
@@ -96,18 +100,18 @@ export const action: ActionFunction = async ({ request, context }) => {
 
       // Verify the metafield definition belongs to the current store before updating
       const existing = await db.select().from(metafieldDefinitions).where(
-        and(eq(metafieldDefinitions.id, id), eq(metafieldDefinitions.storeId, store.id))
+        and(eq(metafieldDefinitions.id, id), eq(metafieldDefinitions.storeId, storeId))
       ).get();
       if (!existing) throw new Response('Not found', { status: 404 });
 
       await db.update(metafieldDefinitions)
         .set({ ...data, updatedAt: new Date().toISOString() })
-        .where(and(eq(metafieldDefinitions.id, id), eq(metafieldDefinitions.storeId, store.id)));
+        .where(and(eq(metafieldDefinitions.id, id), eq(metafieldDefinitions.storeId, storeId)));
     } else {
-      const id = `mfd_${store.id}_${Date.now()}`;
+      const id = `mfd_${storeId}_${Date.now()}`;
       await db.insert(metafieldDefinitions).values({
         id,
-        storeId: store.id,
+        storeId,
         ...data,
       });
     }

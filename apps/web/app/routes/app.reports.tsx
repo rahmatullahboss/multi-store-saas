@@ -16,7 +16,7 @@ import { useLoaderData, useSearchParams, Link } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and, gte, lte, desc, sql } from 'drizzle-orm';
 import { orders, products, customers, stores } from '@db/schema';
-import { getStoreId } from '~/services/auth.server';
+import { requireTenant } from '~/lib/tenant-guard.server';
 import { 
   FileText, Download, Calendar, Package, 
   Users, DollarSign, Filter
@@ -32,10 +32,9 @@ export const meta: MetaFunction = () => {
 // LOADER - Fetch report data
 // ============================================================================
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  if (!storeId) {
-    throw new Response('Store not found', { status: 404 });
-  }
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'analytics',
+  });
 
   const db = drizzle(context.cloudflare.env.DB);
   const url = new URL(request.url);

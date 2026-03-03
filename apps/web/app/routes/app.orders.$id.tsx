@@ -27,7 +27,7 @@ import {
   users,
 } from '@db/schema';
 import { calculateOrderWeight } from '~/lib/courier-weight.server';
-import { getStoreId, getUserId } from '~/services/auth.server';
+import { requireTenant } from '~/lib/tenant-guard.server';
 import {
   ArrowLeft,
   Package,
@@ -63,10 +63,9 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 // LOADER - Fetch order with items and store info
 // ============================================================================
 export async function loader({ request, params, context }: LoaderFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  if (!storeId) {
-    throw redirect('/auth/login');
-  }
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'orders',
+  });
 
   const orderId = parseInt(params.id || '0');
   if (!orderId) {
@@ -217,10 +216,9 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
 // ACTION - Update order status or book courier
 // ============================================================================
 export async function action({ request, params, context }: ActionFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  if (!storeId) {
-    return json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const { storeId, userId } = await requireTenant(request, context, {
+    requirePermission: 'orders',
+  });
 
   const orderId = parseInt(params.id || '0');
   if (!orderId) {
@@ -453,8 +451,7 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
     }
   }
 
-  // Get current user ID for activity logging
-  const userId = await getUserId(request, context.cloudflare.env);
+  // userId already validated via requireTenant
 
   // Handle addNote intent
   if (intent === 'addNote') {

@@ -22,7 +22,7 @@ import { drizzle } from 'drizzle-orm/d1';
 import { customers, orders, stores, customerAddresses, customerNotes, studentDocuments } from '@db/schema';
 import { AdminLeadDocuments } from '~/components/lead-gen/AdminLeadDocuments';
 import { eq, desc, and } from 'drizzle-orm';
-import { getStoreId } from '~/services/auth.server';
+import { requireTenant } from '~/lib/tenant-guard.server';
 import {
   ArrowLeft,
   StickyNote,
@@ -51,10 +51,9 @@ export const meta: MetaFunction = () => {
 // LOADER
 // ============================================================================
 export async function loader({ request, params, context }: LoaderFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  if (!storeId) {
-    throw new Response('Store not found', { status: 404 });
-  }
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'customers',
+  });
 
   const customerId = parseInt(params.id || '0');
   if (!customerId) {
@@ -144,8 +143,9 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
 // ACTION (Add Note / Address)
 // ============================================================================
 export async function action({ request, params, context }: ActionFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  if (!storeId) throw new Response('Unauthorized', { status: 401 });
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'customers',
+  });
 
   const customerId = parseInt(params.id || '0');
   const db = drizzle(context.cloudflare.env.DB);

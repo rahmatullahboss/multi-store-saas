@@ -1,5 +1,5 @@
 import type { LoaderFunctionArgs } from '@remix-run/cloudflare';
-import { getStoreId, requireUserId } from '~/services/auth.server';
+import { requireTenant } from '~/lib/tenant-guard.server';
 import { drizzle } from 'drizzle-orm/d1';
 import { leadSubmissions } from '@db/schema';
 import { eq, desc } from 'drizzle-orm';
@@ -10,11 +10,9 @@ function escapeCsv(value: string | null | undefined): string {
 }
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  await requireUserId(request, context.cloudflare.env);
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  if (!storeId) {
-    throw new Response('Unauthorized', { status: 401 });
-  }
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'customers',
+  });
 
   const db = drizzle(context.cloudflare.env.DB);
   const leads = await db

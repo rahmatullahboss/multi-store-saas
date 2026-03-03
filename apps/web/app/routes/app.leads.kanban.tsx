@@ -3,7 +3,7 @@ import { useLoaderData, useFetcher, Link } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { leadSubmissions } from '@db/schema';
 import { eq, desc, and, type InferSelectModel } from 'drizzle-orm';
-import { getStoreId } from '~/services/auth.server';
+import { requireTenant } from '~/lib/tenant-guard.server';
 import { KanbanBoard, type Column, type KanbanItem } from '~/components/lead-gen/KanbanBoard';
 import type { DragEndEvent } from '@dnd-kit/core';
 import { useState, useCallback } from 'react';
@@ -11,8 +11,9 @@ import { Mail, Phone, ArrowLeft } from 'lucide-react';
 import { format } from 'date-fns';
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  if (!storeId) throw new Response('Unauthorized', { status: 401 });
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'customers',
+  });
 
   const db = drizzle(context.cloudflare.env.DB);
   
@@ -27,8 +28,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, context }: ActionFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  if (!storeId) throw new Response('Unauthorized', { status: 401 });
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'customers',
+  });
 
   const formData = await request.formData();
   const intent = formData.get('intent');

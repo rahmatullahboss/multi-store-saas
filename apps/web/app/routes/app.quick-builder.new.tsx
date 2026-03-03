@@ -16,7 +16,7 @@ import { drizzle } from 'drizzle-orm/d1';
 import { eq, and } from 'drizzle-orm';
 import { stores, products } from '@db/schema';
 import { parseLandingConfig, defaultLandingConfig } from '@db/types';
-import { getStoreId } from '~/services/auth.server';
+import { requireTenant } from '~/lib/tenant-guard.server';
 import { IntentWizard } from '~/components/landing-builder/IntentWizard';
 import { createLandingConfigFromIntent, type Intent, type QuickProduct } from '~/utils/landing-builder/intentEngine';
 import { ArrowLeft, Sparkles } from 'lucide-react';
@@ -47,11 +47,9 @@ const QuickProductSchema = z.object({
 });
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  
-  if (!storeId) {
-    throw redirect('/app/dashboard');
-  }
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'pages',
+  });
 
   const db = drizzle(context.cloudflare.env.DB);
 
@@ -96,11 +94,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, context }: ActionFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env);
-
-  if (!storeId) {
-    return json({ success: false, error: 'Unauthorized' }, { status: 401 });
-  }
+  const { storeId, userId } = await requireTenant(request, context, {
+    requirePermission: 'pages',
+  });
 
   const db = drizzle(context.cloudflare.env.DB);
   const formData = await request.formData();

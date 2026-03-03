@@ -16,7 +16,7 @@ import { json } from '@remix-run/cloudflare';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and, desc } from 'drizzle-orm';
 import { stores, fraudEvents, phoneBlacklist, orders } from '@db/schema';
-import { getStoreId } from '~/services/auth.server';
+import { requireTenant } from '~/lib/tenant-guard.server';
 import {
   performFraudCheck,
   parseFraudSettings,
@@ -30,10 +30,7 @@ import {
 // LOADER - GET blacklist and fraud events
 // ============================================================================
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  if (!storeId) {
-    return json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const { storeId } = await requireTenant(request, context);
 
   const url = new URL(request.url);
   const type = url.searchParams.get('type');
@@ -119,10 +116,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 // ACTION HANDLER
 // ============================================================================
 export async function action({ request, context }: ActionFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  if (!storeId) {
-    return json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const { storeId } = await requireTenant(request, context);
 
   const formData = await request.formData();
   const intent = formData.get('intent') as string;

@@ -13,7 +13,7 @@ import { json, redirect, type ActionFunctionArgs, type MetaFunction } from '@rem
 import { useActionData, useNavigation, Form, Link } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { customers, customerAddresses } from '@db/schema';
-import { getStoreId } from '~/services/auth.server';
+import { requireTenant } from '~/lib/tenant-guard.server';
 import { z } from 'zod';
 import { 
   ArrowLeft,
@@ -52,10 +52,9 @@ const createCustomerSchema = z.object({
 // ACTION
 // ============================================================================
 export async function action({ request, context }: ActionFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  if (!storeId) {
-    throw new Response('Store not found', { status: 404 });
-  }
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'customers',
+  });
 
   const formData = await request.formData();
   const rawData = Object.fromEntries(formData);

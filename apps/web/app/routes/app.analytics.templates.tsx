@@ -4,7 +4,7 @@ import { useLoaderData, Link } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, desc, sql } from 'drizzle-orm';
 import { stores, templateAnalytics } from '@db/schema';
-import { getStoreId } from '~/services/auth.server';
+import { requireTenant } from '~/lib/tenant-guard.server';
 import {
   TrendingUp,
   ShoppingCart,
@@ -27,10 +27,9 @@ export const meta: MetaFunction = () => {
 // LOADER - Fetch template performance metrics
 // ============================================================================
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  if (!storeId) {
-    throw new Response('Unauthorized', { status: 401 });
-  }
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'analytics',
+  });
 
   const db = drizzle(context.cloudflare.env.DB);
 

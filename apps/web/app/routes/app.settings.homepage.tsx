@@ -16,7 +16,7 @@ import { drizzle } from 'drizzle-orm/d1';
 import { eq, and } from 'drizzle-orm';
 import { stores, landingPages } from '@db/schema';
 import { builderPages } from '@db/schema_page_builder';
-import { getStoreId } from '~/services/auth.server';
+import { requireTenant } from '~/lib/tenant-guard.server';
 import { 
   Home, FileText, CheckCircle, Loader2, 
   Settings, ExternalLink, ArrowRight, ArrowLeft, Globe, Layers
@@ -32,7 +32,9 @@ export const meta: MetaFunction = () => {
 // LOADER - Fetch current store settings and available pages
 // ============================================================================
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env);
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'settings',
+  });
   if (!storeId) {
     throw new Response('Store not found', { status: 404 });
   }
@@ -119,7 +121,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 // ACTION - Handle settings update
 // ============================================================================
 export async function action({ request, context }: ActionFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env);
+  const { storeId, userId } = await requireTenant(request, context, {
+    requirePermission: 'settings',
+  });
   if (!storeId) {
     return json({ error: 'Unauthorized' }, { status: 401 });
   }

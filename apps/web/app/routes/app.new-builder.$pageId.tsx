@@ -11,7 +11,7 @@
 import { json, type LoaderFunctionArgs, type ActionFunctionArgs } from '@remix-run/cloudflare';
 import { useLoaderData, useFetcher, useNavigate } from '@remix-run/react';
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
-import { requireAuth } from '~/lib/auth.server';
+import { requireTenant } from '~/lib/tenant-guard.server';
 import { createDb } from '~/lib/db.server';
 import { getUnifiedStorefrontSettings } from '~/services/unified-storefront-settings.server';
 import { drizzle } from 'drizzle-orm/d1';
@@ -56,7 +56,9 @@ interface ActionData {
 // LOADER
 // ============================================================================
 export async function loader({ request, params, context }: LoaderFunctionArgs) {
-  const { user, store } = await requireAuth(request, context);
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'pages',
+  });
   const pageId = params.pageId;
 
   if (!pageId) {
@@ -76,11 +78,11 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
       bundlePricing: products.bundlePricing,
     })
     .from(products)
-    .where(eq(products.storeId, store.id));
+    .where(eq(products.storeId, storeId));
 
   // Get unified settings for branding
   const unifiedDb = createDb(db);
-  const unifiedSettings = await getUnifiedStorefrontSettings(unifiedDb, store.id, {
+  const unifiedSettings = await getUnifiedStorefrontSettings(unifiedDb, storeId, {
     env: context.cloudflare.env,
   });
 
@@ -107,16 +109,16 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
       page: null,
       sections: [],
       store: {
-        id: store.id,
-        name: store.name,
-        subdomain: store.subdomain,
+        id: storeId,
+        name: unifiedSettings.branding.storeName,
+        subdomain: unifiedSettings.domain.subdomain || '',
         // Analytics
-        facebookPixelId: store.facebookPixelId,
-        googleAnalyticsId: store.googleAnalyticsId,
+        facebookPixelId: unifiedSettings.tracking.facebookPixelId,
+        googleAnalyticsId: unifiedSettings.tracking.googleAnalyticsId,
         // Branding
-        logo: unifiedSettings.branding.logo || store.logo,
-        favicon: unifiedSettings.branding.favicon || store.favicon,
-        fontFamily: store.fontFamily,
+        logo: unifiedSettings.branding.logo || null,
+        favicon: unifiedSettings.branding.favicon || null,
+        fontFamily: unifiedSettings.branding.fontFamily || 'Inter',
         // Using unified settings - no legacy themeConfig/businessInfo needed
         themeConfig: null,
         businessInfo: null,
@@ -127,7 +129,7 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
     });
   }
 
-  const page = await getPageWithSections(db, pageId, store.id);
+  const page = await getPageWithSections(db, pageId, storeId);
 
   if (!page) {
     throw new Response('Page not found', { status: 404 });
@@ -159,7 +161,7 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
     const [productRow] = await odb
       .select()
       .from(products)
-      .where(and(eq(products.id, page.productId), eq(products.storeId, store.id)))
+      .where(and(eq(products.id, page.productId), eq(products.storeId, storeId)))
       .limit(1);
     if (productRow) {
       // Fetch variants
@@ -220,7 +222,7 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
       .from(products)
       .where(
         and(
-          eq(products.storeId, store.id),
+          eq(products.storeId, storeId),
           inArr(products.id, intentProductIds) // ← fetch only needed IDs
         )
       );
@@ -235,16 +237,16 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
     page,
     sections: page.sections,
     store: {
-      id: store.id,
-      name: store.name,
-      subdomain: store.subdomain,
+      id: storeId,
+      name: unifiedSettings.branding.storeName,
+      subdomain: unifiedSettings.domain.subdomain || '',
       // Analytics
-      facebookPixelId: store.facebookPixelId,
-      googleAnalyticsId: store.googleAnalyticsId,
+      facebookPixelId: unifiedSettings.tracking.facebookPixelId,
+      googleAnalyticsId: unifiedSettings.tracking.googleAnalyticsId,
       // Branding
-      logo: unifiedSettings.branding.logo || store.logo,
-      favicon: unifiedSettings.branding.favicon || store.favicon,
-      fontFamily: store.fontFamily,
+      logo: unifiedSettings.branding.logo || null,
+      favicon: unifiedSettings.branding.favicon || null,
+      fontFamily: unifiedSettings.branding.fontFamily || 'Inter',
       // Using unified settings - no legacy themeConfig/businessInfo needed
       themeConfig: null,
       businessInfo: null,
@@ -260,7 +262,9 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
 // ACTION
 // ============================================================================
 export async function action({ request, params, context }: ActionFunctionArgs) {
-  const { user, store } = await requireAuth(request, context);
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'pages',
+  });
   const db = context.cloudflare.env.DB;
   const formData = await request.formData();
   const intent = formData.get('intent') as string;
@@ -277,14 +281,14 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
           return json({ success: false, error: 'Slug is required' }, { status: 400 });
         }
 
-        const result = await createPage(db, store.id, {
+        const result = await createPage(db, storeId, {
           slug,
           title: title || undefined,
           productId: productId ? Number(productId) : undefined,
         });
 
         // Initialize with default sections
-        await initializePageWithDefaults(db, result.id, store.id);
+        await initializePageWithDefaults(db, result.id, storeId);
 
         return json({ success: true, pageId: result.id });
       }
@@ -298,7 +302,7 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
           return json({ success: false, error: 'Invalid section type' }, { status: 400 });
         }
 
-        const result = await addSection(db, pageId, store.id, type);
+        const result = await addSection(db, pageId, storeId, type);
 
         if ('error' in result) {
           return json({ success: false, error: result.error }, { status: 400 });
@@ -312,7 +316,7 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
         const sectionId = formData.get('sectionId') as string;
         const enabled = formData.get('enabled') === 'true';
 
-        const result = await toggleSection(db, store.id, sectionId, enabled);
+        const result = await toggleSection(db, storeId, sectionId, enabled);
         if (!result.success) {
           return json({ success: false, error: result.error }, { status: 400 });
         }
@@ -335,7 +339,7 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
 
         const result = await updateSectionProps(
           db,
-          store.id,
+          storeId,
           sectionId,
           type,
           props,
@@ -352,7 +356,7 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
       // Delete section
       case 'delete-section': {
         const sectionId = formData.get('sectionId') as string;
-        const result = await deleteSection(db, store.id, sectionId);
+        const result = await deleteSection(db, storeId, sectionId);
         if (!result.success) {
           return json({ success: false, error: result.error }, { status: 400 });
         }
@@ -371,7 +375,7 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
           return json({ success: false, error: 'Invalid orderedIds' }, { status: 400 });
         }
 
-        const result = await reorderSections(db, pageId, store.id, orderedIds);
+        const result = await reorderSections(db, pageId, storeId, orderedIds);
 
         if (!result.success) {
           return json({ success: false, error: result.error }, { status: 400 });
@@ -383,7 +387,7 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
       // Duplicate section
       case 'duplicate-section': {
         const sectionId = formData.get('sectionId') as string;
-        const result = await duplicateSection(db, store.id, sectionId);
+        const result = await duplicateSection(db, storeId, sectionId);
 
         if ('error' in result) {
           return json({ success: false, error: result.error }, { status: 400 });
@@ -428,14 +432,14 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
           const [ownedProduct] = await drizzle(db)
             .select({ id: products.id })
             .from(products)
-            .where(and(eq(products.id, productIdParsed), eq(products.storeId, store.id)))
+            .where(and(eq(products.id, productIdParsed), eq(products.storeId, storeId)))
             .limit(1);
           if (!ownedProduct) {
             return json({ success: false, error: 'Product not found' }, { status: 404 });
           }
         }
 
-        await updatePageSettings(db, pageId, store.id, {
+        await updatePageSettings(db, pageId, storeId, {
           title: title || undefined,
           seoTitle: seoTitle || undefined,
           seoDescription: seoDescription || undefined,
@@ -455,17 +459,17 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
 
         // AUTO-REPUBLISH: If productId changed and page is published, republish to sync
         if (productId !== null) {
-          const currentPage = await getPageWithSections(db, pageId, store.id);
+          const currentPage = await getPageWithSections(db, pageId, storeId);
           if (currentPage?.status === 'published') {
-            await publishPage(db, pageId, store.id);
+            await publishPage(db, pageId, storeId);
           }
         }
 
         // CACHE INVALIDATION: Clear cached page when settings change
         const kv = (context.cloudflare.env as any).STORE_CACHE as KVNamespace | undefined;
-        const updatedPage = await getPageWithSections(db, pageId, store.id);
+        const updatedPage = await getPageWithSections(db, pageId, storeId);
         if (updatedPage && kv) {
-          await invalidatePageCache(kv, store.id, updatedPage.slug);
+          await invalidatePageCache(kv, storeId, updatedPage.slug);
         }
 
         return json({ success: true });
@@ -474,13 +478,13 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
       // Publish page
       case 'publish': {
         const pageId = params.pageId as string;
-        await publishPage(db, pageId, store.id);
+        await publishPage(db, pageId, storeId);
 
         // CACHE INVALIDATION: Clear cached page when published (new content)
         const kv = (context.cloudflare.env as any).STORE_CACHE as KVNamespace | undefined;
-        const publishedPage = await getPageWithSections(db, pageId, store.id);
+        const publishedPage = await getPageWithSections(db, pageId, storeId);
         if (publishedPage && kv) {
-          await invalidatePageCache(kv, store.id, publishedPage.slug);
+          await invalidatePageCache(kv, storeId, publishedPage.slug);
         }
 
         return json({ success: true });

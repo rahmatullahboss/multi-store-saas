@@ -9,15 +9,16 @@ import { useLoaderData, Link, Form, useNavigation } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, desc, sql, and } from 'drizzle-orm';
 import { collections, productCollections } from '@db/schema';
-import { getStoreId } from '~/services/auth.server';
+import { requireTenant } from '~/lib/tenant-guard.server';
 import { Plus, Folder, Trash2, Pencil, ImageOff } from 'lucide-react';
 import { PageHeader, EmptyState } from '~/components/ui';
 
 export const meta: MetaFunction = () => [{ title: 'Collections - Ozzyl' }];
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
-    const storeId = await getStoreId(request, context.cloudflare.env);
-    if (!storeId) throw new Response('Store not found', { status: 404 });
+    const { storeId } = await requireTenant(request, context, {
+      requirePermission: 'products',
+    });
 
     const db = drizzle(context.cloudflare.env.DB);
     const storeCollections = await db
@@ -39,8 +40,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, context }: ActionFunctionArgs) {
-    const storeId = await getStoreId(request, context.cloudflare.env);
-    if (!storeId) return json({ error: 'Unauthorized' }, { status: 401 });
+    const { storeId } = await requireTenant(request, context, {
+      requirePermission: 'products',
+    });
 
     const formData = await request.formData();
     const intent = formData.get('intent');

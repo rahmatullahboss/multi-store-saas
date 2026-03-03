@@ -17,7 +17,7 @@ import { useState } from 'react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and, desc, sql } from 'drizzle-orm';
 import { orders, orderItems, stores, abandonedCarts, pageViews, carts, checkoutSessions } from '@db/schema';
-import { getStoreId, requireUserId } from '~/services/auth.server';
+import { requireTenant } from '~/lib/tenant-guard.server';
 import { formatPrice } from '~/utils/formatPrice';
 import { 
   TrendingUp, 
@@ -46,11 +46,9 @@ export const meta: MetaFunction = () => {
 // LOADER - Fetch analytics data
 // ============================================================================
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  await requireUserId(request, context.cloudflare.env);
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  if (!storeId) {
-    throw new Response('Store not found', { status: 404 });
-  }
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'analytics',
+  });
 
   const db = drizzle(context.cloudflare.env.DB);
 

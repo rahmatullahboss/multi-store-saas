@@ -23,7 +23,7 @@ import {
 import { drizzle } from 'drizzle-orm/d1';
 import { customers, stores } from '@db/schema';
 import { eq, desc, and, or, like, sql } from 'drizzle-orm';
-import { getStoreId } from '~/services/auth.server';
+import { requireTenant } from '~/lib/tenant-guard.server';
 import { canExportCustomers, type PlanType } from '~/utils/plans.server';
 import {
   Users,
@@ -60,10 +60,9 @@ export const meta: MetaFunction = () => {
 // LOADER
 // ============================================================================
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  if (!storeId) {
-    throw new Response('Store not found', { status: 404 });
-  }
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'customers',
+  });
 
   const db = drizzle(context.cloudflare.env.DB);
   const url = new URL(request.url);
@@ -141,8 +140,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 // ACTION — Delete customer (storeId-scoped, server-enforced)
 // ============================================================================
 export async function action({ request, context }: ActionFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  if (!storeId) throw new Response('Unauthorized', { status: 401 });
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'customers',
+  });
 
   const formData = await request.formData();
   const intent = formData.get('intent');

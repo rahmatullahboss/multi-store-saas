@@ -24,7 +24,7 @@ import { drizzle } from 'drizzle-orm/d1';
 import type { DrizzleD1Database } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
 import { stores } from '@db/schema';
-import { getStoreId, getUserId } from '~/services/auth.server';
+import { requireTenant } from '~/lib/tenant-guard.server';
 import { createPathaoClient } from '~/services/pathao.server';
 import { createSteadfastClient } from '~/services/steadfast.server';
 import { createRedXClient } from '~/services/redx.server';
@@ -151,10 +151,9 @@ function toUnifiedCourier(courier: Partial<CourierSettings>) {
 // LOADER
 // ============================================================================
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env as Env);
-  if (!storeId) {
-    return redirect('/auth/login');
-  }
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'settings',
+  });
 
   const url = new URL(request.url);
   const action = url.searchParams.get('action');
@@ -283,10 +282,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 // ACTION
 // ============================================================================
 export async function action({ request, context }: ActionFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env as Env);
-  if (!storeId) {
-    return redirect('/auth/login');
-  }
+  const { storeId, userId } = await requireTenant(request, context, {
+    requirePermission: 'settings',
+  });
 
   const formData = await request.formData();
   const intent = formData.get('intent');

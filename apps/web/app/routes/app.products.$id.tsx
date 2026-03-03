@@ -22,7 +22,8 @@ import {
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and } from 'drizzle-orm';
 import { products, productVariants } from '@db/schema';
-import { getStoreId, getUserId } from '~/services/auth.server';
+import { requireTenant } from '~/lib/tenant-guard.server';
+import { assertWithinLimit } from '~/lib/plan-gate.server';
 import { logActivity } from '~/lib/activity.server';
 import { useState, useRef, useEffect, useCallback } from 'react';
 import {
@@ -57,10 +58,9 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 // LOADER - Fetch product by ID
 // ============================================================================
 export async function loader({ request, params, context }: LoaderFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  if (!storeId) {
-    throw redirect('/auth/login');
-  }
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'products',
+  });
 
   const productId = parseInt(params.id || '0');
   if (!productId) {
@@ -94,10 +94,9 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
 // ACTION - Update or Delete product
 // ============================================================================
 export async function action({ request, params, context }: ActionFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  if (!storeId) {
-    return json({ errors: { form: 'Unauthorized' } }, { status: 401 });
-  }
+  const { storeId, userId, planType } = await requireTenant(request, context, {
+    requirePermission: 'products',
+  });
 
   const productId = parseInt(params.id || '0');
   if (!productId) {
@@ -196,22 +195,7 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
   // Only check when going from unpublished -> published
   // ========================================================================
   if (!previouslyPublished && isPublished) {
-    const { checkUsageLimit } = await import('~/utils/plans.server');
-    const limitCheck = await checkUsageLimit(context.cloudflare.env.DB, storeId, 'product');
-
-    if (!limitCheck.allowed) {
-      console.warn(`[SECURITY] Store ${storeId} attempted to republish product exceeding limit`);
-      return json(
-        {
-          errors: {
-            form:
-              limitCheck.error?.message ||
-              'Product limit reached. Please upgrade your plan to publish more products.',
-          },
-        },
-        { status: 403 }
-      );
-    }
+    await assertWithinLimit(context.cloudflare.env.DB, storeId, planType, 'product');
   }
 
   await db
@@ -235,7 +219,6 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
 
   // Log stock change if inventory changed
   if (previousInventory !== newInventory) {
-    const userId = await getUserId(request, context.cloudflare.env);
     await logActivity(db, {
       storeId,
       userId,

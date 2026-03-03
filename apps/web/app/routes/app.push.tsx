@@ -12,17 +12,16 @@ import { Form, useActionData, useLoaderData, useNavigation, Link } from '@remix-
 import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
 import { pushSubscriptions, stores } from '@db/schema';
-import { getStoreId } from '~/services/auth.server';
+import { requireTenant } from '~/lib/tenant-guard.server';
 import { ArrowLeft, Bell, Loader2, Send, Users } from 'lucide-react';
 import { useState } from 'react';
 
 export const meta: MetaFunction = () => [{ title: 'Push Notifications' }];
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  if (!storeId) {
-    throw new Response('Store not found', { status: 404 });
-  }
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'customers',
+  });
 
   const db = drizzle(context.cloudflare.env.DB);
 

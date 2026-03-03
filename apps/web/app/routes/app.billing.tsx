@@ -17,7 +17,7 @@ import { useState } from 'react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, desc } from 'drizzle-orm';
 import { stores, payments } from '@db/schema';
-import { requireUserId, getStoreId } from '~/services/auth.server';
+import { requireTenant } from '~/lib/tenant-guard.server';
 import { getUsageStats, PLAN_LIMITS, type PlanType } from '~/utils/plans.server';
 
 // Client-side constant for AI plan prices (mirrored from server)
@@ -119,12 +119,9 @@ const PLAN_DISPLAY = {
 // LOADER
 // ============================================================================
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  await requireUserId(request, context.cloudflare.env);
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  
-  if (!storeId) {
-    throw new Response('Store not found', { status: 404 });
-  }
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'billing',
+  });
 
   const db = drizzle(context.cloudflare.env.DB);
 
@@ -182,12 +179,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 // ACTION - Request AI Agent Activation
 // ============================================================================
 export async function action({ request, context }: ActionFunctionArgs) {
-  await requireUserId(request, context.cloudflare.env);
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  
-  if (!storeId) {
-    return json({ error: 'Store not found' }, { status: 404 });
-  }
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'billing',
+  });
 
   const formData = await request.formData();
   const actionType = formData.get('action');

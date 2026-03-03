@@ -14,15 +14,14 @@ import { useEffect } from 'react';
 import { drizzle } from 'drizzle-orm/d1';
 import { stores, type Store } from '@db/schema';
 import { eq } from 'drizzle-orm';
-import { getStoreId } from '~/services/auth.server';
+import { requireTenant } from '~/lib/tenant-guard.server';
 import { invalidateUnifiedSettingsCache } from '~/services/unified-storefront-settings.server';
 import { ShoppingCart, Users, Settings, CheckCircle, AlertCircle, ArrowLeft } from 'lucide-react';
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  if (!storeId) {
-    throw new Response('Unauthorized', { status: 401 });
-  }
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'settings',
+  });
 
   const db = drizzle(context.cloudflare.env.DB);
   
@@ -61,10 +60,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, context }: ActionFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  if (!storeId) {
-    return json({ success: false, error: 'Unauthorized' }, { status: 401 });
-  }
+  const { storeId, userId } = await requireTenant(request, context, {
+    requirePermission: 'settings',
+  });
 
   const db = drizzle(context.cloudflare.env.DB);
   const formData = await request.formData();

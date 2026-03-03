@@ -15,7 +15,7 @@ import { json, redirect } from '@remix-run/cloudflare';
 import { useLoaderData, useFetcher, useNavigate } from '@remix-run/react';
 import type { LoaderFunctionArgs, ActionFunctionArgs } from '@remix-run/cloudflare';
 import { Sparkles, ArrowRight, ArrowLeft, CheckCircle, Store, Users, Target, Package, Loader2 } from 'lucide-react';
-import { requireAuth } from '~/lib/auth.server';
+import { requireTenant } from '~/lib/tenant-guard.server';
 import { createPageFromTemplate } from '~/lib/page-builder/actions.server';
 import type { GenieCopyResult } from '~/lib/page-builder/ai-copy.server';
 
@@ -100,8 +100,10 @@ const INDUSTRY_LABEL: Record<string, string> = Object.fromEntries(
 // ============================================================================
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const { store } = await requireAuth(request, context);
-  return json<LoaderData>({ storeName: store.name, storeId: store.id });
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'pages',
+  });
+  return json<LoaderData>({ storeName: `Store ${storeId}`, storeId });
 }
 
 // ============================================================================
@@ -109,7 +111,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 // ============================================================================
 
 export async function action({ request, context }: ActionFunctionArgs) {
-  const { store } = await requireAuth(request, context);
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'pages',
+  });
   const db = context.cloudflare.env.DB;
 
   let body: unknown;
@@ -158,7 +162,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   try {
     const result = await createPageFromTemplate(
       db,
-      store.id,
+      storeId,
       'quick-start', // use default template
       slug,
       title,

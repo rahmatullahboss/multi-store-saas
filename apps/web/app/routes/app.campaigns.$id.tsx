@@ -14,7 +14,7 @@ import { json, redirect } from '@remix-run/cloudflare';
 import { Form, Link, useActionData, useLoaderData, useNavigation } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and, count } from 'drizzle-orm';
-import { getStoreId, requireUserId } from '~/services/auth.server';
+import { requireTenant } from '~/lib/tenant-guard.server';
 import { emailCampaigns, emailSubscribers, stores } from '@db/schema';
 import { createCampaignService } from '~/services/campaign.server';
 import { createEmailService } from '~/services/email.server';
@@ -39,13 +39,10 @@ export const meta: MetaFunction = () => {
 // LOADER
 // ============================================================================
 export async function loader({ request, context, params }: LoaderFunctionArgs) {
-  await requireUserId(request, context.cloudflare.env);
-  const storeId = await getStoreId(request, context.cloudflare.env);
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'customers',
+  });
   const campaignId = Number(params.id);
-  
-  if (!storeId) {
-    throw new Response('Store not found', { status: 404 });
-  }
 
   const db = drizzle(context.cloudflare.env.DB);
 
@@ -86,13 +83,10 @@ export async function loader({ request, context, params }: LoaderFunctionArgs) {
 // ACTION - Send campaign
 // ============================================================================
 export async function action({ request, context, params }: ActionFunctionArgs) {
-  await requireUserId(request, context.cloudflare.env);
-  const storeId = await getStoreId(request, context.cloudflare.env);
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'customers',
+  });
   const campaignId = Number(params.id);
-  
-  if (!storeId) {
-    throw new Response('Store not found', { status: 404 });
-  }
 
   const db = drizzle(context.cloudflare.env.DB);
   const campaignService = createCampaignService(context.cloudflare.env.DB);

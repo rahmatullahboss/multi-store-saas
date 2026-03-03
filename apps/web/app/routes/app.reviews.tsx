@@ -17,7 +17,7 @@ import { useLoaderData, useFetcher, useSearchParams } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, desc } from 'drizzle-orm';
 import { reviews, products, stores } from '@db/schema';
-import { requireUserId, getStoreId } from '~/services/auth.server';
+import { requireTenant } from '~/lib/tenant-guard.server';
 import { 
   Star, 
   Check, 
@@ -38,12 +38,10 @@ export const meta: MetaFunction = () => {
 // LOADER
 // ============================================================================
 export const loader = async ({ request, context }: any) => {
-  await requireUserId(request, context.cloudflare.env);
-  const storeId = await getStoreId(request, context.cloudflare.env);
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'products',
+  });
   
-  if (!storeId) {
-    throw new Response('Store not found', { status: 404 });
-  }
 
   const db = drizzle(context.cloudflare.env.DB);
   

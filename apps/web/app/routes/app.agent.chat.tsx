@@ -4,13 +4,14 @@ import { LoaderFunctionArgs, json } from '@remix-run/cloudflare';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
 import * as schema from '../../db/schema';
-import { getStoreId } from '~/services/auth.server';
+import { requireTenant } from '~/lib/tenant-guard.server';
 import { Send, Bot, Trash2 } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
 
 export const loader = async ({ request, context }: LoaderFunctionArgs) => {
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  if (!storeId) throw new Response("Unauthorized", { status: 401 });
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'analytics',
+  });
   const db = drizzle(context.cloudflare.env.DB, { schema });
 
   const agent = await db.query.agents.findFirst({

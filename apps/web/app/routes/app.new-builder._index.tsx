@@ -14,7 +14,7 @@ import { Plus, Edit, Trash2, Eye, FileText, ExternalLink, X, Sparkles, LayoutTem
 import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
 
-import { requireAuth } from '~/lib/auth.server';
+import { requireTenant } from '~/lib/tenant-guard.server';
 import { listPages, createPageFromTemplate, deletePage } from '~/lib/page-builder/actions.server';
 import { getAllTemplates, getAllBuilderTemplates } from '~/lib/page-builder/templates';
 import { IntentWizard } from '~/components/landing-builder/IntentWizard';
@@ -33,11 +33,13 @@ import { compressImage, getOptimalFormat } from '~/lib/imageCompression';
 // ============================================================================
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const { store } = await requireAuth(request, context);
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'pages',
+  });
   const db = context.cloudflare.env.DB;
   const drizzleDb = drizzle(db);
   
-  const pages = await listPages(db, store.id);
+  const pages = await listPages(db, storeId);
   const templates = getAllTemplates();
   const builderTemplates = getAllBuilderTemplates();
   
@@ -50,15 +52,15 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       imageUrl: products.imageUrl,
     })
     .from(products)
-    .where(eq(products.storeId, store.id))
+    .where(eq(products.storeId, storeId))
     .limit(50);
   
   return json({ 
     pages, 
     templates,
     builderTemplates,
-    storeSlug: store.slug,
-    storeId: store.id,
+    storeSlug: String(storeId),
+    storeId,
     existingProducts: existingProducts.map(p => ({
       id: p.id,
       title: p.title,
@@ -73,7 +75,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 // ============================================================================
 
 export async function action({ request, context }: ActionFunctionArgs) {
-  const { store } = await requireAuth(request, context);
+  const { storeId, userId } = await requireTenant(request, context, {
+    requirePermission: 'pages',
+  });
   const db = context.cloudflare.env.DB;
   const drizzleDb = drizzle(db);
   
@@ -90,7 +94,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         return json({ error: 'Template and slug are required' }, { status: 400 });
       }
       
-      const result = await createPageFromTemplate(db, store.id, templateId, slug, title);
+      const result = await createPageFromTemplate(db, storeId, templateId, slug, title);
       
       if ('error' in result) {
         return json({ error: result.error }, { status: 400 });
@@ -173,7 +177,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
             const newProduct = await drizzleDb
               .insert(products)
               .values({
-                storeId: store.id,
+                storeId,
                 title: product.name,
                 price: product.price,
                 compareAtPrice: product.compareAtPrice || null,
@@ -211,7 +215,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         
         const result = await createPageFromTemplate(
           db, 
-          store.id, 
+          storeId, 
           templateId, 
           pageSlug, 
           pageTitle,

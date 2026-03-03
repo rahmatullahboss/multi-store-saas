@@ -3,15 +3,15 @@ import { Link, useLoaderData, Form, useNavigation, useActionData } from "@remix-
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
 import * as schema from "../../db/schema";
-import { getStoreId } from "~/services/auth.server";
+import { requireTenant } from "~/lib/tenant-guard.server";
 import { Facebook, Smartphone, ArrowLeft } from "lucide-react";
 import { useTranslation } from "~/contexts/LanguageContext";
 import { useEffect, useRef } from "react";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  
-  if (!storeId) return redirect("/auth/login");
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'settings',
+  });
 
   const db = drizzle(context.cloudflare.env.DB, { schema });
 
@@ -44,9 +44,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, context }: ActionFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  
-  if (!storeId) return redirect("/auth/login");
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'settings',
+  });
 
   const db = drizzle(context.cloudflare.env.DB, { schema });
   const formData = await request.formData();

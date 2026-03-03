@@ -24,7 +24,7 @@ import {
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and, desc } from 'drizzle-orm';
 import { stores, phoneBlacklist, fraudEvents, orders } from '@db/schema';
-import { getStoreId } from '~/services/auth.server';
+import { requireTenant } from '~/lib/tenant-guard.server';
 import {
   parseFraudSettings,
   DEFAULT_FRAUD_SETTINGS,
@@ -59,7 +59,9 @@ export const meta: MetaFunction = () => {
 // LOADER
 // ============================================================================
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env as unknown as Env);
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'settings',
+  });
   if (!storeId) return redirect('/auth/login');
 
   const db = drizzle(context.cloudflare.env.DB);
@@ -128,7 +130,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 // ACTION
 // ============================================================================
 export async function action({ request, context }: ActionFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env as unknown as Env);
+  const { storeId, userId } = await requireTenant(request, context, {
+    requirePermission: 'settings',
+  });
   if (!storeId) return redirect('/auth/login');
 
   const formData = await request.formData();

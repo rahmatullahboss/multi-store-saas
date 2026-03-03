@@ -9,7 +9,7 @@ import { useLoaderData, Link, Form, useSearchParams, useNavigation } from '@remi
 import { drizzle } from 'drizzle-orm/d1';
 import { leadSubmissions } from '@db/schema';
 import { eq, desc, and, sql, or, like } from 'drizzle-orm';
-import { getStoreId } from '~/services/auth.server';
+import { requireTenant } from '~/lib/tenant-guard.server';
 import {
   CheckCircle,
   ChevronLeft,
@@ -49,10 +49,9 @@ export type UnifiedLead = {
 // --- Loader ---
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  if (!storeId) {
-    throw new Response('Unauthorized', { status: 401 });
-  }
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'customers',
+  });
   const db = drizzle(context.cloudflare.env.DB);
   const url = new URL(request.url);
 

@@ -10,7 +10,7 @@ import { Form, useActionData, useNavigation, useLoaderData } from '@remix-run/re
 import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
 import { stores, products, users } from '@db/schema';
-import { getSession } from '~/services/auth.server';
+import { requireTenant } from '~/lib/tenant-guard.server';
 import { canUseAI, type PlanType } from '~/utils/plans.server';
 import { createAIService } from '~/services/ai.server';
 import { Sparkles, Loader2, AlertCircle, ArrowRight, Zap } from 'lucide-react';
@@ -23,15 +23,11 @@ export const meta = () => [
 
 // Loader: Check plan access
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const { env } = context.cloudflare;
-  const session = await getSession(request, env);
-  const storeId = session.get('storeId');
+  const { storeId, planType } = await requireTenant(request, context, {
+    requirePermission: 'analytics',
+  });
 
-  if (!storeId) {
-    return redirect('/auth/login');
-  }
-
-  const db = drizzle(env.DB);
+  const db = drizzle(context.cloudflare.env.DB);
   const storeResult = await db
     .select({ planType: stores.planType, name: stores.name, aiCredits: stores.aiCredits })
     .from(stores)
@@ -58,15 +54,10 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
 // Action: Process AI generation
 export async function action({ request, context }: ActionFunctionArgs) {
-  const { env } = context.cloudflare;
-  const db = drizzle(env.DB);
-  const session = await getSession(request, env);
-  const storeId = session.get('storeId');
-  const userId = session.get('userId');
-
-  if (!storeId) {
-    return json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const { storeId, userId, planType } = await requireTenant(request, context, {
+    requirePermission: 'analytics',
+  });
+  const db = drizzle(context.cloudflare.env.DB);
 
   // Get store
   const storeResult = await db
@@ -80,7 +71,6 @@ export async function action({ request, context }: ActionFunctionArgs) {
     return json({ error: 'Store not found' }, { status: 404 });
   }
 
-  const planType = (store.planType as PlanType) || 'free';
   if (!canUseAI(planType)) {
     return json({ error: 'Upgrade required for AI features' }, { status: 403 });
   }
@@ -92,7 +82,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     return json({ error: 'Please provide a more detailed description (at least 10 characters)' }, { status: 400 });
   }
 
-  const apiKey = env.OPENROUTER_API_KEY;
+  const apiKey = context.cloudflare.env.OPENROUTER_API_KEY;
   if (!apiKey) {
     return json({ error: 'AI service not configured' }, { status: 503 });
   }
@@ -109,7 +99,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     // CHECK PRODUCT LIMIT BEFORE AI CREATION
     // ========================================================================
     const { checkUsageLimit } = await import('~/utils/plans.server');
-    const limitCheck = await checkUsageLimit(env.DB, storeId, 'product');
+    const limitCheck = await checkUsageLimit(context.cloudflare.env.DB, storeId, 'product');
     
     if (!limitCheck.allowed) {
       return json({ 
@@ -131,8 +121,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
     }
 
     const ai = createAIService(apiKey, {
-      model: env.AI_MODEL,
-      baseUrl: env.AI_BASE_URL
+      model: context.cloudflare.env.AI_MODEL,
+      baseUrl: context.cloudflare.env.AI_BASE_URL
     });
     
     // Step 1: Generate store setup

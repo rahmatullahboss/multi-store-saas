@@ -17,7 +17,8 @@ import { Form, Link, useLoaderData, useNavigation, useActionData } from '@remix-
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, desc, and } from 'drizzle-orm';
 import { webhooks, webhookDeliveryLogs } from '@db/schema';
-import { getStoreId, getUserId } from '~/services/auth.server';
+import { requireTenant } from '~/lib/tenant-guard.server';
+import { getUserId } from '~/services/auth.server';
 import { useState } from 'react';
 import { Plus, Trash2, Eye, EyeOff, Copy, Check, Webhook, ExternalLink, Loader2, CheckCircle, XCircle, ArrowLeft } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
@@ -49,8 +50,9 @@ const WebhookCreateSchema = z.object({
 // LOADER
 // ============================================================================
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  if (!storeId) throw redirect('/auth/login');
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'settings',
+  });
 
   const db = drizzle(context.cloudflare.env.DB);
 
@@ -80,9 +82,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 // ACTION
 // ============================================================================
 export async function action({ request, context }: ActionFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  if (!storeId) return json({ error: 'Unauthorized' }, { status: 401 });
-  const userId = await getUserId(request, context.cloudflare.env);
+  const { storeId, userId } = await requireTenant(request, context, {
+    requirePermission: 'settings',
+  });
 
   const formData = await request.formData();
   const intent = formData.get('intent') as string;

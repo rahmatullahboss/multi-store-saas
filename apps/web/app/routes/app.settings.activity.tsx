@@ -17,7 +17,7 @@ import { useLoaderData, useSearchParams, Link } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, desc } from 'drizzle-orm';
 import { activityLogs, users } from '@db/schema';
-import { requireUserId, getStoreId } from '~/services/auth.server';
+import { requireTenant } from '~/lib/tenant-guard.server';
 import { useState } from 'react';
 import { useTranslation } from '~/contexts/LanguageContext';
 
@@ -42,12 +42,10 @@ type CategoryFilter = 'all' | 'orders' | 'products' | 'settings' | 'team' | 'aut
 // LOADER — fetch activity logs
 // ============================================================================
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const userId = await requireUserId(request, context.cloudflare.env);
-  const storeId = await getStoreId(request, context.cloudflare.env);
+  const { storeId, userId } = await requireTenant(request, context, {
+    requirePermission: 'settings',
+  });
 
-  if (!storeId) {
-    throw new Response('Store not found', { status: 404 });
-  }
 
   const db = drizzle(context.cloudflare.env.DB);
   const url = new URL(request.url);

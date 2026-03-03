@@ -9,15 +9,16 @@ import { Form, useActionData, useNavigation, useFetcher, useLoaderData, Link } f
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, desc, like, and } from 'drizzle-orm';
 import { collections, productCollections, products } from '@db/schema';
-import { getStoreId } from '~/services/auth.server';
+import { requireTenant } from '~/lib/tenant-guard.server';
 import { useState, useRef, useEffect } from 'react';
 import { ArrowLeft, Loader2, Upload, X, Search, Check } from 'lucide-react';
 import { compressImage, getOptimalFormat } from '~/lib/imageCompression';
 import { LazyRichTextEditor } from '~/components/RichTextEditor.lazy';
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
-    const storeId = await getStoreId(request, context.cloudflare.env);
-    if (!storeId) throw new Response('Unauthorized', { status: 401 });
+    const { storeId } = await requireTenant(request, context, {
+      requirePermission: 'products',
+    });
     const db = drizzle(context.cloudflare.env.DB);
     const url = new URL(request.url);
     const q = url.searchParams.get('q');
@@ -27,8 +28,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, context }: ActionFunctionArgs) {
-    const storeId = await getStoreId(request, context.cloudflare.env);
-    if (!storeId) return json({ errors: { form: 'Unauthorized' } }, { status: 401 });
+    const { storeId } = await requireTenant(request, context, {
+      requirePermission: 'products',
+    });
     const formData = await request.formData();
     const title = formData.get('title') as string;
     const description = formData.get('description') as string;

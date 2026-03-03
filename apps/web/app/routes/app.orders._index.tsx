@@ -20,7 +20,7 @@ import { useLoaderData, Link, useSearchParams, useFetcher, useRevalidator, useRo
 import { drizzle } from 'drizzle-orm/d1';
 import { orders, orderItems, stores, products } from '@db/schema';
 import { eq, desc, and, inArray } from 'drizzle-orm';
-import { getStoreId } from '~/services/auth.server';
+import { requireTenant } from '~/lib/tenant-guard.server';
 import { calculateOrderWeight } from '~/lib/courier-weight.server';
 import {
   Clock,
@@ -59,10 +59,9 @@ export const meta: MetaFunction = () => {
 // LOADER - Fetch orders for the merchant's store
 // ============================================================================
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  if (!storeId) {
-    throw new Response('Store not found', { status: 404 });
-  }
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'orders',
+  });
 
   const db = drizzle(context.cloudflare.env.DB);
 
@@ -273,10 +272,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 // ACTION - Update order status inline + Fraud Check
 // ============================================================================
 export async function action({ request, context }: ActionFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  if (!storeId) {
-    return json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'orders',
+  });
 
   const formData = await request.formData();
   const intent = formData.get('intent') as string;

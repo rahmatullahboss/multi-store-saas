@@ -8,7 +8,7 @@ import { redirect } from '@remix-run/cloudflare';
 import type { AppLoadContext } from '@remix-run/cloudflare';
 import { getSession, getUserId, getStoreId } from '~/services/auth.server';
 import { drizzle } from 'drizzle-orm/d1';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, isNull } from 'drizzle-orm';
 import { users, stores } from '@db/schema';
 import { getUnifiedStorefrontSettings } from '~/services/unified-storefront-settings.server';
 import { createDb } from '~/lib/db.server';
@@ -80,12 +80,22 @@ export async function requireAuth(request: Request, context: AppLoadContext): Pr
       facebookPixelId: stores.facebookPixelId,
       googleAnalyticsId: stores.googleAnalyticsId,
       fontFamily: stores.fontFamily,
+      isActive: stores.isActive,
+      deletedAt: stores.deletedAt,
     })
     .from(stores)
-    .where(eq(stores.id, storeIdNonNull));
+    .where(and(eq(stores.id, storeIdNonNull), isNull(stores.deletedAt)));
 
   if (!store) {
-    throw redirect('/auth/login');
+    throw redirect('/auth/login?reason=store_not_found');
+  }
+
+  if (store.isActive !== true) {
+    throw redirect('/auth/login?reason=suspended');
+  }
+
+  if (user.storeId !== store.id) {
+    throw redirect('/auth/login?reason=store_mismatch');
   }
 
   // Get unified settings (single source of truth for branding/theme)

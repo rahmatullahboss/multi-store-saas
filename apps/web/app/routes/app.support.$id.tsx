@@ -9,7 +9,7 @@ import { useLoaderData, Form, useNavigation } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { supportTickets, stores } from '@db/schema';
 import { eq, and } from 'drizzle-orm';
-import { getStoreId } from '~/services/auth.server';
+import { requireTenant } from '~/lib/tenant-guard.server';
 import { 
   Ticket, 
   ArrowLeft, 
@@ -24,10 +24,9 @@ import { Link } from '@remix-run/react';
 import { z } from 'zod';
 
 export async function loader({ request, context, params }: LoaderFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  if (!storeId) {
-    throw new Response('Unauthorized', { status: 401 });
-  }
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'settings',
+  });
 
   const ticketId = Number(params.id);
   if (isNaN(ticketId)) {
@@ -58,10 +57,9 @@ const UpdateSchema = z.object({
 });
 
 export async function action({ request, context, params }: ActionFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  if (!storeId) {
-    return json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'settings',
+  });
 
   const ticketId = Number(params.id);
   if (isNaN(ticketId)) {

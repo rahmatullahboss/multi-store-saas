@@ -10,12 +10,14 @@ import { useLoaderData, Form, Link, useNavigation } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { abTests, abTestVariants, stores } from '@db/schema';
 import { eq } from 'drizzle-orm';
-import { getStoreId } from '~/services/auth.server';
+import { requireTenant } from '~/lib/tenant-guard.server';
 import { useState } from 'react';
 import { ArrowLeft, Plus, Trash2, Copy, Percent } from 'lucide-react';
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const storeId = await getStoreId(request, context as unknown as Env);
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'analytics',
+  });
   if (!storeId) {
     throw new Response('Unauthorized', { status: 401 });
   }
@@ -44,7 +46,9 @@ function slugify(text: string) {
 }
 
 export async function action({ request, context }: ActionFunctionArgs) {
-  const storeId = await getStoreId(request, context as unknown as Env);
+  const { storeId, userId } = await requireTenant(request, context, {
+    requirePermission: 'analytics',
+  });
   if (!storeId) {
     throw new Response('Unauthorized', { status: 401 });
   }

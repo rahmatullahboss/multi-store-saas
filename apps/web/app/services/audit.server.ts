@@ -123,14 +123,16 @@ async function resolveAuditStoreId(
     }
   }
 
-  const actor = await db
-    .select({ storeId: users.storeId })
-    .from(users)
-    .where(eq(users.id, payload.actorId))
-    .limit(1);
-  const actorStoreId = actor[0]?.storeId ?? null;
-  if (actorStoreId && actorStoreId > 0) {
-    return actorStoreId;
+  if (payload.actorId > 0) {
+    const actor = await db
+      .select({ storeId: users.storeId })
+      .from(users)
+      .where(eq(users.id, payload.actorId))
+      .limit(1);
+    const actorStoreId = actor[0]?.storeId ?? null;
+    if (actorStoreId && actorStoreId > 0) {
+      return actorStoreId;
+    }
   }
 
   return null;

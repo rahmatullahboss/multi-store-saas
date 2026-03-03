@@ -40,7 +40,7 @@ export type PlanFeatureFlag = keyof Pick<
 >;
 
 /** Usage-count resource types checked against monthly/total limits. */
-export type LimitedResource = 'product' | 'order';
+export type LimitedResource = 'product' | 'order' | 'staff' | 'api_key' | 'domain';
 
 /** Plan tier ordering — higher is better. */
 const PLAN_TIER: Record<PlanType, number> = {
@@ -115,10 +115,11 @@ export function requireMinPlan(
 export async function assertWithinLimit(
   db: D1Database,
   storeId: number,
-  _planType: PlanType | string, // kept for logging; checkUsageLimit re-reads plan from DB
+  planTypeHint: PlanType | string, // hint only; checkUsageLimit re-reads plan from DB
   resource: LimitedResource
 ): Promise<void> {
   const result = await checkUsageLimit(db, storeId, resource);
+  void planTypeHint; // explicitly mark as hint for potential logging/telemetry
   if (!result.allowed) {
     const err = result.error!;
     throw new Response(

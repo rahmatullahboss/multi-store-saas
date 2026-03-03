@@ -9,16 +9,15 @@ import { Form, useLoaderData, useActionData, useNavigation } from '@remix-run/re
 import { drizzle } from 'drizzle-orm/d1';
 import { supportTickets, stores } from '@db/schema';
 import { eq, and } from 'drizzle-orm';
-import { getStoreId, getUserId } from '~/services/auth.server';
+import { requireTenant } from '~/lib/tenant-guard.server';
 import { Ticket, ArrowLeft, Send, AlertCircle } from 'lucide-react';
 import { Link } from '@remix-run/react';
 import { z } from 'zod';
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  if (!storeId) {
-    throw new Response('Unauthorized', { status: 401 });
-  }
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'settings',
+  });
 
   const db = drizzle(context.cloudflare.env.DB);
   
@@ -45,12 +44,9 @@ type ActionData = {
 };
 
 export async function action({ request, context }: ActionFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  const userId = await getUserId(request, context.cloudflare.env);
-  
-  if (!storeId || !userId) {
-    return json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const { storeId, userId } = await requireTenant(request, context, {
+    requirePermission: 'settings',
+  });
 
   const formData = await request.formData();
   const data = {

@@ -9,16 +9,16 @@ import { useLoaderData, Form, useNavigation } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { leadSubmissions, customers, studentDocuments } from '@db/schema';
 import { eq, and, desc, SQL, or } from 'drizzle-orm';
-import { getStoreId, requireUserId } from '~/services/auth.server';
+import { requireTenant } from '~/lib/tenant-guard.server';
 import { ArrowLeft, Mail, Phone, Building2, Calendar, Globe, Tag, Brain, Save, Loader2 } from 'lucide-react';
 import { Link } from '@remix-run/react';
 import { AdminLeadDocuments } from '~/components/lead-gen/AdminLeadDocuments';
 import { UserPlus } from 'lucide-react';
 
 export async function loader({ request, params, context }: LoaderFunctionArgs) {
-  await requireUserId(request, context.cloudflare.env);
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  if (!storeId) throw new Response('Unauthorized', { status: 401 });
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'customers',
+  });
   const db = drizzle(context.cloudflare.env.DB);
   const id = Number(params.id);
   if (Number.isNaN(id)) throw new Response('Invalid lead id', { status: 400 });
@@ -95,9 +95,9 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, params, context }: ActionFunctionArgs) {
-  await requireUserId(request, context.cloudflare.env);
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  if (!storeId) throw new Response('Unauthorized', { status: 401 });
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'customers',
+  });
   const db = drizzle(context.cloudflare.env.DB);
   const id = Number(params.id);
   if (Number.isNaN(id)) throw new Response('Invalid lead id', { status: 400 });

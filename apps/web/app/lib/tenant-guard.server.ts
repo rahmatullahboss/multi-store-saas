@@ -33,7 +33,7 @@ import type { AppLoadContext } from '@remix-run/cloudflare';
 import { eq, and, isNull } from 'drizzle-orm';
 import { users, stores } from '@db/schema';
 import { createDb } from '~/lib/db.server';
-import { getUserId } from '~/services/auth.server';
+import { getStoreId, getUserId } from '~/services/auth.server';
 import {
   PLAN_LIMITS,
   getPlanLimitsSafe,
@@ -162,9 +162,7 @@ export async function requireTenant(
 
   // Ownership cross-check: session cookie must not carry a different storeId
   // (defence-in-depth — the session may have been forged or replayed)
-  const sessionStoreId = (await import('~/services/auth.server').then((m) =>
-    m.getStoreId(request, env)
-  )) as number | null;
+  const sessionStoreId = (await getStoreId(request, env)) as number | null;
 
   if (sessionStoreId !== null && sessionStoreId !== row.storeId) {
     console.error(
@@ -176,7 +174,7 @@ export async function requireTenant(
   }
 
   // ── 3. Store active check ─────────────────────────────────────────────────
-  if (!row.storeIsActive) {
+  if (row.storeIsActive !== true) {
     throw redirect(loginRedirect + '?reason=suspended');
   }
 
@@ -265,7 +263,7 @@ function buildResult(
       name: row.storeName,
       subdomain: row.storeSubdomain,
       planType,
-      isActive: row.storeIsActive ?? true,
+      isActive: row.storeIsActive === true,
       subscriptionEndDate: row.storeSubscriptionEndDate,
       subscriptionStatus: row.storeSubscriptionStatus,
     },

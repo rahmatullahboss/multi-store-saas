@@ -16,7 +16,8 @@ import { Form, useActionData, useNavigation, useFetcher } from '@remix-run/react
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and } from 'drizzle-orm';
 import { products, productVariants, stores } from '@db/schema';
-import { getStoreId } from '~/services/auth.server';
+import { requireTenant } from '~/lib/tenant-guard.server';
+import { assertWithinLimit } from '~/lib/plan-gate.server';
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Upload, X, Loader2, Image as ImageIcon, ArrowLeft, Search, ChevronDown, ChevronUp } from 'lucide-react';
 import { Link } from '@remix-run/react';
@@ -35,10 +36,9 @@ export const meta: MetaFunction = () => {
 // ACTION - Create new product (with plan limit validation)
 // ============================================================================
 export async function action({ request, context }: ActionFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  if (!storeId) {
-    return json({ errors: { form: 'Store not found' } }, { status: 404 });
-  }
+  const { storeId, planType } = await requireTenant(request, context, {
+    requirePermission: 'products',
+  });
 
   const formData = await request.formData();
   const title = formData.get('title') as string;
@@ -89,17 +89,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   // ========================================================================
   // SERVER-SIDE VALIDATION: Check product limit before creating
   // ========================================================================
-  const { checkUsageLimit } = await import('~/utils/plans.server');
-  const limitCheck = await checkUsageLimit(context.cloudflare.env.DB, storeId, 'product');
-
-  if (!limitCheck.allowed) {
-    console.warn(`[SECURITY] Store ${storeId} attempted to exceed product limit`);
-    return json({
-      errors: {
-        form: limitCheck.error?.message || 'Product limit reached. Please upgrade your plan to add more products.'
-      }
-    }, { status: 403 });
-  }
+  await assertWithinLimit(context.cloudflare.env.DB, storeId, planType, 'product');
 
   const db = drizzle(context.cloudflare.env.DB);
 

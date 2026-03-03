@@ -271,6 +271,9 @@ export const checkoutLimit = createSimpleRateLimit(30, 'checkout');
 /** 50 req/min — cart operations */
 export const cartLimit = createSimpleRateLimit(50, 'cart');
 
+/** 60 req/min — image proxy */
+export const proxyImageLimit = createSimpleRateLimit(60, 'proxy-image');
+
 // ─── TypeScript: Workers Rate Limiting API type ───────────────────────────────
 
 interface RateLimiter {

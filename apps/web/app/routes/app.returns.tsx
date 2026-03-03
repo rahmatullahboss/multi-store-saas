@@ -12,7 +12,7 @@ import { useLoaderData, Link } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { orders, stores, customers } from '@db/schema';
 import { eq, desc, and, sql } from 'drizzle-orm';
-import { getStoreId } from '~/services/auth.server';
+import { requireTenant } from '~/lib/tenant-guard.server';
 import {
   PackageX,
   ArrowLeft,
@@ -35,10 +35,9 @@ export const meta: MetaFunction = () => {
 // LOADER - Fetch returned orders
 // ============================================================================
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const storeId = await getStoreId(request, context.cloudflare.env);
-  if (!storeId) {
-    throw new Response('Store not found', { status: 404 });
-  }
+  const { storeId } = await requireTenant(request, context, {
+    requirePermission: 'orders',
+  });
 
   const db = drizzle(context.cloudflare.env.DB);
 
