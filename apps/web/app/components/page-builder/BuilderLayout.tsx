@@ -320,18 +320,45 @@ export function BuilderLayout({
     ? `/app/new-builder/${page.id}/preview`
     : undefined;
 
-  // Listen for PREVIEW_FRAME_READY signal from iframe — then mark ready
+  // Listen for PREVIEW_FRAME_READY signal from iframe — then mark ready.
+  // FIX: Use a ref to track the latest sections so the handler closure is never stale.
+  // When the iframe signals READY, we immediately push current sections so there is
+  // no window where iframeReady=true but sections haven't been sent yet.
+  const sectionsRef = useRef(sections);
+  useEffect(() => {
+    sectionsRef.current = sections;
+  }, [sections]);
+
   useEffect(() => {
     function handleMessage(event: MessageEvent) {
       // ✅ Security: only trust messages from same origin
       if (event.origin !== window.location.origin) return;
       if (event.data?.type === 'PREVIEW_FRAME_READY') {
         setIframeReady(true);
+        // FIX BUG 1 + 2: Immediately push current sections to the iframe as soon as
+        // it signals READY. This eliminates the race where iframeReady becomes true
+        // but the [sections, iframeReady] effect doesn't re-fire because sections
+        // haven't changed since iframeReady was false.
+        const iframe = iframeRef.current;
+        if (iframe?.contentWindow) {
+          try {
+            iframe.contentWindow.postMessage(
+              { type: 'SECTIONS_UPDATE', sections: sectionsRef.current },
+              window.location.origin
+            );
+            iframe.contentWindow.postMessage(
+              { type: 'PREVIEW_UPDATE', sections: sectionsRef.current },
+              window.location.origin
+            );
+          } catch {
+            // ignore
+          }
+        }
       }
     }
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, []);
+  }, []); // empty deps — intentional: handler uses ref for latest sections
 
   // Reset iframeReady when preview URL changes (page navigation)
   useEffect(() => {
@@ -547,6 +574,28 @@ export function BuilderLayout({
                   className="flex-1 w-full border-0"
                   title="Page Preview"
                   sandbox="allow-scripts allow-same-origin allow-forms"
+                  onLoad={() => {
+                    // ✅ FIX RACE CONDITION: onLoad fires when iframe HTML is parsed.
+                    // This is the BACKUP signal — used when PREVIEW_FRAME_READY is
+                    // missed (e.g. fast cache hit where iframe hydrates before parent
+                    // listener is registered). We send sections immediately with a
+                    // small delay to allow React hydration in the iframe.
+                    setTimeout(() => {
+                      const iframe = iframeRef.current;
+                      if (!iframe?.contentWindow) return;
+                      try {
+                        iframe.contentWindow.postMessage(
+                          { type: 'PREVIEW_UPDATE', sections: sectionsRef.current },
+                          window.location.origin
+                        );
+                        iframe.contentWindow.postMessage(
+                          { type: 'SECTIONS_UPDATE', sections: sectionsRef.current },
+                          window.location.origin
+                        );
+                      } catch { /* ignore */ }
+                      setIframeReady(true);
+                    }, 150);
+                  }}
                 />
               ) : (
                 <div className="flex-1 flex items-center justify-center bg-gray-50">

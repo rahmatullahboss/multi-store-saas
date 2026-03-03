@@ -72,6 +72,30 @@ export async function action({ request, context }: ActionFunctionArgs) {
       templateId: 'blank',
     });
 
+    // FIX BUG 3: Insert default starter sections so the iframe preview shows
+    // content immediately instead of EmptyPreviewState. Without this the blank
+    // page redirects to the editor with zero sections and the iframe renders nothing.
+    const defaultSections: Array<{ type: string; props: Record<string, unknown> }> = [
+      { type: 'hero', props: {} },
+      { type: 'trust-badges', props: {} },
+      { type: 'cta', props: {} },
+    ];
+    if (defaultSections.length > 0) {
+      const { getDefaultProps } = await import('~/lib/page-builder/registry');
+      const statements: D1PreparedStatement[] = defaultSections.map((sec, idx) => {
+        const sectionId = nanoid();
+        const propsJson = JSON.stringify(getDefaultProps(sec.type));
+        return rawDb
+          .prepare(
+            `INSERT INTO builder_sections
+               (id, page_id, type, variant, enabled, sort_order, props_json, version, created_at, updated_at)
+             VALUES (?, ?, ?, ?, 1, ?, ?, 1, ?, ?)`
+          )
+          .bind(sectionId, pageId, sec.type, null, idx, propsJson, Date.now(), Date.now());
+      });
+      await rawDb.batch(statements);
+    }
+
     return redirect(`/app/new-builder/${pageId}`);
   }
 

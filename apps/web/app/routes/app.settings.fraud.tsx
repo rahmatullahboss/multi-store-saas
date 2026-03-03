@@ -348,7 +348,7 @@ export default function FraudSettingsPage() {
             <ArrowLeft className="w-5 h-5 text-gray-600" />
           </Link>
           <h1 className="text-lg font-semibold text-gray-900">Fraud Detection</h1>
-          <StatusBadge />
+          <ActiveBadge />
         </div>
 
         <div className="px-4 pt-4 space-y-4">
@@ -826,149 +826,169 @@ export default function FraudSettingsPage() {
               <p className="text-gray-600">COD ফ্রড প্রতিরোধ এবং রিস্ক স্কোরিং</p>
             </div>
           </div>
-          <StatusBadge />
+          <ActiveBadge />
         </div>
 
       {/* Status Messages */}
       {actionData && 'success' in actionData && (
-        <GlassCard className="bg-emerald-50/50 border-emerald-200/50 text-emerald-800 px-4 py-3 flex items-center gap-2">
+        <div className="bg-emerald-50/50 border border-emerald-200/50 text-emerald-800 px-4 py-3 rounded-xl flex items-center gap-2">
           <CheckCircle className="w-5 h-5 text-emerald-600" />
           {actionData.message}
-        </GlassCard>
+        </div>
       )}
       {actionData && 'error' in actionData && (
-        <GlassCard className="bg-red-50/50 border-red-200/50 text-red-600 px-4 py-3 flex items-center gap-2">
+        <div className="bg-red-50/50 border border-red-200/50 text-red-600 px-4 py-3 rounded-xl flex items-center gap-2">
           <XCircle className="w-5 h-5" />
           {actionData.error}
-        </GlassCard>
+        </div>
       )}
 
       {/* Stats Overview */}
       <div className="grid grid-cols-3 md:grid-cols-5 gap-3 md:gap-4">
-        <GlassCard className="p-4 text-center">
-          <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
-          <p className="text-xs text-gray-500">Total Checks</p>
-        </GlassCard>
-        <GlassCard className="p-4 text-center">
-          <p className="text-2xl font-bold text-emerald-600">{stats.allowed}</p>
-          <p className="text-xs text-gray-500">Allowed</p>
-        </GlassCard>
-        <GlassCard className="p-4 text-center">
-          <p className="text-2xl font-bold text-yellow-600">{stats.verified}</p>
-          <p className="text-xs text-gray-500">Verified</p>
-        </GlassCard>
-        <GlassCard className="p-4 text-center">
-          <p className="text-2xl font-bold text-orange-600">{stats.held}</p>
-          <p className="text-xs text-gray-500">Held</p>
-        </GlassCard>
-        <GlassCard className="p-4 text-center">
-          <p className="text-2xl font-bold text-red-600">{stats.blocked}</p>
-          <p className="text-xs text-gray-500">Blocked</p>
-        </GlassCard>
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm border-t-4 border-t-slate-400 p-4">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Total</span>
+            <Shield className="w-4 h-4 text-slate-400" />
+          </div>
+          <p className="text-2xl font-bold text-slate-900">{stats.total}</p>
+          <p className="text-xs text-slate-400 mt-0.5">Checks</p>
+        </div>
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm border-t-4 border-t-emerald-500 p-4">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-xs font-semibold text-emerald-600 uppercase tracking-wide">Allowed</span>
+            <ShieldCheck className="w-4 h-4 text-emerald-500" />
+          </div>
+          <p className="text-2xl font-bold text-emerald-700">{stats.allowed}</p>
+          <p className="text-xs text-emerald-500 mt-0.5 font-medium">{pct(stats.allowed)}%</p>
+        </div>
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm border-t-4 border-t-yellow-400 p-4">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-xs font-semibold text-yellow-600 uppercase tracking-wide">Verified</span>
+            <AlertTriangle className="w-4 h-4 text-yellow-500" />
+          </div>
+          <p className="text-2xl font-bold text-yellow-700">{stats.verified}</p>
+          <p className="text-xs text-yellow-500 mt-0.5 font-medium">{pct(stats.verified)}%</p>
+        </div>
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm border-t-4 border-t-orange-500 p-4">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-xs font-semibold text-orange-600 uppercase tracking-wide">Held</span>
+            <ShieldAlert className="w-4 h-4 text-orange-500" />
+          </div>
+          <p className="text-2xl font-bold text-orange-700">{stats.held}</p>
+          <p className="text-xs text-orange-500 mt-0.5 font-medium">{pct(stats.held)}%</p>
+        </div>
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm border-t-4 border-t-red-500 p-4">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-xs font-semibold text-red-600 uppercase tracking-wide">Blocked</span>
+            <ShieldX className="w-4 h-4 text-red-500" />
+          </div>
+          <p className="text-2xl font-bold text-red-700">{stats.blocked}</p>
+          <p className="text-xs text-red-500 mt-0.5 font-medium">{pct(stats.blocked)}%</p>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Settings Form */}
-        <GlassCard className="p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <ShieldAlert className="w-5 h-5 text-orange-500" />
-            Risk Thresholds
-          </h2>
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+          <div className="flex items-center justify-between mb-5">
+            <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+              <ShieldAlert className="w-5 h-5 text-orange-500" />
+              Risk Thresholds
+            </h2>
+          </div>
 
           <Form method="post" className="space-y-5">
             <input type="hidden" name="intent" value="save_settings" />
 
-            {/* Enable/Disable */}
-            <label className="flex items-center gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                name="enabled"
-                value="true"
-                defaultChecked={settings.enabled}
-                className="w-5 h-5 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
-              />
-              <span className="text-sm font-medium text-gray-700">Enable Fraud Detection</span>
-            </label>
-
-            {/* Thresholds */}
-            <div className="space-y-4">
+            {/* Enable/Disable toggle */}
+            <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  ⚠️ Verify Threshold (OTP/কলে কনফার্ম)
-                </label>
-                <input
-                  type="number"
-                  name="verifyThreshold"
-                  defaultValue={settings.thresholds.verify}
-                  min={10} max={90}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
-                />
-                <p className="text-xs text-gray-400 mt-1">Score {settings.thresholds.verify}+ → অর্ডার verify করতে হবে</p>
+                <p className="text-sm font-semibold text-slate-800">Enable Fraud Detection</p>
+                <p className="text-xs text-slate-500 mt-0.5">ফ্রড স্ক্যানিং চালু/বন্ধ করুন</p>
               </div>
+              <label htmlFor="enabled-desktop" className="relative inline-flex items-center cursor-pointer flex-shrink-0">
+                <input type="checkbox" id="enabled-desktop" name="enabled" value="true" defaultChecked={settings.enabled} className="sr-only peer" />
+                <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-emerald-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-5" />
+              </label>
+            </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  🔶 Hold Threshold (ম্যানুয়াল রিভিউ)
-                </label>
-                <input
-                  type="number"
-                  name="holdThreshold"
-                  defaultValue={settings.thresholds.hold}
-                  min={20} max={95}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
-                />
-                <p className="text-xs text-gray-400 mt-1">Score {settings.thresholds.hold}+ → মার্চেন্ট রিভিউ queue-তে যাবে</p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  🚫 Block Threshold (অটো-ব্লক)
-                </label>
-                <input
-                  type="number"
-                  name="blockThreshold"
-                  defaultValue={settings.thresholds.block}
-                  min={30} max={100}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500"
-                />
-                <p className="text-xs text-gray-400 mt-1">Score {settings.thresholds.block}+ → COD ব্লক, prepay লাগবে</p>
+            {/* Thresholds — 3 column horizontal grid */}
+            <div>
+              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Score Thresholds (0–100)</p>
+              <div className="grid grid-cols-3 gap-3">
+                <div className="border-2 border-yellow-300 rounded-xl p-3 bg-yellow-50/40">
+                  <div className="flex items-center gap-1.5 mb-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-yellow-400 flex-shrink-0" />
+                    <span className="text-xs font-semibold text-yellow-700 uppercase tracking-wide">Verify</span>
+                  </div>
+                  <input
+                    type="number"
+                    name="verifyThreshold"
+                    defaultValue={settings.thresholds.verify}
+                    min={10} max={90}
+                    className="w-full text-center text-xl font-bold text-yellow-800 bg-transparent border-0 focus:outline-none focus:ring-0 p-0"
+                  />
+                  <p className="text-xs text-yellow-600/80 mt-1.5 text-center">OTP / কলে কনফার্ম</p>
+                </div>
+                <div className="border-2 border-orange-400 rounded-xl p-3 bg-orange-50/40">
+                  <div className="flex items-center gap-1.5 mb-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-orange-500 flex-shrink-0" />
+                    <span className="text-xs font-semibold text-orange-700 uppercase tracking-wide">Hold</span>
+                  </div>
+                  <input
+                    type="number"
+                    name="holdThreshold"
+                    defaultValue={settings.thresholds.hold}
+                    min={20} max={95}
+                    className="w-full text-center text-xl font-bold text-orange-800 bg-transparent border-0 focus:outline-none focus:ring-0 p-0"
+                  />
+                  <p className="text-xs text-orange-600/80 mt-1.5 text-center">ম্যানুয়াল রিভিউ queue</p>
+                </div>
+                <div className="border-2 border-red-400 rounded-xl p-3 bg-red-50/40">
+                  <div className="flex items-center gap-1.5 mb-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-red-500 flex-shrink-0" />
+                    <span className="text-xs font-semibold text-red-700 uppercase tracking-wide">Block</span>
+                  </div>
+                  <input
+                    type="number"
+                    name="blockThreshold"
+                    defaultValue={settings.thresholds.block}
+                    min={30} max={100}
+                    className="w-full text-center text-xl font-bold text-red-800 bg-transparent border-0 focus:outline-none focus:ring-0 p-0"
+                  />
+                  <p className="text-xs text-red-600/80 mt-1.5 text-center">অটো-ব্লক, prepay লাগবে</p>
+                </div>
               </div>
             </div>
 
             {/* COD Controls */}
-            <div className="border-t pt-4 space-y-3">
-              <h3 className="text-sm font-semibold text-gray-700">COD Controls</h3>
+            <div className="border-t border-slate-100 pt-4 space-y-3">
+              <h3 className="text-sm font-semibold text-slate-700">COD Controls</h3>
 
-              <label className="flex items-center gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  name="autoHideCOD"
-                  value="true"
-                  defaultChecked={settings.autoHideCOD}
-                  className="w-4 h-4 rounded border-gray-300 text-emerald-600"
-                />
-                <span className="text-sm text-gray-600">High risk কাস্টমারের জন্য COD লুকাও</span>
-              </label>
+              <div className="flex items-center justify-between py-2">
+                <span className="text-sm text-slate-600">High risk কাস্টমারের জন্য COD লুকাও</span>
+                <label htmlFor="autoHideCOD-d" className="relative inline-flex items-center cursor-pointer flex-shrink-0">
+                  <input type="checkbox" id="autoHideCOD-d" name="autoHideCOD" value="true" defaultChecked={settings.autoHideCOD} className="sr-only peer" />
+                  <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-emerald-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-5" />
+                </label>
+              </div>
 
-              <label className="flex items-center gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  name="requireOTPForCOD"
-                  value="true"
-                  defaultChecked={settings.requireOTPForCOD}
-                  className="w-4 h-4 rounded border-gray-300 text-emerald-600"
-                />
-                <span className="text-sm text-gray-600">সব COD অর্ডারে OTP verify লাগবে</span>
-              </label>
+              <div className="flex items-center justify-between py-2">
+                <span className="text-sm text-slate-600">সব COD অর্ডারে OTP verify লাগবে</span>
+                <label htmlFor="requireOTPForCOD-d" className="relative inline-flex items-center cursor-pointer flex-shrink-0">
+                  <input type="checkbox" id="requireOTPForCOD-d" name="requireOTPForCOD" value="true" defaultChecked={settings.requireOTPForCOD} className="sr-only peer" />
+                  <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-emerald-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-5" />
+                </label>
+              </div>
 
               <div>
-                <label className="block text-sm text-gray-600 mb-1">Max COD Amount (৳) — এর বেশি হলে advance লাগবে</label>
+                <label className="block text-sm text-slate-600 mb-1.5">Max COD Amount (৳) — এর বেশি হলে advance লাগবে</label>
                 <input
                   type="number"
                   name="maxCODAmount"
                   defaultValue={settings.maxCODAmount || ''}
                   placeholder="No limit"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
+                  className="w-full px-3 py-2.5 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-400 text-sm"
                 />
               </div>
             </div>
@@ -976,16 +996,16 @@ export default function FraudSettingsPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full flex items-center justify-center gap-2 bg-emerald-600 text-white py-2.5 rounded-lg hover:bg-emerald-700 transition disabled:opacity-50"
+              className="w-full flex items-center justify-center gap-2 bg-emerald-600 text-white py-2.5 rounded-xl hover:bg-emerald-700 active:scale-[0.98] transition-all disabled:opacity-50 font-medium shadow-sm shadow-emerald-200"
             >
               {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
               {isSubmitting ? t('savingSettings') : t('saveSettings')}
             </button>
           </Form>
-        </GlassCard>
+        </div>
 
         {/* COD Delivery Rate Control - Desktop */}
-        <GlassCard className="p-6 border-orange-100/80">
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm border-t-4 border-t-orange-400 p-6">
           <div className="flex items-start justify-between mb-4">
             <div>
               <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
@@ -1009,20 +1029,17 @@ export default function FraudSettingsPage() {
             <input type="hidden" name="requireOTPForCOD" value={settings.requireOTPForCOD ? 'true' : 'false'} />
             <input type="hidden" name="maxCODAmount" value={settings.maxCODAmount ?? ''} />
 
-            {/* Master switch */}
-            <label className="flex items-center gap-3 p-4 bg-orange-50 border border-orange-100 rounded-lg cursor-pointer hover:bg-orange-100/50 transition">
-              <input
-                type="checkbox"
-                name="codRateControlEnabled"
-                value="true"
-                defaultChecked={settings.codRateControlEnabled}
-                className="w-4 h-4 rounded border-gray-300 text-orange-500"
-              />
+            {/* Master switch — pill toggle */}
+            <div className="flex items-center justify-between p-3.5 bg-orange-50 border border-orange-100 rounded-xl">
               <div>
-                <span className="text-sm font-medium text-gray-800">রেট কন্ট্রোল চালু রাখুন</span>
-                <p className="text-xs text-gray-500 mt-0.5">বন্ধ করলে সব COD অর্ডার pending হবে — কোনো auto-confirm বা block হবে না</p>
+                <span className="text-sm font-semibold text-gray-800">রেট কন্ট্রোল চালু রাখুন</span>
+                <p className="text-xs text-gray-500 mt-0.5">বন্ধ করলে সব COD অর্ডার pending — কোনো auto-confirm বা block নয়</p>
               </div>
-            </label>
+              <label htmlFor="codRateCtrl-d" className="relative inline-flex items-center cursor-pointer flex-shrink-0">
+                <input type="checkbox" id="codRateCtrl-d" name="codRateControlEnabled" value="true" defaultChecked={settings.codRateControlEnabled} className="sr-only peer" />
+                <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-orange-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-5" />
+              </label>
+            </div>
 
             {/* Thresholds — 3 columns */}
             <div className="grid grid-cols-3 gap-4">
@@ -1105,10 +1122,10 @@ export default function FraudSettingsPage() {
               Save Rate Control Settings
             </button>
           </Form>
-        </GlassCard>
+        </div>
 
         {/* Auto-Dispatch - Desktop */}
-        <GlassCard className="p-6 border-emerald-100/80">
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-emerald-500 p-6">
           <div className="flex items-center gap-3 mb-2">
             <span className="text-2xl">🚀</span>
             <div>
@@ -1181,10 +1198,10 @@ export default function FraudSettingsPage() {
               </button>
             </div>
           </Form>
-        </GlassCard>
+        </div>
 
         {/* Phone Blacklist */}
-        <GlassCard className="p-6">
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm border-t-4 border-t-red-400 p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
             <Ban className="w-5 h-5 text-red-500" />
             Phone Blacklist ({blacklist.length})
@@ -1252,11 +1269,11 @@ export default function FraudSettingsPage() {
               ))
             )}
           </div>
-        </GlassCard>
+        </div>
       </div>
 
       {/* Review Queue */}
-      <GlassCard className="p-6">
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm border-t-4 border-t-orange-400 p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
           <Eye className="w-5 h-5 text-orange-500" />
           Review Queue ({heldEvents.filter(e => !e.resolvedBy).length} pending)
@@ -1412,10 +1429,10 @@ export default function FraudSettingsPage() {
           </div>
           </>
         )}
-      </GlassCard>
+      </div>
 
       {/* How it works */}
-      <GlassCard className="p-6 bg-blue-50/30 border-blue-100/50">
+      <div className="bg-blue-50/60 rounded-2xl border border-blue-100 p-6">
         <h3 className="text-sm font-semibold text-blue-900 mb-2">📖 কীভাবে কাজ করে?</h3>
         <div className="text-xs text-blue-800 space-y-1">
           <p>• প্রতিটি অর্ডারে ফোন নম্বর, পেমেন্ট মেথড, অর্ডার ইতিহাস, এবং ঠিকানা চেক করে risk score (0-100) তৈরি হয়</p>
@@ -1425,7 +1442,7 @@ export default function FraudSettingsPage() {
           <p>• <strong>BLOCK</strong> ({settings.thresholds.block}+): অটো-ব্লক, COD দেওয়া হবে না</p>
           <p>• ব্ল্যাকলিস্টে থাকা নম্বর সরাসরি BLOCK হবে (score 100)</p>
         </div>
-      </GlassCard>
+      </div>
       </div>
     </>
   );

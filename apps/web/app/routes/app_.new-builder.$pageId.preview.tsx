@@ -12,24 +12,25 @@
  * - Listens to postMessage { type: 'PREVIEW_UPDATE', sections } for live updates
  * - Signals readiness to parent via postMessage { type: 'PREVIEW_FRAME_READY' }
  * - Shows an empty state when no sections are visible
+ * - Click-to-select: clicking a section sends SECTION_CLICKED to parent
+ * - Hover highlight: blue outline on hover
+ * - Selection highlight: indigo outline + label badge when selected
+ * - Scroll-into-view: scrolls the selected section into view on SECTION_SELECTED
  */
 
 import { json, type LoaderFunctionArgs, type MetaFunction } from '@remix-run/cloudflare';
 import { useLoaderData } from '@remix-run/react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { requireAuth } from '~/lib/auth.server';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and, asc } from 'drizzle-orm';
 import { builderPages, builderSections } from '@db/schema_page_builder';
 
 // ── Section components ────────────────────────────────────────────────────────
-// Import from the builder sections directory.
-// SECTION_COMPONENTS maps section.type → React component.
 import { SECTION_COMPONENTS } from '~/components/builder/sections/index';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-/** Shape of a section row as returned from DB / postMessage updates. */
 interface PreviewSection {
   id: string;
   type: string;
@@ -39,12 +40,118 @@ interface PreviewSection {
   variant?: string | null;
 }
 
+interface LiveSection {
+  id: string;
+  type: string;
+  enabled: number | boolean;
+  sortOrder: number;
+  props?: Record<string, unknown>;
+  propsJson?: string;
+  variant?: string | null;
+}
+
+function resolveProps(section: LiveSection): Record<string, unknown> {
+  let props: Record<string, unknown> = {};
+  if (section.props && typeof section.props === 'object') {
+    props = section.props;
+  } else {
+    try {
+      props = JSON.parse((section as PreviewSection).propsJson || '{}');
+    } catch {
+      props = {};
+    }
+  }
+  if (section.variant) {
+    props = { ...props, _variant: section.variant };
+  }
+  return props;
+}
+
+// ── PreviewSectionWrapper ─────────────────────────────────────────────────────
+
+interface PreviewSectionWrapperProps {
+  sectionId: string;
+  sectionType: string;
+  isSelected: boolean;
+  onSelect: (id: string) => void;
+  children: React.ReactNode;
+}
+
+function PreviewSectionWrapper({
+  sectionId,
+  sectionType,
+  isSelected,
+  onSelect,
+  children,
+}: PreviewSectionWrapperProps) {
+  const handleClick = useCallback(() => {
+    // Notify the parent builder frame that this section was clicked
+    try {
+      window.parent.postMessage(
+        { type: 'SECTION_CLICKED', sectionId },
+        window.location.origin
+      );
+    } catch {
+      // ignore cross-origin errors
+    }
+    onSelect(sectionId);
+  }, [sectionId, onSelect]);
+
+  return (
+    <div
+      data-section-id={sectionId}
+      className="relative isolate group"
+      style={
+        isSelected
+          ? { outline: '2px solid #6366f1', outlineOffset: '-2px' }
+          : undefined
+      }
+    >
+      {/* Section content */}
+      {children}
+
+      {/* Hover outline — visible only when not selected (selected uses inline outline) */}
+      {!isSelected && (
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-150"
+          style={{ outline: '2px solid #6366f1', outlineOffset: '-2px' }}
+        />
+      )}
+
+      {/* Selection label badge */}
+      {isSelected && (
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute top-0 left-0 z-20 px-2 py-0.5 bg-indigo-500 text-white text-[10px] font-semibold uppercase tracking-wide rounded-br select-none"
+        >
+          {sectionType}
+        </div>
+      )}
+
+      {/* Click-capture overlay — covers the entire section so clicks select instead of navigate */}
+      <div
+        aria-label={`Select ${sectionType} section`}
+        role="button"
+        tabIndex={0}
+        className="absolute inset-0 z-10 cursor-pointer"
+        onClick={handleClick}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleClick();
+          }
+        }}
+      />
+    </div>
+  );
+}
+
 // ── Meta ──────────────────────────────────────────────────────────────────────
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   return [
     { title: data?.page?.title ? `Preview: ${data.page.title}` : 'Page Preview' },
-    // Prevent indexing of preview URLs
     { name: 'robots', content: 'noindex, nofollow' },
   ];
 };
@@ -52,24 +159,18 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 // ── Loader ────────────────────────────────────────────────────────────────────
 
 export async function loader({ request, params, context }: LoaderFunctionArgs) {
-  // Auth — ensures the page belongs to the authenticated store
   const { store } = await requireAuth(request, context);
   const pageId = params.pageId!;
-
   const db = drizzle(context.cloudflare.env.DB);
 
-  // Fetch page — scoped by store_id (multi-tenancy critical)
   const [page] = await db
     .select()
     .from(builderPages)
     .where(and(eq(builderPages.id, pageId), eq(builderPages.storeId, store.id)))
     .limit(1);
 
-  if (!page) {
-    throw new Response('Page not found', { status: 404 });
-  }
+  if (!page) throw new Response('Page not found', { status: 404 });
 
-  // Fetch sections ordered deterministically by sort_order
   const sections = await db
     .select()
     .from(builderSections)
@@ -77,96 +178,105 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
     .orderBy(asc(builderSections.sortOrder));
 
   return json({
-    page: {
-      id: page.id,
-      title: page.title,
-      slug: page.slug,
-      status: page.status,
-    },
-    sections,
-    storeId: store.id,
+    page: { id: page.id, title: page.title, slug: page.slug },
+    sections: sections.map((s) => ({
+      id: s.id,
+      type: s.type,
+      enabled: s.enabled,
+      sortOrder: s.sortOrder,
+      propsJson: s.propsJson ?? '{}',
+      variant: s.variant,
+    })),
   });
 }
 
-// ── Component ─────────────────────────────────────────────────────────────────
+// ── BuilderPreviewPage ────────────────────────────────────────────────────────
 
-export default function NewBuilderPreview() {
+export default function BuilderPreviewPage() {
   const { sections: initialSections } = useLoaderData<typeof loader>();
+  const [sections, setSections] = useState<LiveSection[]>(initialSections);
+  const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
 
-  // Sections state — updated via postMessage for live preview
-  const [sections, setSections] = useState<PreviewSection[]>(initialSections);
-
-  // Listen for live update messages from the parent builder frame
   useEffect(() => {
     function handleMessage(event: MessageEvent) {
-      // ✅ Security: reject messages from other origins
       if (event.origin !== window.location.origin) return;
       if (!event.data || typeof event.data !== 'object') return;
 
-      if (event.data.type === 'PREVIEW_UPDATE' && Array.isArray(event.data.sections)) {
-        setSections(event.data.sections as PreviewSection[]);
+      // Live section updates from parent builder
+      if (
+        (event.data.type === 'PREVIEW_UPDATE' || event.data.type === 'SECTIONS_UPDATE') &&
+        Array.isArray(event.data.sections)
+      ) {
+        setSections(event.data.sections as LiveSection[]);
       }
 
-      // Also handle the older SECTIONS_UPDATE message type sent by BuilderLayout
-      if (event.data.type === 'SECTIONS_UPDATE' && Array.isArray(event.data.sections)) {
-        // Convert BuilderSection (enabled: boolean) → PreviewSection (enabled: number | boolean)
-        setSections(event.data.sections as PreviewSection[]);
+      // Parent tells us which section is selected → update state + scroll into view
+      if (event.data.type === 'SECTION_SELECTED') {
+        const incomingId: string | null = event.data.sectionId ?? null;
+        setSelectedSectionId(incomingId);
+
+        if (incomingId) {
+          const el = document.querySelector<HTMLElement>(
+            `[data-section-id="${incomingId}"]`
+          );
+          el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
       }
     }
 
     window.addEventListener('message', handleMessage);
 
-    // Notify the parent that the preview frame is ready to receive messages
-    // Use window.location.origin instead of '*' for security (same-origin only)
+    // Signal to the parent builder that the iframe is ready
     try {
       window.parent.postMessage({ type: 'PREVIEW_FRAME_READY' }, window.location.origin);
     } catch {
-      // Ignore cross-origin errors (shouldn't happen for same-origin iframes)
+      // ignore
     }
 
     return () => window.removeEventListener('message', handleMessage);
   }, []);
 
-  // Only render visible sections
   const visibleSections = sections.filter((s) => {
     const enabled = typeof s.enabled === 'boolean' ? s.enabled : s.enabled === 1;
     return enabled;
   });
 
   return (
-    // Full-page white background — matches the customer-facing landing page style
     <div className="min-h-screen bg-white">
       {visibleSections.length === 0 ? (
         <EmptyPreviewState />
       ) : (
         visibleSections.map((section) => {
           const Component = SECTION_COMPONENTS[section.type];
+          const props = resolveProps(section);
+          const isSelected = selectedSectionId === section.id;
+
           if (!Component) {
-            // Gracefully skip unknown section types instead of crashing
             return (
-              <div
+              <PreviewSectionWrapper
                 key={section.id}
-                className="py-4 px-6 bg-gray-50 border border-dashed border-gray-200 text-center text-xs text-gray-400"
+                sectionId={section.id}
+                sectionType={section.type}
+                isSelected={isSelected}
+                onSelect={setSelectedSectionId}
               >
-                Unknown section type: <code>{section.type}</code>
-              </div>
+                <div className="py-4 px-6 bg-gray-50 border border-dashed border-gray-200 text-center text-xs text-gray-400">
+                  Unknown section type: <code>{section.type}</code>
+                </div>
+              </PreviewSectionWrapper>
             );
           }
 
-          // Parse props — fall back to empty object on malformed JSON
-          let props: Record<string, unknown> = {};
-          try {
-            props = JSON.parse(section.propsJson || '{}');
-          } catch {
-            props = {};
-          }
-
           return (
-            <Component
+            <PreviewSectionWrapper
               key={section.id}
-              props={props}
-              isPreview={true}
-            />
+              sectionId={section.id}
+              sectionType={section.type}
+              isSelected={isSelected}
+              onSelect={setSelectedSectionId}
+            >
+              <Component props={props} isPreview={true} />
+            </PreviewSectionWrapper>
           );
         })
       )}
@@ -174,13 +284,12 @@ export default function NewBuilderPreview() {
   );
 }
 
-// ── Empty state ───────────────────────────────────────────────────────────────
+// ── EmptyPreviewState ─────────────────────────────────────────────────────────
 
 function EmptyPreviewState() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 px-4">
       <div className="text-center max-w-sm">
-        {/* Dashed placeholder box */}
         <div className="w-24 h-24 rounded-2xl border-2 border-dashed border-gray-300 flex items-center justify-center mx-auto mb-6">
           <svg
             className="w-10 h-10 text-gray-300"
@@ -196,9 +305,7 @@ function EmptyPreviewState() {
             />
           </svg>
         </div>
-        <h2 className="text-lg font-semibold text-gray-700 mb-2">
-          কোনো সেকশন নেই
-        </h2>
+        <h2 className="text-lg font-semibold text-gray-700 mb-2">কোনো সেকশন নেই</h2>
         <p className="text-sm text-gray-400 leading-relaxed">
           বাম প্যানেল থেকে সেকশন যোগ করুন।
           <br />

@@ -28,6 +28,8 @@ export { VideoSection } from './VideoSection';
 export { HowToOrderSection } from './HowToOrderSection';
 export { ComparisonSection } from './ComparisonSection';
 export { ProductGridSection } from './ProductGridSection';
+export { StickyOrderCTASection } from './StickyOrderCTASection';
+export { OrderFormSection } from './OrderFormSection';
 
 import { HeroSection } from './HeroSection';
 import { FeaturesSection } from './FeaturesSection';
@@ -47,6 +49,8 @@ import { VideoSection } from './VideoSection';
 import { HowToOrderSection } from './HowToOrderSection';
 import { ComparisonSection } from './ComparisonSection';
 import { ProductGridSection } from './ProductGridSection';
+import { StickyOrderCTASection } from './StickyOrderCTASection';
+import { OrderFormSection } from './OrderFormSection';
 
 /**
  * Shared section component prop type.
@@ -96,6 +100,12 @@ export const SECTION_COMPONENTS: Record<string, ComponentType<SectionComponentPr
   comparison: ComparisonSection,
   'product-grid': ProductGridSection,
   'related-products': ProductGridSection, // alias
+
+  // Bangladesh high-conversion sections
+  'sticky-order-cta': StickyOrderCTASection,
+  'sticky-cta': StickyOrderCTASection,   // alias
+  'order-form-section': OrderFormSection,
+  'cod-form': OrderFormSection,           // alias
 };
 
 /**
