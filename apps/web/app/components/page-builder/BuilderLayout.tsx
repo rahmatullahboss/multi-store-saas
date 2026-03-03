@@ -257,6 +257,7 @@ export function BuilderLayout({
   const [mobileTab, setMobileTab] = useState<MobileTab>('sections');
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [iframeReady, setIframeReady] = useState(false);
 
   // Track active section for the settings panel
   const activeSection = useMemo(
@@ -314,8 +315,32 @@ export function BuilderLayout({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sectionsKey]);
 
-  // postMessage selected section to iframe — always use window.location.origin
+  // Iframe preview URL — matches route app_.new-builder.$pageId.preview.tsx → /app/new-builder/:pageId/preview
+  const previewUrl = page
+    ? `/app/new-builder/${page.id}/preview`
+    : undefined;
+
+  // Listen for PREVIEW_FRAME_READY signal from iframe — then mark ready
   useEffect(() => {
+    function handleMessage(event: MessageEvent) {
+      // ✅ Security: only trust messages from same origin
+      if (event.origin !== window.location.origin) return;
+      if (event.data?.type === 'PREVIEW_FRAME_READY') {
+        setIframeReady(true);
+      }
+    }
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, []);
+
+  // Reset iframeReady when preview URL changes (page navigation)
+  useEffect(() => {
+    setIframeReady(false);
+  }, [previewUrl]);
+
+  // postMessage selected section to iframe — only after iframe is ready
+  useEffect(() => {
+    if (!iframeReady) return;
     const iframe = iframeRef.current;
     if (!iframe?.contentWindow) return;
     try {
@@ -326,11 +351,12 @@ export function BuilderLayout({
     } catch {
       // iframe may not be ready yet
     }
-  }, [activeSectionId]);
+  }, [activeSectionId, iframeReady]);
 
-  // postMessage section updates to iframe
+  // postMessage section updates to iframe — only after iframe signals ready
   // Sends both SECTIONS_UPDATE (legacy) and PREVIEW_UPDATE (new builder preview route)
   useEffect(() => {
+    if (!iframeReady) return;
     const iframe = iframeRef.current;
     if (!iframe?.contentWindow) return;
     try {
@@ -345,7 +371,7 @@ export function BuilderLayout({
     } catch {
       // ignore
     }
-  }, [sections]);
+  }, [sections, iframeReady]);
 
   // Handle props update — also triggers auto-save
   const handleUpdateProps = useCallback(
@@ -367,11 +393,6 @@ export function BuilderLayout({
     },
     [titleFetcher]
   );
-
-  // Iframe preview URL — matches route app.new-builder.$pageId.preview.tsx → /app/new-builder/:pageId/preview
-  const previewUrl = page
-    ? `/app/new-builder/${page.id}/preview`
-    : undefined;
 
   return (
     <div className="flex flex-col h-screen bg-[#0a0a14] text-white overflow-hidden">

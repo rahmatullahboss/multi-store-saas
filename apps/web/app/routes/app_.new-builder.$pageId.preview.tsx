@@ -99,6 +99,8 @@ export default function NewBuilderPreview() {
   // Listen for live update messages from the parent builder frame
   useEffect(() => {
     function handleMessage(event: MessageEvent) {
+      // ✅ Security: reject messages from other origins
+      if (event.origin !== window.location.origin) return;
       if (!event.data || typeof event.data !== 'object') return;
 
       if (event.data.type === 'PREVIEW_UPDATE' && Array.isArray(event.data.sections)) {
@@ -115,8 +117,9 @@ export default function NewBuilderPreview() {
     window.addEventListener('message', handleMessage);
 
     // Notify the parent that the preview frame is ready to receive messages
+    // Use window.location.origin instead of '*' for security (same-origin only)
     try {
-      window.parent.postMessage({ type: 'PREVIEW_FRAME_READY' }, '*');
+      window.parent.postMessage({ type: 'PREVIEW_FRAME_READY' }, window.location.origin);
     } catch {
       // Ignore cross-origin errors (shouldn't happen for same-origin iframes)
     }

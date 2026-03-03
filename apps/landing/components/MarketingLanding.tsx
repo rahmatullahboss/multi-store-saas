@@ -10,7 +10,7 @@
  * - Reduced re-renders
  */
 
-import { useState, useRef, useEffect, useMemo, lazy, Suspense } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { Rocket } from 'lucide-react';
 import { useTranslation } from '@/app/contexts/LanguageContext';
 import { ClientOnly } from '@/components/LazySection';
@@ -24,9 +24,58 @@ import { Footer } from '@/components/Footer';
 import { MarketingHeader } from '@/components/MarketingHeader';
 
 import { AwardWinningHero } from '@/components/AwardWinningHero';
+import { FraudDetectionSection } from '@/components/FraudDetectionSection';
+import { AIHeroSection } from '@/components/AIHeroSection';
+import { ProblemSolutionSection } from '@/components/ProblemSolutionSection';
+import { AIShowcaseSection } from '@/components/landing/AIShowcaseSection';
+import { DragDropBuilderShowcase } from '@/components/landing/DragDropBuilderShowcase';
+import { EditorModeComparison } from '@/components/landing/EditorModeComparison';
+import { AIMagicSection } from '@/components/landing/AIMagicSection';
+import { AISocialProofSection } from '@/components/landing/AISocialProofSection';
+import { BentoFeaturesSection } from '@/components/BentoFeaturesSection';
+import { InfrastructureSection } from '@/components/InfrastructureSection';
+import { SpeedComparison } from '@/components/SpeedComparison';
+import { CDNExplainer } from '@/components/CDNExplainer';
+import { SpeedImpact } from '@/components/SpeedImpact';
+import { CloudflareBenefitsCards } from '@/components/CloudflareBenefitsCards';
+import { TechnicalSpecs } from '@/components/TechnicalSpecs';
+import { LiveDashboard } from '@/components/LiveDashboard';
+import { InfrastructureCTA } from '@/components/InfrastructureCTA';
+import { TrustSection } from '@/components/TrustSection';
+import { ComparisonSection } from '@/components/ComparisonSection';
+import { InteractiveStoreDemo } from '@/components/InteractiveStoreDemo';
+import { FAQSection } from '@/components/FAQSection';
+import { FinalCTA } from '@/components/FinalCTA';
+import { MarketingAutomationSection } from '@/components/landing/MarketingAutomationSection';
+import { LogisticsOperationsSection } from '@/components/landing/LogisticsOperationsSection';
+import { BusinessManagementSection } from '@/components/landing/BusinessManagementSection';
+import { CustomerExperienceSection } from '@/components/landing/CustomerExperienceSection';
+import { CustomerBenefitsSection } from '@/components/landing/CustomerBenefitsSection';
+import { AnalyticsInsightsSection } from '@/components/landing/AnalyticsInsightsSection';
+import { UseCaseScenariosSection } from '@/components/landing/UseCaseScenariosSection';
+import { FeatureMatrixSection } from '@/components/landing/FeatureMatrixSection';
+import { CourierIntegrationSection } from '@/components/landing/CourierIntegrationSection';
+import { WhatsAppSMSAutomationSection } from '@/components/landing/WhatsAppSMSAutomationSection';
+import { EmailMarketingSection } from '@/components/landing/EmailMarketingSection';
+import { TeamManagementSection } from '@/components/landing/TeamManagementSection';
+import { ActivityLogsSection } from '@/components/landing/ActivityLogsSection';
+import { ProductReviewsSection } from '@/components/landing/ProductReviewsSection';
+import { ReturnsRefundsSection } from '@/components/landing/ReturnsRefundsSection';
+import { MessengerIntegrationSection } from '@/components/landing/MessengerIntegrationSection';
+import { TaxReportsSection } from '@/components/landing/TaxReportsSection';
+import { UnifiedCommunicationHub } from '@/components/landing/UnifiedCommunicationHub';
+import { AIPoweredFinalCTA } from '@/components/landing/AIPoweredFinalCTA';
+import { AllInOneSolution } from '@/components/landing/AllInOneSolution';
+import { PaymentIntegrationSection } from '@/components/landing/PaymentIntegrationSection';
+import { InventoryOrderManagement } from '@/components/landing/InventoryOrderManagement';
+import { StorefrontUXShowcase } from '@/components/landing/StorefrontUXShowcase';
+import { CRMMarketingGrowth } from '@/components/landing/CRMMarketingGrowth';
+import { BanglaNativeLocalization } from '@/components/landing/BanglaNativeLocalization';
+import { SecuritySpeedInfrastructure } from '@/components/landing/SecuritySpeedInfrastructure';
+import { ScalabilityShowcase } from '@/components/landing/ScalabilityShowcase';
+import { PricingSection } from '@/components/PricingSection';
 
-const FraudDetectionSection = lazy(
-  () => import('@/components/FraudDetectionSection').then((m) => ({ default: m.FraudDetectionSection })));
+
 
 // ============================================================================
 // OPTIMIZED DYNAMIC IMPORTS
@@ -47,222 +96,71 @@ const SectionSkeleton = () => (
 );
 
 // HIGH PRIORITY - Load with SSR for better LCP
-const AIHeroSection = lazy(
-  () => import('@/components/AIHeroSection').then((m) => ({ default: m.AIHeroSection })));
 
-const ProblemSolutionSection = lazy(
-  () =>
-    import('@/components/ProblemSolutionSection').then((m) => ({
-      default: m.ProblemSolutionSection,
-    })));
+
+
 
 // MEDIUM PRIORITY - Client-side only, load on demand
-const AIShowcaseSection = lazy(
-  () =>
-    import('@/components/landing/AIShowcaseSection').then((m) => ({
-      default: m.AIShowcaseSection,
-    })));
-const DragDropBuilderShowcase = lazy(
-  () =>
-    import('@/components/landing/DragDropBuilderShowcase').then((m) => ({
-      default: m.DragDropBuilderShowcase,
-    })));
-const EditorModeComparison = lazy(
-  () =>
-    import('@/components/landing/EditorModeComparison').then((m) => ({
-      default: m.EditorModeComparison,
-    })));
-const AIMagicSection = lazy(
-  () => import('@/components/landing/AIMagicSection').then((m) => ({ default: m.AIMagicSection })));
-const AISocialProofSection = lazy(
-  () =>
-    import('@/components/landing/AISocialProofSection').then((m) => ({
-      default: m.AISocialProofSection,
-    })));
-const BentoFeaturesSection = lazy(
-  () =>
-    import('@/components/BentoFeaturesSection').then((m) => ({ default: m.BentoFeaturesSection })));
+
+
+
+
+
+
 
 // Infrastructure sections
-const InfrastructureSection = lazy(
-  () =>
-    import('@/components/InfrastructureSection').then((m) => ({
-      default: m.InfrastructureSection,
-    })));
-const SpeedComparison = lazy(
-  () => import('@/components/SpeedComparison').then((m) => ({ default: m.SpeedComparison })));
-const CDNExplainer = lazy(
-  () => import('@/components/CDNExplainer').then((m) => ({ default: m.CDNExplainer })));
-const SpeedImpact = lazy(
-  () => import('@/components/SpeedImpact').then((m) => ({ default: m.SpeedImpact })));
-const CloudflareBenefitsCards = lazy(
-  () =>
-    import('@/components/CloudflareBenefitsCards').then((m) => ({
-      default: m.CloudflareBenefitsCards,
-    })));
-const TechnicalSpecs = lazy(
-  () => import('@/components/TechnicalSpecs').then((m) => ({ default: m.TechnicalSpecs })));
-const LiveDashboard = lazy(
-  () => import('@/components/LiveDashboard').then((m) => ({ default: m.LiveDashboard })));
-const InfrastructureCTA = lazy(
-  () => import('@/components/InfrastructureCTA').then((m) => ({ default: m.InfrastructureCTA })));
+
+
+
+
+
+
+
+
 
 // Trust & sections
-const TrustSection = lazy(
-  () => import('@/components/TrustSection').then((m) => ({ default: m.TrustSection })));
-const ComparisonSection = lazy(
-  () => import('@/components/ComparisonSection').then((m) => ({ default: m.ComparisonSection })));
+
+
 
 // Interactive demo
-const InteractiveStoreDemo = lazy(
-  () =>
-    import('@/components/InteractiveStoreDemo').then((m) => ({ default: m.InteractiveStoreDemo })));
+
 
 // FAQ & CTA
-const FAQSection = lazy(
-  () => import('@/components/FAQSection').then((m) => ({ default: m.FAQSection })));
-const FinalCTA = lazy(
-  () => import('@/components/FinalCTA').then((m) => ({ default: m.FinalCTA })));
+
+
 
 // New Feature sections
-const MarketingAutomationSection = lazy(
-  () =>
-    import('@/components/landing/MarketingAutomationSection').then((m) => ({
-      default: m.MarketingAutomationSection,
-    })));
-const LogisticsOperationsSection = lazy(
-  () =>
-    import('@/components/landing/LogisticsOperationsSection').then((m) => ({
-      default: m.LogisticsOperationsSection,
-    })));
-const BusinessManagementSection = lazy(
-  () =>
-    import('@/components/landing/BusinessManagementSection').then((m) => ({
-      default: m.BusinessManagementSection,
-    })));
-const CustomerExperienceSection = lazy(
-  () =>
-    import('@/components/landing/CustomerExperienceSection').then((m) => ({
-      default: m.CustomerExperienceSection,
-    })));
-const CustomerBenefitsSection = lazy(
-  () =>
-    import('@/components/landing/CustomerBenefitsSection').then((m) => ({
-      default: m.CustomerBenefitsSection,
-    })));
-const AnalyticsInsightsSection = lazy(
-  () =>
-    import('@/components/landing/AnalyticsInsightsSection').then((m) => ({
-      default: m.AnalyticsInsightsSection,
-    })));
-const UseCaseScenariosSection = lazy(
-  () =>
-    import('@/components/landing/UseCaseScenariosSection').then((m) => ({
-      default: m.UseCaseScenariosSection,
-    })));
-const FeatureMatrixSection = lazy(
-  () =>
-    import('@/components/landing/FeatureMatrixSection').then((m) => ({
-      default: m.FeatureMatrixSection,
-    })));
-const CourierIntegrationSection = lazy(
-  () =>
-    import('@/components/landing/CourierIntegrationSection').then((m) => ({
-      default: m.CourierIntegrationSection,
-    })));
-const WhatsAppSMSAutomationSection = lazy(
-  () =>
-    import('@/components/landing/WhatsAppSMSAutomationSection').then((m) => ({
-      default: m.WhatsAppSMSAutomationSection,
-    })));
-const EmailMarketingSection = lazy(
-  () =>
-    import('@/components/landing/EmailMarketingSection').then((m) => ({
-      default: m.EmailMarketingSection,
-    })));
-const TeamManagementSection = lazy(
-  () =>
-    import('@/components/landing/TeamManagementSection').then((m) => ({
-      default: m.TeamManagementSection,
-    })));
-const ActivityLogsSection = lazy(
-  () =>
-    import('@/components/landing/ActivityLogsSection').then((m) => ({
-      default: m.ActivityLogsSection,
-    })));
-const ProductReviewsSection = lazy(
-  () =>
-    import('@/components/landing/ProductReviewsSection').then((m) => ({
-      default: m.ProductReviewsSection,
-    })));
-const ReturnsRefundsSection = lazy(
-  () =>
-    import('@/components/landing/ReturnsRefundsSection').then((m) => ({
-      default: m.ReturnsRefundsSection,
-    })));
-const MessengerIntegrationSection = lazy(
-  () =>
-    import('@/components/landing/MessengerIntegrationSection').then((m) => ({
-      default: m.MessengerIntegrationSection,
-    })));
-const TaxReportsSection = lazy(
-  () =>
-    import('@/components/landing/TaxReportsSection').then((m) => ({
-      default: m.TaxReportsSection,
-    })));
-const UnifiedCommunicationHub = lazy(
-  () =>
-    import('@/components/landing/UnifiedCommunicationHub').then((m) => ({
-      default: m.UnifiedCommunicationHub,
-    })));
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // Award-Winning Extras
-const AIPoweredFinalCTA = lazy(
-  () =>
-    import('@/components/landing/AIPoweredFinalCTA').then((m) => ({
-      default: m.AIPoweredFinalCTA,
-    })));
-const AllInOneSolution = lazy(
-  () =>
-    import('@/components/landing/AllInOneSolution').then((m) => ({ default: m.AllInOneSolution })));
-const PaymentIntegrationSection = lazy(
-  () =>
-    import('@/components/landing/PaymentIntegrationSection').then((m) => ({
-      default: m.PaymentIntegrationSection,
-    })));
-const InventoryOrderManagement = lazy(
-  () =>
-    import('@/components/landing/InventoryOrderManagement').then((m) => ({
-      default: m.InventoryOrderManagement,
-    })));
-const StorefrontUXShowcase = lazy(
-  () =>
-    import('@/components/landing/StorefrontUXShowcase').then((m) => ({
-      default: m.StorefrontUXShowcase,
-    })));
-const CRMMarketingGrowth = lazy(
-  () =>
-    import('@/components/landing/CRMMarketingGrowth').then((m) => ({
-      default: m.CRMMarketingGrowth,
-    })));
-const BanglaNativeLocalization = lazy(
-  () =>
-    import('@/components/landing/BanglaNativeLocalization').then((m) => ({
-      default: m.BanglaNativeLocalization,
-    })));
-const SecuritySpeedInfrastructure = lazy(
-  () =>
-    import('@/components/landing/SecuritySpeedInfrastructure').then((m) => ({
-      default: m.SecuritySpeedInfrastructure,
-    })));
 
-const ScalabilityShowcase = lazy(
-  () =>
-    import('@/components/landing/ScalabilityShowcase').then((m) => ({
-      default: m.ScalabilityShowcase,
-    })));
-const PricingSection = lazy(
-  () => import('@/components/PricingSection').then((m) => ({ default: m.PricingSection })));
+
+
+
+
+
+
+
+
+
+
 
 // ============================================================================
 // LAZY SECTION WRAPPER - Optimized with Intersection Observer

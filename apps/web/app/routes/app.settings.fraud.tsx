@@ -297,19 +297,45 @@ export default function FraudSettingsPage() {
   const [newPhone, setNewPhone] = useState('');
   const [newReason, setNewReason] = useState('');
 
-  // Shared status badge component
-  const StatusBadge = () => (
-    <div className={`px-3 py-1.5 md:px-4 md:py-2 rounded-full border flex items-center gap-2 ${
-      settings.enabled
-        ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
-        : 'bg-gray-50 border-gray-200 text-gray-600'
-    }`}>
-      {settings.enabled ? (
-        <><ShieldCheck className="w-4 h-4" /><span className="text-sm font-medium">Active</span></>
-      ) : (
-        <><ShieldX className="w-4 h-4" /><span className="text-sm font-medium">Inactive</span></>
-      )}
-    </div>
+  const pct = (n: number) => (stats.total > 0 ? Math.round((n / stats.total) * 100) : 0);
+
+  // Animated pulse badge
+  const ActiveBadge = () =>
+    settings.enabled ? (
+      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-semibold">
+        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+        Active
+      </span>
+    ) : (
+      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gray-100 text-gray-600 text-xs font-semibold">
+        <span className="w-2 h-2 rounded-full bg-gray-400" />
+        Inactive
+      </span>
+    );
+
+  // Toggle switch helper — renders a proper pill toggle
+  const Toggle = ({
+    name,
+    id,
+    defaultChecked,
+    value = 'true',
+  }: {
+    name: string;
+    id: string;
+    defaultChecked: boolean;
+    value?: string;
+  }) => (
+    <label htmlFor={id} className="relative inline-flex items-center cursor-pointer flex-shrink-0">
+      <input
+        type="checkbox"
+        id={id}
+        name={name}
+        value={value}
+        defaultChecked={defaultChecked}
+        className="sr-only peer"
+      />
+      <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-emerald-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-5" />
+    </label>
   );
 
   return (
