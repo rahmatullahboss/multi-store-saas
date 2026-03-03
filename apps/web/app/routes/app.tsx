@@ -46,6 +46,7 @@ import {
   Ticket,
   Shield,
   Lock,
+  FileText,
 } from 'lucide-react';
 import { LanguageSelector } from '~/components/LanguageSelector';
 import { useTranslation } from '~/contexts/LanguageContext';
@@ -336,8 +337,7 @@ const navSections: NavSection[] = [
     titleKey: 'sidebarOnlineStore',
     items: [
       { to: '/app/store/settings', labelKey: 'navTheme', icon: Palette },
-      // Landing Page Builder & Drag-Drop Builder moved to Super Admin (Work In Progress)
-      // { to: '/app/new-builder', labelKey: 'navPages', icon: FileText },
+      { to: '/app/new-builder', labelKey: 'navPages', icon: FileText },
       // { to: '/app/quick-builder/new', labelKey: 'navQuickBuilder', icon: Sparkles },
       // { to: '/app/page-builder', labelKey: 'navDragDropBuilder', icon: Layers },
     ],
