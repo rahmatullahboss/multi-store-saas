@@ -11,10 +11,17 @@ const mocks = vi.hoisted(() => {
         getCustomerId: vi.fn().mockResolvedValue(1),
         // Mock getStoreId to return 123
         getStoreId: vi.fn().mockResolvedValue(123),
+        getUserId: vi.fn().mockResolvedValue(1),
+        requireTenant: vi.fn().mockResolvedValue({ storeId: 123 }),
     };
 });
 
+vi.mock('~/lib/tenant-guard.server', () => ({
+    requireTenant: mocks.requireTenant,
+}));
+
 vi.mock('~/services/auth.server', () => ({
+    getUserId: mocks.getUserId,
     getStoreId: mocks.getStoreId,
 }));
 
