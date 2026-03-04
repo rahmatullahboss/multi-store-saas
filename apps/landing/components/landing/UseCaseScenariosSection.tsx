@@ -5,10 +5,7 @@ import { Shirt, Utensils, Laptop, ShoppingBag, ArrowRight, Check } from 'lucide-
 export function UseCaseScenariosSection() {
   const { lang } = useTranslation();
   const containerRef = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start end", "end start"]
-  });
+
 
   const TEXT = {
     en: {
@@ -96,7 +93,7 @@ export function UseCaseScenariosSection() {
       <div className="absolute inset-0 bg-[url('/grid-pattern.svg')] opacity-5" />
 
       <div className="max-w-7xl mx-auto px-4 relative z-10">
-        <div style={{ opacity }} className="text-center mb-16">
+        <div className="text-center mb-16">
           <h2 className="text-3xl md:text-5xl font-bold text-white mb-4">{TEXT.title}</h2>
           <p className="text-white/60 text-lg max-w-2xl mx-auto">{TEXT.subtitle}</p>
         </div>

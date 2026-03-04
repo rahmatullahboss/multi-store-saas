@@ -22,10 +22,7 @@ export function CourierIntegrationSection() {
   const containerRef = useRef<HTMLDivElement>(null);
   const isInView = useInViewSimple(containerRef);
   
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start end", "end start"]
-  });
+
 
   const couriers = [
     { name: 'Steadfast', color: '#00D1FF', time: '1-2 Days', cost: '৳60' },
@@ -125,7 +122,6 @@ export function CourierIntegrationSection() {
 
           {/* Right Side: Interactive Demo Card */}
           <div
-            style={{ y }}
             className="relative"
           >
              {/* Decorative Elements */}
