@@ -255,6 +255,10 @@ export const products = sqliteTable(
     // Bundle/Combo Pricing for landing pages
     // JSON: [{ qty: 1, price: 1490, label: '১ পিস' }, { qty: 2, price: 2780, label: '২ পিস', savings: 200 }]
     bundlePricing: text('bundle_pricing'),
+    // === P&L TRACKING (2026-03-03) ===
+    // Purchase/manufacturing cost in BDT. Optional. Never shown to customers.
+    // Used to calculate COGS and profit margin.
+    costPrice: real('cost_price'),
     createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
     updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
   },
@@ -413,6 +417,13 @@ export const orders = sqliteTable(
     utmMedium: text('utm_medium'), // e.g. "cpc", "email"
     utmCampaign: text('utm_campaign'), // e.g. "summer_sale"
 
+    // === P&L TRACKING (2026-03-03) ===
+    // What the merchant actually paid the courier (in paisa = BDT × 100).
+    // DIFFERENT from orders.shipping (what customer paid for shipping).
+    // e.g., merchant pays Pathao ৳75 → store 7500 paisa
+    // Default 0 = not yet entered by merchant.
+    courierCharge: integer('courier_charge').notNull().default(0),
+
     createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
     updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
   },
@@ -441,6 +452,11 @@ export const orderItems = sqliteTable(
     quantity: integer('quantity').notNull(),
     price: real('price').notNull(),
     total: real('total').notNull(),
+    // === P&L TRACKING (2026-03-03) ===
+    // Cost price snapshot at time of order. Write-once — never updated after creation.
+    // Resolved as: variant.costPrice ?? product.costPrice ?? NULL
+    // NULL = product had no cost price set at order time → excluded from COGS
+    costPriceSnapshot: real('cost_price_snapshot'),
   },
   (table) => [index('order_items_order_id_idx').on(table.orderId)]
 );
@@ -475,6 +491,10 @@ export const productVariants = sqliteTable(
     imageUrl: text('image_url'),
     // Status
     isAvailable: integer('is_available', { mode: 'boolean' }).default(true),
+    // === P&L TRACKING (2026-03-03) ===
+    // Per-variant cost override. NULL = inherit parent product.costPrice.
+    // e.g., XL size costs ৳240 to source, S size costs ৳200
+    costPrice: real('cost_price'),
     createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
   },
   (table) => [

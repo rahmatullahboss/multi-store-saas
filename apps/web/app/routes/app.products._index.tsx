@@ -88,6 +88,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     (p) => (p.inventory || 0) > 0 && (p.inventory || 0) <= 5
   ).length;
   const outOfStockCount = storeProducts.filter((p) => (p.inventory || 0) <= 0).length;
+  const missingCostCount = storeProducts.filter((p) => p.costPrice === null).length;
 
   // Check product limit for the plan
   const { checkUsageLimit } = await import('~/utils/plans.server');
@@ -107,6 +108,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       draft: draftCount,
       lowStock: lowStockCount,
       outOfStock: outOfStockCount,
+      missingCost: missingCostCount,
     },
     // Product limit info
     canAddProduct: limitCheck.allowed,
@@ -294,6 +296,7 @@ export default function ProductsIndexPage() {
     { id: 'draft', label: t('dashboard:draftStatus'), count: stats.draft },
     { id: 'low-stock', label: t('dashboard:lowStock'), count: stats.lowStock },
     { id: 'out-of-stock', label: t('dashboard:outOfStockLabel'), count: stats.outOfStock },
+    { id: 'missing-cost', label: 'Missing Cost', count: stats.missingCost },
   ];
 
   // Filter products based on status and search
@@ -313,6 +316,9 @@ export default function ProductsIndexPage() {
         break;
       case 'out-of-stock':
         filtered = filtered.filter((p) => (p.inventory || 0) <= 0);
+        break;
+      case 'missing-cost':
+        filtered = filtered.filter((p) => p.costPrice === null);
         break;
     }
 
@@ -422,7 +428,7 @@ export default function ProductsIndexPage() {
         {/* Status Tabs */}
         <div className="sticky top-[130px] z-10 bg-gray-50 py-2">
           <div className="flex gap-2 px-4 overflow-x-auto no-scrollbar pb-1">
-            {['all', 'published', 'draft', 'out-of-stock'].map((tab) => (
+            {['all', 'published', 'draft', 'out-of-stock', 'missing-cost'].map((tab) => (
               <button
                 key={tab}
                 onClick={() => handleStatusChange(tab)}
@@ -435,7 +441,8 @@ export default function ProductsIndexPage() {
                 {tab === 'all' ? (t('dashboard:all') || 'All')
                   : tab === 'published' ? (t('dashboard:publishedStatus') || 'Active')
                   : tab === 'draft' ? (t('dashboard:draftStatus') || 'Draft')
-                  : (t('dashboard:outOfStockLabel') || 'Out of Stock')}
+                  : tab === 'out-of-stock' ? (t('dashboard:outOfStockLabel') || 'Out of Stock')
+                  : 'Missing Cost'}
               </button>
             ))}
           </div>
@@ -743,6 +750,9 @@ export default function ProductsIndexPage() {
                     {t('dashboard:price')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    Cost & Margin
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                     {t('dashboard:category')}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
@@ -819,6 +829,9 @@ export default function ProductsIndexPage() {
                       )}
                     </td>
                     <td className="px-4 py-4">
+                      <CostMarginDisplay price={product.price} costPrice={product.costPrice} />
+                    </td>
+                    <td className="px-4 py-4">
                       <span className="text-gray-600">{product.category || '—'}</span>
                     </td>
                     <td className="px-4 py-4 text-right">
@@ -887,6 +900,10 @@ export default function ProductsIndexPage() {
                         {formatPrice(product.price)}
                       </span>
                       <StockBadge stock={product.inventory || 0} />
+                    </div>
+                    <div className="mt-1 flex items-center gap-2 text-xs">
+                      <span className="text-gray-500">Cost:</span>
+                      <MobileCostMarginDisplay price={product.price} costPrice={product.costPrice} />
                     </div>
                     {product.category && (
                       <p className="mt-1 text-xs text-gray-500">{product.category}</p>
@@ -993,6 +1010,47 @@ function StatusBadge({ published }: { published: boolean }) {
     >
       {label}
     </span>
+  );
+}
+
+// ============================================================================
+// COST MARGIN DISPLAY COMPONENTS
+// ============================================================================
+function CostMarginDisplay({ price, costPrice }: { price: number; costPrice: number | null }) {
+  if (costPrice === null) return <span className="text-gray-400">—</span>;
+  
+  const margin = price > 0 ? ((price - costPrice) / price) * 100 : 0;
+  const isNegative = costPrice > price;
+  
+  return (
+    <div className="flex flex-col items-start justify-center">
+      <span className="font-semibold text-gray-900">{formatPrice(costPrice)}</span>
+      {isNegative ? (
+        <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-red-100 text-red-700 border border-red-200 mt-0.5" title="Cost exceeds selling price">
+          Negative Margin
+        </span>
+      ) : (
+        <span className="text-xs text-emerald-600 font-medium mt-0.5">{margin.toFixed(1)}% margin</span>
+      )}
+    </div>
+  );
+}
+
+function MobileCostMarginDisplay({ price, costPrice }: { price: number; costPrice: number | null }) {
+  if (costPrice === null) return <span className="text-gray-400">—</span>;
+  
+  const margin = price > 0 ? ((price - costPrice) / price) * 100 : 0;
+  const isNegative = costPrice > price;
+  
+  return (
+    <div className="flex items-center gap-1">
+      <span className="font-medium text-gray-900">{formatPrice(costPrice)}</span>
+      {isNegative ? (
+        <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-red-100 text-red-700">Loss</span>
+      ) : (
+        <span className="text-emerald-600 font-medium">({margin.toFixed(1)}%)</span>
+      )}
+    </div>
   );
 }
 

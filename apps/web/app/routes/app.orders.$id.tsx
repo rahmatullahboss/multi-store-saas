@@ -612,6 +612,20 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
   // STATUS UPDATE
   // ============================================================================
 
+  // ============================================================================
+  // P&L: COURIER CHARGE UPDATE
+  // ============================================================================
+  if (intent === 'update-courier-charge') {
+    const courierChargeRaw = formData.get('courierCharge') as string;
+    const courierChargeBDT = parseFloat(courierChargeRaw || '0') || 0;
+    const courierChargePaisa = Math.round(Math.max(0, Math.min(courierChargeBDT, 9999)) * 100);
+    await db
+      .update(orders)
+      .set({ courierCharge: courierChargePaisa, updatedAt: new Date() })
+      .where(and(eq(orders.id, orderId), eq(orders.storeId, storeId)));
+    return json({ success: true, message: 'Courier charge saved' });
+  }
+
   await db
     .update(orders)
     .set({
@@ -1112,6 +1126,28 @@ export default function OrderDetailPage() {
                   <span className="text-xs text-gray-500 font-mono">{order.courierConsignmentId}</span>
                 </div>
                 {order.courierStatus && <p className="text-xs text-gray-500">Status: <span className="font-medium text-gray-800">{order.courierStatus}</span></p>}
+
+                {/* P&L: Courier Charge Input */}
+                <Form method="post" className="flex items-center gap-2">
+                  <input type="hidden" name="intent" value="update-courier-charge" />
+                  <div className="flex-1">
+                    <label className="text-xs text-gray-500 mb-1 block">Courier Charge Paid (৳)</label>
+                    <input
+                      type="number"
+                      name="courierCharge"
+                      step="0.5"
+                      min="0"
+                      max="9999"
+                      defaultValue={order.courierCharge ? (order.courierCharge / 100).toFixed(0) : ''}
+                      placeholder="e.g., 75"
+                      className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                    />
+                  </div>
+                  <button type="submit" className="mt-5 px-3 py-2 bg-emerald-600 text-white text-xs font-semibold rounded-xl hover:bg-emerald-700 transition">
+                    Save
+                  </button>
+                </Form>
+
                 <button onClick={() => setIsTrackingOpen(true)} className="w-full py-2.5 rounded-full border border-emerald-500 text-emerald-600 text-sm font-semibold hover:bg-emerald-50 transition-colors">
                   Track Shipment
                 </button>

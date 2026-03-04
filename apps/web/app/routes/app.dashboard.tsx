@@ -36,6 +36,7 @@ import {
   AlertTriangle,
 } from 'lucide-react';
 import { MetricCard, SalesChart, ActionItems, RecentOrders } from '~/components/dashboard';
+import { PLSummaryCards } from '~/components/dashboard/PLSummaryCards';
 import { GlassCard } from '~/components/ui/GlassCard';
 import { FirstSaleChecklist } from '~/components/dashboard/FirstSaleChecklist';
 import { LimitWarningBanner } from '~/components/LimitWarningBanner';
@@ -81,10 +82,18 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   // Fetch store stats using shared service
   // Pass correct db instance type by using 'as any' if strictly needed or ensuring getStoreStats accepts the schematized db
   // For now, let's fix the schema passed to drizzle above, which should match what the service expects if it imports schema
-  const [statsResult, forecast, clv] = await Promise.all([
+  // P&L: Fetch current month summary for dashboard cards
+  const now = new Date();
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+
+  const [statsResult, forecast, clv, plSummary] = await Promise.all([
     getStoreStats(db, storeId),
     getRevenueForecast(db, storeId),
     getPredictedCLV(db, storeId),
+    import('~/services/pl-report.server').then(m =>
+      m.getPLSummary(db as any, storeId, context.cloudflare.env as any, monthStart, now)
+        .catch(() => null)
+    ),
   ]);
   const {
     products: productCount,
@@ -153,8 +162,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   }
 
   // Get greeting based on time
-  const now = new Date();
-  const hour = now.getHours();
+  const currentTime = new Date();
+  const hour = currentTime.getHours();
   let greeting = 'Good morning';
   if (hour >= 12 && hour < 17) greeting = 'Good afternoon';
   else if (hour >= 17) greeting = 'Good evening';
@@ -195,6 +204,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       ...o,
       createdAt: o.createdAt?.toISOString() || new Date().toISOString(),
     })),
+    plSummary,
   });
 }
 
@@ -390,6 +400,7 @@ export default function DashboardPage() {
     forecast,
     clv,
     recentOrders,
+    plSummary,
   } = data as Exclude<typeof data, { storeDeleted: boolean }>;
 
   // Get translated greeting
@@ -517,6 +528,24 @@ export default function DashboardPage() {
             <p className="text-xs text-slate-400 mt-1">{t('dashboard:allTime') || 'All time'}</p>
           </div>
         </div>
+
+        {/* P&L Summary Cards */}
+        {plSummary && (plSummary.grossProfit !== 0 || plSummary.totalCOGS !== 0) ? (
+          <div className="px-4 pb-2">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-sm font-bold text-slate-900">This Month's Profit</h3>
+              <Link to="/app/reports?report=pl" className="text-xs text-emerald-600 font-medium hover:underline">Full P&L →</Link>
+            </div>
+            <PLSummaryCards summary={plSummary} compact={true} showIncompleteWarning={false} />
+          </div>
+        ) : (
+          <div className="px-4 pb-2">
+            <Link to="/app/products" className="block bg-emerald-50 border border-emerald-200 rounded-xl p-3 hover:bg-emerald-100 transition">
+              <p className="text-sm font-semibold text-emerald-800">📊 Unlock Profit Tracking</p>
+              <p className="text-xs text-emerald-600 mt-0.5">Add cost prices to products to see real profit numbers →</p>
+            </Link>
+          </div>
+        )}
 
         {/* Quick Actions */}
         <div className="px-4 pb-4">

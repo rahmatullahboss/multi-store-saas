@@ -148,6 +148,10 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
   const returnPolicy = formData.get('returnPolicy') as string;
   // Bundle pricing
   const bundlePricing = formData.get('bundlePricing') as string;
+  // P&L: Cost price
+  const costPriceRaw = formData.get('costPrice') as string;
+  const costPrice =
+    costPriceRaw && costPriceRaw.trim() !== '' ? parseFloat(costPriceRaw) : null;
 
   // Validation
   const errors: Record<string, string> = {};
@@ -213,6 +217,7 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
       seoDescription: seoDescription?.trim() || null,
       seoKeywords: seoKeywords?.trim() || null,
       bundlePricing: bundlePricing || null,
+      costPrice: costPrice,
       updatedAt: new Date(),
     })
     .where(and(eq(products.id, productId), eq(products.storeId, storeId)));
@@ -257,6 +262,7 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
             inventory: variantInventory,
             available: variantInventory,
             reserved: 0,
+            costPrice: v.costPrice ?? null, // P&L: variant cost override
           });
         }
       }
@@ -370,6 +376,14 @@ export default function EditProductPage() {
   const [formCompareAtPrice, setFormCompareAtPrice] = useState<string>(
     product.compareAtPrice ? String(fromCents(product.compareAtPrice)) : ''
   );
+  // P&L: Cost price state
+  const [formCostPrice, setFormCostPrice] = useState<string>(
+    product.costPrice != null ? String(product.costPrice) : ''
+  );
+  const marginPct =
+    formPrice && formCostPrice && parseFloat(formPrice) > 0
+      ? ((parseFloat(formPrice) - parseFloat(formCostPrice)) / parseFloat(formPrice)) * 100
+      : null;
   const [formDescription, setFormDescription] = useState<string>(product.description || '');
   const [formStock, setFormStock] = useState<string>(String(product.inventory ?? 0));
 
@@ -702,6 +716,46 @@ export default function EditProductPage() {
                 </p>
               )}
             </div>
+          </div>
+
+          {/* P&L: Cost Price Field */}
+          <div className="border border-dashed border-emerald-200 bg-emerald-50/30 rounded-lg p-4 space-y-2">
+            <div className="flex items-center justify-between">
+              <label htmlFor="costPrice" className="block text-sm font-medium text-gray-700">
+                Cost Price (৳){' '}
+                <span className="text-gray-400 text-xs font-normal">(Optional — never shown to customers)</span>
+              </label>
+              {marginPct !== null && (
+                <span
+                  className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+                    marginPct < 0
+                      ? 'bg-red-100 text-red-700'
+                      : marginPct < 20
+                        ? 'bg-yellow-100 text-yellow-700'
+                        : 'bg-emerald-100 text-emerald-700'
+                  }`}
+                >
+                  {marginPct < 0 ? '⚠️ Negative' : `${marginPct.toFixed(1)}% margin`}
+                </span>
+              )}
+            </div>
+            <input
+              type="number"
+              id="costPrice"
+              name="costPrice"
+              step="0.01"
+              min="0"
+              value={formCostPrice}
+              onChange={(e) => setFormCostPrice(e.target.value)}
+              placeholder="e.g., 280 (your purchase cost)"
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
+            />
+            {marginPct !== null && marginPct < 0 && (
+              <p className="text-red-600 text-xs">⚠️ Cost exceeds selling price — negative margin</p>
+            )}
+            {!formCostPrice && (
+              <p className="text-gray-400 text-xs">Set cost price to unlock profit tracking in reports</p>
+            )}
           </div>
 
           {/* Stock */}

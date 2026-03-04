@@ -911,6 +911,14 @@ export async function action({ request, context }: ActionFunctionArgs) {
         );
       }
 
+      // === P&L: Resolve cost price snapshot (write-once at order time) ===
+      // Priority: variant.costPrice ?? product.costPrice ?? null
+      // NULL = no cost data set → excluded from COGS in P&L reports
+      const variantCost = item.variantId
+        ? (dbVariants.find((v) => v.id === item.variantId)?.costPrice ?? null)
+        : null;
+      const costPriceSnapshot = variantCost ?? product.costPrice ?? null;
+
       // Add to list for atomic update later (or do optimistic check here)
       finalOrderItems.push({
         ...item,
@@ -920,6 +928,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         total: unitPrice * item.quantity,
         isVariantStock,
         variantIdToUpdate,
+        costPriceSnapshot, // P&L: immutable cost snapshot
         product, // keep ref
       });
 
@@ -1415,6 +1424,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
           quantity: item.quantity,
           price: item.unitPrice,
           total: item.total,
+          costPriceSnapshot: item.costPriceSnapshot ?? null, // P&L: write-once, never updated
         })),
         ...bumpItems.map((bump) => ({
           orderId: orderId!,

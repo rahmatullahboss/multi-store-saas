@@ -19,6 +19,7 @@ export interface Variant {
   option2Name?: string;
   option2Value?: string;
   price?: number;
+  costPrice?: number; // P&L: per-variant cost override
   sku?: string;
   inventory?: number;
 }
@@ -410,6 +411,10 @@ export function VariantManager({ variants, onChange, basePrice, category }: Vari
               <tr>
                 <th className="text-left px-4 py-2 font-medium text-gray-600">Variant</th>
                 <th className="text-left px-4 py-2 font-medium text-gray-600">Price</th>
+                <th className="text-left px-4 py-2 font-medium text-gray-600">
+                  Cost (৳)
+                  <span className="block text-xs font-normal text-gray-400">P&L override</span>
+                </th>
                 <th className="text-left px-4 py-2 font-medium text-gray-600">SKU</th>
                 <th className="text-left px-4 py-2 font-medium text-gray-600">Stock</th>
                 <th className="w-10"></th>
@@ -427,6 +432,23 @@ export function VariantManager({ variants, onChange, basePrice, category }: Vari
                       value={variant.price || ''}
                       placeholder={basePrice.toString()}
                       onChange={(e) => updateVariant(index, { price: e.target.value ? parseFloat(e.target.value) : undefined })}
+                      className="w-24 px-2 py-1 border border-gray-300 rounded text-sm"
+                    />
+                  </td>
+                  {/* P&L: Per-variant cost override */}
+                  <td className="px-4 py-3">
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={variant.costPrice ?? ''}
+                      onChange={(e) =>
+                        updateVariant(index, {
+                          costPrice: e.target.value ? parseFloat(e.target.value) : undefined,
+                        })
+                      }
+                      placeholder="Inherit"
+                      title="Leave empty to use product cost price"
                       className="w-24 px-2 py-1 border border-gray-300 rounded text-sm"
                     />
                   </td>

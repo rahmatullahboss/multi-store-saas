@@ -19,10 +19,14 @@ import { orders, products, customers, stores } from '@db/schema';
 import { requireTenant } from '~/lib/tenant-guard.server';
 import { 
   FileText, Download, Calendar, Package, 
-  Users, DollarSign, Filter
+  Users, DollarSign, Filter, TrendingUp
 } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from '~/contexts/LanguageContext';
+import { getPLSummary, getProductMargins, getPeriodDates } from '~/services/pl-report.server';
+import { PLSummaryCards } from '~/components/dashboard/PLSummaryCards';
+import { ReturnImpactCard } from '~/components/dashboard/ReturnImpactCard';
+import { ProductMarginTable } from '~/components/dashboard/ProductMarginTable';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Reports - Ozzyl' }];
@@ -187,6 +191,44 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     }
   }
 
+  // ============================================================================
+  // P&L REPORT DATA
+  // ============================================================================
+  let plSummary = null;
+  let plPreviousSummary = null;
+  let plProductMargins = null;
+  let productsWithNoCost = 0;
+
+  if (reportType === 'pl') {
+    const preset = (url.searchParams.get('plPreset') as 'today' | 'week' | 'month' | 'last_month') || 'month';
+    const { start: periodStart, end: periodEnd } = getPeriodDates(preset);
+
+    // Previous period (same duration)
+    const duration = periodEnd.getTime() - periodStart.getTime();
+    const prevEnd = new Date(periodStart.getTime() - 1);
+    const prevStart = new Date(prevEnd.getTime() - duration);
+
+    const [summary, prevSummary, margins, noCostCount] = await Promise.all([
+      getPLSummary(db as any, storeId, context.cloudflare.env as any, periodStart, periodEnd),
+      getPLSummary(db as any, storeId, context.cloudflare.env as any, prevStart, prevEnd),
+      getProductMargins(db as any, storeId, periodStart, periodEnd,
+        parseInt(url.searchParams.get('plPage') || '1'),
+        20,
+        (url.searchParams.get('plSort') as any) || 'grossProfit',
+        (url.searchParams.get('plDir') as any) || 'desc'
+      ),
+      db.select({ count: sql<number>`COUNT(*)` })
+        .from(products)
+        .where(and(eq(products.storeId, storeId), sql`${products.costPrice} IS NULL`))
+        .then(r => Number(r[0]?.count ?? 0)),
+    ]);
+
+    plSummary = summary;
+    plPreviousSummary = prevSummary;
+    plProductMargins = margins;
+    productsWithNoCost = noCostCount;
+  }
+
   return json({
     reportType,
     reportData,
@@ -194,6 +236,10 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     storeName,
     startDate,
     endDate,
+    plSummary,
+    plPreviousSummary,
+    plProductMargins,
+    productsWithNoCost,
   });
 }
 
@@ -305,7 +351,7 @@ function generateTaxCSV(data: unknown[]): string {
 // MAIN COMPONENT
 // ============================================================================
 export default function ReportsPage() {
-  const { reportType, reportData, currency, storeName, startDate, endDate } = useLoaderData<typeof loader>();
+  const { reportType, reportData, currency, storeName, startDate, endDate, plSummary, plPreviousSummary, plProductMargins, productsWithNoCost } = useLoaderData<typeof loader>();
   const [searchParams, setSearchParams] = useSearchParams();
   const { t, lang } = useTranslation();
 
@@ -353,6 +399,22 @@ export default function ReportsPage() {
         csv = generateTaxCSV(reportData);
         filename = `tax-report-${dateStr}.csv`;
         break;
+      case 'pl':
+        if (plSummary) {
+          const headers = ['Metric', 'Amount (BDT)'];
+          const rows = [
+            ['Gross Revenue', plSummary.grossRevenue.toFixed(0)],
+            ['Total COGS', plSummary.totalCOGS.toFixed(0)],
+            ['Gross Profit', plSummary.grossProfit.toFixed(0)],
+            ['Gross Margin %', plSummary.grossMarginPct.toFixed(1) + '%'],
+            ['Courier Cost', plSummary.courierCost.toFixed(0)],
+            ['Net Profit', plSummary.netProfit.toFixed(0)],
+            ['Net Margin %', plSummary.netMarginPct.toFixed(1) + '%'],
+          ];
+          csv = [headers.join(','), ...rows.map(r => r.map(c => `"${c}"`).join(','))].join('\n');
+          filename = `profit-loss-summary-${plPreset}-${dateStr}.csv`;
+        }
+        break;
     }
 
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -367,7 +429,35 @@ export default function ReportsPage() {
     { id: 'inventory', label: t('inventoryReport'), icon: Package, hasDateFilter: false },
     { id: 'customers', label: t('customerReport'), icon: Users, hasDateFilter: false },
     { id: 'tax', label: t('taxReport'), icon: FileText, hasDateFilter: true },
+    { id: 'pl', label: 'Profit & Loss', icon: TrendingUp, hasDateFilter: false },
   ];
+
+  // P&L state
+  const plPreset = searchParams.get('plPreset') || 'month';
+  const plPage = parseInt(searchParams.get('plPage') || '1');
+  const plSort = (searchParams.get('plSort') || 'grossProfit') as any;
+  const plDir = (searchParams.get('plDir') || 'desc') as 'asc' | 'desc';
+
+  const handlePLPreset = (preset: string) => {
+    const p = new URLSearchParams(searchParams);
+    p.set('plPreset', preset);
+    p.delete('plPage');
+    setSearchParams(p);
+  };
+
+  const handlePLPage = (page: number) => {
+    const p = new URLSearchParams(searchParams);
+    p.set('plPage', String(page));
+    setSearchParams(p);
+  };
+
+  const handlePLSort = (col: string, dir: 'asc' | 'desc') => {
+    const p = new URLSearchParams(searchParams);
+    p.set('plSort', col);
+    p.set('plDir', dir);
+    p.delete('plPage');
+    setSearchParams(p);
+  };
 
   const currentReport = reports.find(r => r.id === reportType) || reports[0];
 
@@ -463,6 +553,63 @@ export default function ReportsPage() {
           {reportType === 'tax' && <TaxTable data={reportData} formatPrice={formatPrice} />}
         </div>
       </div>
+
+      {/* P&L Report Tab Content */}
+      {reportType === 'pl' && (
+        <div className="space-y-6">
+          {/* Period Presets */}
+          <div className="flex items-center gap-2 flex-wrap">
+            {(['today', 'week', 'month', 'last_month'] as const).map((preset) => (
+              <button
+                key={preset}
+                onClick={() => handlePLPreset(preset)}
+                className={`px-4 py-1.5 rounded-full text-sm font-medium transition ${
+                  plPreset === preset
+                    ? 'bg-emerald-600 text-white'
+                    : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
+                }`}
+              >
+                {preset === 'today' ? 'Today' : preset === 'week' ? 'This Week' : preset === 'month' ? 'This Month' : 'Last Month'}
+              </button>
+            ))}
+          </div>
+
+          {plSummary ? (
+            <>
+              <PLSummaryCards
+                summary={plSummary}
+                previousSummary={plPreviousSummary}
+                productsWithNoCost={productsWithNoCost}
+                showIncompleteWarning={true}
+              />
+              <ReturnImpactCard summary={plSummary} />
+              {plProductMargins && (
+                <ProductMarginTable
+                  rows={plProductMargins.rows}
+                  total={plProductMargins.total}
+                  page={plPage}
+                  limit={20}
+                  periodStart={plPreset}
+                  periodEnd={plPreset}
+                  onPageChange={handlePLPage}
+                  onSortChange={handlePLSort}
+                  currentSort={plSort}
+                  currentDir={plDir}
+                />
+              )}
+            </>
+          ) : (
+            <div className="bg-white border border-gray-200 rounded-xl p-8 text-center">
+              <TrendingUp className="w-12 h-12 text-emerald-400 mx-auto mb-3" />
+              <h3 className="font-semibold text-gray-900 mb-1">Track Your Profit</h3>
+              <p className="text-sm text-gray-500 mb-4">Add cost prices to your products to unlock P&L reporting</p>
+              <Link to="/app/products" className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 transition">
+                Go to Products
+              </Link>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

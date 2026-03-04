@@ -60,6 +60,10 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const warranty = formData.get('warranty') as string;
   const shippingInfo = formData.get('shippingInfo') as string;
   const returnPolicy = formData.get('returnPolicy') as string;
+  // P&L: Cost price
+  const costPriceRaw = formData.get('costPrice') as string;
+  const costPrice =
+    costPriceRaw && costPriceRaw.trim() !== '' ? parseFloat(costPriceRaw) : null;
 
   // Validation
   const errors: Record<string, string> = {};
@@ -107,6 +111,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     seoTitle: seoTitle?.trim() || null,
     seoDescription: seoDescription?.trim() || null,
     seoKeywords: seoKeywords?.trim() || null,
+    costPrice: costPrice,
   }).returning({ id: products.id });
 
   // Create variants if any
@@ -234,6 +239,12 @@ export default function NewProductPage() {
   const [formTitle, setFormTitle] = useState<string>('');
   const [formPrice, setFormPrice] = useState<string>('');
   const [formCompareAtPrice, setFormCompareAtPrice] = useState<string>('');
+  // P&L: Cost price state
+  const [formCostPrice, setFormCostPrice] = useState<string>('');
+  const marginPct =
+    formPrice && formCostPrice && parseFloat(formPrice) > 0
+      ? ((parseFloat(formPrice) - parseFloat(formCostPrice)) / parseFloat(formPrice)) * 100
+      : null;
   const [formDescription, setFormDescription] = useState<string>('');
 
   // SEO state
@@ -484,6 +495,38 @@ export default function NewProductPage() {
                 </p>
               )}
             </div>
+          </div>
+
+          {/* P&L: Cost Price Field */}
+          <div className="border border-dashed border-emerald-200 bg-emerald-50/30 rounded-lg p-4 space-y-2">
+            <div className="flex items-center justify-between">
+              <label htmlFor="costPrice" className="block text-sm font-medium text-gray-700">
+                Cost Price (৳){' '}
+                <span className="text-gray-400 text-xs font-normal">(Optional — never shown to customers)</span>
+              </label>
+              {marginPct !== null && (
+                <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${marginPct < 0 ? 'bg-red-100 text-red-700' : marginPct < 20 ? 'bg-yellow-100 text-yellow-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                  {marginPct < 0 ? '⚠️ Negative' : `${marginPct.toFixed(1)}% margin`}
+                </span>
+              )}
+            </div>
+            <input
+              type="number"
+              id="costPrice"
+              name="costPrice"
+              step="0.01"
+              min="0"
+              value={formCostPrice}
+              onChange={(e) => setFormCostPrice(e.target.value)}
+              placeholder="e.g., 280 (your purchase cost)"
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
+            />
+            {marginPct !== null && marginPct < 0 && (
+              <p className="text-red-600 text-xs">⚠️ Cost exceeds selling price — negative margin</p>
+            )}
+            {!formCostPrice && (
+              <p className="text-gray-400 text-xs">Set cost price to unlock profit tracking in reports</p>
+            )}
           </div>
 
           {/* Stock */}

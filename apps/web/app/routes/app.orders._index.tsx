@@ -1287,6 +1287,11 @@ export default function DashboardOrdersPage() {
                             {/* Price + payment */}
                             <div className="text-right flex-shrink-0">
                               <div className="text-sm font-bold text-slate-900">{formatPrice(order.total)}</div>
+                              {order.courierCharge ? (
+                                <div className="text-[10px] text-slate-500 mt-0.5">
+                                  Courier: {formatPrice(order.courierCharge / 100)}
+                                </div>
+                              ) : null}
                               <div className={`text-[10px] px-1.5 py-0.5 rounded mt-1 inline-block ${paymentLabel.cls}`}>
                                 {paymentLabel.label}
                               </div>
@@ -1382,6 +1387,7 @@ export default function DashboardOrdersPage() {
                           <th className="px-4 py-3 font-medium min-w-[180px]">{t('dashboard:customer')}</th>
                           <th className="px-4 py-3 font-medium min-w-[200px]">Products</th>
                           <th className="px-4 py-3 font-medium w-[100px]">{t('dashboard:total')}</th>
+                          <th className="px-4 py-3 font-medium w-[100px]">Courier</th>
                           <th className="px-4 py-3 font-medium w-[100px]">{t('dashboard:payment')}</th>
                           <th className="px-4 py-3 font-medium w-[110px]">{t('dashboard:status')}</th>
                           <th className="px-4 py-3 font-medium w-[260px] min-w-[260px]">Fraud Risk</th>
@@ -1458,6 +1464,15 @@ export default function DashboardOrdersPage() {
                               {/* Amount */}
                               <td className="px-4 py-4 font-semibold text-slate-900">
                                 {formatPrice(order.total)}
+                              </td>
+
+                              {/* Courier Charge */}
+                              <td className="px-4 py-4">
+                                {order.courierCharge ? (
+                                  <span className="text-sm text-slate-900">{formatPrice(order.courierCharge / 100)}</span>
+                                ) : (
+                                  <span className="text-xs text-slate-400">—</span>
+                                )}
                               </td>
 
                               {/* Payment */}
