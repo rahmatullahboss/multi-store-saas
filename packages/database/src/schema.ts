@@ -135,6 +135,10 @@ export const stores = sqliteTable('stores', {
 
   // === GOOGLE ANALYTICS TRACKING ===
   googleAnalyticsId: text('google_analytics_id'), // GA4 Measurement ID (e.g., "G-XXXXXXXXXX")
+  googleTagManagerId: text('google_tag_manager_id'), // GTM Container ID (e.g., "GTM-XXXXXXX")
+
+  // === CHECKOUT SETTINGS ===
+  checkoutFormat: text('checkout_format').default('one-page'), // 'one-page' or 'multi-step'
 
   // === USAGE TRACKING ===
   monthlyVisitorCount: integer('monthly_visitor_count').default(0), // Unique visitors this month
@@ -772,10 +776,21 @@ export const shipments = sqliteTable(
     courierData: text('courier_data'), // JSON response from courier API
     shippedAt: integer('shipped_at', { mode: 'timestamp' }),
     deliveredAt: integer('delivered_at', { mode: 'timestamp' }),
+    
+    // Courier Performance Metrics
+    deliveryTimeHours: integer('delivery_time_hours'), // Hours from pickup to delivery
+    attemptCount: integer('attempt_count').default(1), // Number of delivery attempts
+    failureReason: text('failure_reason'), // Reason for failed delivery
+    deliveryCost: real('delivery_cost'), // Cost charged by courier
+    isSuccessful: integer('is_successful').default(0), // Boolean: 1 = successful, 0 = failed
+    
     createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
     updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
   },
-  (table) => [index('shipments_order_id_idx').on(table.orderId)]
+  (table) => [
+    index('shipments_order_id_idx').on(table.orderId),
+    index('idx_shipments_courier_perf').on(table.courier, table.status, table.deliveredAt),
+  ]
 );
 
 export const shipmentsRelations = relations(shipments, ({ one }) => ({
@@ -3533,3 +3548,172 @@ export const leadGenSubmissionsRelations = relations(leadGenSubmissions, ({ one 
     references: [customers.id],
   }),
 }));
+
+// ============================================================================
+// COURIER PERFORMANCE LOGS TABLE - Analytics and tracking
+// ============================================================================
+export const courierPerformanceLogs = sqliteTable(
+  'courier_performance_logs',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    storeId: integer('store_id')
+      .notNull()
+      .references(() => stores.id, { onDelete: 'cascade' }),
+    courier: text('courier').notNull(), // 'pathao', 'redx', 'steadfast', etc.
+    shipmentId: integer('shipment_id').references(() => shipments.id, { onDelete: 'set null' }),
+    orderId: integer('order_id').references(() => orders.id, { onDelete: 'set null' }),
+
+    // Performance Metrics
+    status: text('status'), // 'delivered', 'returned', 'failed', 'in_transit'
+    deliveryTimeHours: integer('delivery_time_hours'), // Hours from pickup to delivery
+    attemptCount: integer('attempt_count').default(1), // Number of delivery attempts
+    failureReason: text('failure_reason'), // 'customer_unavailable', 'wrong_address', 'refused', etc.
+    deliveryCost: real('delivery_cost'), // Cost charged by courier
+    isSuccessful: integer('is_successful').default(0), // Boolean: 1 = successful, 0 = failed
+
+    // Timestamps
+    pickedUpAt: integer('picked_up_at', { mode: 'timestamp' }),
+    deliveredAt: integer('delivered_at', { mode: 'timestamp' }),
+    createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  },
+  (table) => [
+    index('idx_courier_perf_store').on(table.storeId),
+    index('idx_courier_perf_courier').on(table.courier),
+    index('idx_courier_perf_status').on(table.status),
+    index('idx_courier_perf_created').on(table.createdAt),
+  ]
+);
+
+export const courierPerformanceLogsRelations = relations(courierPerformanceLogs, ({ one }) => ({
+  store: one(stores, {
+    fields: [courierPerformanceLogs.storeId],
+    references: [stores.id],
+  }),
+  shipment: one(shipments, {
+    fields: [courierPerformanceLogs.shipmentId],
+    references: [shipments.id],
+  }),
+  order: one(orders, {
+    fields: [courierPerformanceLogs.orderId],
+    references: [orders.id],
+  }),
+}));
+
+export type CourierPerformanceLog = typeof courierPerformanceLogs.$inferSelect;
+export type NewCourierPerformanceLog = typeof courierPerformanceLogs.$inferInsert;
+
+// ============================================================================
+// CHECKOUT ABANDONMENT LOGS TABLE - Funnel analytics
+// ============================================================================
+export const checkoutAbandonmentLogs = sqliteTable(
+  'checkout_abandonment_logs',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    storeId: integer('store_id')
+      .notNull()
+      .references(() => stores.id, { onDelete: 'cascade' }),
+    sessionId: text('session_id').notNull(),
+    customerEmail: text('customer_email'),
+    customerPhone: text('customer_phone'),
+
+    // Funnel Steps
+    reachedStep: text('reached_step'), // 'info', 'address', 'payment', 'review', 'completed'
+    completedInfo: integer('completed_info').default(0),
+    completedAddress: integer('completed_address').default(0),
+    completedPayment: integer('completed_payment').default(0),
+    completedReview: integer('completed_review').default(0),
+    completedCheckout: integer('completed_checkout').default(0),
+
+    // Cart Data
+    cartValue: real('cart_value'),
+    cartItemsCount: integer('cart_items_count'),
+
+    // Exit Data
+    exitReason: text('exit_reason'), // 'shipping_cost', 'payment_issue', 'changed_mind', 'technical_issue'
+    exitPage: text('exit_page'), // URL where they abandoned
+
+    // Device/Browser
+    deviceType: text('device_type'), // 'mobile', 'desktop', 'tablet'
+    browser: text('browser'),
+    os: text('os'),
+
+    // Timestamps
+    startedAt: integer('started_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+    abandonedAt: integer('abandoned_at', { mode: 'timestamp' }),
+  },
+  (table) => [
+    index('idx_checkout_abandon_store').on(table.storeId),
+    index('idx_checkout_abandon_session').on(table.sessionId),
+    index('idx_checkout_abandon_created').on(table.startedAt),
+  ]
+);
+
+export const checkoutAbandonmentLogsRelations = relations(checkoutAbandonmentLogs, ({ one }) => ({
+  store: one(stores, {
+    fields: [checkoutAbandonmentLogs.storeId],
+    references: [stores.id],
+  }),
+}));
+
+export type CheckoutAbandonmentLog = typeof checkoutAbandonmentLogs.$inferSelect;
+export type NewCheckoutAbandonmentLog = typeof checkoutAbandonmentLogs.$inferInsert;
+
+// ============================================================================
+// GTM EVENTS TABLE - Google Tag Manager tracking
+// ============================================================================
+export const gtmEvents = sqliteTable(
+  'gtm_events',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    storeId: integer('store_id')
+      .notNull()
+      .references(() => stores.id, { onDelete: 'cascade' }),
+    sessionId: text('session_id').notNull(),
+    eventName: text('event_name').notNull(), // 'page_view', 'add_to_cart', 'begin_checkout', 'purchase', 'add_payment_info'
+    eventData: text('event_data'), // JSON: event-specific data
+
+    // Customer Context
+    customerId: integer('customer_id').references(() => customers.id, { onDelete: 'set null' }),
+    isLoggedIn: integer('is_logged_in').default(0),
+
+    // Page Context
+    pageUrl: text('page_url'),
+    pageTitle: text('page_title'),
+    referrer: text('referrer'),
+
+    // E-commerce Data
+    productId: integer('product_id'),
+    productName: text('product_name'),
+    value: real('value'),
+    currency: text('currency').default('BDT'),
+    transactionId: text('transaction_id'),
+
+    // Device/Browser
+    deviceType: text('device_type'),
+    userAgent: text('user_agent'),
+    ipAddress: text('ip_address'),
+
+    // Timestamps
+    createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+  },
+  (table) => [
+    index('idx_gtm_events_store').on(table.storeId),
+    index('idx_gtm_events_session').on(table.sessionId),
+    index('idx_gtm_events_name').on(table.eventName),
+    index('idx_gtm_events_created').on(table.createdAt),
+  ]
+);
+
+export const gtmEventsRelations = relations(gtmEvents, ({ one }) => ({
+  store: one(stores, {
+    fields: [gtmEvents.storeId],
+    references: [stores.id],
+  }),
+  customer: one(customers, {
+    fields: [gtmEvents.customerId],
+    references: [customers.id],
+  }),
+}));
+
+export type GtmEvent = typeof gtmEvents.$inferSelect;
+export type NewGtmEvent = typeof gtmEvents.$inferInsert;

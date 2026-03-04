@@ -1,33 +1,33 @@
 installation:
   version: 6.0.4
   installDate: 2026-02-19T11:43:20.656Z
-  lastUpdated: 2026-03-03T02:28:12.890Z
+  lastUpdated: 2026-03-04T08:52:55.012Z
 modules:
   - name: core
     version: 6.0.4
     installDate: 2026-02-19T11:43:20.656Z
-    lastUpdated: 2026-03-03T02:28:12.532Z
+    lastUpdated: 2026-03-04T08:52:54.308Z
     source: built-in
     npmPackage: null
     repoUrl: null
   - name: bmm
     version: 6.0.4
     installDate: 2026-03-03T02:23:11.669Z
-    lastUpdated: 2026-03-03T02:28:12.532Z
+    lastUpdated: 2026-03-04T08:52:54.308Z
     source: built-in
     npmPackage: null
     repoUrl: null
   - name: bmb
     version: 0.1.6
     installDate: 2026-03-03T02:23:14.414Z
-    lastUpdated: 2026-03-03T02:28:12.712Z
+    lastUpdated: 2026-03-04T08:52:54.678Z
     source: external
     npmPackage: bmad-builder
     repoUrl: https://github.com/bmad-code-org/bmad-builder
   - name: tea
-    version: 1.5.0
+    version: 1.5.1
     installDate: 2026-03-03T02:23:16.802Z
-    lastUpdated: 2026-03-03T02:28:12.890Z
+    lastUpdated: 2026-03-04T08:52:55.012Z
     source: external
     npmPackage: bmad-method-test-architecture-enterprise
     repoUrl: https://github.com/bmad-code-org/bmad-method-test-architecture-enterprise
@@ -38,3 +38,4 @@ ides:
   - kilo
   - opencode
   - rovo-dev
+  - qwen

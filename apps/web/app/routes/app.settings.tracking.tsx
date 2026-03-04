@@ -37,6 +37,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     facebookPixelId: stores.facebookPixelId,
     facebookAccessToken: stores.facebookAccessToken,
     googleAnalyticsId: stores.googleAnalyticsId,
+    googleTagManagerId: stores.googleTagManagerId,
   }).from(stores).where(eq(stores.id, storeId)).get();
 
   if (!store) throw new Response('Store not found', { status: 404 });
@@ -53,30 +54,40 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const pixelId = (formData.get('facebookPixelId') as string || '').trim();
   const accessToken = (formData.get('facebookAccessToken') as string || '').trim();
   const gaId = (formData.get('googleAnalyticsId') as string || '').trim();
+  const gtmId = (formData.get('googleTagManagerId') as string || '').trim();
 
   // Validate Facebook Pixel ID format (15-16 digits)
   if (pixelId && !/^\d{15,16}$/.test(pixelId)) {
-    return json({ 
-      success: false, 
+    return json({
+      success: false,
       error: 'invalidPixelId'
     }, { status: 400 });
   }
 
   // Validate GA4 Measurement ID format (G-XXXXXXXXXX)
   if (gaId && !/^G-[A-Z0-9]{8,12}$/i.test(gaId)) {
-    return json({ 
-      success: false, 
+    return json({
+      success: false,
       error: 'invalidGaId'
+    }, { status: 400 });
+  }
+
+  // Validate GTM Container ID format (GTM-XXXXXXX)
+  if (gtmId && !/^GTM-[A-Z0-9]{7,8}$/i.test(gtmId)) {
+    return json({
+      success: false,
+      error: 'invalidGtmId'
     }, { status: 400 });
   }
 
   const db = drizzle(context.cloudflare.env.DB);
   await db
     .update(stores)
-    .set({ 
+    .set({
       facebookPixelId: pixelId || null,
       facebookAccessToken: accessToken || null,
       googleAnalyticsId: gaId || null,
+      googleTagManagerId: gtmId || null,
       updatedAt: new Date(),
     })
     .where(eq(stores.id, storeId));
@@ -217,18 +228,50 @@ export default function TrackingSettings() {
           <div>
             <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 px-1">Google Analytics</h2>
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-              <fetcher.Form method="post" id="tracking-form-mobile-ga" className="p-4">
+              <fetcher.Form method="post" id="tracking-form-mobile-ga" className="p-4 space-y-4">
                 {/* Mirror the FB fields so both pixel + GA submit together via the save button */}
                 <input type="hidden" name="facebookPixelId" value={store.facebookPixelId || ''} />
                 <input type="hidden" name="facebookAccessToken" value={store.facebookAccessToken || ''} />
-                <label className="block text-sm font-medium text-gray-700 mb-2">Measurement ID</label>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Measurement ID</label>
+                  <div className="relative">
+                    <input
+                      type={showGaId ? 'text' : 'password'}
+                      name="googleAnalyticsId"
+                      defaultValue={store.googleAnalyticsId || ''}
+                      placeholder="G-XXXXXXXXXX"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 font-mono pr-12 text-sm"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowGaId(!showGaId)}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-gray-400"
+                    >
+                      {showGaId ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+              </fetcher.Form>
+            </div>
+          </div>
+
+          {/* Google Tag Manager Section */}
+          <div>
+            <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 px-1">Google Tag Manager</h2>
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+              <fetcher.Form method="post" id="tracking-form-mobile-gtm" className="p-4">
+                {/* Mirror fields for combined submit */}
+                <input type="hidden" name="facebookPixelId" value={store.facebookPixelId || ''} />
+                <input type="hidden" name="facebookAccessToken" value={store.facebookAccessToken || ''} />
+                <input type="hidden" name="googleAnalyticsId" value={store.googleAnalyticsId || ''} />
+                <label className="block text-sm font-medium text-gray-700 mb-2">GTM Container ID</label>
                 <div className="relative">
                   <input
                     type={showGaId ? 'text' : 'password'}
-                    name="googleAnalyticsId"
-                    defaultValue={store.googleAnalyticsId || ''}
-                    placeholder="G-XXXXXXXXXX"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 font-mono pr-12 text-sm"
+                    name="googleTagManagerId"
+                    defaultValue={store.googleTagManagerId || ''}
+                    placeholder="GTM-XXXXXXX"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 font-mono pr-12 text-sm"
                   />
                   <button
                     type="button"
@@ -238,6 +281,7 @@ export default function TrackingSettings() {
                     {showGaId ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
+                <p className="text-xs text-gray-500 mt-2">Manage all your tags from one place</p>
               </fetcher.Form>
             </div>
           </div>
@@ -251,8 +295,11 @@ export default function TrackingSettings() {
             disabled={isSaving}
             className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3.5 rounded-2xl transition disabled:opacity-50 flex items-center justify-center gap-2"
             onClick={() => {
-              // Also submit the GA form so all fields are saved
+              // Also submit the GA and GTM forms so all fields are saved
               document.getElementById('tracking-form-mobile-ga')?.dispatchEvent(
+                new Event('submit', { bubbles: true, cancelable: true })
+              );
+              document.getElementById('tracking-form-mobile-gtm')?.dispatchEvent(
                 new Event('submit', { bubbles: true, cancelable: true })
               );
             }}
@@ -504,6 +551,64 @@ export default function TrackingSettings() {
               className="inline-flex items-center gap-1 text-orange-600 hover:text-orange-800 text-sm font-medium"
             >
               {t('openGA')}
+              <ExternalLink className="w-3 h-3" />
+            </a>
+          </div>
+        </div>
+
+        {/* Google Tag Manager Section */}
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-purple-50 to-indigo-100/50 flex items-center gap-3">
+            <svg className="w-5 h-5 text-purple-600" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M4 4h7v7H4V4zm0 9h7v7H4v-7zm9-9h7v7h-7V4zm0 9h7v7h-7v-7z"/>
+            </svg>
+            <h3 className="font-semibold text-gray-900">Google Tag Manager</h3>
+          </div>
+          <div className="p-6 space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Container ID
+              </label>
+              <div className="relative">
+                <input
+                  type={showGaId ? 'text' : 'password'}
+                  name="googleTagManagerId"
+                  defaultValue={store.googleTagManagerId || ''}
+                  placeholder="GTM-XXXXXXX"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 font-mono pr-24"
+                />
+                <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setShowGaId(!showGaId)}
+                    className="p-2 text-gray-400 hover:text-gray-600"
+                    title={showGaId ? t('hide') : t('show')}
+                  >
+                    {showGaId ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                  {store.googleTagManagerId && (
+                    <button
+                      type="button"
+                      onClick={() => handleCopy(store.googleTagManagerId!, 'gtm')}
+                      className={`p-2 ${copiedField === 'gtm' ? 'text-green-500' : 'text-gray-400 hover:text-gray-600'}`}
+                      title={t('copyBtn')}
+                    >
+                      <Copy className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+              </div>
+              <p className="mt-2 text-sm text-gray-500">
+                Manage all your marketing tags from one place
+              </p>
+            </div>
+            <a
+              href="https://tagmanager.google.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-purple-600 hover:text-purple-800 text-sm font-medium"
+            >
+              Open Google Tag Manager
               <ExternalLink className="w-3 h-3" />
             </a>
           </div>
