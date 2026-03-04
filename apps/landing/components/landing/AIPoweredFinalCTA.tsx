@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Bot, Send, ArrowRight, Zap, CheckCircle2, MessageSquare, Phone } from 'lucide-react';
+import { Bot, Send, ArrowRight, Zap, CheckCircle2, MessageSquare, Phone, Mail } from 'lucide-react';
 import { useTranslation } from '@/app/contexts/LanguageContext';
 
 export function AIPoweredFinalCTA() {
@@ -61,9 +61,7 @@ export function AIPoweredFinalCTA() {
         <div className="grid lg:grid-cols-2 gap-16 items-center">
           {/* Left: Text & CTA */}
           <div className="text-center lg:text-left">
-            <div
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 mb-6"
-            >
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 mb-6">
               <Bot className="w-4 h-4 text-emerald-400" />
               <span className="text-sm font-bold text-emerald-400">
                 {t('landingFinalCTA_limitedOffer')}
@@ -79,7 +77,8 @@ export function AIPoweredFinalCTA() {
             </p>
 
             <div className="flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start mb-10">
-              <a href="https://app.ozzyl.com/auth/register"
+              <a
+                href="https://app.ozzyl.com/auth/register"
                 className="relative group w-full sm:w-auto"
               >
                 <div className="absolute -inset-1 bg-gradient-to-r from-emerald-500 to-cyan-500 rounded-xl blur opacity-40 group-hover:opacity-75 transition duration-1000 group-hover:duration-200 animate-pulse" />
@@ -125,9 +124,7 @@ export function AIPoweredFinalCTA() {
           </div>
 
           {/* Right: AI Chat Demo */}
-          <div
-            className="relative max-w-md mx-auto w-full"
-          >
+          <div className="relative max-w-md mx-auto w-full">
             <div className="absolute inset-0 bg-emerald-500/20 blur-[100px] rounded-full" />
 
             <div className="relative bg-[#111] border border-white/10 rounded-2xl overflow-hidden shadow-2xl flex flex-col h-[500px]">
@@ -159,10 +156,11 @@ export function AIPoweredFinalCTA() {
                     className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'}`}
                   >
                     <div
-                      className={`max-w-[85%] p-3 rounded-2xl text-sm ${msg.type === 'user'
+                      className={`max-w-[85%] p-3 rounded-2xl text-sm ${
+                        msg.type === 'user'
                           ? 'bg-emerald-600 text-white rounded-br-none'
                           : 'bg-white/10 text-white/90 rounded-bl-none'
-                        }`}
+                      }`}
                     >
                       {msg.text}
                     </div>
