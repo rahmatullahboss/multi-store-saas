@@ -1,6 +1,6 @@
 /**
  * Intent Wizard Component for Quick Builder v2
- * 
+ *
  * 4-step wizard for creating landing pages:
  * Step 1: Select intent (product type, goal, traffic source)
  * Step 2: Connect product (select existing or create new)
@@ -8,7 +8,7 @@
  * Step 4: Preview & confirm template
  */
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import {
   ShoppingBag,
@@ -34,7 +34,7 @@ import { formatPrice } from '~/lib/formatting';
 // Step indicator component with accessibility
 function StepIndicator({ currentStep, totalSteps }: { currentStep: number; totalSteps: number }) {
   const stepLabels = ['ইন্টেন্ট', 'প্রোডাক্ট', 'টেমপ্লেট'];
-  
+
   return (
     <nav aria-label="Wizard progress" className="flex items-center justify-center gap-2 mb-8">
       <ol className="flex items-center gap-2" role="list">
@@ -49,8 +49,8 @@ function StepIndicator({ currentStep, totalSteps }: { currentStep: number; total
                 step === currentStep
                   ? 'bg-emerald-500 text-white scale-110'
                   : step < currentStep
-                  ? 'bg-emerald-100 text-emerald-600'
-                  : 'bg-gray-100 text-gray-400'
+                    ? 'bg-emerald-100 text-emerald-600'
+                    : 'bg-gray-100 text-gray-400'
               )}
             >
               {step < currentStep ? <Check className="w-4 h-4" aria-hidden="true" /> : step}
@@ -99,7 +99,10 @@ function OptionCard({ icon, title, description, selected, onClick, badge }: Opti
       )}
     >
       {badge && (
-        <span className="absolute -top-2 -right-2 px-2 py-0.5 bg-amber-400 text-amber-900 text-xs font-medium rounded-full" aria-hidden="true">
+        <span
+          className="absolute -top-2 -right-2 px-2 py-0.5 bg-amber-400 text-amber-900 text-xs font-medium rounded-full"
+          aria-hidden="true"
+        >
           {badge}
         </span>
       )}
@@ -136,14 +139,18 @@ interface Step1Props {
   hasDefaultWhatsapp: boolean;
 }
 
-function Step1IntentSelection({ intent, onUpdate, whatsappNumber, onWhatsappChange, hasDefaultWhatsapp }: Step1Props) {
+function Step1IntentSelection({
+  intent,
+  onUpdate,
+  whatsappNumber,
+  onWhatsappChange,
+  hasDefaultWhatsapp,
+}: Step1Props) {
   return (
     <div className="space-y-8">
       {/* Product Type */}
       <div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-3">
-          আপনি কী বিক্রি করতে চান?
-        </h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-3">আপনি কী বিক্রি করতে চান?</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <OptionCard
             icon={<ShoppingBag className="w-5 h-5" />}
@@ -165,9 +172,7 @@ function Step1IntentSelection({ intent, onUpdate, whatsappNumber, onWhatsappChan
 
       {/* Goal */}
       <div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-3">
-          আপনার লক্ষ্য কী?
-        </h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-3">আপনার লক্ষ্য কী?</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <OptionCard
             icon={<Target className="w-5 h-5" />}
@@ -209,7 +214,7 @@ function Step1IntentSelection({ intent, onUpdate, whatsappNumber, onWhatsappChan
               className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
             />
             <p className="text-xs text-gray-500 mt-1.5">
-              {hasDefaultWhatsapp 
+              {hasDefaultWhatsapp
                 ? 'আপনার অ্যাকাউন্টের নম্বর দেখাচ্ছে। চাইলে এডিট করতে পারবেন।'
                 : 'বাংলাদেশি নম্বর দিন (যেমন: 01712345678)'}
             </p>
@@ -219,9 +224,7 @@ function Step1IntentSelection({ intent, onUpdate, whatsappNumber, onWhatsappChan
 
       {/* Traffic Source */}
       <div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-3">
-          ট্রাফিক কোথা থেকে আসবে?
-        </h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-3">ট্রাফিক কোথা থেকে আসবে?</h3>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <OptionCard
             icon={<Facebook className="w-5 h-5" />}
@@ -279,14 +282,14 @@ function Step2ProductConnection({
     existingProducts.length > 0 ? 'select' : 'create'
   );
   const [uploading, setUploading] = useState(false);
-  
+
   const isMultiple = intent.productType === 'multiple';
   const maxProducts = 3; // Maximum products for multiple selection
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !onImageUpload) return;
-    
+
     setUploading(true);
     try {
       const url = await onImageUpload(file);
@@ -302,7 +305,7 @@ function Step2ProductConnection({
   const handleMultipleSelect = (productId: number) => {
     if (selectedProductIds.includes(productId)) {
       // Remove from selection
-      onSelectProducts(selectedProductIds.filter(id => id !== productId));
+      onSelectProducts(selectedProductIds.filter((id) => id !== productId));
     } else if (selectedProductIds.length < maxProducts) {
       // Add to selection
       onSelectProducts([...selectedProductIds, productId]);
@@ -316,7 +319,11 @@ function Step2ProductConnection({
         <div className="flex gap-2 p-1 bg-gray-100 rounded-lg">
           <button
             type="button"
-            onClick={() => { setMode('select'); onSelectProduct(null); onSelectProducts([]); }}
+            onClick={() => {
+              setMode('select');
+              onSelectProduct(null);
+              onSelectProducts([]);
+            }}
             className={cn(
               'flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all',
               mode === 'select'
@@ -328,7 +335,11 @@ function Step2ProductConnection({
           </button>
           <button
             type="button"
-            onClick={() => { setMode('create'); onSelectProduct(null); onSelectProducts([]); }}
+            onClick={() => {
+              setMode('create');
+              onSelectProduct(null);
+              onSelectProducts([]);
+            }}
             className={cn(
               'flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all',
               mode === 'create'
@@ -347,9 +358,7 @@ function Step2ProductConnection({
           {isMultiple ? (
             <>
               <div className="flex items-center justify-between">
-                <p className="text-sm text-gray-600">
-                  ২-৩টি প্রোডাক্ট সিলেক্ট করুন:
-                </p>
+                <p className="text-sm text-gray-600">২-৩টি প্রোডাক্ট সিলেক্ট করুন:</p>
                 <span className="text-xs text-emerald-600 font-medium bg-emerald-50 px-2 py-1 rounded-full">
                   {selectedProductIds.length}/{maxProducts} সিলেক্টেড
                 </span>
@@ -369,8 +378,8 @@ function Step2ProductConnection({
                         isSelected
                           ? 'border-emerald-500 bg-emerald-50'
                           : isDisabled
-                          ? 'border-gray-100 bg-gray-50 opacity-50 cursor-not-allowed'
-                          : 'border-gray-200 hover:border-emerald-300'
+                            ? 'border-gray-100 bg-gray-50 opacity-50 cursor-not-allowed'
+                            : 'border-gray-200 hover:border-emerald-300'
                       )}
                     >
                       {p.imageUrl ? (
@@ -388,12 +397,12 @@ function Step2ProductConnection({
                         <p className="font-medium text-gray-900 truncate">{p.title}</p>
                         <p className="text-sm text-emerald-600">{formatPrice(p.price)}</p>
                       </div>
-                      <div className={cn(
-                        'w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all',
-                        isSelected
-                          ? 'border-emerald-500 bg-emerald-500'
-                          : 'border-gray-300'
-                      )}>
+                      <div
+                        className={cn(
+                          'w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all',
+                          isSelected ? 'border-emerald-500 bg-emerald-500' : 'border-gray-300'
+                        )}
+                      >
                         {isSelected && <Check className="w-4 h-4 text-white" />}
                       </div>
                     </button>
@@ -404,10 +413,13 @@ function Step2ProductConnection({
                 <div className="bg-emerald-50 rounded-lg p-3 mt-2">
                   <p className="text-sm text-emerald-700 font-medium mb-1">সিলেক্টেড প্রোডাক্ট:</p>
                   <div className="flex flex-wrap gap-2">
-                    {selectedProductIds.map(id => {
-                      const p = existingProducts.find(prod => prod.id === id);
+                    {selectedProductIds.map((id) => {
+                      const p = existingProducts.find((prod) => prod.id === id);
                       return p ? (
-                        <span key={id} className="inline-flex items-center gap-1 bg-white px-2 py-1 rounded-md text-xs border border-emerald-200">
+                        <span
+                          key={id}
+                          className="inline-flex items-center gap-1 bg-white px-2 py-1 rounded-md text-xs border border-emerald-200"
+                        >
                           {p.title}
                           <button
                             type="button"
@@ -469,7 +481,7 @@ function Step2ProductConnection({
       {mode === 'create' && (
         <div className="space-y-4">
           <p className="text-sm text-gray-600">দ্রুত প্রোডাক্ট তৈরি করুন:</p>
-          
+
           {/* Product Name */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -500,13 +512,13 @@ function Step2ProductConnection({
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                আগের মূল্য (৳)
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">আগের মূল্য (৳)</label>
               <input
                 type="number"
                 value={product?.compareAtPrice || ''}
-                onChange={(e) => onUpdateProduct({ compareAtPrice: Number(e.target.value) || undefined })}
+                onChange={(e) =>
+                  onUpdateProduct({ compareAtPrice: Number(e.target.value) || undefined })
+                }
                 placeholder="৭৫০"
                 min="0"
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
@@ -516,9 +528,7 @@ function Step2ProductConnection({
 
           {/* Image Upload */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              প্রোডাক্ট ছবি
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">প্রোডাক্ট ছবি</label>
             {product?.image ? (
               <div className="relative w-32 h-32">
                 <img
@@ -560,8 +570,6 @@ function Step2ProductConnection({
   );
 }
 
-
-
 // Step 3: Template Preview (Previously Step 4)
 interface Step3Props {
   intent: Intent;
@@ -583,26 +591,77 @@ function Step3TemplatePreview({ intent, selectedTemplate, onSelectTemplate }: St
     return () => window.removeEventListener('message', handleMessage);
   }, [onSelectTemplate]);
 
-  const templateInfo: Record<string, { name: string; description: string; gradient: string; emoji: string }> = {
-    'flash-sale': { name: 'ফ্ল্যাশ সেল', description: 'আর্জেন্সি, অফার ফোকাস', gradient: 'from-red-500 to-orange-500', emoji: '⚡' },
-    'organic': { name: 'অর্গানিক', description: 'ন্যাচারাল, সফট', gradient: 'from-green-500 to-lime-500', emoji: '🌿' },
-    'modern-dark': { name: 'মডার্ন ডার্ক', description: 'ডার্ক থিম, মডার্ন', gradient: 'from-slate-700 to-slate-900', emoji: '🖤' },
-    'minimal-clean': { name: 'মিনিমাল ক্লিন', description: 'সিম্পল, ক্লিন', gradient: 'from-gray-100 to-gray-300', emoji: '⚪' },
-    'video-focus': { name: 'ভিডিও ফোকাস', description: 'ভিডিও প্রমিনেন্ট', gradient: 'from-purple-500 to-pink-500', emoji: '🎬' },
-    'showcase': { name: 'শোকেস', description: 'প্রোডাক্ট হাইলাইট', gradient: 'from-indigo-500 to-purple-500', emoji: '🎯' },
-    'trust-first': { name: 'ট্রাস্ট ফার্স্ট', description: 'বিশ্বাসযোগ্যতা ফোকাস', gradient: 'from-teal-500 to-emerald-500', emoji: '🛡️' },
-    'story-driven': { name: 'স্টোরি ড্রিভেন', description: 'গল্পের মাধ্যমে বিক্রয়', gradient: 'from-orange-500 to-amber-500', emoji: '📖' },
-    'social-proof-style': { name: 'সোশ্যাল প্রুফ', description: 'ফেসবুক স্টাইল', gradient: 'from-blue-500 to-indigo-500', emoji: '👥' },
-    'urgency-scarcity': { name: 'আর্জেন্সি', description: 'স্টক অ্যালার্ট', gradient: 'from-red-600 to-pink-600', emoji: '🚨' },
+  const templateInfo: Record<
+    string,
+    { name: string; description: string; gradient: string; emoji: string }
+  > = {
+    'flash-sale': {
+      name: 'ফ্ল্যাশ সেল',
+      description: 'আর্জেন্সি, অফার ফোকাস',
+      gradient: 'from-red-500 to-orange-500',
+      emoji: '⚡',
+    },
+    organic: {
+      name: 'অর্গানিক',
+      description: 'ন্যাচারাল, সফট',
+      gradient: 'from-green-500 to-lime-500',
+      emoji: '🌿',
+    },
+    'modern-dark': {
+      name: 'মডার্ন ডার্ক',
+      description: 'ডার্ক থিম, মডার্ন',
+      gradient: 'from-slate-700 to-slate-900',
+      emoji: '🖤',
+    },
+    'minimal-clean': {
+      name: 'মিনিমাল ক্লিন',
+      description: 'সিম্পল, ক্লিন',
+      gradient: 'from-gray-100 to-gray-300',
+      emoji: '⚪',
+    },
+    'video-focus': {
+      name: 'ভিডিও ফোকাস',
+      description: 'ভিডিও প্রমিনেন্ট',
+      gradient: 'from-purple-500 to-pink-500',
+      emoji: '🎬',
+    },
+    showcase: {
+      name: 'শোকেস',
+      description: 'প্রোডাক্ট হাইলাইট',
+      gradient: 'from-indigo-500 to-purple-500',
+      emoji: '🎯',
+    },
+    'trust-first': {
+      name: 'ট্রাস্ট ফার্স্ট',
+      description: 'বিশ্বাসযোগ্যতা ফোকাস',
+      gradient: 'from-teal-500 to-emerald-500',
+      emoji: '🛡️',
+    },
+    'story-driven': {
+      name: 'স্টোরি ড্রিভেন',
+      description: 'গল্পের মাধ্যমে বিক্রয়',
+      gradient: 'from-orange-500 to-amber-500',
+      emoji: '📖',
+    },
+    'social-proof-style': {
+      name: 'সোশ্যাল প্রুফ',
+      description: 'ফেসবুক স্টাইল',
+      gradient: 'from-blue-500 to-indigo-500',
+      emoji: '👥',
+    },
+    'urgency-scarcity': {
+      name: 'আর্জেন্সি',
+      description: 'স্টক অ্যালার্ট',
+      gradient: 'from-red-600 to-pink-600',
+      emoji: '🚨',
+    },
   };
 
   return (
     <div className="space-y-6">
       <div className="text-center">
         <Sparkles className="w-10 h-10 text-emerald-500 mx-auto mb-2" />
-        <h3 className="text-lg font-semibold text-gray-900">
-          আপনার জন্য সেরা টেমপ্লেট
-        </h3>
+        <h3 className="text-lg font-semibold text-gray-900">আপনার জন্য সেরা টেমপ্লেট</h3>
         <p className="text-sm text-gray-500">
           আপনার ইন্টেন্ট অনুযায়ী আমরা এই টেমপ্লেটগুলো সাজেস্ট করছি
         </p>
@@ -610,9 +669,14 @@ function Step3TemplatePreview({ intent, selectedTemplate, onSelectTemplate }: St
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[60vh] overflow-y-auto pr-2">
         {suggestions.map((templateId, index) => {
-          const info = templateInfo[templateId] || { name: templateId, description: '', gradient: 'from-gray-400 to-gray-600', emoji: '🎨' };
+          const info = templateInfo[templateId] || {
+            name: templateId,
+            description: '',
+            gradient: 'from-gray-400 to-gray-600',
+            emoji: '🎨',
+          };
           const isSelected = selectedTemplate === templateId;
-          
+
           return (
             <div
               key={templateId}
@@ -628,13 +692,17 @@ function Step3TemplatePreview({ intent, selectedTemplate, onSelectTemplate }: St
                   সেরা পছন্দ
                 </span>
               )}
-              
-              <div className={cn(
-                'w-full h-32 rounded-lg mb-3 flex items-center justify-center bg-gradient-to-br relative overflow-hidden',
-                info.gradient
-              )}>
-                <span className="text-4xl drop-shadow-lg transform group-hover:scale-110 transition-transform duration-300">{info.emoji}</span>
-                
+
+              <div
+                className={cn(
+                  'w-full h-32 rounded-lg mb-3 flex items-center justify-center bg-gradient-to-br relative overflow-hidden',
+                  info.gradient
+                )}
+              >
+                <span className="text-4xl drop-shadow-lg transform group-hover:scale-110 transition-transform duration-300">
+                  {info.emoji}
+                </span>
+
                 {/* Hover Actions Overlay */}
                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                   <a
@@ -649,10 +717,10 @@ function Step3TemplatePreview({ intent, selectedTemplate, onSelectTemplate }: St
                   </a>
                 </div>
               </div>
-              
+
               <h4 className="font-semibold text-gray-900">{info.name}</h4>
               <p className="text-xs text-gray-500 mb-3">{info.description}</p>
-              
+
               <button
                 type="button"
                 onClick={() => onSelectTemplate(templateId)}
@@ -683,7 +751,14 @@ function Step3TemplatePreview({ intent, selectedTemplate, onSelectTemplate }: St
         <ul className="text-sm text-gray-600 space-y-1">
           <li>✓ প্রোডাক্ট টাইপ: {intent.productType === 'single' ? 'সিঙ্গেল' : 'মাল্টিপল'}</li>
           <li>✓ লক্ষ্য: {intent.goal === 'direct_sales' ? 'সরাসরি বিক্রি' : 'লিড জেনারেশন'}</li>
-          <li>✓ ট্রাফিক: {intent.trafficSource === 'facebook' ? 'Facebook' : intent.trafficSource === 'tiktok' ? 'TikTok' : 'Organic'}</li>
+          <li>
+            ✓ ট্রাফিক:{' '}
+            {intent.trafficSource === 'facebook'
+              ? 'Facebook'
+              : intent.trafficSource === 'tiktok'
+                ? 'TikTok'
+                : 'Organic'}
+          </li>
           <li>✓ টেমপ্লেট: {templateInfo[selectedTemplate]?.name || selectedTemplate}</li>
         </ul>
       </div>
@@ -695,9 +770,9 @@ function Step3TemplatePreview({ intent, selectedTemplate, onSelectTemplate }: St
 interface IntentWizardProps {
   existingProducts?: Array<{ id: number; title: string; price: number; imageUrl?: string }>;
   defaultWhatsAppNumber?: string; // Pre-filled from store settings
-  onComplete: (data: { 
-    intent: Intent; 
-    product: QuickProduct | null; 
+  onComplete: (data: {
+    intent: Intent;
+    product: QuickProduct | null;
     productId: number | null;
     productIds: number[]; // NEW: Multiple product IDs
     templateId: string;
@@ -736,14 +811,14 @@ export function IntentWizard({
       const suggestions = getTemplateSuggestions(intent as Intent);
       setSelectedTemplate((prev) => (prev && suggestions.includes(prev) ? prev : suggestions[0]));
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [intent.productType, intent.goal, intent.trafficSource]);
 
   // Set default template when intent is complete
   const handleIntentUpdate = (updates: Partial<Intent>) => {
     const newIntent = { ...intent, ...updates };
     setIntent(newIntent);
-    
+
     // Auto-select template when all intent fields are set
     if (newIntent.productType && newIntent.goal && newIntent.trafficSource) {
       const suggestions = getTemplateSuggestions(newIntent as Intent);
@@ -778,8 +853,10 @@ export function IntentWizard({
       // Complete wizard
       onComplete({
         intent: intent as Intent,
-        product: selectedProductId || selectedProductIds.length > 0 ? null : (product as QuickProduct),
-        productId: intent.productType === 'single' ? selectedProductId : (selectedProductIds[0] || null),
+        product:
+          selectedProductId || selectedProductIds.length > 0 ? null : (product as QuickProduct),
+        productId:
+          intent.productType === 'single' ? selectedProductId : selectedProductIds[0] || null,
         productIds: selectedProductIds,
         templateId: selectedTemplate,
         styleTokens,
@@ -802,8 +879,8 @@ export function IntentWizard({
       {/* Step Content */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
         {step === 1 && (
-          <Step1IntentSelection 
-            intent={intent} 
+          <Step1IntentSelection
+            intent={intent}
             onUpdate={handleIntentUpdate}
             whatsappNumber={whatsappNumber}
             onWhatsappChange={setWhatsappNumber}
@@ -832,7 +909,7 @@ export function IntentWizard({
             onSelectTemplate={setSelectedTemplate}
           />
         )}
-        
+
         {/* Genie Branding */}
         <div className="text-center pt-4 border-t border-gray-100 mt-6">
           <p className="text-xs text-gray-400">
@@ -865,10 +942,10 @@ export function IntentWizard({
           onClick={handleNext}
           disabled={!canProceed() || isSubmitting}
           aria-label={
-            isSubmitting 
-              ? 'ল্যান্ডিং পেইজ তৈরি হচ্ছে, অপেক্ষা করুন' 
-              : step === 3 
-                ? 'ল্যান্ডিং পেইজ তৈরি করুন' 
+            isSubmitting
+              ? 'ল্যান্ডিং পেইজ তৈরি হচ্ছে, অপেক্ষা করুন'
+              : step === 3
+                ? 'ল্যান্ডিং পেইজ তৈরি করুন'
                 : `ধাপ ${step + 1} এ যান`
           }
           aria-busy={isSubmitting}
