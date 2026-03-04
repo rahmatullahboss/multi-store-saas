@@ -37,13 +37,24 @@ interface LanguageProviderProps {
   defaultCurrency?: SupportedCurrency;
 }
 
+// SSR-safe wrapper: react-i18next can crash during SSR on Cloudflare Workers
+// if the i18n context/dispatcher is not yet initialized.
+function useI18NextSafe() {
+  try {
+    return useI18NextTranslation();
+  } catch {
+    // Fallback to no-op during SSR when i18n not yet initialized
+    return { t: (key: string) => key, i18n: { language: DEFAULT_LANGUAGE, changeLanguage: async () => {} } as any };
+  }
+}
+
 export function LanguageProvider({ 
   children, 
   defaultLang = DEFAULT_LANGUAGE,
   defaultCurrency = 'BDT'
 }: LanguageProviderProps) {
   const [searchParams, setSearchParams] = useSearchParams();
-  const { t: i18nT, i18n } = useI18NextTranslation();
+  const { t: i18nT, i18n } = useI18NextSafe();
   
   // Get language from i18n or URL
   const urlLang = searchParams.get('lang') as Language | null;

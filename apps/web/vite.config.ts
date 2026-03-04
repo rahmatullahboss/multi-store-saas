@@ -134,6 +134,9 @@ export default defineConfig({
   },
   resolve: {
     mainFields: ['browser', 'module', 'main'],
+    // Deduplicate React to prevent multiple instances (causes SSR useMemo/useState null errors)
+    // Especially important when react-i18next or other libs bundle their own React ref
+    dedupe: ['react', 'react-dom', 'react-i18next', 'i18next'],
   },
   optimizeDeps: {
     // E2E/dev-server reliability: refresh optimized deps to avoid "missing chunk" flakes.
