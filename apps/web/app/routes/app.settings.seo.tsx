@@ -120,7 +120,6 @@ export async function action({ request, context }: ActionFunctionArgs) {
   if (!storeId) {
     return json({ error: 'unauthorized' }, { status: 401 });
   }
-  const userId = await getUserId(request, context.cloudflare.env);
 
   const formData = await request.formData();
   const parsed = SeoSettingsSchema.safeParse({
