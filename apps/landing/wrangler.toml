@@ -4,6 +4,10 @@ compatibility_flags = ["nodejs_compat"]
 main = "./worker.ts"
 assets = { directory = "./build/client" }
 
+# Force wrangler to resolve modules from landing's local node_modules first,
+# preventing React 19 from the monorepo root from overriding React 18.
+find_additional_modules = true
+
 [observability]
 enabled = true
 
