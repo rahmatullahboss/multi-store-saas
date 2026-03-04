@@ -1,3 +1,4 @@
+import React from "react";
 /**
  * Animated Counter Component - OPTIMIZED
  * Counts up with reduced motion support

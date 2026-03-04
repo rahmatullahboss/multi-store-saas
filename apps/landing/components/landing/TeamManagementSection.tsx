@@ -1,3 +1,4 @@
+import React from "react";
 import { useRef } from 'react';
 import { Users, Shield, Lock, CheckCircle2, UserPlus } from 'lucide-react';
 

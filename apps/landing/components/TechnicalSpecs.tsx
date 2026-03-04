@@ -1,3 +1,4 @@
+import React from "react";
 /**
  * Technical Specs Section - "Under the Hood"
  * 

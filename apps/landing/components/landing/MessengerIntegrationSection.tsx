@@ -1,3 +1,4 @@
+import React from "react";
 import { useRef } from 'react';
 import { MessageCircle, User } from 'lucide-react';
 

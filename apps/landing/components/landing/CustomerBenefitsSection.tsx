@@ -1,3 +1,4 @@
+import React from "react";
 /**
  * Customer Benefits Section - UI/UX Pro Max
  * 

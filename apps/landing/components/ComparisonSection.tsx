@@ -1,3 +1,4 @@
+import React from "react";
 /**
  * Comparison Section - "কেন আমরাই Best Choice?"
  *

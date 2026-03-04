@@ -1,3 +1,4 @@
+import React from "react";
 /**
  * Problem-Solution Section - UI/UX Pro Max
  * 

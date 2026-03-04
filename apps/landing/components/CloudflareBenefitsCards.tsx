@@ -1,3 +1,4 @@
+import React from "react";
 /**
  * Cloudflare Benefits Cards - Enterprise-Grade Features
  *

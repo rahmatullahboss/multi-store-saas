@@ -1,3 +1,4 @@
+import React from "react";
 /**
  * Speed Comparison Component - "দেখুন পার্থক্যটা"
  * 

@@ -1,3 +1,4 @@
+import React from "react";
 /**
  * CDN Explainer Component - "সহজ বাংলায় বুঝুন"
  *

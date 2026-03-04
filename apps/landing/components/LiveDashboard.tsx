@@ -1,3 +1,4 @@
+import React from "react";
 /**
  * Live Performance Dashboard - Real-time Credibility
  *

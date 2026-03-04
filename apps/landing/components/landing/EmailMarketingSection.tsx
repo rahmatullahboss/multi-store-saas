@@ -1,3 +1,4 @@
+import React from "react";
 import { useRef } from 'react';
 import { Mail, Clock, DollarSign, LayoutTemplate, ShoppingCart } from 'lucide-react';
 

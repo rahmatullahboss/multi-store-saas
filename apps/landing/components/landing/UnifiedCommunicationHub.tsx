@@ -1,3 +1,4 @@
+import React from "react";
 import { useRef } from 'react';
 import { Layers, Zap } from 'lucide-react';
 

@@ -1,3 +1,4 @@
+import React from "react";
 import { useRef, useState, useEffect } from 'react';
 import { MessageCircle, Bell, Zap, ShoppingCart, Truck, Gift, Check } from 'lucide-react';
 import { ASSETS } from '@/config/assets';
