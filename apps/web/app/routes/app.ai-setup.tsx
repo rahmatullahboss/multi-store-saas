@@ -11,7 +11,7 @@ import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
 import { stores, products, users } from '@db/schema';
 import { requireTenant } from '~/lib/tenant-guard.server';
-import { canUseAI, type PlanType } from '~/utils/plans.server';
+import { canUseAI } from '~/utils/plans.server';
 import { createAIService } from '~/services/ai.server';
 import { Sparkles, Loader2, AlertCircle, ArrowRight, Zap } from 'lucide-react';
 import { CREDIT_COSTS } from '~/utils/credit.server';
@@ -39,7 +39,6 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     return redirect('/auth/login');
   }
 
-  const planType = (store.planType as PlanType) || 'free';
   const hasAIAccess = canUseAI(planType);
 
   // Pass credit cost from server to client
