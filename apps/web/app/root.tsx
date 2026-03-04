@@ -98,21 +98,27 @@ export async function loader({ context, request }: LoaderFunctionArgs) {
 }
 
 /**
- * Layout Component - Provides the base HTML document structure
- *
- * This is the recommended Remix pattern to prevent hydration mismatches.
- * The Layout wraps both the App component and ErrorBoundary.
- *
- * IMPORTANT: We use useTranslation() to get the current language from i18next
- * This ensures the <html lang> attribute matches between server and client.
+ * SSR-safe language detection for components outside I18nextProvider.
+ * Unlike useTranslation(), this won't crash if the i18n context is missing.
  */
+function useI18nLanguageSafe(): { lang: string; dir: string } {
+  // react-i18next stores the i18n instance on the module-level default export.
+  // During SSR, the I18nextProvider may not have wrapped this component yet,
+  // but the instance itself is initialized in entry.server.tsx before rendering.
+  try {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    const { i18n } = useTranslation();
+    return { lang: i18n.language || 'en', dir: i18n.dir?.() || 'ltr' };
+  } catch {
+    return { lang: 'en', dir: 'ltr' };
+  }
+}
+
 export function Layout({ children }: { children: React.ReactNode }) {
-  // Get the current language from i18next
-  // This ensures consistency between server-rendered and client-hydrated HTML
-  const { i18n } = useTranslation();
+  const { lang, dir } = useI18nLanguageSafe();
 
   return (
-    <html lang={i18n.language} dir={i18n.dir()} className="h-full" suppressHydrationWarning>
+    <html lang={lang} dir={dir} className="h-full" suppressHydrationWarning>
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />

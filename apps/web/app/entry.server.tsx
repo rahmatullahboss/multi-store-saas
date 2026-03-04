@@ -11,12 +11,28 @@ import { isbot } from 'isbot';
 import { renderToReadableStream } from 'react-dom/server';
 import { createInstance } from 'i18next';
 import { I18nextProvider, initReactI18next } from 'react-i18next';
-// Backend imported for i18next-http-backend plugin (used implicitly)
-import 'i18next-http-backend';
 import * as Sentry from '@sentry/remix';
 import i18n from './i18n';
 import i18next from './services/i18n.server';
-import { resolve } from 'node:path';
+
+// Import locale resources inline — Cloudflare Workers have no filesystem,
+// so i18next-http-backend / node:path resolve() won't work.
+import commonEn from '../public/locales/en/common.json';
+import commonBn from '../public/locales/bn/common.json';
+import dashboardEn from '../public/locales/en/dashboard.json';
+import dashboardBn from '../public/locales/bn/dashboard.json';
+import authEn from '../public/locales/en/auth.json';
+import authBn from '../public/locales/bn/auth.json';
+import settingsEn from '../public/locales/en/settings.json';
+import settingsBn from '../public/locales/bn/settings.json';
+import storefrontEn from '../public/locales/en/storefront.json';
+import storefrontBn from '../public/locales/bn/storefront.json';
+import adminEn from '../public/locales/en/admin.json';
+import adminBn from '../public/locales/bn/admin.json';
+import componentsEn from '../public/locales/en/components.json';
+import componentsBn from '../public/locales/bn/components.json';
+import landingEn from '../public/locales/en/landing.json';
+import landingBn from '../public/locales/bn/landing.json';
 
 // Sentry initialization is idempotent in Workers; avoid module-level state.
 
@@ -115,8 +131,28 @@ export default async function handleRequest(
     ...i18n,
     lng,
     ns,
-    backend: {
-      loadPath: resolve('./public/locales/{{lng}}/{{ns}}.json'),
+    // Inline resources — Workers have no filesystem for backend loading
+    resources: {
+      en: {
+        common: commonEn,
+        dashboard: dashboardEn,
+        auth: authEn,
+        settings: settingsEn,
+        storefront: storefrontEn,
+        admin: adminEn,
+        components: componentsEn,
+        landing: landingEn,
+      },
+      bn: {
+        common: commonBn,
+        dashboard: dashboardBn,
+        auth: authBn,
+        settings: settingsBn,
+        storefront: storefrontBn,
+        admin: adminBn,
+        components: componentsBn,
+        landing: landingBn,
+      },
     },
   });
 

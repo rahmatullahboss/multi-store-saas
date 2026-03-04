@@ -39,8 +39,11 @@ interface LanguageProviderProps {
 
 // SSR-safe wrapper: react-i18next can crash during SSR on Cloudflare Workers
 // if the i18n context/dispatcher is not yet initialized.
+// The try-catch must be in a separate function (not a hook) to avoid corrupting
+// the hook call order when the error occurs.
 function useI18NextSafe() {
   try {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
     return useI18NextTranslation();
   } catch {
     // Fallback to no-op during SSR when i18n not yet initialized
