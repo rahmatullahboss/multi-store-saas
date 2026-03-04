@@ -99,13 +99,17 @@ export default defineConfig({
     target: 'es2020',
   },
   ssr: {
+    // CRITICAL: Workers have no node_modules at runtime.
+    // Force Vite to bundle ALL npm packages into the SSR build.
+    // Without this, React/react-dom/etc are left as bare `import "react"`
+    // which resolves to null in Workers, causing useMemo/useState crashes.
+    noExternal: true,
     resolve: {
       conditions: ['workerd', 'worker', 'browser'],
       externalConditions: ['workerd', 'worker'],
     },
     // Externalize heavy client-only dependencies from SSR bundle
-    // These will be resolved at runtime (client-side only)
-    // NOTE: recharts removed from external - using dynamic imports with hydration checks instead
+    // These are only needed on the client side (lazy loaded)
     external: [
       // Heavy PDF library - offloaded to PDF_SERVICE worker
       'jspdf',
