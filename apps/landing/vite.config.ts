@@ -13,4 +13,15 @@ export default defineConfig({
     }),
     tsconfigPaths(),
   ],
+  ssr: {
+    // CRITICAL: Workers have no node_modules at runtime.
+    // Force Vite to bundle ALL npm packages into the SSR build.
+    noExternal: true,
+    resolve: {
+      conditions: ['workerd', 'worker', 'browser'],
+    },
+  },
+  resolve: {
+    dedupe: ['react', 'react-dom'],
+  },
 });
