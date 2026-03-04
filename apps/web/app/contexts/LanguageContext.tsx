@@ -5,7 +5,7 @@
  * Refactored to use react-i18next for translations while maintaining existing API.
  */
 
-import { createContext, useContext, useMemo, useEffect, useState, type ReactNode } from 'react';
+import { createContext, useContext, useMemo, useEffect, type ReactNode } from 'react';
 import { useSearchParams } from '@remix-run/react';
 import { LANGUAGES, LANGUAGE_STORAGE_KEY, DEFAULT_LANGUAGE, type Language, type TranslationKey, type LanguageConfig, t as i18nCustomT } from '~/utils/i18n/index';
 import type { SupportedLocale, SupportedCurrency } from '~/utils/formatPrice';
