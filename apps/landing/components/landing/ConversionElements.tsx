@@ -249,6 +249,7 @@ export function StockCounter({
       )}
     </div>
   );
+}
 
 /**
  * Social Proof Popup Component

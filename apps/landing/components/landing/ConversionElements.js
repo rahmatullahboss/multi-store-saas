@@ -79,67 +79,68 @@ export function CountdownTimer({ endDate, expiredText, variant = 'default', clas
                             : isLowStock
                                 ? 'bg-orange-500'
                                 : 'bg-green-500'}`, style: { width: `${stockPercentage}%` } }) }))] }));
-        export function SocialProofPopup({ productName, interval = 15, buyers, locations, variant = 'default', }) {
-            // If no buyers are provided, do not show fake data.
-            // This component now only works if real data is passed.
-            if (!buyers || buyers.length === 0) {
-                return null;
-            }
-            const { t, lang } = useTranslation();
-            const activeBuyers = buyers;
-            const activeLocations = locations || []; // Handle case where locations might be empty
-            const [visible, setVisible] = useState(false);
-            const [currentBuyer, setCurrentBuyer] = useState({ name: '', location: '', time: '' });
-            const showNotification = () => {
-                const randomBuyer = activeBuyers[Math.floor(Math.random() * activeBuyers.length)];
-                const randomLocation = activeLocations.length > 0
-                    ? activeLocations[Math.floor(Math.random() * activeLocations.length)]
-                    : '';
-                const randomMinutes = Math.floor(Math.random() * 30) + 1;
-                const timeText = randomMinutes === 1
-                    ? t('landingConversion_justNow')
-                    : t('landingConversion_minutesAgo', { randomMinutes });
-                setCurrentBuyer({
-                    name: randomBuyer,
-                    location: randomLocation,
-                    time: timeText,
-                });
-                setVisible(true);
-                // Hide after 5 seconds
-                setTimeout(() => {
-                    setVisible(false);
-                }, 5000);
+    }
+    export function SocialProofPopup({ productName, interval = 15, buyers, locations, variant = 'default', }) {
+        // If no buyers are provided, do not show fake data.
+        // This component now only works if real data is passed.
+        if (!buyers || buyers.length === 0) {
+            return null;
+        }
+        const { t, lang } = useTranslation();
+        const activeBuyers = buyers;
+        const activeLocations = locations || []; // Handle case where locations might be empty
+        const [visible, setVisible] = useState(false);
+        const [currentBuyer, setCurrentBuyer] = useState({ name: '', location: '', time: '' });
+        const showNotification = () => {
+            const randomBuyer = activeBuyers[Math.floor(Math.random() * activeBuyers.length)];
+            const randomLocation = activeLocations.length > 0
+                ? activeLocations[Math.floor(Math.random() * activeLocations.length)]
+                : '';
+            const randomMinutes = Math.floor(Math.random() * 30) + 1;
+            const timeText = randomMinutes === 1
+                ? t('landingConversion_justNow')
+                : t('landingConversion_minutesAgo', { randomMinutes });
+            setCurrentBuyer({
+                name: randomBuyer,
+                location: randomLocation,
+                time: timeText,
+            });
+            setVisible(true);
+            // Hide after 5 seconds
+            setTimeout(() => {
+                setVisible(false);
+            }, 5000);
+        };
+        useEffect(() => {
+            // Show first popup after 5 seconds
+            const initialTimeout = setTimeout(() => {
+                showNotification();
+            }, 5000);
+            // Then show periodically
+            const timer = setInterval(() => {
+                showNotification();
+            }, interval * 1000);
+            return () => {
+                clearTimeout(initialTimeout);
+                clearInterval(timer);
             };
-            useEffect(() => {
-                // Show first popup after 5 seconds
-                const initialTimeout = setTimeout(() => {
-                    showNotification();
-                }, 5000);
-                // Then show periodically
-                const timer = setInterval(() => {
-                    showNotification();
-                }, interval * 1000);
-                return () => {
-                    clearTimeout(initialTimeout);
-                    clearInterval(timer);
-                };
-                // Disable exhaustive-deps to avoid recreating interval on every render.
-                // We only want to reset interval if 'interval' prop changes.
-                // eslint-disable-next-line react-hooks/exhaustive-deps
-            }, [interval]);
-            if (!visible)
-                return null;
-            const isStoryDriven = variant === 'story-driven';
-            return (_jsxs("div", { className: "fixed bottom-20 left-4 z-50 animate-slide-in-left", children: [_jsx("div", { className: `
+            // Disable exhaustive-deps to avoid recreating interval on every render.
+            // We only want to reset interval if 'interval' prop changes.
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+        }, [interval]);
+        if (!visible)
+            return null;
+        const isStoryDriven = variant === 'story-driven';
+        return (_jsxs("div", { className: "fixed bottom-20 left-4 z-50 animate-slide-in-left", children: [_jsx("div", { className: `
         rounded-xl shadow-2xl border p-4 max-w-xs transition-all
         ${isStoryDriven
-                            ? 'bg-[#FFFBEB] border-amber-200 shadow-amber-900/10'
-                            : 'bg-white border-gray-100'}
+                        ? 'bg-[#FFFBEB] border-amber-200 shadow-amber-900/10'
+                        : 'bg-white border-gray-100'}
       `, children: _jsxs("div", { className: "flex items-start gap-3", children: [_jsx("div", { className: `
             w-10 h-10 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0
             ${isStoryDriven
-                                        ? 'bg-gradient-to-br from-amber-500 to-orange-600 shadow-md'
-                                        : 'bg-gradient-to-br from-green-400 to-emerald-500'}
+                                    ? 'bg-gradient-to-br from-amber-500 to-orange-600 shadow-md'
+                                    : 'bg-gradient-to-br from-green-400 to-emerald-500'}
           `, children: isStoryDriven ? '🛍️' : '✓' }), _jsxs("div", { children: [_jsx("p", { className: `text-sm ${isStoryDriven ? 'text-amber-900 font-serif' : 'text-gray-800'}`, children: lang === 'bn' ? (_jsxs(_Fragment, { children: [_jsx("strong", { children: currentBuyer.name }), " ", currentBuyer.location && `(${currentBuyer.location})`, " ", _jsx("br", {}), _jsx("strong", { children: productName }), " ", t('landingConversion_orderedText')] })) : (_jsxs(_Fragment, { children: [_jsx("strong", { children: currentBuyer.name }), " ", currentBuyer.location && `(${currentBuyer.location})`, " ", _jsx("br", {}), t('landingConversion_orderedText'), " ", _jsx("strong", { children: productName })] })) }), _jsx("p", { className: `text-xs mt-1 ${isStoryDriven ? 'text-amber-700/70 italic' : 'text-gray-500'}`, children: currentBuyer.time })] }), _jsx("button", { onClick: () => setVisible(false), className: `ml-auto ${isStoryDriven ? 'text-amber-400 hover:text-amber-600' : 'text-gray-400 hover:text-gray-600'}`, children: "\u2715" })] }) }), _jsx("style", { children: `
         @keyframes slide-in-left {
           from {
@@ -155,6 +156,5 @@ export function CountdownTimer({ endDate, expiredText, variant = 'default', clas
           animation: slide-in-left 0.5s ease-out;
         }
       ` })] }));
-        }
     }
 }

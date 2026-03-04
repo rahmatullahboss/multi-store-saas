@@ -18,6 +18,7 @@ interface OptimizedLandingImageProps {
   height?: number;
   priority?: boolean; // Skip lazy loading for LCP images
   onLoad?: () => void;
+}
 
 /**
  * Adds WebP format and quality params to Unsplash URLs

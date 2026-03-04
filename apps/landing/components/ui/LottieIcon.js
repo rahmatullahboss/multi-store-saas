@@ -27,7 +27,7 @@ export function LottieIcon({ src, size = 24, width, height, loop = true, autopla
                 return res.json();
             })
                 .then((data) => {
-                console.log('[Lottie] Animation data loaded:', Object.keys(data));
+                console.log('[Lottie] Animation data loaded:', data ? 'loaded' : 'empty');
                 setAnimationData(data);
             })
                 .catch((err) => console.error('[Lottie] Failed to load animation:', src, err));

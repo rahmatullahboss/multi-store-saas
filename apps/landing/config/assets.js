@@ -1,4 +1,5 @@
-export const R2_BASE_URL = process.env.R2_ASSETS_URL;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const R2_BASE_URL = globalThis?.process?.env?.R2_ASSETS_URL ?? '';
 if (!R2_BASE_URL) {
     console.warn('Warning: R2_ASSETS_URL is missing. Assets may not load.');
 }

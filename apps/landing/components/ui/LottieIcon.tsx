@@ -2,7 +2,7 @@
 
 /**
  * LottieIcon Component
- * 
+ *
  * A reusable wrapper for Lottie animations with performance optimizations:
  * - Lazy loading
  * - Intersection Observer for viewport-based playback
@@ -16,34 +16,34 @@ import Lottie, { type LottieRefCurrentProps } from 'lottie-react';
 interface LottieIconProps {
   /** Path to the Lottie JSON file or animation data */
   src: string | object;
-  
+
   /** Size in pixels (width and height will be equal) */
   size?: number;
-  
+
   /** Custom width (overrides size) */
   width?: number;
-  
+
   /** Custom height (overrides size) */
   height?: number;
-  
+
   /** Whether to loop the animation */
   loop?: boolean;
-  
+
   /** Whether to autoplay on mount */
   autoplay?: boolean;
-  
+
   /** Play animation on hover */
   playOnHover?: boolean;
-  
+
   /** Additional CSS classes */
   className?: string;
-  
+
   /** Animation speed (1 = normal, 2 = 2x speed, etc.) */
   speed?: number;
-  
+
   /** Enable lazy loading (only play when in viewport) */
   lazy?: boolean;
-  
+
   /** Accessibility label */
   ariaLabel?: string;
 }
@@ -79,8 +79,8 @@ export function LottieIcon({
           return res.json();
         })
         .then((data) => {
-          console.log('[Lottie] Animation data loaded:', Object.keys(data));
-          setAnimationData(data);
+          console.log('[Lottie] Animation data loaded:', data ? 'loaded' : 'empty');
+          setAnimationData(data as object);
         })
         .catch((err) => console.error('[Lottie] Failed to load animation:', src, err));
     } else if (typeof src === 'object') {
