@@ -103,8 +103,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     env: context.cloudflare.env,
   });
 
-  // Check if user has premium plan
-  const isPremiumPlan = ['premium', 'business', 'custom'].includes(store.planType || 'free');
+  // All themes are available to all users (no plan-based locking)
+  const isPremiumPlan = true;
 
   return json({
     store,
@@ -136,9 +136,6 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const store = storeResult[0];
   if (!store) return json({ error: 'Store not found' }, { status: 404 });
 
-  // Check if user has premium plan
-  const isPremiumPlan = ['premium', 'business', 'custom'].includes(store.planType || 'free');
-
   const formData = await request.formData();
   const intent = formData.get('intent') as string;
 
@@ -159,12 +156,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     if (intent === 'template') {
       const templateId = formData.get('templateId') as string;
       if (templateId) {
-        // Validate: Only allow non-MVP themes if user has premium plan
-        const isMvpTheme = MVP_THEME_IDS.includes(templateId as any);
-        if (!isMvpTheme && !isPremiumPlan) {
-          return json({ error: 'Upgrade to premium to use this theme' }, { status: 403 });
-        }
-
+        // All themes are now available to everyone
         // Auto-set theme colors based on selected template
         const templateTheme = STORE_TEMPLATE_THEMES[templateId];
 
@@ -305,7 +297,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 // MAIN COMPONENT
 // ============================================================================
 export default function StoreDesignPage() {
-  const { store, settings, availableThemes, isPremiumPlan } = useLoaderData<typeof loader>();
+  const { store, settings, availableThemes } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const [searchParams, setSearchParams] = useSearchParams();
   const navigation = useNavigation();
@@ -389,7 +381,6 @@ export default function StoreDesignPage() {
             settings={settings}
             themes={availableThemes}
             isSaving={isSaving('template')}
-            isPremiumPlan={isPremiumPlan}
           />
         )}
         {activeTab === 'theme' && <ThemeTab settings={settings} isSaving={isSaving('theme')} />}
@@ -412,7 +403,6 @@ function TemplateTab({
   settings,
   themes,
   isSaving,
-  isPremiumPlan,
 }: {
   settings: UnifiedStorefrontSettingsV1;
   themes: Array<{
@@ -424,7 +414,6 @@ function TemplateTab({
     isActive: boolean;
   }>;
   isSaving: boolean;
-  isPremiumPlan: boolean;
 }) {
   return (
     <div>
@@ -437,31 +426,19 @@ function TemplateTab({
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
         {themes.map((theme) => {
           const isActive = settings.theme.templateId === theme.id;
-          const isPremium = !theme.isActive;
           return (
             <div
               key={theme.id}
               className={`group relative rounded-2xl border-2 overflow-hidden transition-all duration-200 bg-white ${
                 isActive
                   ? 'border-indigo-500 shadow-lg shadow-indigo-100 ring-2 ring-indigo-200'
-                  : isPremium
-                    ? 'border-gray-200 opacity-80'
-                    : 'border-gray-200 hover:border-indigo-300 hover:shadow-md hover:-translate-y-0.5'
+                  : 'border-gray-200 hover:border-indigo-300 hover:shadow-md hover:-translate-y-0.5'
               }`}
             >
               {/* Active badge */}
               {isActive && (
                 <div className="absolute top-3 right-3 z-10 bg-emerald-500 text-white text-xs px-2.5 py-1 rounded-full flex items-center gap-1 font-medium shadow-sm">
                   <CheckCircle className="w-3 h-3" /> সক্রিয়
-                </div>
-              )}
-              {/* Premium badge */}
-              {isPremium && (
-                <div className="absolute top-3 left-3 z-10 bg-gradient-to-r from-amber-500 to-yellow-500 text-white text-xs px-2.5 py-1 rounded-full font-semibold flex items-center gap-1 shadow">
-                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                  </svg>
-                  প্রিমিয়াম
                 </div>
               )}
 
@@ -511,54 +488,33 @@ function TemplateTab({
                 <Form method="post">
                   <input type="hidden" name="intent" value="template" />
                   <input type="hidden" name="templateId" value={theme.id} />
-                  {isPremium ? (
-                    <div className="space-y-2">
-                      <div className="flex gap-2">
-                        <a
-                          href={`/store-template-preview/${theme.id}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex-1 py-2 rounded-lg text-xs font-medium border border-gray-300 text-gray-600 hover:bg-gray-50 flex items-center justify-center gap-1 transition"
-                        >
-                          <ExternalLink className="w-3 h-3" /> প্রিভিউ
-                        </a>
-                        <a
-                          href="/app/billing"
-                          className="flex-1 py-2 rounded-lg text-xs font-semibold bg-gradient-to-r from-amber-500 to-yellow-500 text-white flex items-center justify-center gap-1 hover:opacity-90 transition"
-                        >
-                          আপগ্রেড
-                        </a>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex gap-2">
-                      <a
-                        href={`/store-template-preview/${theme.id}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex-1 py-2 rounded-lg text-xs font-medium border border-gray-200 text-gray-600 hover:bg-gray-50 flex items-center justify-center gap-1 transition"
-                      >
-                        <ExternalLink className="w-3 h-3" /> প্রিভিউ
-                      </a>
-                      <button
-                        type="submit"
-                        disabled={isActive || isSaving}
-                        className={`flex-1 py-2 rounded-lg text-xs font-semibold transition ${
-                          isActive
-                            ? 'bg-emerald-50 text-emerald-600 cursor-default border border-emerald-200'
-                            : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm'
-                        }`}
-                      >
-                        {isSaving && !isActive ? (
-                          <Loader2 className="w-3.5 h-3.5 animate-spin mx-auto" />
-                        ) : isActive ? (
-                          '✓ সক্রিয়'
-                        ) : (
-                          'এপ্লাই করুন'
-                        )}
-                      </button>
-                    </div>
-                  )}
+                  <div className="flex gap-2">
+                    <a
+                      href={`/store-template-preview/${theme.id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 py-2 rounded-lg text-xs font-medium border border-gray-200 text-gray-600 hover:bg-gray-50 flex items-center justify-center gap-1 transition"
+                    >
+                      <ExternalLink className="w-3 h-3" /> প্রিভিউ
+                    </a>
+                    <button
+                      type="submit"
+                      disabled={isActive || isSaving}
+                      className={`flex-1 py-2 rounded-lg text-xs font-semibold transition ${
+                        isActive
+                          ? 'bg-emerald-50 text-emerald-600 cursor-default border border-emerald-200'
+                          : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm'
+                      }`}
+                    >
+                      {isSaving && !isActive ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin mx-auto" />
+                      ) : isActive ? (
+                        '✓ সক্রিয়'
+                      ) : (
+                        'এপ্লাই করুন'
+                      )}
+                    </button>
+                  </div>
                 </Form>
               </div>
             </div>

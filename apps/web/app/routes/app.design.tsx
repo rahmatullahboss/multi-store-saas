@@ -53,7 +53,6 @@ const TEMPLATE_META: Record<string, {
     gradient: 'from-amber-400 via-yellow-500 to-amber-600',
     icon: <Crown className="w-8 h-8" />,
     tags: ['Premium Feel', 'Gold Accents'],
-    isPremium: true,
   },
   'organic': {
     gradient: 'from-green-400 via-emerald-500 to-teal-600',
