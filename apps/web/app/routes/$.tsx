@@ -11,7 +11,7 @@ import { resolveStore } from '~/lib/store.server';
 import { createDb } from '~/lib/db.server';
 import { stores, type Store } from '@db/schema';
 import { eq } from 'drizzle-orm';
-import { resolveStoreTheme } from '~/templates/store-registry';
+import { getStoreTemplateTheme } from '~/templates/store-registry';
 import type { ThemeConfig as EngineThemeConfig } from '~/lib/theme-engine-types';
 import { Home, Search } from 'lucide-react';
 import { getUnifiedStorefrontSettings } from '~/services/unified-storefront-settings.server';
@@ -84,16 +84,20 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     env: context.cloudflare.env,
   });
 
-  // Get theme from unified settings
-  const { theme } = resolveStoreTheme(
-    {
-      primaryColor: unifiedSettings.theme.primary,
-      accentColor: unifiedSettings.theme.accent,
-      backgroundColor: unifiedSettings.theme.background,
-      textColor: unifiedSettings.theme.text,
-    } as Record<string, unknown>,
-    storeData.theme
-  );
+  // Get theme from unified settings only (no legacy fallback)
+  const storeTemplateId = unifiedSettings.theme.templateId || 'starter-store';
+  const baseTheme = getStoreTemplateTheme(storeTemplateId);
+  const theme = {
+    config: {
+      colors: {
+        primary: unifiedSettings.theme.primary || baseTheme.primary,
+        accent: unifiedSettings.theme.accent || baseTheme.accent,
+        background: unifiedSettings.theme.background || baseTheme.background,
+        text: unifiedSettings.theme.text || baseTheme.text,
+        textMuted: unifiedSettings.theme.muted || baseTheme.muted,
+      },
+    },
+  };
 
   // Build themeConfig for the store object
   const themeConfig = {
@@ -116,7 +120,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     },
     storeName: unifiedSettings.branding.storeName || storeData.name,
     currency: storeData.currency || '৳',
-    theme: theme as NotFoundData['theme'],
+    theme,
     hasTheme: true,
   });
 }

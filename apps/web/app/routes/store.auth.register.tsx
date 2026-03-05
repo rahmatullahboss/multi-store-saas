@@ -17,7 +17,7 @@ import { createDb } from '~/lib/db.server';
 import { D1Cache } from '~/services/cache-layer.server';
 import { products as productsTable } from '@db/schema';
 import { desc, eq, and } from 'drizzle-orm';
-import { resolveStoreTheme } from '~/templates/store-registry';
+import { getStoreTemplateTheme } from '~/templates/store-registry';
 import { resolveStore } from '~/lib/store.server';
 import {
   getCustomerId,
@@ -52,16 +52,17 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const db = createDb(env.DB);
   const unifiedSettings = await getUnifiedStorefrontSettings(db, storeId, { env: context.cloudflare.env });
 
-  // Get theme from unified settings
-  const { storeTemplateId: templateId, theme } = resolveStoreTheme(
-    {
-      primaryColor: unifiedSettings.theme.primary,
-      accentColor: unifiedSettings.theme.accent,
-      backgroundColor: unifiedSettings.theme.background,
-      textColor: unifiedSettings.theme.text,
-    } as Record<string, unknown>,
-    store.theme
-  );
+  // Get theme from unified settings only (no legacy fallback)
+  const templateId = unifiedSettings.theme.templateId || 'starter-store';
+  const baseTheme = getStoreTemplateTheme(templateId);
+  const theme = {
+    ...baseTheme,
+    primary: unifiedSettings.theme.primary,
+    accent: unifiedSettings.theme.accent,
+    background: unifiedSettings.theme.background,
+    text: unifiedSettings.theme.text,
+    muted: unifiedSettings.theme.muted,
+  };
 
   // Social links from unified settings
   const socialLinks = {

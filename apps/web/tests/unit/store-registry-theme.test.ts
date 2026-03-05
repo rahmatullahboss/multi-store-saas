@@ -64,9 +64,9 @@ describe('resolveStoreTheme', () => {
     expect(storeTemplateId).toBe('nova-lux');
   });
 
-  it('uses legacy theme id as fallback', () => {
+  it('ignores legacy theme id fallback and keeps MVP default', () => {
     const { storeTemplateId } = resolveStoreTheme({}, 'luxe-boutique');
-    expect(storeTemplateId).toBe('luxe-boutique');
+    expect(storeTemplateId).toBe('starter-store');
   });
 
   it('falls back to starter-store when no theme info provided', () => {

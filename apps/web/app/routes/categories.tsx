@@ -13,7 +13,7 @@ import { createDb } from '~/lib/db.server';
 import { products } from '@db/schema';
 import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
 import { getUnifiedStorefrontSettings } from '~/services/unified-storefront-settings.server';
-import { resolveStoreTheme } from '~/templates/store-registry';
+import { getStoreTemplateTheme } from '~/templates/store-registry';
 import { type ThemeConfig } from '@db/types';
 
 function createCategorySlug(category: string): string {
@@ -45,16 +45,9 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     env: context.cloudflare.env,
   });
 
-  // Get theme from unified settings
-  const { storeTemplateId, theme: baseTheme } = resolveStoreTheme(
-    {
-      primaryColor: unifiedSettings.theme.primary,
-      accentColor: unifiedSettings.theme.accent,
-      backgroundColor: unifiedSettings.theme.background,
-      textColor: unifiedSettings.theme.text,
-    } as Record<string, unknown>,
-    store.theme
-  );
+  // Get theme from unified settings only (no legacy fallback)
+  const storeTemplateId = unifiedSettings.theme.templateId || 'starter-store';
+  const baseTheme = getStoreTemplateTheme(storeTemplateId);
 
   // Merge with unified settings theme colors
   const theme = {

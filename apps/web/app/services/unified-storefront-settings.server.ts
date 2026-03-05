@@ -50,6 +50,28 @@ export interface SaveUnifiedSettingsOptions {
   dualWrite?: boolean;
 }
 
+const ACTIVE_TEMPLATE_IDS = new Set(['starter-store', 'luxe-boutique', 'nova-lux']);
+
+function sanitizeTemplateId(templateId: string | null | undefined): string {
+  if (!templateId) return 'starter-store';
+  return ACTIVE_TEMPLATE_IDS.has(templateId) ? templateId : 'starter-store';
+}
+
+function sanitizeUnifiedSettings(
+  settings: UnifiedStorefrontSettingsV1
+): UnifiedStorefrontSettingsV1 {
+  const sanitizedTemplateId = sanitizeTemplateId(settings.theme.templateId);
+  if (sanitizedTemplateId === settings.theme.templateId) return settings;
+
+  return {
+    ...settings,
+    theme: {
+      ...settings.theme,
+      templateId: sanitizedTemplateId,
+    },
+  };
+}
+
 export interface MigrateLegacyOptions {
   /** Release tag for archive (e.g., 'v2.0') */
   releaseTag: string;
@@ -83,8 +105,9 @@ export async function getUnifiedStorefrontSettings<TSchema extends Record<string
     if (result.length > 0 && result[0].storefrontSettings) {
       const parsed = deserializeUnifiedSettings(result[0].storefrontSettings);
       if (parsed) {
+        const sanitized = sanitizeUnifiedSettings(parsed);
         console.log(JSON.stringify({ level: 'debug', event: 'unified_settings_cache_hit', storeId, ts: Date.now() }));
-        return parsed;
+        return sanitized;
       }
     }
   } catch (error) {
@@ -112,7 +135,8 @@ export async function getRawUnifiedSettings<TSchema extends Record<string, unkno
       .limit(1);
 
     if (result.length > 0 && result[0].storefrontSettings) {
-      return deserializeUnifiedSettings(result[0].storefrontSettings);
+      const parsed = deserializeUnifiedSettings(result[0].storefrontSettings);
+      return parsed ? sanitizeUnifiedSettings(parsed) : null;
     }
   } catch (error) {
     console.warn('Error reading raw unified settings:', error);
@@ -143,14 +167,15 @@ export async function saveUnifiedStorefrontSettings<TSchema extends Record<strin
 
   // Validate
   const validated = UnifiedStorefrontSettingsV1Schema.parse(updated);
+  const sanitized = sanitizeUnifiedSettings(validated);
 
   // Save to canonical column
   await db
     .update(stores)
     .set({
-      storefrontSettings: serializeUnifiedSettings(validated),
+      storefrontSettings: serializeUnifiedSettings(sanitized),
       // Keep legacy-compatible column aligned to prevent route-level theme drift.
-      theme: validated.theme.templateId,
+      theme: sanitized.theme.templateId,
       updatedAt: new Date(),
     })
     .where(eq(stores.id, storeId));
@@ -158,7 +183,7 @@ export async function saveUnifiedStorefrontSettings<TSchema extends Record<strin
   // Note: Cache invalidation will be handled by the caller or separate service
   // See: invalidateUnifiedSettingsCache
 
-  return validated;
+  return sanitized;
 }
 
 /**
@@ -171,18 +196,19 @@ export async function replaceUnifiedStorefrontSettings<TSchema extends Record<st
 ): Promise<UnifiedStorefrontSettingsV1> {
   // Validate
   const validated = UnifiedStorefrontSettingsV1Schema.parse(settings);
+  const sanitized = sanitizeUnifiedSettings(validated);
 
   // Save to canonical column
   await db
     .update(stores)
     .set({
-      storefrontSettings: serializeUnifiedSettings(validated),
-      theme: validated.theme.templateId,
+      storefrontSettings: serializeUnifiedSettings(sanitized),
+      theme: sanitized.theme.templateId,
       updatedAt: new Date(),
     })
     .where(eq(stores.id, storeId));
 
-  return validated;
+  return sanitized;
 }
 
 // ============================================================================
@@ -224,7 +250,7 @@ export async function migrateStoreToUnifiedSettings<TSchema extends Record<strin
       ? deserializeUnifiedSettings(store.storefrontSettings)
       : null;
     if (existing) {
-      return { success: true, settings: existing };
+      return { success: true, settings: sanitizeUnifiedSettings(existing) };
     }
 
     const unified: UnifiedStorefrontSettingsV1 = {
@@ -247,19 +273,20 @@ export async function migrateStoreToUnifiedSettings<TSchema extends Record<strin
       },
       updatedAt: new Date().toISOString(),
     };
+    const sanitized = sanitizeUnifiedSettings(unified);
 
     if (!dryRun) {
       await db
         .update(stores)
         .set({
-          storefrontSettings: serializeUnifiedSettings(unified),
-          theme: unified.theme.templateId,
+          storefrontSettings: serializeUnifiedSettings(sanitized),
+          theme: sanitized.theme.templateId,
           updatedAt: new Date(),
         })
         .where(eq(stores.id, storeId));
     }
 
-    return { success: true, settings: unified };
+    return { success: true, settings: sanitized };
   } catch (error) {
     console.error('Migration failed for store:', storeId, error);
     return { success: false, error: String(error) };

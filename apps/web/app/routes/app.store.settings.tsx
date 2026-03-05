@@ -24,7 +24,7 @@ import {
   saveUnifiedStorefrontSettingsWithCacheInvalidation,
 } from '~/services/unified-storefront-settings.server';
 import {
-  STORE_TEMPLATES as MVP_STORE_TEMPLATES,
+  MVP_STORE_TEMPLATES,
   STORE_TEMPLATE_THEMES,
   MVP_THEME_IDS,
   type StoreTemplateDefinition,
@@ -103,8 +103,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     env: context.cloudflare.env,
   });
 
-  // All themes are available to all users (no plan-based locking)
-  const isPremiumPlan = true;
+  // Active production themes only
+  const isPremiumPlan = false;
 
   return json({
     store,
@@ -116,8 +116,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       thumbnail: t.thumbnail,
       description: t.description,
       colors: t.theme ? { primary: t.theme.primary, accent: t.theme.accent } : null,
-      // If premium plan, all themes are "active" (not locked)
-      // Otherwise, only MVP themes are free
+      // Only MVP active themes are selectable in production
       isActive: isPremiumPlan || MVP_THEME_IDS.includes(t.id as any),
     })),
   });
@@ -156,13 +155,16 @@ export async function action({ request, context }: ActionFunctionArgs) {
     if (intent === 'template') {
       const templateId = formData.get('templateId') as string;
       if (templateId) {
-        // All themes are now available to everyone
+        const safeTemplateId = MVP_THEME_IDS.includes(templateId as any)
+          ? templateId
+          : 'starter-store';
+
         // Auto-set theme colors based on selected template
-        const templateTheme = STORE_TEMPLATE_THEMES[templateId];
+        const templateTheme = STORE_TEMPLATE_THEMES[safeTemplateId];
 
         // Update unified settings with template and auto-set colors
         patch.theme = {
-          templateId,
+          templateId: safeTemplateId,
           ...(templateTheme && {
             primary: templateTheme.primary,
             accent: templateTheme.accent,

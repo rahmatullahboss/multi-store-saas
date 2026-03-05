@@ -36,6 +36,7 @@ import {
   getUnifiedStorefrontSettings,
   saveUnifiedStorefrontSettingsWithCacheInvalidation,
 } from '~/services/unified-storefront-settings.server';
+import { MVP_THEME_IDS } from '~/templates/store-registry';
 
 import {
   Store,
@@ -389,7 +390,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   }
 
   // Build unified settings update (single source of truth)
-  const themeValue = theme || 'luxe-boutique';
+  const themeValue = MVP_THEME_IDS.includes(theme as any) ? theme : 'starter-store';
 
   try {
     // Unified-only save (no legacy writes)
@@ -514,7 +515,7 @@ export default function SettingsPage() {
   const mobileShowForm = searchParams.get('edit') === '1';
   const [showSuccess, setShowSuccess] = useState(false);
   // Theme and font selection - used by ThemePreview component
-  const selectedTheme = store.theme || 'default';
+  const selectedTheme = MVP_THEME_IDS.includes(store.theme as any) ? store.theme : 'starter-store';
   const selectedFont = store.fontFamily || 'inter';
   // Note: Store mode selection removed from this page. Use Homepage Settings (storeEnabled toggle) instead.
   const [showPreview, setShowPreview] = useState(false);
@@ -1056,7 +1057,7 @@ export default function SettingsPage() {
             <input type="hidden" name="favicon" value={faviconUrl} />
             <input type="hidden" name="customDomain" value={store.customDomain || ''} />
             <input type="hidden" name="fontFamily" value={store.fontFamily || 'inter'} />
-            <input type="hidden" name="theme" value={store.theme || 'luxe-boutique'} />
+            <input type="hidden" name="theme" value={selectedTheme} />
 
             {/* ── CARD 1: Branding ── */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">

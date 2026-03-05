@@ -434,12 +434,17 @@ export const getStoreTemplateTheme = (templateId: string): StoreTemplateTheme =>
 };
 
 // ============================================================================
-// Aliases & Constants (for backwards-compatibility with existing imports)
+// MVP Store Templates - Only 3 active themes for production
 // ============================================================================
-export const MVP_STORE_TEMPLATES = STORE_TEMPLATES;
+const ACTIVE_MVP_THEME_IDS = ['starter-store', 'luxe-boutique', 'nova-lux'] as const;
+
+export const MVP_STORE_TEMPLATES = STORE_TEMPLATES.filter((t) =>
+  ACTIVE_MVP_THEME_IDS.includes(t.id as (typeof ACTIVE_MVP_THEME_IDS)[number])
+);
+
 export const DEFAULT_STORE_TEMPLATE_ID = 'starter-store';
 
-export const MVP_THEME_IDS = ['luxe-boutique', 'nova-lux', 'starter-store'] as const;
+export const MVP_THEME_IDS = ACTIVE_MVP_THEME_IDS;
 export type MvpThemeId = (typeof MVP_THEME_IDS)[number];
 
 // Alias for libs that use getAllStoreTemplates
@@ -450,32 +455,20 @@ export const getAllStoreTemplates = () => STORE_TEMPLATES;
 // ============================================================================
 export function resolveStoreTemplateId(
   themeConfig: Record<string, unknown> | null | undefined,
-  storeTheme?: string | null
+  _storeTheme?: string | null
 ): string {
   // If we have themeConfig, check for its storeTemplateId
   if (themeConfig) {
-    if (themeConfig.storeTemplateId && typeof themeConfig.storeTemplateId === 'string') {
+    if (
+      themeConfig.storeTemplateId &&
+      typeof themeConfig.storeTemplateId === 'string' &&
+      MVP_THEME_IDS.includes(themeConfig.storeTemplateId as MvpThemeId)
+    ) {
       return themeConfig.storeTemplateId;
     }
-    // If themeConfig exists but lacks a template ID, we should NOT fall down to storeTheme
-    // because themeConfig is the newer source of truth. We default to starter-store.
-    // Wait, the previous logic just bypassed and checked storeTheme. Let's keep checking storeTheme
-    // as a fallback if themeConfig doesn't have it.
   }
 
-  // Try parsing storeTheme JSON string
-  if (storeTheme) {
-    try {
-      const parsed = JSON.parse(storeTheme) as Record<string, unknown>;
-      if (parsed.storeTemplateId && typeof parsed.storeTemplateId === 'string') {
-        return parsed.storeTemplateId;
-      }
-    } catch {
-      // fallback
-    }
-  }
-
-  return 'starter-store';
+  return DEFAULT_STORE_TEMPLATE_ID;
 }
 
 // ============================================================================
@@ -483,34 +476,22 @@ export function resolveStoreTemplateId(
 // ============================================================================
 export function resolveStoreTheme(
   mvpSettings: Record<string, unknown>,
-  themeConfigJson?: string | null
+  _themeConfigJson?: string | null
 ): { storeTemplateId: string; theme: StoreTemplateTheme } {
-  // Parse themeConfig JSON to get templateId
-  let storeTemplateId = 'starter-store';
+  // Resolve templateId from canonical settings only.
+  let storeTemplateId = DEFAULT_STORE_TEMPLATE_ID;
 
-  // 1. Check mvpSettings directly for storeTemplateId
-  if (mvpSettings.storeTemplateId && typeof mvpSettings.storeTemplateId === 'string') {
+  if (
+    mvpSettings.storeTemplateId &&
+    typeof mvpSettings.storeTemplateId === 'string' &&
+    MVP_THEME_IDS.includes(mvpSettings.storeTemplateId as MvpThemeId)
+  ) {
     storeTemplateId = mvpSettings.storeTemplateId;
-  }
-
-  // 2. Try parsing themeConfigJson as JSON fallback
-  if (storeTemplateId === 'starter-store' && themeConfigJson) {
-    try {
-      const parsed = JSON.parse(themeConfigJson) as Record<string, unknown>;
-      if (parsed.storeTemplateId && typeof parsed.storeTemplateId === 'string') {
-        storeTemplateId = parsed.storeTemplateId;
-      }
-    } catch {
-      // 3. If not valid JSON, treat the raw string as a legacy theme id
-      if (themeConfigJson && STORE_TEMPLATE_THEMES[themeConfigJson]) {
-        storeTemplateId = themeConfigJson;
-      }
-    }
   }
 
   // Get base theme for the template
   const baseTheme =
-    STORE_TEMPLATE_THEMES[storeTemplateId] || STORE_TEMPLATE_THEMES['starter-store'];
+    STORE_TEMPLATE_THEMES[storeTemplateId] || STORE_TEMPLATE_THEMES[DEFAULT_STORE_TEMPLATE_ID];
 
   // Merge user overrides from mvp settings
   const merged: StoreTemplateTheme = {
