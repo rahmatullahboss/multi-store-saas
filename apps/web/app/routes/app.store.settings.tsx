@@ -103,16 +103,22 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     env: context.cloudflare.env,
   });
 
+  // Check if user has premium plan
+  const isPremiumPlan = ['premium', 'business', 'custom'].includes(store.planType || 'free');
+
   return json({
     store,
     settings,
+    isPremiumPlan,
     availableThemes: MVP_STORE_TEMPLATES.map((t: StoreTemplateDefinition) => ({
       id: t.id,
       name: t.name,
       thumbnail: t.thumbnail,
       description: t.description,
       colors: t.theme ? { primary: t.theme.primary, accent: t.theme.accent } : null,
-      isActive: MVP_THEME_IDS.includes(t.id as any),
+      // If premium plan, all themes are "active" (not locked)
+      // Otherwise, only MVP themes are free
+      isActive: isPremiumPlan || MVP_THEME_IDS.includes(t.id as any),
     })),
   });
 }
@@ -129,6 +135,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const storeResult = await db.select().from(stores).where(eq(stores.id, storeId)).limit(1);
   const store = storeResult[0];
   if (!store) return json({ error: 'Store not found' }, { status: 404 });
+
+  // Check if user has premium plan
+  const isPremiumPlan = ['premium', 'business', 'custom'].includes(store.planType || 'free');
 
   const formData = await request.formData();
   const intent = formData.get('intent') as string;
@@ -150,6 +159,12 @@ export async function action({ request, context }: ActionFunctionArgs) {
     if (intent === 'template') {
       const templateId = formData.get('templateId') as string;
       if (templateId) {
+        // Validate: Only allow non-MVP themes if user has premium plan
+        const isMvpTheme = MVP_THEME_IDS.includes(templateId as any);
+        if (!isMvpTheme && !isPremiumPlan) {
+          return json({ error: 'Upgrade to premium to use this theme' }, { status: 403 });
+        }
+
         // Auto-set theme colors based on selected template
         const templateTheme = STORE_TEMPLATE_THEMES[templateId];
 
@@ -246,15 +261,19 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
     if (intent === 'banner') {
       const bannerPatch = patch.heroBanner as { mode?: string; slides?: unknown[] } | undefined;
-      console.log(JSON.stringify({
-        level: 'info',
-        event: 'banner_saved',
-        storeId,
-        slideCount: bannerPatch?.slides?.length ?? 0,
-        bannerMode: bannerPatch?.mode ?? 'unknown',
-        hasFallbackHeadline: Boolean((patch.heroBanner as { fallbackHeadline?: unknown } | undefined)?.fallbackHeadline),
-        ts: Date.now(),
-      }));
+      console.log(
+        JSON.stringify({
+          level: 'info',
+          event: 'banner_saved',
+          storeId,
+          slideCount: bannerPatch?.slides?.length ?? 0,
+          bannerMode: bannerPatch?.mode ?? 'unknown',
+          hasFallbackHeadline: Boolean(
+            (patch.heroBanner as { fallbackHeadline?: unknown } | undefined)?.fallbackHeadline
+          ),
+          ts: Date.now(),
+        })
+      );
     }
 
     // Invalidate caches
@@ -286,14 +305,15 @@ export async function action({ request, context }: ActionFunctionArgs) {
 // MAIN COMPONENT
 // ============================================================================
 export default function StoreDesignPage() {
-  const { store, settings, availableThemes } = useLoaderData<typeof loader>();
+  const { store, settings, availableThemes, isPremiumPlan } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const [searchParams, setSearchParams] = useSearchParams();
   const navigation = useNavigation();
   // Per-intent saving state to avoid disabling wrong tab buttons
-  const submittingIntent = navigation.state === 'submitting'
-    ? (navigation.formData?.get('intent') as string | null)
-    : null;
+  const submittingIntent =
+    navigation.state === 'submitting'
+      ? (navigation.formData?.get('intent') as string | null)
+      : null;
   const isSaving = (intent: string) => submittingIntent === intent;
 
   const activeTab = (searchParams.get('tab') as TabId) || 'template';
@@ -311,9 +331,9 @@ export default function StoreDesignPage() {
   const storeUrl = store.subdomain ? `https://${store.subdomain}.ozzyl.com` : '#';
 
   return (
-    <div className="flex flex-col min-h-full">
+    <div className="flex flex-col min-h-[calc(100vh-8rem)] bg-white rounded-xl shadow-sm border border-gray-100">
       {/* ── Header ── */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-6 pb-0">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">স্টোর ডিজাইন</h1>
           <p className="text-gray-500 text-sm">আপনার স্টোরের চেহারা এবং সেটিংস কাস্টমাইজ করুন</p>
@@ -339,7 +359,7 @@ export default function StoreDesignPage() {
       )}
 
       {/* ── Tab bar ── */}
-      <div className="bg-white border-b border-gray-200 sticky top-[57px] z-20">
+      <div className="bg-white border-b border-gray-200 sticky top-[57px] z-20 rounded-t-xl">
         <nav className="flex overflow-x-auto scrollbar-none px-4 md:px-6 xl:px-8">
           {TABS.map((tab) => {
             const Icon = tab.icon;
@@ -363,14 +383,23 @@ export default function StoreDesignPage() {
       </div>
 
       {/* ── Tab Content ── */}
-      <div className="flex-1 px-4 md:px-6 xl:px-8 py-6">
+      <div className="flex-1 px-4 md:px-6 xl:px-8 py-6 bg-white rounded-b-xl">
         {activeTab === 'template' && (
-          <TemplateTab settings={settings} themes={availableThemes} isSaving={isSaving('template')} />
+          <TemplateTab
+            settings={settings}
+            themes={availableThemes}
+            isSaving={isSaving('template')}
+            isPremiumPlan={isPremiumPlan}
+          />
         )}
         {activeTab === 'theme' && <ThemeTab settings={settings} isSaving={isSaving('theme')} />}
         {activeTab === 'banner' && <BannerTab settings={settings} isSaving={isSaving('banner')} />}
-        {activeTab === 'content' && <ContentTab settings={settings} isSaving={isSaving('content')} />}
-        {activeTab === 'info' && <InfoTab settings={settings} store={store} isSaving={isSaving('info')} />}
+        {activeTab === 'content' && (
+          <ContentTab settings={settings} isSaving={isSaving('content')} />
+        )}
+        {activeTab === 'info' && (
+          <InfoTab settings={settings} store={store} isSaving={isSaving('info')} />
+        )}
       </div>
     </div>
   );
@@ -383,6 +412,7 @@ function TemplateTab({
   settings,
   themes,
   isSaving,
+  isPremiumPlan,
 }: {
   settings: UnifiedStorefrontSettingsV1;
   themes: Array<{
@@ -394,6 +424,7 @@ function TemplateTab({
     isActive: boolean;
   }>;
   isSaving: boolean;
+  isPremiumPlan: boolean;
 }) {
   return (
     <div>
@@ -414,8 +445,8 @@ function TemplateTab({
                 isActive
                   ? 'border-indigo-500 shadow-lg shadow-indigo-100 ring-2 ring-indigo-200'
                   : isPremium
-                  ? 'border-gray-200 opacity-80'
-                  : 'border-gray-200 hover:border-indigo-300 hover:shadow-md hover:-translate-y-0.5'
+                    ? 'border-gray-200 opacity-80'
+                    : 'border-gray-200 hover:border-indigo-300 hover:shadow-md hover:-translate-y-0.5'
               }`}
             >
               {/* Active badge */}
@@ -448,7 +479,9 @@ function TemplateTab({
                     src={theme.thumbnail}
                     alt={theme.name}
                     className="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-500"
-                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = 'none';
+                    }}
                   />
                 )}
                 {/* Gradient overlay with name */}
@@ -561,7 +594,9 @@ function ThemeTab({
 
       {/* Quick Presets */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">দ্রুত প্রিসেট</p>
+        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+          দ্রুত প্রিসেট
+        </p>
         <div className="flex flex-wrap gap-2">
           {COLOR_PRESETS.map((preset) => {
             const isSelected = primary === preset.primary && accent === preset.accent;
@@ -569,7 +604,10 @@ function ThemeTab({
               <button
                 key={preset.name}
                 type="button"
-                onClick={() => { setPrimary(preset.primary); setAccent(preset.accent); }}
+                onClick={() => {
+                  setPrimary(preset.primary);
+                  setAccent(preset.accent);
+                }}
                 className={`flex items-center gap-2 px-3 py-2 rounded-xl border-2 text-sm font-medium transition-all ${
                   isSelected
                     ? 'border-indigo-500 bg-indigo-50 text-indigo-700 shadow-sm'
@@ -578,7 +616,9 @@ function ThemeTab({
               >
                 <span
                   className="w-4 h-4 rounded-full border border-white shadow-sm flex-shrink-0"
-                  style={{ background: `linear-gradient(135deg, ${preset.primary} 50%, ${preset.accent} 50%)` }}
+                  style={{
+                    background: `linear-gradient(135deg, ${preset.primary} 50%, ${preset.accent} 50%)`,
+                  }}
                 />
                 {preset.name}
               </button>
@@ -589,7 +629,9 @@ function ThemeTab({
 
       {/* Live Preview Strip */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">লাইভ প্রিভিউ</p>
+        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+          লাইভ প্রিভিউ
+        </p>
         <div className="flex flex-wrap items-center gap-3 p-4 bg-gray-50 rounded-xl">
           <button
             type="button"
@@ -706,7 +748,11 @@ function ThemeTab({
           disabled={isSaving}
           className="inline-flex items-center gap-2 px-6 py-2.5 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 transition disabled:opacity-50 shadow-sm text-sm"
         >
-          {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Palette className="w-4 h-4" />}
+          {isSaving ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <Palette className="w-4 h-4" />
+          )}
           রং সেভ করুন
         </button>
         <span className="text-xs text-gray-400">পরিবর্তন স্টোরে সাথে সাথে দেখাবে</span>
@@ -718,12 +764,7 @@ function ThemeTab({
 // ============================================================================
 // BANNER TAB
 // ============================================================================
-function BannerTab({
-  settings,
-}: {
-  settings: UnifiedStorefrontSettingsV1;
-  isSaving: boolean;
-}) {
+function BannerTab({ settings }: { settings: UnifiedStorefrontSettingsV1; isSaving: boolean }) {
   const bannerFetcher = useFetcher<{ success?: boolean; intent?: string; error?: string }>();
   const isSaving = bannerFetcher.state !== 'idle';
   const [uploadingSlides, setUploadingSlides] = useState<Record<number, boolean>>({});
@@ -888,7 +929,9 @@ function BannerTab({
           <div className="bg-gray-50 rounded-xl p-4">
             <div className="flex items-center justify-between mb-3">
               <span className="text-sm font-medium text-gray-700">ওভারলে অপ্যাসিটি</span>
-              <span className="text-sm font-bold text-indigo-600 bg-indigo-50 px-2.5 py-0.5 rounded-lg">{opacity}%</span>
+              <span className="text-sm font-bold text-indigo-600 bg-indigo-50 px-2.5 py-0.5 rounded-lg">
+                {opacity}%
+              </span>
             </div>
             <div className="relative">
               <div className="w-full h-2 rounded-full bg-gradient-to-r from-gray-200 to-gray-800 mb-1" />
@@ -965,7 +1008,9 @@ function BannerTab({
             </div>
           </div>
           <label className="flex items-center gap-2 cursor-pointer">
-            <span className="text-xs font-medium text-gray-500">{annEnabled ? 'চালু' : 'বন্ধ'}</span>
+            <span className="text-xs font-medium text-gray-500">
+              {annEnabled ? 'চালু' : 'বন্ধ'}
+            </span>
             <button
               type="button"
               onClick={() => setAnnEnabled((v) => !v)}
@@ -988,13 +1033,17 @@ function BannerTab({
               {annText}
               {annLink && <span className="ml-2 underline opacity-70">আরও দেখুন →</span>}
             </div>
-            <div className="bg-amber-50 text-center text-xs text-amber-600 py-1 px-2">↑ স্টোরে এভাবে দেখাবে</div>
+            <div className="bg-amber-50 text-center text-xs text-amber-600 py-1 px-2">
+              ↑ স্টোরে এভাবে দেখাবে
+            </div>
           </div>
         )}
 
         <div className="p-6 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">আনাউন্সমেন্ট টেক্সট</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              আনাউন্সমেন্ট টেক্সট
+            </label>
             <input
               type="text"
               name="announcementText"
@@ -1005,7 +1054,9 @@ function BannerTab({
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">লিংক <span className="text-gray-400 font-normal">(ঐচ্ছিক)</span></label>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              লিংক <span className="text-gray-400 font-normal">(ঐচ্ছিক)</span>
+            </label>
             <input
               type="text"
               name="announcementLink"
@@ -1100,9 +1151,9 @@ function BannerSlide({
     try {
       const format = getOptimalFormat();
       const compressed = await compressImage(file, {
-        maxWidth: 2560,  // Hero banners are full-width, allow higher res
+        maxWidth: 2560, // Hero banners are full-width, allow higher res
         maxHeight: 1440,
-        quality: 0.92,   // High quality WebP — banners need to look sharp
+        quality: 0.92, // High quality WebP — banners need to look sharp
         format,
       });
       fileToUpload = new File([compressed], `banner_${idx}.${format}`, { type: `image/${format}` });
@@ -1147,20 +1198,37 @@ function BannerSlide({
     <div className="border border-gray-200 rounded-2xl overflow-hidden bg-gray-50">
       {/* Slide header bar */}
       <div className="flex items-center justify-between px-4 py-2.5 bg-white border-b border-gray-100">
-        <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">স্লাইড {idx + 1}</span>
+        <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+          স্লাইড {idx + 1}
+        </span>
         <div className="flex gap-1">
           {idx > 0 && (
-            <button type="button" onClick={() => onMove(idx, 'up')} className="p-1.5 hover:bg-gray-100 rounded-lg transition" title="উপরে যান">
+            <button
+              type="button"
+              onClick={() => onMove(idx, 'up')}
+              className="p-1.5 hover:bg-gray-100 rounded-lg transition"
+              title="উপরে যান"
+            >
               <ChevronUp className="w-3.5 h-3.5 text-gray-400" />
             </button>
           )}
           {idx < totalSlides - 1 && (
-            <button type="button" onClick={() => onMove(idx, 'down')} className="p-1.5 hover:bg-gray-100 rounded-lg transition" title="নিচে যান">
+            <button
+              type="button"
+              onClick={() => onMove(idx, 'down')}
+              className="p-1.5 hover:bg-gray-100 rounded-lg transition"
+              title="নিচে যান"
+            >
               <ChevronDown className="w-3.5 h-3.5 text-gray-400" />
             </button>
           )}
           {totalSlides > 1 && (
-            <button type="button" onClick={() => onRemove(idx)} className="p-1.5 hover:bg-red-50 rounded-lg transition" title="মুছুন">
+            <button
+              type="button"
+              onClick={() => onRemove(idx)}
+              className="p-1.5 hover:bg-red-50 rounded-lg transition"
+              title="মুছুন"
+            >
               <Trash2 className="w-3.5 h-3.5 text-red-400" />
             </button>
           )}
@@ -1206,7 +1274,13 @@ function BannerSlide({
                   <span className="text-xs text-gray-300 mt-0.5">1920×1080px</span>
                 </>
               )}
-              <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} disabled={isUploading} />
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleImageChange}
+                disabled={isUploading}
+              />
             </label>
           )}
         </div>
@@ -1237,7 +1311,9 @@ function BannerSlide({
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">CTA বাটন টেক্সট</label>
+              <label className="block text-xs font-medium text-gray-500 mb-1">
+                CTA বাটন টেক্সট
+              </label>
               <input
                 type="text"
                 name={`slide_${idx}_ctaText`}
@@ -1286,7 +1362,6 @@ function ContentTab({
   const IconMap = { truck: Truck, shield: Shield, refresh: RefreshCw };
   const trustBadgesEnabled = !!(settings.trustBadges as unknown as { enabled?: boolean })?.enabled;
 
-
   return (
     <Form method="post" className="space-y-6">
       <input type="hidden" name="intent" value="content" />
@@ -1300,12 +1375,20 @@ function ContentTab({
             </div>
             <div>
               <h2 className="text-sm font-semibold text-gray-900">ট্রাস্ট ব্যাজ</h2>
-              <p className="text-xs text-gray-400">দ্রুত ডেলিভারি, নিরাপদ পেমেন্ট ইত্যাদি ব্যাজ হোমপেজে দেখাবে</p>
+              <p className="text-xs text-gray-400">
+                দ্রুত ডেলিভারি, নিরাপদ পেমেন্ট ইত্যাদি ব্যাজ হোমপেজে দেখাবে
+              </p>
             </div>
           </div>
           <label className="flex items-center gap-2 cursor-pointer">
-            <span className="text-xs font-medium text-gray-500">{trustBadgesEnabled ? 'চালু' : 'বন্ধ'}</span>
-            <input type="hidden" name="trustBadgesEnabled" value={trustBadgesEnabled ? 'on' : 'off'} />
+            <span className="text-xs font-medium text-gray-500">
+              {trustBadgesEnabled ? 'চালু' : 'বন্ধ'}
+            </span>
+            <input
+              type="hidden"
+              name="trustBadgesEnabled"
+              value={trustBadgesEnabled ? 'on' : 'off'}
+            />
             <button
               type="button"
               onClick={(e) => {
@@ -1314,7 +1397,9 @@ function ContentTab({
                 hidden.value = isOn ? 'off' : 'on';
                 e.currentTarget.classList.toggle('bg-indigo-600', !isOn);
                 e.currentTarget.classList.toggle('bg-gray-200', isOn);
-                (e.currentTarget.querySelector('span') as HTMLElement).style.transform = isOn ? 'translateX(0)' : 'translateX(18px)';
+                (e.currentTarget.querySelector('span') as HTMLElement).style.transform = isOn
+                  ? 'translateX(0)'
+                  : 'translateX(18px)';
               }}
               className={`relative rounded-full transition-colors ${trustBadgesEnabled ? 'bg-indigo-600' : 'bg-gray-200'}`}
               style={{ width: '40px', height: '22px' }}
@@ -1329,7 +1414,9 @@ function ContentTab({
 
         {/* Live preview strip */}
         <div className="mx-6 mt-5 rounded-xl bg-gray-50 border border-gray-100 px-6 py-4">
-          <p className="text-xs text-gray-400 mb-3 font-medium uppercase tracking-wider">স্টোরে এভাবে দেখাবে</p>
+          <p className="text-xs text-gray-400 mb-3 font-medium uppercase tracking-wider">
+            স্টোরে এভাবে দেখাবে
+          </p>
           <div className="flex items-center justify-around">
             {badges.map((badge, idx) => {
               const Icon = IconMap[badge.icon as keyof typeof IconMap] || Truck;
@@ -1338,7 +1425,9 @@ function ContentTab({
                   <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
                     <Icon className="w-5 h-5 text-indigo-600" />
                   </div>
-                  <span className="text-xs font-semibold text-gray-700">{badge.title || `Badge ${idx + 1}`}</span>
+                  <span className="text-xs font-semibold text-gray-700">
+                    {badge.title || `Badge ${idx + 1}`}
+                  </span>
                   <span className="text-xs text-gray-400">{badge.description}</span>
                 </div>
               );
@@ -1356,9 +1445,7 @@ function ContentTab({
                   <div className="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center">
                     <Icon className="w-4 h-4 text-indigo-600" />
                   </div>
-                  <span className="text-xs font-semibold text-gray-500">
-                    Badge {idx + 1}
-                  </span>
+                  <span className="text-xs font-semibold text-gray-500">Badge {idx + 1}</span>
                 </div>
                 <input type="hidden" name={`badge_${idx}_icon`} value={badge.icon} />
                 <div className="space-y-2.5">
@@ -1393,7 +1480,11 @@ function ContentTab({
           disabled={isSaving}
           className="inline-flex items-center gap-2 px-6 py-2.5 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 transition disabled:opacity-50 shadow-sm text-sm"
         >
-          {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
+          {isSaving ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <CheckCircle className="w-4 h-4" />
+          )}
           পরিবর্তনগুলো সেভ করুন
         </button>
       </div>
@@ -1535,7 +1626,13 @@ function InfoTab({
               <p className="text-xs text-gray-400">প্রস্তাবিত: 200×200px বা তার বেশি</p>
             </div>
           </div>
-          <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" onChange={handleLogoChange} className="hidden" />
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            onChange={handleLogoChange}
+            className="hidden"
+          />
         </div>
       </section>
 
@@ -1552,7 +1649,9 @@ function InfoTab({
         </div>
         <div className="p-6 space-y-4">
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1.5">ট্যাগলাইন / স্লোগান</label>
+            <label className="block text-xs font-medium text-gray-600 mb-1.5">
+              ট্যাগলাইন / স্লোগান
+            </label>
             <input
               type="text"
               name="tagline"
@@ -1591,20 +1690,49 @@ function InfoTab({
         </div>
         <div className="p-6 space-y-4">
           {[
-            { name: 'businessPhone', type: 'tel', label: 'ফোন নম্বর', placeholder: '01739416661', icon: Phone, color: 'text-orange-500 bg-orange-50' },
-            { name: 'businessEmail', type: 'email', label: 'ইমেইল ঠিকানা', placeholder: 'contact@example.com', icon: Mail, color: 'text-blue-500 bg-blue-50' },
-            { name: 'businessAddress', type: 'text', label: 'ঠিকানা', placeholder: 'ঢাকা, বাংলাদেশ', icon: MapPin, color: 'text-red-500 bg-red-50' },
+            {
+              name: 'businessPhone',
+              type: 'tel',
+              label: 'ফোন নম্বর',
+              placeholder: '01739416661',
+              icon: Phone,
+              color: 'text-orange-500 bg-orange-50',
+            },
+            {
+              name: 'businessEmail',
+              type: 'email',
+              label: 'ইমেইল ঠিকানা',
+              placeholder: 'contact@example.com',
+              icon: Mail,
+              color: 'text-blue-500 bg-blue-50',
+            },
+            {
+              name: 'businessAddress',
+              type: 'text',
+              label: 'ঠিকানা',
+              placeholder: 'ঢাকা, বাংলাদেশ',
+              icon: MapPin,
+              color: 'text-red-500 bg-red-50',
+            },
           ].map(({ name, type, label, placeholder, icon: Icon, color }) => (
             <div key={name}>
               <label className="block text-xs font-medium text-gray-600 mb-1.5">{label}</label>
               <div className="relative">
-                <div className={`absolute left-3 top-1/2 -translate-y-1/2 w-7 h-7 rounded-lg flex items-center justify-center ${color}`}>
+                <div
+                  className={`absolute left-3 top-1/2 -translate-y-1/2 w-7 h-7 rounded-lg flex items-center justify-center ${color}`}
+                >
                   <Icon className="w-3.5 h-3.5" />
                 </div>
                 <input
                   type={type}
                   name={name}
-                  defaultValue={name === 'businessPhone' ? business.phone || '' : name === 'businessEmail' ? business.email || '' : business.address || ''}
+                  defaultValue={
+                    name === 'businessPhone'
+                      ? business.phone || ''
+                      : name === 'businessEmail'
+                        ? business.email || ''
+                        : business.address || ''
+                  }
                   placeholder={placeholder}
                   className="w-full pl-12 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
                 />
@@ -1644,7 +1772,9 @@ function InfoTab({
           </div>
           {/* Instagram */}
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1.5">ইনস্টাগ্রাম প্রোফাইল URL</label>
+            <label className="block text-xs font-medium text-gray-600 mb-1.5">
+              ইনস্টাগ্রাম প্রোফাইল URL
+            </label>
             <div className="relative">
               <div className="absolute left-3 top-1/2 -translate-y-1/2 w-7 h-7 rounded-lg flex items-center justify-center bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400">
                 <Instagram className="w-3.5 h-3.5 text-white" />
@@ -1660,7 +1790,9 @@ function InfoTab({
           </div>
           {/* WhatsApp */}
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1.5">হোয়াটসঅ্যাপ নম্বর</label>
+            <label className="block text-xs font-medium text-gray-600 mb-1.5">
+              হোয়াটসঅ্যাপ নম্বর
+            </label>
             <div className="relative">
               <div className="absolute left-3 top-1/2 -translate-y-1/2 w-7 h-7 rounded-lg flex items-center justify-center bg-green-500">
                 <MessageCircle className="w-3.5 h-3.5 text-white" />
@@ -1685,7 +1817,11 @@ function InfoTab({
           disabled={isSaving}
           className="inline-flex items-center gap-2 px-6 py-2.5 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 transition disabled:opacity-50 shadow-sm text-sm"
         >
-          {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
+          {isSaving ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <CheckCircle className="w-4 h-4" />
+          )}
           স্টোর তথ্য সেভ করুন
         </button>
       </div>
