@@ -50,7 +50,26 @@ export interface SaveUnifiedSettingsOptions {
   dualWrite?: boolean;
 }
 
-const ACTIVE_TEMPLATE_IDS = new Set(['starter-store', 'luxe-boutique', 'nova-lux', 'dc-store']);
+const ACTIVE_TEMPLATE_IDS = new Set([
+  'starter-store',
+  'luxe-boutique',
+  'nova-lux',
+  'ozzyl-premium',
+  'dc-store',
+  'daraz',
+  'ghorer-bazar',
+  'tech-modern',
+  'aurora-minimal',
+  'eclipse',
+  'artisan-market',
+  'freshness',
+  'rovo',
+  'sokol',
+  'turbo-sale',
+  'zenith-rise',
+  'nova-lux-ultra',
+  'bdshop',
+]);
 
 function sanitizeTemplateId(templateId: string | null | undefined): string {
   if (!templateId) return 'starter-store';
