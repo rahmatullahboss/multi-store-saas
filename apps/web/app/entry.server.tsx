@@ -87,7 +87,7 @@ function initSentry(env: SentryEnv) {
       enabled: isEnabled,
 
       // BeforeSend to filter sensitive data
-      beforeSend(event) {
+      beforeSend(event: any) {
         // Filter out PII (Personally Identifiable Information)
         if (event.request?.headers) {
           const headers = event.request.headers;
