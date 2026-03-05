@@ -88,7 +88,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         if (!parsed.success) {
           return json({ success: false, error: `Validation failed: ${parsed.error.errors.map(e => e.message).join(', ')}` }, { status: 400 });
         }
-        await updateCheckoutStep(db, parsed.data);
+        await updateCheckoutStep(db, storeId, parsed.data);
         return json({ success: true, message: 'Checkout step updated' });
       }
 
@@ -97,7 +97,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         if (!parsed.success) {
           return json({ success: false, error: `Validation failed: ${parsed.error.errors.map(e => e.message).join(', ')}` }, { status: 400 });
         }
-        await markCheckoutAbandoned(db, parsed.data);
+        await markCheckoutAbandoned(db, storeId, parsed.data);
         return json({ success: true, message: 'Checkout marked as abandoned' });
       }
 

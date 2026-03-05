@@ -51,6 +51,7 @@ export async function startCheckoutSession(
     const thirtyMinutesAgo = new Date(Date.now() - SESSION_TIMEOUT_MS);
     const existingSession = await db.select().from(checkoutAbandonmentLogs)
       .where(and(
+        eq(checkoutAbandonmentLogs.storeId, params.storeId),
         eq(checkoutAbandonmentLogs.sessionId, params.sessionId),
         gte(checkoutAbandonmentLogs.startedAt, thirtyMinutesAgo)
       ))
@@ -88,14 +89,13 @@ export async function startCheckoutSession(
  */
 export async function updateCheckoutStep(
   db: Database,
+  storeId: number,
   params: ValidatedStepUpdate
 ): Promise<{ success: boolean; error?: string }> {
   const { sessionId, step, customerEmail, customerPhone } = params;
 
   try {
-    const updateData: Record<string, unknown> = {
-      abandonedAt: new Date(),
-    };
+    const updateData: Record<string, unknown> = { abandonedAt: null };
 
     switch (step) {
       case 'info':
@@ -136,7 +136,12 @@ export async function updateCheckoutStep(
     await db
       .update(checkoutAbandonmentLogs)
       .set(updateData)
-      .where(eq(checkoutAbandonmentLogs.sessionId, sessionId));
+      .where(
+        and(
+          eq(checkoutAbandonmentLogs.storeId, storeId),
+          eq(checkoutAbandonmentLogs.sessionId, sessionId)
+        )
+      );
 
     return { success: true };
   } catch (error) {
@@ -150,6 +155,7 @@ export async function updateCheckoutStep(
  */
 export async function markCheckoutAbandoned(
   db: Database,
+  storeId: number,
   params: { sessionId: string; exitReason?: string; exitPage?: string }
 ): Promise<{ success: boolean; error?: string }> {
   const { sessionId, exitReason, exitPage } = params;
@@ -164,6 +170,7 @@ export async function markCheckoutAbandoned(
       })
       .where(
         and(
+          eq(checkoutAbandonmentLogs.storeId, storeId),
           eq(checkoutAbandonmentLogs.sessionId, sessionId),
           eq(checkoutAbandonmentLogs.completedCheckout, 0)
         )

@@ -71,13 +71,20 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
     const { eventName, ...params } = parsed.data;
 
-    await trackGtmEvent({
+    const result = await trackGtmEvent({
       db,
       storeId,
       sessionId: params.sessionId || `server-${Date.now()}-${Math.random()}`,
       eventName,
       ...params,
     });
+
+    if (!result.success) {
+      return json(
+        { success: false, error: result.error || 'Failed to track event' },
+        { status: 500 }
+      );
+    }
 
     return json({ success: true, message: 'Event tracked successfully' });
   } catch (error) {

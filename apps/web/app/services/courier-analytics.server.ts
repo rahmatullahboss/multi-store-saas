@@ -6,7 +6,7 @@
  */
 
 import type { Database } from '~/lib/db.server';
-import { courierPerformanceLogs, shipments } from '@db/schema';
+import { courierPerformanceLogs, orders, shipments } from '@db/schema';
 import { eq, and, gte, lte } from 'drizzle-orm';
 
 export interface CourierMetrics {
@@ -198,14 +198,29 @@ export async function updateShipmentDelivery(
     deliveryCost?: number;
     failureReason?: string;
   },
-  _expectedStoreId?: number
+  expectedStoreId?: number
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const shipmentResults = await db.select().from(shipments).where(eq(shipments.id, shipmentId)).limit(1);
+    const shipmentResults = await db
+      .select({
+        shipmentId: shipments.id,
+        orderId: shipments.orderId,
+        courier: shipments.courier,
+        status: shipments.status,
+        storeId: orders.storeId,
+      })
+      .from(shipments)
+      .innerJoin(orders, eq(orders.id, shipments.orderId))
+      .where(eq(shipments.id, shipmentId))
+      .limit(1);
     const shipment = shipmentResults[0];
 
     if (!shipment) {
       return { success: false, error: 'Shipment not found' };
+    }
+
+    if (typeof expectedStoreId === 'number' && shipment.storeId !== expectedStoreId) {
+      return { success: false, error: 'Shipment does not belong to current store' };
     }
 
     const deliveryTimeHours = Math.round(
@@ -228,7 +243,7 @@ export async function updateShipmentDelivery(
 
     // Create performance log
     await db.insert(courierPerformanceLogs).values({
-      storeId: shipment.orderId, // Will need proper storeId lookup in production
+      storeId: shipment.storeId,
       courier: shipment.courier || 'unknown',
       shipmentId,
       orderId: shipment.orderId,

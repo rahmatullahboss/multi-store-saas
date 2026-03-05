@@ -72,8 +72,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
     }, { status: 400 });
   }
 
-  // Validate GTM Container ID format (GTM-XXXXXXX)
-  if (gtmId && !/^GTM-[A-Z0-9]{7,8}$/i.test(gtmId)) {
+  // Validate GTM Container ID format (e.g., GTM-XXXXXX, GTM-ABC1234)
+  if (gtmId && !/^GTM-[A-Z0-9]{6,12}$/i.test(gtmId)) {
     return json({
       success: false,
       error: 'invalidGtmId'
@@ -177,11 +177,12 @@ export default function TrackingSettings() {
             </div>
           </div>
 
+          <fetcher.Form method="post" id="tracking-form-mobile" className="flex flex-col gap-5">
           {/* Facebook Pixel Section */}
           <div>
             <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 px-1">Facebook Pixel</h2>
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-              <fetcher.Form method="post" id="tracking-form-mobile" className="p-4 space-y-4">
+              <div className="p-4 space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Pixel ID</label>
                   <div className="relative">
@@ -220,7 +221,7 @@ export default function TrackingSettings() {
                     </button>
                   </div>
                 </div>
-              </fetcher.Form>
+              </div>
             </div>
           </div>
 
@@ -228,10 +229,7 @@ export default function TrackingSettings() {
           <div>
             <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 px-1">Google Analytics</h2>
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-              <fetcher.Form method="post" id="tracking-form-mobile-ga" className="p-4 space-y-4">
-                {/* Mirror the FB fields so both pixel + GA submit together via the save button */}
-                <input type="hidden" name="facebookPixelId" value={store.facebookPixelId || ''} />
-                <input type="hidden" name="facebookAccessToken" value={store.facebookAccessToken || ''} />
+              <div className="p-4 space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Measurement ID</label>
                   <div className="relative">
@@ -251,7 +249,7 @@ export default function TrackingSettings() {
                     </button>
                   </div>
                 </div>
-              </fetcher.Form>
+              </div>
             </div>
           </div>
 
@@ -259,11 +257,7 @@ export default function TrackingSettings() {
           <div>
             <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 px-1">Google Tag Manager</h2>
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-              <fetcher.Form method="post" id="tracking-form-mobile-gtm" className="p-4">
-                {/* Mirror fields for combined submit */}
-                <input type="hidden" name="facebookPixelId" value={store.facebookPixelId || ''} />
-                <input type="hidden" name="facebookAccessToken" value={store.facebookAccessToken || ''} />
-                <input type="hidden" name="googleAnalyticsId" value={store.googleAnalyticsId || ''} />
+              <div className="p-4">
                 <label className="block text-sm font-medium text-gray-700 mb-2">GTM Container ID</label>
                 <div className="relative">
                   <input
@@ -282,9 +276,10 @@ export default function TrackingSettings() {
                   </button>
                 </div>
                 <p className="text-xs text-gray-500 mt-2">Manage all your tags from one place</p>
-              </fetcher.Form>
+              </div>
             </div>
           </div>
+          </fetcher.Form>
         </div>
 
         {/* Fixed Save Button */}
@@ -294,15 +289,6 @@ export default function TrackingSettings() {
             form="tracking-form-mobile"
             disabled={isSaving}
             className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3.5 rounded-2xl transition disabled:opacity-50 flex items-center justify-center gap-2"
-            onClick={() => {
-              // Also submit the GA and GTM forms so all fields are saved
-              document.getElementById('tracking-form-mobile-ga')?.dispatchEvent(
-                new Event('submit', { bubbles: true, cancelable: true })
-              );
-              document.getElementById('tracking-form-mobile-gtm')?.dispatchEvent(
-                new Event('submit', { bubbles: true, cancelable: true })
-              );
-            }}
           >
             <Save className="w-4 h-4" />
             {isSaving ? t('savingSettings') : t('saveSettings')}
