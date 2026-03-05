@@ -46,7 +46,6 @@ import {
   getUnifiedStorefrontSettings,
   getShippingConfigFromUnified,
 } from '~/services/unified-storefront-settings.server';
-import type { MVPSettingsWithTheme } from '~/services/mvp-settings.server';
 import {
   findCategoryBySlug,
   buildUnifiedSocialLinks,
@@ -135,7 +134,6 @@ interface CollectionPageData {
   socialLinks: SocialLinks | null;
   businessInfo: BusinessInfo | null;
   themeConfig: ThemeConfig | null;
-  mvpSettings: MVPSettingsWithTheme | null;
   collection: { title: string; description: string; slug: string };
   products: SerializedProduct[];
   categories: string[];
@@ -246,7 +244,6 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     favicon: unifiedSettings.branding.favicon || store?.favicon || null,
     theme: mergedTheme,
     themeConfig: null, // Using mergedTheme instead - no legacy config needed
-    mvpSettings: null,
   };
 
   const unifiedShippingConfig = getShippingConfigFromUnified(unifiedSettings);
@@ -679,7 +676,6 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
       socialLinks,
       businessInfo,
       themeConfig: mergedThemeConfig,
-      mvpSettings: legacyCompat.mvpSettings,
       collection,
       products: collectionProducts.map((p) => ({
         id: p.id,
@@ -836,7 +832,6 @@ function CollectionPageView({ data }: { data: CollectionPageData }) {
     maxPrice,
     planType,
     customer,
-    mvpSettings,
     isCustomerAiEnabled,
     aiCredits,
   } = data;
@@ -891,7 +886,6 @@ function CollectionPageView({ data }: { data: CollectionPageData }) {
     theme,
     currency,
     collection,
-    mvpSettings,
     products,
     categories,
     sortBy,

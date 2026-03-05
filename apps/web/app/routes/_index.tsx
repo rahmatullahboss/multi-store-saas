@@ -34,7 +34,6 @@ import { eq, and } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
 import { stores, products, collections, type Product, type Store } from '@db/schema';
 import { type LandingConfig, type ThemeConfig } from '@db/types';
-import type { LeadGenSettingsWithTheme } from '~/config/lead-gen-theme-settings';
 // NOTE: Avoid static import of landing template registry to keep storefront bundle lean.
 const DEFAULT_LANDING_TEMPLATE_ID = 'premium-bd';
 import { useTranslation } from '~/contexts/LanguageContext';
@@ -140,7 +139,8 @@ export const meta: MetaFunction = ({ data }) => {
     return [{ title }, { name: 'description', content: description }];
   }
 
-  return [{ title: loaderData.storeName || 'Store' }];
+  const name = (loaderData as any).storeName || 'Store';
+  return [{ title: name }];
 };
 
 // ============================================================================
@@ -228,22 +228,10 @@ interface StoreModeData {
 
 interface MarketingModeData {
   mode: 'marketing';
-}
-interface LeadGenModeData {
-  mode: 'lead_gen';
-  storeId: number;
   storeName: string;
-  themeId: string;
-  settings: LeadGenSettingsWithTheme;
-  customer: {
-    id: number;
-    name: string;
-    email: string;
-    imageUrl?: string | null;
-  } | null;
 }
 
-export type LoaderData = LandingModeData | StoreModeData | MarketingModeData | LeadGenModeData;
+export type LoaderData = LandingModeData | StoreModeData | MarketingModeData;
 
 // ============================================================================
 // HELPER: Database query with timeout
@@ -437,52 +425,9 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
   // Check if homepage should show a page (builder or grapes)
   const isPageHome = homeEntry.startsWith('page:');
 
-  // ========== LEAD GEN SITE (NEW) ==========
-  if (isLeadGenSite) {
-    try {
-      // Import lead gen modules
-      const { getLeadGenSettings } = await import('~/services/lead-gen-settings.server');
-
-      // Get theme ID from config
-      let themeId = 'professional-services';
-      if ((validatedStore as Store & { leadGenConfig?: string | null }).leadGenConfig) {
-        try {
-          const config = JSON.parse(
-            (validatedStore as Store & { leadGenConfig?: string | null }).leadGenConfig || '{}'
-          );
-          themeId = config.themeId || 'professional-services';
-        } catch (e) {
-          console.error('Failed to parse leadGenConfig:', e);
-        }
-      }
-
-      // Get lead gen settings
-      const leadGenSettings = await getLeadGenSettings(db, validatedStoreId, themeId);
-
-      // Get customer if logged in (for header state)
-      const customer = await getCustomer(request, cloudflare.env, cloudflare.env.DB);
-
-      // Return lead gen mode data
-      return json({
-        mode: 'lead_gen',
-        storeId: validatedStoreId,
-        storeName: validatedStore.name,
-        themeId,
-        settings: leadGenSettings,
-        customer: customer
-          ? {
-              id: customer.id,
-              name: customer.name ?? '',
-              email: customer.email ?? '',
-              imageUrl: undefined,
-            }
-          : null,
-      });
-    } catch (error) {
-      console.error('[LOADER] Lead gen mode error:', error);
-      // Fall through to store mode on error
-    }
-  }
+  // ========== LEAD GEN SITE (REMOVED) ==========
+  // Lead gen system has been removed. Stores configured for lead gen will render default storefront.
+  // Legacy leadGenConfig data remains in database but is no longer used.
 
   // ========== PAGE AS HOMEPAGE (Builder v2 or GrapesJS) ==========
   if (isPageHome) {
@@ -829,28 +774,8 @@ export default function Index() {
   // RENDERING LOGIC - EARLY RETURNS BELOW HERE
   // ============================================================================
 
-  // ========== LEAD GEN MODE (NEW) ==========
-  if (data.mode === 'lead_gen') {
-    const LeadGenRenderer = lazy(() => import('~/components/lead-gen/LeadGenRenderer'));
-
-    return (
-      <Suspense
-        fallback={
-          <div className="min-h-screen flex items-center justify-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-          </div>
-        }
-      >
-        <LeadGenRenderer
-          themeId={data.themeId}
-          settings={data.settings}
-          storeId={data.storeId}
-          storeName={data.storeName}
-          customer={data.customer}
-        />
-      </Suspense>
-    );
-  }
+  // ========== LEAD GEN MODE (REMOVED) ==========
+  // Lead gen system has been removed. Stores in lead_gen mode will render default storefront.
 
   // ========== MARKETING MODE (REDIRECT TO LANDING) ==========
   if (data.mode === 'marketing') {

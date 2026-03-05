@@ -703,7 +703,6 @@ export default function SettingsPage() {
       items: [
         { href: '/app/settings/seo', label: 'SEO', icon: Search, active: false },
         { href: '/app/settings/tracking', label: t('tracking') || 'Tracking', icon: Megaphone, active: false },
-        { href: '/app/settings/lead-gen', label: t('navLeadGenSettings') || 'Messaging', icon: MessageCircle, active: false },
       ],
     },
     {
@@ -887,17 +886,6 @@ export default function SettingsPage() {
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-gray-900 text-sm">SEO</p>
                   <p className="text-xs text-gray-400 mt-0.5">{t('metaTagsSitemaps') || 'Meta tags and sitemaps'}</p>
-                </div>
-                <svg className="w-5 h-5 text-gray-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
-              </a>
-              <a href="/app/settings/lead-gen"
-                className="flex items-center p-4 hover:bg-gray-50 active:bg-gray-100 transition-colors border-b border-gray-50">
-                <div className="w-10 h-10 rounded-full bg-violet-50 flex items-center justify-center text-violet-600 mr-4 flex-shrink-0">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" /></svg>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-gray-900 text-sm">{t('navLeadGenSettings') || 'Lead Generation'}</p>
-                  <p className="text-xs text-gray-400 mt-0.5">{t('popupsAndForms') || 'Popups and forms'}</p>
                 </div>
                 <svg className="w-5 h-5 text-gray-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
               </a>

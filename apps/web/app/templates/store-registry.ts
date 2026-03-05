@@ -490,13 +490,27 @@ export const getStoreTemplateTheme = (templateId: string): StoreTemplateTheme =>
 };
 
 // ============================================================================
-// MVP Store Templates - Only active themes for production
+// MVP Store Templates - All themes enabled for production
 // ============================================================================
 const ACTIVE_MVP_THEME_IDS = [
   'starter-store',
   'luxe-boutique',
   'nova-lux',
+  'ozzyl-premium',
   'dc-store',
+  'daraz',
+  'ghorer-bazar',
+  'tech-modern',
+  'aurora-minimal',
+  'eclipse',
+  'artisan-market',
+  'freshness',
+  'rovo',
+  'sokol',
+  'turbo-sale',
+  'zenith-rise',
+  'nova-lux-ultra',
+  'bdshop',
 ] as const;
 
 export const MVP_STORE_TEMPLATES = STORE_TEMPLATES.filter((t) =>

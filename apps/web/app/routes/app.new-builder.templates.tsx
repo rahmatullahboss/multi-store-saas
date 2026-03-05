@@ -29,7 +29,7 @@ import { TemplateGallery } from '~/components/builder/TemplateGallery';
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const { storeId } = await requireTenant(request, context, {
-    requirePermission: 'pages',
+    requirePermission: 'products',
   });
   const db = drizzle(context.cloudflare.env.DB);
 
@@ -54,7 +54,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
 export async function action({ request, context }: ActionFunctionArgs) {
   const { storeId } = await requireTenant(request, context, {
-    requirePermission: 'pages',
+    requirePermission: 'products',
   });
   const db = drizzle(context.cloudflare.env.DB);
   const rawDb = context.cloudflare.env.DB;

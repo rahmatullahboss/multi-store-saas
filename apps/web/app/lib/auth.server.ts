@@ -60,6 +60,7 @@ export async function requireAuth(request: Request, context: AppLoadContext): Pr
       id: users.id,
       email: users.email,
       name: users.name,
+      storeId: users.storeId,
     })
     .from(users)
     .where(eq(users.id, userId));

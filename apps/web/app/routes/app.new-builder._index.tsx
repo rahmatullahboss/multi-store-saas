@@ -34,7 +34,7 @@ import { compressImage, getOptimalFormat } from '~/lib/imageCompression';
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const { storeId } = await requireTenant(request, context, {
-    requirePermission: 'pages',
+    requirePermission: 'products',
   });
   const db = context.cloudflare.env.DB;
   const drizzleDb = drizzle(db);
@@ -76,7 +76,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
 export async function action({ request, context }: ActionFunctionArgs) {
   const { storeId, userId } = await requireTenant(request, context, {
-    requirePermission: 'pages',
+    requirePermission: 'products',
   });
   const db = context.cloudflare.env.DB;
   const drizzleDb = drizzle(db);
@@ -249,7 +249,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         return json({ error: 'Page ID required' }, { status: 400 });
       }
       
-      await deletePage(db, pageId, store.id);
+      await deletePage(db, pageId, storeId);
       return json({ success: true });
     }
     

@@ -4,8 +4,11 @@
  * Central registry for all available landing page templates.
  * All templates use the same LandingPageTemplate component with different theme configs.
  * This ensures PREVIEW and LIVE store show exactly the same design.
+ * 
+ * Performance: All templates are lazy loaded to reduce initial bundle size.
  */
 
+import * as React from 'react';
 import type { ComponentType } from 'react';
 import type { LandingConfig, ManualPaymentConfig } from '@db/types';
 
@@ -85,34 +88,24 @@ export interface TemplateDefinition {
 }
 
 // ============================================================================
-// SINGLE UNIFIED TEMPLATE - Same component for Preview & Live
+// LAZY LOADED TEMPLATES - Reducer initial bundle size
 // ============================================================================
-// Isolated Template Imports
-import { PremiumBDTemplate } from '~/components/templates/premium-bd';
-import { MobileFirstTemplate } from '~/components/templates/mobile-first';
-import { FlashSaleTemplate } from '~/components/templates/flash-sale';
-import { LuxeTemplate } from '~/components/templates/luxe';
-import { OrganicTemplate } from '~/components/templates/organic';
-import { ShowcaseTemplate } from '~/components/templates/showcase';
-import { ModernDarkTemplate } from '~/components/templates/modern-dark';
-import { MinimalLightTemplate } from '~/components/templates/minimal-light';
-import { VideoFocusTemplate } from '~/components/templates/video-focus';
-import { ModernPremiumTemplate } from '~/components/templates/modern-premium';
-import { QuickStartTemplate } from '~/components/templates/quick-start';
-// New Unique Templates
-import { TrustFirstTemplate } from '~/components/templates/trust-first';
-import { StoryDrivenTemplate } from '~/components/templates/story-driven';
-import { MinimalCleanTemplate } from '~/components/templates/minimal-clean';
-import { SocialProofTemplate } from '~/components/templates/social-proof';
-import { UrgencyScarcityTemplate } from '~/components/templates/urgency-scarcity';
-
-
-
-
-
-
-
-
+const PremiumBDTemplate = React.lazy(() => import('~/components/templates/premium-bd').then(m => ({ default: m.PremiumBDTemplate })));
+const MobileFirstTemplate = React.lazy(() => import('~/components/templates/mobile-first').then(m => ({ default: m.MobileFirstTemplate })));
+const FlashSaleTemplate = React.lazy(() => import('~/components/templates/flash-sale').then(m => ({ default: m.FlashSaleTemplate })));
+const LuxeTemplate = React.lazy(() => import('~/components/templates/luxe').then(m => ({ default: m.LuxeTemplate })));
+const OrganicTemplate = React.lazy(() => import('~/components/templates/organic').then(m => ({ default: m.OrganicTemplate })));
+const ShowcaseTemplate = React.lazy(() => import('~/components/templates/showcase').then(m => ({ default: m.ShowcaseTemplate })));
+const ModernDarkTemplate = React.lazy(() => import('~/components/templates/modern-dark').then(m => ({ default: m.ModernDarkTemplate })));
+const MinimalLightTemplate = React.lazy(() => import('~/components/templates/minimal-light').then(m => ({ default: m.MinimalLightTemplate })));
+const VideoFocusTemplate = React.lazy(() => import('~/components/templates/video-focus').then(m => ({ default: m.VideoFocusTemplate })));
+const ModernPremiumTemplate = React.lazy(() => import('~/components/templates/modern-premium').then(m => ({ default: m.ModernPremiumTemplate })));
+const QuickStartTemplate = React.lazy(() => import('~/components/templates/quick-start').then(m => ({ default: m.QuickStartTemplate })));
+const TrustFirstTemplate = React.lazy(() => import('~/components/templates/trust-first').then(m => ({ default: m.TrustFirstTemplate })));
+const StoryDrivenTemplate = React.lazy(() => import('~/components/templates/story-driven').then(m => ({ default: m.StoryDrivenTemplate })));
+const MinimalCleanTemplate = React.lazy(() => import('~/components/templates/minimal-clean').then(m => ({ default: m.MinimalCleanTemplate })));
+const SocialProofTemplate = React.lazy(() => import('~/components/templates/social-proof').then(m => ({ default: m.SocialProofTemplate })));
+const UrgencyScarcityTemplate = React.lazy(() => import('~/components/templates/urgency-scarcity').then(m => ({ default: m.UrgencyScarcityTemplate })));
 
 // ============================================================================
 // TEMPLATES REGISTRY - All templates use same component, different themes
@@ -178,7 +171,7 @@ export const TEMPLATES: TemplateDefinition[] = [
     id: 'showcase',
     name: '✨ Showcase Gallery (Multi-Image)',
     description: 'Premium dark aesthetic designed to showcase product details with a gallery grid. Perfect for luxury items.',
-    thumbnail: '/templates/showcase.png', // We will need to generate this later
+    thumbnail: '/templates/showcase.png', 
     component: ShowcaseTemplate,
   },
   {
@@ -195,9 +188,6 @@ export const TEMPLATES: TemplateDefinition[] = [
     thumbnail: '/templates/quick-start.png',
     component: QuickStartTemplate,
   },
-  // ============================================================================
-  // NEW UNIQUE TEMPLATES - Completely different designs
-  // ============================================================================
   {
     id: 'trust-first',
     name: '💚 Trust First (Testimonial Heavy)',

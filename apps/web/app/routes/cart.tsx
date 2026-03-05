@@ -18,20 +18,16 @@ import {
 } from '@remix-run/cloudflare';
 import { useLoaderData, useFetcher, useRouteError, isRouteErrorResponse } from '@remix-run/react';
 import { eq, and, inArray } from 'drizzle-orm';
-import { drizzle } from 'drizzle-orm/d1';
 import { products, productVariants } from '@db/schema';
-import { type ThemeConfig, type LandingConfig } from '@db/types';
-import { type MVPSettingsWithTheme } from '~/config/mvp-theme-settings';
+import { type ThemeConfig, type SocialLinks } from '@db/types';
 import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
 import {
   getStoreTemplate,
   getStoreTemplateTheme,
-  resolveStoreTemplateId,
 } from '~/templates/store-registry';
 import { resolveStore } from '~/lib/store.server';
 import { ShoppingBag, Trash2, Plus, Minus, ChevronRight } from 'lucide-react';
 import { getCustomer } from '~/services/customer-auth.server';
-import { sendAddToCartEvent } from '~/services/facebook-capi.server';
 import { formatPrice } from '~/lib/formatting';
 import { createDb } from '~/lib/db.server';
 import {
@@ -85,7 +81,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const storeTemplateId = unifiedSettings.theme.templateId || 'starter-store';
 
   // Use socialLinks from unified settings (or legacy fallback)
-  const socialLinks = {
+  const socialLinks: SocialLinks = {
     facebook: unifiedSettings.social.facebook ?? undefined,
     instagram: unifiedSettings.social.instagram ?? undefined,
     whatsapp: unifiedSettings.social.whatsapp ?? undefined,
@@ -104,11 +100,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   // 5. Get Customer (if logged in)
   const customer = await getCustomer(request, context.cloudflare.env, context.cloudflare.env.DB);
 
-  // 6. Get Categories (Cached)
-  // NOTE: This part of the code was not fully provided in the instruction,
-  // so I'm using the original category fetching logic to maintain functionality.
-  // If D1Cache, collectionsTable, StoreCategory, and desc are new imports,
-  // they would need to be added.
+  // 6. Get Categories
   const categoriesResult = await db
     .select({ category: products.category })
     .from(products)
@@ -129,21 +121,6 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     accent: unifiedSettings.theme.accent || baseTheme.accent,
   };
 
-  // Build mvpSettings from unified settings
-  const mvpSettings = {
-    themeId: storeTemplateId,
-    storeName: unifiedSettings.branding.storeName || storeData.name || 'Store',
-    logo: unifiedSettings.branding.logo || storeData.logo || null,
-    favicon: unifiedSettings.branding.favicon || storeData.favicon || null,
-    primaryColor: unifiedSettings.theme.primary || baseTheme.primary,
-    accentColor: unifiedSettings.theme.accent || baseTheme.accent,
-    showAnnouncement: unifiedSettings.announcement.enabled,
-    announcementText: unifiedSettings.announcement.text,
-    headline: unifiedSettings.heroBanner?.slides?.[0]?.heading || 'Welcome to our store',
-    ctaText: unifiedSettings.heroBanner?.slides?.[0]?.ctaText || 'Shop Now',
-    shippingConfig: unifiedShippingConfig,
-  };
-
   return json({
     storeId: storeId as number,
     storeName: unifiedSettings.branding.storeName || storeData.name || 'Store',
@@ -158,7 +135,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     planType: storeData.planType || 'free',
     customer: customer ? { id: customer.id, name: customer.name, email: customer.email } : null,
     categories,
-    mvpSettings,
+    shippingConfig: unifiedShippingConfig, // Direct from unified settings - single source of truth
     isCustomerAiEnabled: Boolean(
       (storeData as { isCustomerAiEnabled?: boolean }).isCustomerAiEnabled
     ),
@@ -207,14 +184,11 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
       const storeContext = await resolveStore(context, request);
       if (!storeContext) {
-        console.error('Cart validation error: store not found', {
-          url: request.url,
-        });
         return json({ error: 'Store not found' }, { status: 404 });
       }
 
       const { storeId } = storeContext;
-      const db = drizzle(context.cloudflare.env.DB);
+      const db = createDb(context.cloudflare.env.DB);
 
       // Fetch current product data
       const productIds = normalizedItems.map((item) => item.productId);
@@ -318,9 +292,6 @@ export async function action({ request, context }: ActionFunctionArgs) {
         hasInvalidItems: validatedItems.some((item) => !item.isValid),
       });
     } catch (error) {
-      console.error('Cart validation error:', error, {
-        url: request.url,
-      });
       return json({ error: 'Failed to validate cart' }, { status: 500 });
     }
   }
@@ -347,7 +318,7 @@ export default function CartPage() {
     categories,
     isCustomerAiEnabled,
     aiCredits,
-    mvpSettings,
+    shippingConfig,
   } = useLoaderData<typeof loader>();
 
   const fetcher = useFetcher<typeof action>();
@@ -414,29 +385,40 @@ export default function CartPage() {
 
   interface CartActionData {
     success?: boolean;
-    items?: Array<{
-      removed?: boolean;
-      productId: number;
-      variantId?: number;
-      quantity: number;
-      title: string;
-      price: number;
-      imageUrl?: string | null;
-      isValid?: boolean;
-      error?: string;
-    }>;
+    items?: ValidatedCartItem[];
     error?: string;
+  }
+
+  interface ValidatedCartItem {
+    productId: number;
+    variantId?: number;
+    quantity: number;
+    title: string;
+    price: number;
+    compareAtPrice?: number | null;
+    imageUrl?: string | null;
+    isValid?: boolean;
+    error?: string;
+    removed?: boolean;
   }
 
   // Handle server validation response
   useEffect(() => {
     const data = fetcher.data as CartActionData | undefined;
     if (data?.success && data.items) {
-      const validatedItems = data.items.filter((item) => !item.removed);
-      // We need to map back to the state shape if it differs, but here it looks compatible-ish
-      // Actually state expects: productId, title, price, compareAtPrice, quantity, imageUrl
-      // validatedItems has these.
-      setCartItems(validatedItems as any);
+      // Filter out removed items and cast to proper type
+      const validItems = data.items
+        .filter((item) => !item.removed)
+        .map((item) => ({
+          productId: item.productId,
+          variantId: item.variantId,
+          title: item.title,
+          price: item.price,
+          compareAtPrice: item.compareAtPrice,
+          quantity: item.quantity,
+          imageUrl: item.imageUrl,
+        }));
+      setCartItems(validItems);
     }
   }, [fetcher.data]);
 
@@ -501,7 +483,6 @@ export default function CartPage() {
         categories={categories}
         isCustomerAiEnabled={isCustomerAiEnabled}
         aiCredits={aiCredits}
-        mvpSettings={mvpSettings}
       >
         <Suspense
           fallback={
@@ -522,7 +503,6 @@ export default function CartPage() {
               storeName={storeName}
               theme={theme}
               config={themeConfig}
-              mvpSettings={mvpSettings}
             />
           ) : (
             <SimpleCartPage
@@ -533,7 +513,7 @@ export default function CartPage() {
               onUpdateQuantity={updateQuantity}
               onRemoveItem={removeItem}
               isLoading={isLoading}
-              mvpSettings={mvpSettings}
+              shippingConfig={shippingConfig}
             />
           )}
         </Suspense>
@@ -553,7 +533,7 @@ function SimpleCartPage({
   onUpdateQuantity,
   onRemoveItem,
   isLoading,
-  mvpSettings,
+  shippingConfig,
 }: {
   items: Array<{
     productId: number;
@@ -570,9 +550,14 @@ function SimpleCartPage({
   onUpdateQuantity: (productId: number, variantId: number | undefined, quantity: number) => void;
   onRemoveItem: (productId: number, variantId: number | undefined) => void;
   isLoading: boolean;
-  mvpSettings?: (LandingConfig & Partial<MVPSettingsWithTheme>) | null;
+  shippingConfig?: {
+    enabled?: boolean;
+    insideDhaka?: number;
+    outsideDhaka?: number;
+    freeDeliveryAbove?: number | null;
+    freeShippingAbove?: number;
+  } | null;
 }) {
-  const shippingConfig = mvpSettings?.shippingConfig;
   const shippingEnabled = shippingConfig?.enabled ?? true;
   const deliveryCharge = shippingEnabled ? (shippingConfig?.insideDhaka ?? 60) : 0;
   const freeShippingAbove =

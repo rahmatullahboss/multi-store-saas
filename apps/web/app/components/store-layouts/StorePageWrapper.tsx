@@ -20,7 +20,6 @@ import { getStoreTemplate, type StoreTemplateTheme } from '~/templates/store-reg
 import { MobileBottomNav } from '~/components/store/MobileBottomNav';
 import { FloatingContactButtons } from '~/components/FloatingContactButtons';
 import type { SocialLinks, FooterConfig } from '@db/types';
-import type { MVPSettingsWithTheme } from '~/services/mvp-settings.server';
 
 interface FloatingContactConfig {
   headerMenu?: Array<{
@@ -72,7 +71,6 @@ interface StorePageWrapperProps {
   aiCredits?: number;
   accentColor?: string;
   agentName?: string;
-  mvpSettings?: MVPSettingsWithTheme;
 }
 
 // ============================================================================
@@ -166,7 +164,6 @@ function StorePageWrapperComponent({
   aiCredits = 0,
   accentColor,
   agentName,
-  mvpSettings,
 }: StorePageWrapperProps) {
   // Memoize template lookup (expensive operation)
   const template = useMemo(() => getStoreTemplate(templateId), [templateId]);
@@ -257,7 +254,6 @@ function StorePageWrapperComponent({
       categories,
       currentCategory,
       socialLinks,
-      mvpSettings,
     }),
     [
       storeName,
@@ -268,7 +264,6 @@ function StorePageWrapperComponent({
       categories,
       currentCategory,
       socialLinks,
-      mvpSettings,
     ]
   );
 
@@ -299,7 +294,6 @@ function StorePageWrapperComponent({
       categories,
       planType,
       isPreview,
-      mvpSettings,
     }),
     [
       storeName,
@@ -311,7 +305,6 @@ function StorePageWrapperComponent({
       categories,
       planType,
       isPreview,
-      mvpSettings,
     ]
   );
 
@@ -330,7 +323,6 @@ function StorePageWrapperComponent({
       showPoweredBy: footerConfig?.showPoweredBy ?? true,
       config,
       isPreview,
-      mvpSettings,
     }),
     [
       storeName,
@@ -345,7 +337,6 @@ function StorePageWrapperComponent({
       footerConfig?.showPoweredBy,
       config,
       isPreview,
-      mvpSettings,
     ]
   );
 

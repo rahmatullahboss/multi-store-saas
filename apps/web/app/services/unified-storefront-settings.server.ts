@@ -50,7 +50,7 @@ export interface SaveUnifiedSettingsOptions {
   dualWrite?: boolean;
 }
 
-const ACTIVE_TEMPLATE_IDS = new Set(['starter-store', 'luxe-boutique', 'nova-lux']);
+const ACTIVE_TEMPLATE_IDS = new Set(['starter-store', 'luxe-boutique', 'nova-lux', 'dc-store']);
 
 function sanitizeTemplateId(templateId: string | null | undefined): string {
   if (!templateId) return 'starter-store';
@@ -90,10 +90,8 @@ export interface MigrateLegacyOptions {
 export async function getUnifiedStorefrontSettings<TSchema extends Record<string, unknown>>(
   db: DrizzleD1Database<TSchema>,
   storeId: number,
-  options: GetUnifiedSettingsOptions = {}
+  _options: GetUnifiedSettingsOptions = {}
 ): Promise<UnifiedStorefrontSettingsV1> {
-  void options;
-
   // Try to get from canonical column first
   try {
     const result = await db
@@ -301,8 +299,6 @@ export async function migrateAllStoresToUnifiedSettings<TSchema extends Record<s
   releaseTag: string,
   dryRun: boolean = false
 ): Promise<{ migrated: number; failed: number; errors: string[] }> {
-  void releaseTag;
-
   const allStores = await db
     .select({ id: stores.id, storefrontSettings: stores.storefrontSettings })
     .from(stores);

@@ -228,7 +228,7 @@ async function getStorePlans(
 export async function checkUsageLimit(
   dbBinding: D1Database | ReturnType<typeof drizzle>,
   storeId: number,
-  type: 'order' | 'product'
+  type: 'order' | 'product' | 'staff' | 'api_key' | 'domain'
 ): Promise<LimitCheckResult> {
   // Handle both D1Database and drizzle instances
   const db = 'prepare' in dbBinding 
@@ -236,7 +236,6 @@ export async function checkUsageLimit(
     : dbBinding as ReturnType<typeof drizzle>;
   
   const { planType } = await getStorePlans(db, storeId);
-  // Safeguard: Use getPlanLimitsSafe to handle invalid/missing plan types
   const limits = getPlanLimitsSafe(planType);
   
   if (type === 'order') {
@@ -300,8 +299,8 @@ export async function checkUsageLimit(
       },
     };
   }
-  
-  // Default: allow (shouldn't reach here)
+
+  // For other types, allow for now (future implementation)
   return { allowed: true };
 }
 

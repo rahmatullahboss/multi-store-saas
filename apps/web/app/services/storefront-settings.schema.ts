@@ -66,9 +66,34 @@ const BrandingSettingsSchema = z.object({
   favicon: z.string().url().nullable().default(null),
   tagline: z.string().max(200).nullable().default(null),
   description: z.string().max(500).nullable().default(null),
+  fontFamily: z.string().default('inter'),
 });
 
 export type BrandingSettings = z.infer<typeof BrandingSettingsSchema>;
+
+// ============================================================================
+// DOMAIN SETTINGS
+// ============================================================================
+
+const DomainSettingsSchema = z.object({
+  subdomain: z.string(),
+  customDomain: z.string().nullable().default(null),
+});
+
+export type DomainSettings = z.infer<typeof DomainSettingsSchema>;
+
+// ============================================================================
+// TRACKING SETTINGS
+// ============================================================================
+
+const TrackingSettingsSchema = z.object({
+  facebookPixelId: z.string().nullable().default(null),
+  googleAnalyticsId: z.string().nullable().default(null),
+  googleTagManagerId: z.string().nullable().default(null),
+  facebookAccessToken: z.string().nullable().default(null),
+});
+
+export type TrackingSettings = z.infer<typeof TrackingSettingsSchema>;
 
 // ============================================================================
 // BUSINESS SETTINGS
@@ -362,6 +387,13 @@ export const UnifiedStorefrontSettingsV1Schema = z.object({
     email: null,
     address: null,
   }),
+  domain: DomainSettingsSchema.optional(),
+  tracking: TrackingSettingsSchema.default({
+    facebookPixelId: null,
+    googleAnalyticsId: null,
+    googleTagManagerId: null,
+    facebookAccessToken: null,
+  }),
   social: SocialSettingsSchema.default({
     facebook: null,
     instagram: null,
@@ -493,8 +525,21 @@ const ALLOWED_THEME_IDS = [
   'starter-store',
   'luxe-boutique',
   'nova-lux',
+  'ozzyl-premium',
+  'dc-store',
+  'daraz',
   'ghorer-bazar',
   'tech-modern',
+  'aurora-minimal',
+  'eclipse',
+  'artisan-market',
+  'freshness',
+  'rovo',
+  'sokol',
+  'turbo-sale',
+  'zenith-rise',
+  'nova-lux-ultra',
+  'bdshop',
 ] as const;
 export type AllowedThemeId = (typeof ALLOWED_THEME_IDS)[number];
 
@@ -540,11 +585,18 @@ export const DEFAULT_UNIFIED_SETTINGS: UnifiedStorefrontSettingsV1 = {
     favicon: null,
     tagline: null,
     description: null,
+    fontFamily: 'inter',
   },
   business: {
     phone: null,
     email: null,
     address: null,
+  },
+  tracking: {
+    facebookPixelId: null,
+    googleAnalyticsId: null,
+    googleTagManagerId: null,
+    facebookAccessToken: null,
   },
   social: {
     facebook: null,
@@ -642,6 +694,19 @@ export const DEFAULT_THEME_COLORS: Record<AllowedThemeId, { primary: string; acc
   'nova-lux': { primary: '#1C1C1E', accent: '#C4A35A' },
   'ghorer-bazar': { primary: '#fc8934', accent: '#e53935' },
   'tech-modern': { primary: '#0f172a', accent: '#3b82f6' },
+  'dc-store': { primary: '#f59e0b', accent: '#f43f5e' },
+  'ozzyl-premium': { primary: '#111827', accent: '#8b5cf6' },
+  daraz: { primary: '#f85606', accent: '#ffffff' },
+  'aurora-minimal': { primary: '#000000', accent: '#3b82f6' },
+  eclipse: { primary: '#111827', accent: '#f43f5e' },
+  'artisan-market': { primary: '#78350f', accent: '#10b981' },
+  freshness: { primary: '#15803d', accent: '#f59e0b' },
+  rovo: { primary: '#000000', accent: '#dc2626' },
+  sokol: { primary: '#18181b', accent: '#e11d48' },
+  'turbo-sale': { primary: '#ef4444', accent: '#fcd34d' },
+  'zenith-rise': { primary: '#1e40af', accent: '#06b6d4' },
+  'nova-lux-ultra': { primary: '#09090b', accent: '#c4a35a' },
+  bdshop: { primary: '#e11d48', accent: '#1e293b' },
 };
 
 // ============================================================================

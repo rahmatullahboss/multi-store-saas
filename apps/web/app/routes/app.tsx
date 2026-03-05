@@ -363,10 +363,6 @@ const navSections: NavSection[] = [
     mobileHidden: false, // Show settings in mobile sidebar too
     items: [
       { to: '/app/settings', labelKey: 'navGeneral', icon: Settings },
-      // Work In Progress - hidden from production, moved to Super Admin
-      // { to: '/app/settings/homepage', labelKey: 'navStorefront', icon: Home },
-      // { to: '/app/settings/business-mode', labelKey: 'navBusinessMode', icon: Layers },
-      // { to: '/app/settings/lead-gen', labelKey: 'navLeadGenSettings', icon: Palette },
       { to: '/app/settings/domain', labelKey: 'navDomain', icon: Globe },
       { to: '/app/settings/shipping', labelKey: 'navShipping', icon: Truck },
       { to: '/app/settings/courier', labelKey: 'navCourier', icon: Package },
