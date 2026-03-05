@@ -10,6 +10,7 @@ import { LUXE_BOUTIQUE_THEME } from '../components/store-templates/luxe-boutique
 import { NOVALUX_THEME } from '../components/store-templates/nova-lux/theme';
 import { STARTER_STORE_THEME } from '../components/store-templates/starter-store/theme';
 import { OZZYL_PREMIUM_THEME } from '../components/store-templates/ozzyl-premium/theme';
+import { DC_STORE_THEME } from '../components/store-templates/dc-store/theme';
 
 // ============================================================================
 // Shared Pages (Lazy Loaded)
@@ -38,6 +39,26 @@ const LuxeProductPage = React.lazy(() =>
 const NovaLuxProductPage = React.lazy(() =>
   import('../components/store-templates/nova-lux/pages/ProductPage').then((m) => ({
     default: m.NovaLuxProductPage,
+  }))
+);
+const DCProductPage = React.lazy(() =>
+  import('../components/store-templates/dc-store/pages/ProductPage').then((m) => ({
+    default: m.DCProductPage,
+  }))
+);
+const DCCartPage = React.lazy(() =>
+  import('../components/store-templates/dc-store/pages/CartPage').then((m) => ({
+    default: m.DCCartPage,
+  }))
+);
+const DCCheckoutPage = React.lazy(() =>
+  import('../components/store-templates/dc-store/pages/CheckoutPage').then((m) => ({
+    default: m.DCCheckoutPage,
+  }))
+);
+const DCCollectionPage = React.lazy(() =>
+  import('../components/store-templates/dc-store/pages/CollectionPage').then((m) => ({
+    default: m.DCCollectionPage,
   }))
 );
 
@@ -131,6 +152,23 @@ const OzzylPremiumCollectionPage = React.lazy(() =>
   }))
 );
 
+// --- DC Store ---
+const DCStoreTemplate = React.lazy(() =>
+  import('../components/store-templates/dc-store').then((m) => ({
+    default: m.DCStoreTemplate,
+  }))
+);
+const DCStoreHeader = React.lazy(() =>
+  import('../components/store-templates/dc-store/sections/Header').then((m) => ({
+    default: m.DCStoreHeader,
+  }))
+);
+const DCStoreFooter = React.lazy(() =>
+  import('../components/store-templates/dc-store/sections/Footer').then((m) => ({
+    default: m.DCStoreFooter,
+  }))
+);
+
 // ============================================================================
 // Theme Map
 // ============================================================================
@@ -139,6 +177,7 @@ export const STORE_TEMPLATE_THEMES: Record<string, StoreTemplateTheme> = {
   'nova-lux': NOVALUX_THEME as StoreTemplateTheme,
   'starter-store': STARTER_STORE_THEME as StoreTemplateTheme,
   'ozzyl-premium': OZZYL_PREMIUM_THEME as StoreTemplateTheme,
+  'dc-store': DC_STORE_THEME as StoreTemplateTheme,
 };
 
 // ============================================================================
@@ -209,6 +248,23 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
     CheckoutPage: OzzylPremiumCheckoutPage,
     CollectionPage: OzzylPremiumCollectionPage,
     fonts: { heading: 'Manrope', body: 'Manrope' },
+  },
+  {
+    id: 'dc-store',
+    name: 'DC Store',
+    description:
+      'Golden gradient theme with warm colors. Modern design inspired by leading e-commerce brands.',
+    thumbnail: 'https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev/banners/dc-store.webp',
+    category: 'modern',
+    theme: STORE_TEMPLATE_THEMES['dc-store'],
+    component: DCStoreTemplate,
+    Header: DCStoreHeader,
+    Footer: DCStoreFooter,
+    ProductPage: DCProductPage,
+    CartPage: DCCartPage,
+    CheckoutPage: DCCheckoutPage,
+    CollectionPage: DCCollectionPage,
+    fonts: { heading: 'Inter', body: 'Inter' },
   },
   // Locked Premium Themes
   {
@@ -434,9 +490,14 @@ export const getStoreTemplateTheme = (templateId: string): StoreTemplateTheme =>
 };
 
 // ============================================================================
-// MVP Store Templates - Only 3 active themes for production
+// MVP Store Templates - Only active themes for production
 // ============================================================================
-const ACTIVE_MVP_THEME_IDS = ['starter-store', 'luxe-boutique', 'nova-lux'] as const;
+const ACTIVE_MVP_THEME_IDS = [
+  'starter-store',
+  'luxe-boutique',
+  'nova-lux',
+  'dc-store',
+] as const;
 
 export const MVP_STORE_TEMPLATES = STORE_TEMPLATES.filter((t) =>
   ACTIVE_MVP_THEME_IDS.includes(t.id as (typeof ACTIVE_MVP_THEME_IDS)[number])
@@ -462,7 +523,7 @@ export function resolveStoreTemplateId(
     if (
       themeConfig.storeTemplateId &&
       typeof themeConfig.storeTemplateId === 'string' &&
-      MVP_THEME_IDS.includes(themeConfig.storeTemplateId as MvpThemeId)
+      (MVP_THEME_IDS as unknown as string[]).includes(themeConfig.storeTemplateId)
     ) {
       return themeConfig.storeTemplateId;
     }
@@ -481,12 +542,15 @@ export function resolveStoreTheme(
   // Resolve templateId from canonical settings only.
   let storeTemplateId = DEFAULT_STORE_TEMPLATE_ID;
 
+  // Check both possible keys in unified settings
+  const rawId = mvpSettings.storeTemplateId || mvpSettings.templateId;
+
   if (
-    mvpSettings.storeTemplateId &&
-    typeof mvpSettings.storeTemplateId === 'string' &&
-    MVP_THEME_IDS.includes(mvpSettings.storeTemplateId as MvpThemeId)
+    rawId &&
+    typeof rawId === 'string' &&
+    (MVP_THEME_IDS as unknown as string[]).includes(rawId)
   ) {
-    storeTemplateId = mvpSettings.storeTemplateId;
+    storeTemplateId = rawId;
   }
 
   // Get base theme for the template
