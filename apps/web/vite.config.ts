@@ -111,6 +111,11 @@ export default defineConfig({
     // Externalize heavy client-only dependencies from SSR bundle
     // These are only needed on the client side (lazy loaded)
     external: [
+      // Sentry SDK — relies on browser/Node APIs that crash in workerd.
+      // Must be externalized so the SSR build uses no-op stubs instead.
+      '@sentry/remix',
+      '@sentry/cloudflare',
+      '@sentry/node',
       // Heavy PDF library - offloaded to PDF_SERVICE worker
       'jspdf',
       'jspdf-autotable',

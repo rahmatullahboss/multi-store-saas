@@ -232,13 +232,18 @@ export default function App() {
  * - 500+: Server Error / Maintenance Mode
  * - Unknown: Generic error fallback
  */
-import * as Sentry from '@sentry/remix';
+// @sentry/remix is externalized from SSR (Workers don't support its browser/Node APIs).
+// Client-side Sentry is initialised in entry.client.tsx via dynamic import.
+// During SSR we use a no-op so ErrorBoundary rendering never crashes.
+const SentryStub = {
+  captureException: (() => {}) as (...args: unknown[]) => void,
+};
 
 export function ErrorBoundary() {
   const error = useRouteError();
 
-  // Capture the error in Sentry
-  Sentry.captureException(error);
+  // Capture the error in Sentry (no-op during SSR, real on client)
+  SentryStub.captureException(error);
 
   // Layout wraps ErrorBoundary, so we don't need isRootError anymore
   // Just return the error content directly

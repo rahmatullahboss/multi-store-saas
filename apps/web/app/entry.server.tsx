@@ -11,7 +11,12 @@ import { isbot } from 'isbot';
 import { renderToReadableStream } from 'react-dom/server';
 import { createInstance } from 'i18next';
 import { I18nextProvider, initReactI18next } from 'react-i18next';
-import * as Sentry from '@sentry/remix';
+// @sentry/remix is externalized from SSR (Workers don't support its browser/Node APIs).
+// Provide safe no-op stubs so calls to Sentry.init / captureException don't crash SSR.
+const Sentry = {
+  init: (() => {}) as (...args: unknown[]) => void,
+  captureException: (() => {}) as (...args: unknown[]) => void,
+};
 import i18n from './i18n';
 import i18next from './services/i18n.server';
 
