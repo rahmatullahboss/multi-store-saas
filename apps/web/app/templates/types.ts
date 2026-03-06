@@ -17,7 +17,8 @@ export interface StoreTemplateTheme {
   footerBg: string;
   footerText: string;
   secondary?: string;
-  [key: string]: string | undefined;
+  isDark?: boolean;
+  [key: string]: any;
 }
 
 // ============================================================================

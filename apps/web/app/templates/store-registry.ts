@@ -31,18 +31,6 @@ const NovaLuxTemplate = React.lazy(() => import('../components/store-templates/n
 const OzzylPremiumTemplate = React.lazy(() => import('../components/store-templates/ozzyl-premium').then(m => ({ default: m.OzzylPremiumTemplate })));
 const DCStoreTemplate = React.lazy(() => import('../components/store-templates/dc-store').then(m => ({ default: m.DCStoreTemplate })));
 const DarazTemplate = React.lazy(() => import('../components/store-templates/daraz').then(m => ({ default: m.DarazTemplate })));
-const GhorerBazarTemplate = React.lazy(() => import('../components/store-templates/ghorer-bazar').then(m => ({ default: m.GhorerBazarTemplate })));
-const TechModernTemplate = React.lazy(() => import('../components/store-templates/tech-modern').then(m => ({ default: m.TechModernTemplate })));
-const AuroraMinimalTemplate = React.lazy(() => import('../components/store-templates/aurora-minimal').then(m => ({ default: m.AuroraMinimalTemplate })));
-const EclipseTemplate = React.lazy(() => import('../components/store-templates/eclipse').then(m => ({ default: m.EclipseTemplate })));
-const ArtisanMarketTemplate = React.lazy(() => import('../components/store-templates/artisan-market').then(m => ({ default: m.ArtisanMarketTemplate })));
-const FreshnessTemplate = React.lazy(() => import('../components/store-templates/freshness').then(m => ({ default: m.FreshnessTemplate })));
-const RovoTemplate = React.lazy(() => import('../components/store-templates/rovo').then(m => ({ default: m.RovoTemplate })));
-const SokolTemplate = React.lazy(() => import('../components/store-templates/sokol').then(m => ({ default: m.SokolTemplate })));
-const TurboSaleTemplate = React.lazy(() => import('../components/store-templates/turbo-sale').then(m => ({ default: m.TurboSaleTemplate })));
-const ZenithRiseTemplate = React.lazy(() => import('../components/store-templates/zenith-rise').then(m => ({ default: m.ZenithRiseTemplate })));
-const NovaLuxUltraTemplate = React.lazy(() => import('../components/store-templates/nova-lux-ultra').then(m => ({ default: m.NovaLuxUltraTemplate })));
-const BdShopTemplate = React.lazy(() => import('../components/store-templates/bdshop').then(m => ({ default: m.BDShopTemplate })));
 
 // Headers
 const StarterHeader = React.lazy(() => import('../components/store-templates/starter-store/sections/Header').then(m => ({ default: m.StarterStoreHeader })));
@@ -149,7 +137,7 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
     thumbnail: 'https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev/banners/ghorer-bazar.webp',
     category: 'grocery',
     theme: STARTER_STORE_THEME as StoreTemplateTheme,
-    component: GhorerBazarTemplate,
+    component: StarterStoreTemplate,
     Header: StarterHeader,
     Footer: StarterFooter,
     ProductPage: StarterProductPage,
@@ -165,7 +153,7 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
     thumbnail: 'https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev/banners/tech-modern.webp',
     category: 'tech',
     theme: STARTER_STORE_THEME as StoreTemplateTheme,
-    component: TechModernTemplate,
+    component: StarterStoreTemplate,
     Header: StarterHeader,
     Footer: StarterFooter,
     ProductPage: StarterProductPage,
@@ -181,7 +169,7 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
     thumbnail: 'https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev/banners/aurora-minimal.webp',
     category: 'minimal',
     theme: STARTER_STORE_THEME as StoreTemplateTheme,
-    component: AuroraMinimalTemplate,
+    component: StarterStoreTemplate,
     Header: StarterHeader,
     Footer: StarterFooter,
     ProductPage: StarterProductPage,
@@ -197,7 +185,7 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
     thumbnail: 'https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev/banners/eclipse.webp',
     category: 'dark',
     theme: STORE_TEMPLATE_THEMES['nova-lux'],
-    component: EclipseTemplate,
+    component: NovaLuxTemplate,
     Header: NovaLuxHeader,
     Footer: NovaLuxFooter,
     ProductPage: NovaLuxProductPage,
@@ -213,7 +201,7 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
     thumbnail: 'https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev/banners/artisan-market.webp',
     category: 'handmade',
     theme: STARTER_STORE_THEME as StoreTemplateTheme,
-    component: ArtisanMarketTemplate,
+    component: StarterStoreTemplate,
     Header: StarterHeader,
     Footer: StarterFooter,
     ProductPage: StarterProductPage,
@@ -229,7 +217,7 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
     thumbnail: 'https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev/banners/freshness.webp',
     category: 'organic',
     theme: STARTER_STORE_THEME as StoreTemplateTheme,
-    component: FreshnessTemplate,
+    component: StarterStoreTemplate,
     Header: StarterHeader,
     Footer: StarterFooter,
     ProductPage: StarterProductPage,
@@ -245,7 +233,7 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
     thumbnail: 'https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev/banners/rovo.webp',
     category: 'fashion',
     theme: STORE_TEMPLATE_THEMES['luxe-boutique'],
-    component: RovoTemplate,
+    component: LuxeBoutiqueTemplate,
     Header: StarterHeader,
     Footer: StarterFooter,
     ProductPage: StarterProductPage,
@@ -261,7 +249,7 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
     thumbnail: 'https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev/banners/sokol.webp',
     category: 'modern',
     theme: STORE_TEMPLATE_THEMES['nova-lux'],
-    component: SokolTemplate,
+    component: NovaLuxTemplate,
     Header: NovaLuxHeader,
     Footer: NovaLuxFooter,
     ProductPage: NovaLuxProductPage,
@@ -277,7 +265,7 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
     thumbnail: 'https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev/banners/turbo-sale.webp',
     category: 'sales',
     theme: STARTER_STORE_THEME as StoreTemplateTheme,
-    component: TurboSaleTemplate,
+    component: StarterStoreTemplate,
     Header: StarterHeader,
     Footer: StarterFooter,
     ProductPage: StarterProductPage,
@@ -293,7 +281,7 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
     thumbnail: 'https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev/banners/zenith-rise.webp',
     category: 'saas',
     theme: STARTER_STORE_THEME as StoreTemplateTheme,
-    component: ZenithRiseTemplate,
+    component: StarterStoreTemplate,
     Header: StarterHeader,
     Footer: StarterFooter,
     ProductPage: StarterProductPage,
@@ -309,7 +297,7 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
     thumbnail: 'https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev/banners/nova-lux-ultra.webp',
     category: 'premium',
     theme: STORE_TEMPLATE_THEMES['nova-lux'],
-    component: NovaLuxUltraTemplate,
+    component: NovaLuxTemplate,
     Header: NovaLuxHeader,
     Footer: NovaLuxFooter,
     ProductPage: NovaLuxProductPage,
@@ -325,7 +313,7 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
     thumbnail: 'https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev/banners/bdshop.webp',
     category: 'local',
     theme: STARTER_STORE_THEME as StoreTemplateTheme,
-    component: BdShopTemplate,
+    component: StarterStoreTemplate,
     Header: StarterHeader,
     Footer: StarterFooter,
     ProductPage: StarterProductPage,

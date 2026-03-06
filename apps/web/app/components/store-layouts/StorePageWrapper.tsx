@@ -173,8 +173,8 @@ function StorePageWrapperComponent({
 
   // Memoize dark theme detection
   const isDarkTheme = useMemo(
-    () => templateId === 'modern-premium' || templateId === 'tech-modern',
-    [templateId]
+    () => resolvedTheme.isDark === true,
+    [resolvedTheme.isDark]
   );
 
   // Memoize background class
@@ -364,12 +364,8 @@ function StorePageWrapperComponent({
 
   const chatAccentColor = useMemo(() => {
     if (accentColor) return accentColor;
-    if (templateId === 'starter-store') {
-      // Keep starter-store chat color consistent with homepage template behavior.
-      return resolvedTheme.primary;
-    }
     return resolvedTheme.accent || resolvedTheme.primary;
-  }, [accentColor, templateId, resolvedTheme.primary, resolvedTheme.accent]);
+  }, [accentColor, resolvedTheme.primary, resolvedTheme.accent]);
 
   // Error handlers
   const handleHeaderError = React.useCallback((error: Error) => {

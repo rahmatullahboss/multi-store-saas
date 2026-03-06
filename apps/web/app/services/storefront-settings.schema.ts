@@ -228,6 +228,42 @@ const TrustBadgesSettingsSchema = z.object({
 export type TrustBadgesSettings = z.infer<typeof TrustBadgesSettingsSchema>;
 
 // ============================================================================
+// LAYOUT SCHEMA (V1 JSON Template System)
+// ============================================================================
+
+export const SectionVariantSchema = z.enum([
+  'default',
+  'minimal',
+  'bold',
+  'marketplace',
+  'luxury'
+]).default('default');
+
+export const HeroSectionSchema = z.object({
+  id: z.string().default(() => crypto.randomUUID()),
+  type: z.literal('hero_banner'),
+  variant: SectionVariantSchema,
+  props: HeroBannerSettingsSchema,
+});
+
+export const ProductGridSchema = z.object({
+  id: z.string().default(() => crypto.randomUUID()),
+  type: z.literal('product_grid'),
+  variant: SectionVariantSchema,
+  props: z.object({
+    title: z.string().optional(),
+    category: z.string().nullable().optional(),
+    limit: z.number().default(8)
+  })
+});
+
+export const LayoutSettingsSchema = z.object({
+  home: z.array(z.union([HeroSectionSchema, ProductGridSchema])).default([]),
+});
+
+export type LayoutSettings = z.infer<typeof LayoutSettingsSchema>;
+
+// ============================================================================
 // TYPOGRAPHY SETTINGS
 // ============================================================================
 
@@ -468,6 +504,9 @@ export const UnifiedStorefrontSettingsV1Schema = z.object({
     legacyFallbackUsed: false,
     migrationCompleted: false,
   }),
+  layout: LayoutSettingsSchema.default({
+    home: []
+  }),
   updatedAt: z
     .string()
     .datetime()
@@ -496,6 +535,7 @@ export const ShippingConfigPatchSchema = ShippingConfigSchema.partial();
 const FloatingSettingsPatchSchema = FloatingSettingsSchema.partial();
 
 const NavigationSettingsPatchSchema = NavigationSettingsSchema.partial();
+export const LayoutSettingsPatchSchema = LayoutSettingsSchema.partial();
 
 export const UnifiedStorefrontSettingsPatchSchema = z.object({
   theme: ThemeSettingsPatchSchema.optional(),
@@ -513,6 +553,7 @@ export const UnifiedStorefrontSettingsPatchSchema = z.object({
   whyChooseUs: WhyChooseUsSchema.optional(),
   typography: TypographySettingsPatchSchema.optional(),
   navigation: NavigationSettingsPatchSchema.optional(),
+  layout: LayoutSettingsPatchSchema.optional(),
 });
 
 export type UnifiedStorefrontSettingsPatch = z.infer<typeof UnifiedStorefrontSettingsPatchSchema>;
@@ -685,6 +726,9 @@ export const DEFAULT_UNIFIED_SETTINGS: UnifiedStorefrontSettingsV1 = {
     legacyFallbackUsed: false,
     migrationCompleted: false,
   },
+  layout: {
+    home: []
+  },
   updatedAt: new Date().toISOString(),
 };
 
@@ -754,6 +798,7 @@ export function createUnifiedSettingsFromPatch(
     ...(patch.trustBadges && { trustBadges: { ...current.trustBadges, ...patch.trustBadges } }),
     ...(patch.whyChooseUs && { whyChooseUs: patch.whyChooseUs }),
     ...(patch.typography && { typography: { ...current.typography, ...patch.typography } }),
+    ...(patch.layout && { layout: { ...current.layout, ...patch.layout } }),
     updatedAt: new Date().toISOString(),
   };
 }
