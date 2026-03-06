@@ -51,6 +51,7 @@ import { getUnifiedStorefrontSettings } from '~/services/unified-storefront-sett
 import { parseFooterConfig, type SocialLinks } from '@db/types';
 // import { createDb } from '~/lib/db.server';
 import { getCustomer } from '~/services/customer-auth.server';
+import { SectionRenderer } from '~/components/store-sections/SectionRenderer';
 
 // ============================================================================
 // AGGRESSIVE CDN CACHING HEADERS
@@ -224,6 +225,7 @@ interface StoreModeData {
   // Explicitly null for this mode
   featuredProduct: null;
   landingConfig: null;
+  unifiedLayout?: any[];
 }
 
 interface MarketingModeData {
@@ -684,6 +686,7 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
       // Explicitly null for store mode
       featuredProduct: null,
       landingConfig: null,
+      unifiedLayout: unifiedSettings.layout?.home || [],
     };
 
     return json(storeData);
@@ -1087,23 +1090,41 @@ export default function Index() {
               planType={data.planType}
               hideHeaderFooter={true}
             >
-              <TemplateComponent
-                storeName={data.storeName}
-                storeId={data.storeId}
-                logo={data.logo}
-                products={data.products}
-                categories={data.categories}
-                currentCategory={data.currentCategory}
-                config={themeConfig}
-                currency={data.currency}
-                socialLinks={data.socialLinks}
-                footerConfig={data.footerConfig}
-                businessInfo={data.businessInfo}
-                planType={data.planType}
-                isPreview={false}
-                aiCredits={data.aiCredits}
-                isCustomerAiEnabled={data.isCustomerAiEnabled}
-              />
+              {data.unifiedLayout && data.unifiedLayout.length > 0 ? (
+                <SectionRenderer
+                  sections={data.unifiedLayout}
+                  theme={data.theme}
+                  storeId={data.storeId}
+                  storeName={data.storeName}
+                  logo={data.logo || undefined}
+                  products={data.products}
+                  categories={data.categories}
+                  currentCategory={data.currentCategory || undefined}
+                  currency={data.currency}
+                  socialLinks={data.socialLinks}
+                  footerConfig={data.footerConfig}
+                  businessInfo={data.businessInfo}
+                  planType={data.planType}
+                />
+              ) : (
+                <TemplateComponent
+                  storeName={data.storeName}
+                  storeId={data.storeId}
+                  logo={data.logo}
+                  products={data.products}
+                  categories={data.categories}
+                  currentCategory={data.currentCategory}
+                  config={themeConfig}
+                  currency={data.currency}
+                  socialLinks={data.socialLinks}
+                  footerConfig={data.footerConfig}
+                  businessInfo={data.businessInfo}
+                  planType={data.planType}
+                  isPreview={false}
+                  aiCredits={data.aiCredits}
+                  isCustomerAiEnabled={data.isCustomerAiEnabled}
+                />
+              )}
             </StorePageWrapper>
           </>
         </WishlistProvider>
