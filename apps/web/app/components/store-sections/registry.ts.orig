@@ -158,10 +158,6 @@ import { CartItemsSection } from './CartItemsSection';
 import { CartSummarySection } from './CartSummarySection';
 import { Layout, ShoppingBag, Mail, Grid3X3, Zap, Shield, Image, HelpCircle, FileText, Type, ImageIcon, Info, MessageSquare, Calculator, Star, Users } from 'lucide-react';
 import { SocialProofSectionPreview } from '../page-builder/sections/SocialProofSectionPreview';
-import { HeaderSection } from '../sections/header';
-import { FooterSection } from '../sections/footer';
-import { ProductGridSection as UnifiedProductGrid } from '../sections/product-grid';
-import { HeroSection as UnifiedHero } from '../sections/hero';
 
 
 // We will populate this as we implement components
@@ -517,38 +513,6 @@ export const SECTION_REGISTRY: Record<string, SectionDefinition> = {
     },
     component: SocialProofSectionPreview as any,
     allowedPages: ['home', 'product']
-  },
-  'unified-header': {
-    type: 'unified-header' as any,
-    name: 'Header (Unified)',
-    icon: 'Layout',
-    description: 'Unified header rendering engine',
-    defaultSettings: {},
-    component: HeaderSection
-  },
-  'unified-footer': {
-    type: 'unified-footer' as any,
-    name: 'Footer (Unified)',
-    icon: 'Layout',
-    description: 'Unified footer rendering engine',
-    defaultSettings: {},
-    component: FooterSection
-  },
-  'unified-product-grid': {
-    type: 'unified-product-grid' as any,
-    name: 'Product Grid (Unified)',
-    icon: 'ShoppingBag',
-    description: 'Unified product grid rendering engine',
-    defaultSettings: {},
-    component: UnifiedProductGrid as any
-  },
-  'unified-hero': {
-    type: 'unified-hero' as any,
-    name: 'Hero Banner (Unified)',
-    icon: 'Layout',
-    description: 'Unified hero rendering engine',
-    defaultSettings: {},
-    component: UnifiedHero as any
   }
 };
 

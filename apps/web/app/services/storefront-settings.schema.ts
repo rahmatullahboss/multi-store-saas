@@ -184,6 +184,8 @@ export type HeroBannerSlide = z.infer<typeof HeroBannerSlideSchema>;
 const HeroBannerSettingsSchema = z.object({
   mode: z.enum(['single', 'carousel']).default('single'),
   overlayOpacity: z.number().min(0).max(100).default(40),
+  autoPlayInterval: z.number().optional().default(5000),
+  showAppWidget: z.boolean().optional().default(true),
   slides: z
     .array(HeroBannerSlideSchema)
     .max(6)
@@ -241,14 +243,14 @@ export const SectionVariantSchema = z.enum([
 
 export const HeroSectionSchema = z.object({
   id: z.string().default(() => crypto.randomUUID()),
-  type: z.literal('hero_banner'),
+  type: z.literal('unified-hero'),
   variant: SectionVariantSchema,
   props: HeroBannerSettingsSchema,
 });
 
 export const ProductGridSchema = z.object({
   id: z.string().default(() => crypto.randomUUID()),
-  type: z.literal('product_grid'),
+  type: z.literal('unified-product-grid'),
   variant: SectionVariantSchema,
   props: z.object({
     title: z.string().optional(),
@@ -257,8 +259,22 @@ export const ProductGridSchema = z.object({
   })
 });
 
+export const HeaderSectionSchema = z.object({
+  id: z.string().default(() => crypto.randomUUID()),
+  type: z.literal('unified-header'),
+  variant: SectionVariantSchema,
+  props: z.object({}).catchall(z.any()).optional()
+});
+
+export const FooterSectionSchema = z.object({
+  id: z.string().default(() => crypto.randomUUID()),
+  type: z.literal('unified-footer'),
+  variant: SectionVariantSchema,
+  props: z.object({}).catchall(z.any()).optional()
+});
+
 export const LayoutSettingsSchema = z.object({
-  home: z.array(z.union([HeroSectionSchema, ProductGridSchema])).default([]),
+  home: z.array(z.union([HeroSectionSchema, ProductGridSchema, HeaderSectionSchema, FooterSectionSchema])).default([]),
 });
 
 export type LayoutSettings = z.infer<typeof LayoutSettingsSchema>;
@@ -485,6 +501,8 @@ export const UnifiedStorefrontSettingsV1Schema = z.object({
   heroBanner: HeroBannerSettingsSchema.default({
     mode: 'single',
     overlayOpacity: 40,
+    autoPlayInterval: 5000,
+    showAppWidget: true,
     slides: [],
     fallbackHeadline: null,
   }),
@@ -694,6 +712,8 @@ export const DEFAULT_UNIFIED_SETTINGS: UnifiedStorefrontSettingsV1 = {
   heroBanner: {
     mode: 'single',
     overlayOpacity: 40,
+    autoPlayInterval: 5000,
+    showAppWidget: true,
     slides: [
       {
         imageUrl:

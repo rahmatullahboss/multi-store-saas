@@ -252,6 +252,8 @@ export async function migrateStoreToUnifiedSettings<TSchema extends Record<strin
         tagline: stores.tagline,
         description: stores.description,
         fontFamily: stores.fontFamily,
+        theme: stores.theme,
+        themeConfig: stores.themeConfig,
         storefrontSettings: stores.storefrontSettings,
       })
       .from(stores)
@@ -270,8 +272,36 @@ export async function migrateStoreToUnifiedSettings<TSchema extends Record<strin
       return { success: true, settings: sanitizeUnifiedSettings(existing) };
     }
 
+    // Extract legacy template info
+    let legacyTemplateId = store.theme || 'starter-store';
+    let legacyConfig = null;
+    if (store.themeConfig) {
+      try {
+        legacyConfig = typeof store.themeConfig === 'string' ? JSON.parse(store.themeConfig) : store.themeConfig;
+        if (legacyConfig?.storeTemplateId) {
+          legacyTemplateId = legacyConfig.storeTemplateId;
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+
+    // Determine layout structure based on legacy template
+    const homeLayout: any[] = [];
+    if (legacyTemplateId === 'daraz') {
+      homeLayout.push(
+        { id: crypto.randomUUID(), type: 'unified-header', variant: 'marketplace', props: {} },
+        { id: crypto.randomUUID(), type: 'unified-hero', variant: 'marketplace', props: {} },
+        { id: crypto.randomUUID(), type: 'unified-product-grid', variant: 'marketplace', props: { limit: 12, columns: 6 } },
+        { id: crypto.randomUUID(), type: 'unified-footer', variant: 'marketplace', props: {} }
+      );
+    }
+
     const unified: UnifiedStorefrontSettingsV1 = {
       ...DEFAULT_UNIFIED_SETTINGS,
+      layout: {
+        home: homeLayout.length > 0 ? homeLayout : DEFAULT_UNIFIED_SETTINGS.layout.home,
+      },
       branding: {
         ...DEFAULT_UNIFIED_SETTINGS.branding,
         storeName: store.name || DEFAULT_UNIFIED_SETTINGS.branding.storeName,
