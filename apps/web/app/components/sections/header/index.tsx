@@ -1,6 +1,6 @@
 import type { ThemeConfig, SocialLinks } from '@db/types';
 import type { StoreCategory, StoreTemplateTheme } from '~/templates/store-registry';
-import { HeaderMarketplace } from './HeaderMarketplace';
+import { UnifiedHeader } from './UnifiedHeader';
 
 interface HeaderSectionProps {
   storeName: string;
@@ -12,6 +12,12 @@ interface HeaderSectionProps {
   socialLinks?: SocialLinks | null;
   theme: StoreTemplateTheme;
   variant?: 'default' | 'minimal' | 'bold' | 'marketplace' | 'luxury';
+  props?: {
+    layout?: 'logo-left' | 'logo-center';
+    showTopBar?: boolean;
+    isSticky?: boolean;
+    enableBlur?: boolean;
+  }
 }
 
 export function HeaderSection({
@@ -24,28 +30,30 @@ export function HeaderSection({
   socialLinks,
   theme,
   variant = 'default',
+  props = {},
 }: HeaderSectionProps) {
-  if (variant === 'marketplace') {
-    return (
-      <HeaderMarketplace
-        storeName={storeName}
-        logo={logo}
-        isPreview={isPreview}
-        config={config}
-        categories={categories}
-        currentCategory={currentCategory}
-        socialLinks={socialLinks}
-        theme={theme}
-      />
-    );
-  }
+  
+  // Resolve properties based on variant if not explicitly provided
+  const resolvedLayout = props.layout || (variant === 'luxury' || variant === 'minimal' ? 'logo-center' : 'logo-left');
+  const resolvedShowTopBar = props.showTopBar ?? (variant === 'marketplace');
+  const resolvedSticky = props.isSticky ?? true;
+  const resolvedBlur = props.enableBlur ?? (variant === 'luxury');
 
-  // Fallback default header (simplified for now)
   return (
-    <header className="sticky top-0 z-50 shadow-md" style={{ backgroundColor: theme.headerBg || '#ffffff' }}>
-      <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-         <div className="font-bold text-xl" style={{ color: theme.text }}>{storeName}</div>
-      </div>
-    </header>
+    <UnifiedHeader
+      storeName={storeName}
+      logo={logo}
+      isPreview={isPreview}
+      config={config}
+      categories={categories}
+      currentCategory={currentCategory}
+      socialLinks={socialLinks}
+      theme={theme}
+      variant={variant}
+      layout={resolvedLayout}
+      showTopBar={resolvedShowTopBar}
+      isSticky={resolvedSticky}
+      enableBlur={resolvedBlur}
+    />
   );
 }

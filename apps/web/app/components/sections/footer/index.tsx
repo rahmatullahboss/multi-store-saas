@@ -1,6 +1,6 @@
 import type { ThemeConfig, SocialLinks, FooterConfig } from '@db/types';
 import type { StoreCategory, StoreTemplateTheme } from '~/templates/store-registry';
-import { FooterMarketplace } from './FooterMarketplace';
+import { UnifiedFooter } from './UnifiedFooter';
 
 interface FooterSectionProps {
   storeName: string;
@@ -13,6 +13,10 @@ interface FooterSectionProps {
   theme: StoreTemplateTheme;
   variant?: 'default' | 'minimal' | 'bold' | 'marketplace' | 'luxury';
   paymentGateways?: string[];
+  props?: {
+    layout?: 'multi-column' | 'centered' | 'minimal';
+    showNewsletter?: boolean;
+  }
 }
 
 export function FooterSection({
@@ -26,27 +30,27 @@ export function FooterSection({
   theme,
   variant = 'default',
   paymentGateways = [],
+  props = {},
 }: FooterSectionProps) {
-  if (variant === 'marketplace') {
-    return (
-      <FooterMarketplace
-        storeName={storeName}
-        logo={logo}
-        socialLinks={socialLinks}
-        businessInfo={businessInfo}
-        categories={categories}
-        planType={planType}
-        footerConfig={footerConfig}
-        theme={theme}
-        paymentGateways={paymentGateways}
-      />
-    );
-  }
+  
+  // Resolve properties based on variant if not explicitly provided
+  const resolvedLayout = props.layout || (variant === 'minimal' ? 'centered' : 'multi-column');
+  const resolvedShowNewsletter = props.showNewsletter ?? false;
 
-  // Fallback default footer (simplified for now)
   return (
-    <footer className="py-8 mt-12 text-center" style={{ backgroundColor: theme.footerBg, color: theme.footerText }}>
-      <p>© {new Date().getFullYear()} {storeName}. All rights reserved.</p>
-    </footer>
+    <UnifiedFooter
+      storeName={storeName}
+      logo={logo}
+      socialLinks={socialLinks}
+      businessInfo={businessInfo}
+      categories={categories}
+      planType={planType}
+      footerConfig={footerConfig}
+      theme={theme}
+      paymentGateways={paymentGateways}
+      variant={variant}
+      layout={resolvedLayout}
+      showNewsletter={resolvedShowNewsletter}
+    />
   );
 }

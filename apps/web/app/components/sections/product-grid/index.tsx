@@ -1,5 +1,5 @@
 import type { SerializedProduct, StoreTemplateTheme } from '~/templates/store-registry';
-import { ProductCardMarketplace } from './ProductCardMarketplace';
+import { UnifiedProductCard } from './UnifiedProductCard';
 
 interface ProductGridSectionProps {
   products: SerializedProduct[];
@@ -7,7 +7,11 @@ interface ProductGridSectionProps {
   theme: StoreTemplateTheme;
   title?: string;
   variant?: 'default' | 'minimal' | 'bold' | 'marketplace' | 'luxury';
-  columns?: 4 | 5 | 6;
+  props?: {
+    columns?: 4 | 5 | 6;
+    layout?: 'standard' | 'minimal' | 'bordered';
+  };
+  storeId?: number;
 }
 
 export function ProductGridSection({
@@ -16,58 +20,74 @@ export function ProductGridSection({
   theme,
   title,
   variant = 'default',
-  columns = 6,
+  props = {},
+  storeId = 0,
 }: ProductGridSectionProps) {
   if (products.length === 0) return null;
 
+  const columns = props.columns || (variant === 'marketplace' ? 6 : 4);
+  const layout = props.layout || (variant === 'luxury' ? 'minimal' : variant === 'marketplace' ? 'bordered' : 'standard');
+
   const gridCols = {
-    4: 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4',
-    5: 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5',
-    6: 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6',
+    4: 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4',
+    5: 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5',
+    6: 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6',
   };
 
-  if (variant === 'marketplace') {
-    return (
-      <section className="bg-white rounded-lg shadow-sm mb-6 p-4" style={{ backgroundColor: theme.cardBg }}>
-        {title && (
-          <h2 className="text-lg font-bold mb-4" style={{ color: theme.text }}>
-            {title}
-          </h2>
+  const isLuxury = variant === 'luxury';
+  const headingFont = isLuxury ? 'Cormorant Garamond, serif' : 'inherit';
+
+  return (
+    <section 
+      className={`relative ${isLuxury ? 'py-16 md:py-24' : 'py-12'}`} 
+      style={{ backgroundColor: isLuxury ? theme.background : 'transparent' }}
+    >
+      <div className={`mx-auto px-4 sm:px-6 lg:px-8 ${variant === 'marketplace' ? 'max-w-[1400px]' : 'max-w-7xl'}`}>
+        {/* Marketplace Section Header */}
+        {variant === 'marketplace' && (
+          <div className="bg-white rounded-t-lg shadow-sm p-4 border-b mb-1" style={{ backgroundColor: theme.cardBg, borderColor: theme.cardBorder || '#e5e7eb' }}>
+            {title && (
+              <h2 className="text-lg font-bold" style={{ color: theme.text }}>
+                {title}
+              </h2>
+            )}
+          </div>
         )}
 
-        <div className={`grid ${gridCols[columns]} gap-3 md:gap-4`}>
+        {/* Default / Luxury Section Header */}
+        {variant !== 'marketplace' && title && (
+          <div className={`flex items-end justify-between ${isLuxury ? 'mb-12' : 'mb-8'}`}>
+            <div>
+              {isLuxury && (
+                <span className="text-sm font-medium tracking-widest uppercase mb-2 block" style={{ color: theme.accent }}>
+                  Our Collection
+                </span>
+              )}
+              <h2 
+                className={`${isLuxury ? 'text-4xl md:text-5xl font-light' : 'text-2xl font-bold text-center'}`} 
+                style={{ color: theme.text, fontFamily: headingFont }}
+              >
+                {title}
+              </h2>
+            </div>
+          </div>
+        )}
+
+        <div className={`grid ${gridCols[columns]} gap-4 md:gap-6 ${variant === 'marketplace' ? 'bg-white shadow-sm rounded-b-lg p-4' : ''}`} style={variant === 'marketplace' ? { backgroundColor: theme.cardBg } : {}}>
           {products.map((product) => (
-            <ProductCardMarketplace 
+            <UnifiedProductCard 
               key={product.id} 
               product={product} 
               currency={currency} 
-              theme={theme} 
+              theme={theme}
+              variant={variant}
+              layout={layout}
+              storeId={storeId}
+              showAddToCart={true}
             />
-          ))}
-        </div>
-      </section>
-    );
-  }
-
-  // Fallback / Default layout
-  return (
-    <section className="py-12">
-       <div className="max-w-7xl mx-auto px-4">
-        {title && (
-          <h2 className="text-2xl font-bold mb-8 text-center" style={{ color: theme.text }}>
-            {title}
-          </h2>
-        )}
-        <div className={`grid ${gridCols[columns]} gap-4`}>
-          {products.map((product) => (
-            <div key={product.id} className="border rounded-lg p-4" style={{ borderColor: theme.cardBorder || '#e5e7eb' }}>
-               <img src={product.imageUrl || '/placeholder-product.svg'} alt={product.name} className="w-full aspect-square object-cover mb-4 rounded"/>
-               <h3 className="font-medium text-sm mb-2 truncate" style={{ color: theme.text }}>{product.name}</h3>
-               <p className="font-bold" style={{ color: theme.primary }}>{currency} {product.price}</p>
-            </div>
           ))}
         </div>
       </div>
     </section>
-  )
+  );
 }
