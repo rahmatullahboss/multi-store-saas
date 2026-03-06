@@ -51,6 +51,9 @@ export interface SerializedProduct {
   stock?: number | null;
   isActive?: boolean;
   variants?: SerializedVariant[];
+  // Review data
+  avgRating?: number | null;
+  reviewCount?: number | null;
   [key: string]: any;
 }
 

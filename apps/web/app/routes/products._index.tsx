@@ -7,14 +7,20 @@
  */
 
 import { json, type LoaderFunctionArgs, type MetaFunction } from '@remix-run/cloudflare';
-import { useLoaderData, Link, useSearchParams, useRouteError, isRouteErrorResponse } from '@remix-run/react';
+import {
+  useLoaderData,
+  Link,
+  useSearchParams,
+  useRouteError,
+  isRouteErrorResponse,
+} from '@remix-run/react';
 import { useTranslation } from 'react-i18next';
 import { eq, and, desc, asc, gte, lte, sql } from 'drizzle-orm';
 import { resolveStore } from '~/lib/store.server';
 import { createDb } from '~/lib/db.server';
 import { D1Cache } from '~/services/cache-layer.server';
 import { getStoreConfig } from '~/services/store-config.server';
-import { products } from '@db/schema';
+import { products, reviews } from '@db/schema';
 import { type ThemeConfig } from '@db/types';
 import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
 import { getStoreTemplate, getStoreTemplateTheme } from '~/templates/store-registry';
@@ -46,6 +52,9 @@ interface SerializedProduct {
   isPublished: boolean | null;
   createdAt: string | null;
   updatedAt: string | null;
+  // Review data
+  avgRating?: number | null;
+  reviewCount?: number | null;
 }
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
@@ -143,7 +152,22 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   // Fetch products with optional category filter and sorting
   const allProducts = await db
-    .select()
+    .select({
+      id: products.id,
+      storeId: products.storeId,
+      title: products.title,
+      description: products.description,
+      price: products.price,
+      compareAtPrice: products.compareAtPrice,
+      imageUrl: products.imageUrl,
+      images: products.images,
+      category: products.category,
+      inventory: products.inventory,
+      sku: products.sku,
+      isPublished: products.isPublished,
+      createdAt: products.createdAt,
+      updatedAt: products.updatedAt,
+    })
     .from(products)
     .where(
       and(
@@ -161,6 +185,49 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     .orderBy(orderByClause)
     .limit(100);
 
+  // Fetch aggregate ratings for all products
+  const productIds = allProducts.map((p) => p.id);
+  let reviewStats: Record<number, { avgRating: number; reviewCount: number }> = {};
+
+  if (productIds.length > 0) {
+    const ratingResults = await db
+      .select({
+        productId: reviews.productId,
+        avgRating: sql<number>`COALESCE(AVG(${reviews.rating}), 0)`.as('avg_rating'),
+        reviewCount: sql<number>`COUNT(${reviews.id})`.as('review_count'),
+      })
+      .from(reviews)
+      .where(
+        and(
+          eq(reviews.storeId, storeId),
+          eq(reviews.status, 'approved'),
+          sql`${reviews.productId} IN (${sql.join(
+            productIds.map((id) => sql`${id}`),
+            sql`, `
+          )})`
+        )
+      )
+      .groupBy(reviews.productId);
+
+    reviewStats = ratingResults.reduce(
+      (acc, r) => {
+        acc[r.productId] = {
+          avgRating: Math.round(r.avgRating * 10) / 10,
+          reviewCount: Number(r.reviewCount),
+        };
+        return acc;
+      },
+      {} as Record<number, { avgRating: number; reviewCount: number }>
+    );
+  }
+
+  // Add review data to products
+  const productsWithReviews = allProducts.map((product) => ({
+    ...product,
+    avgRating: reviewStats[product.id]?.avgRating ?? null,
+    reviewCount: reviewStats[product.id]?.reviewCount ?? 0,
+  }));
+
   // Use unified theme config only
   const mergedThemeConfig = buildMergedThemeConfig(
     null,
@@ -171,7 +238,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   );
 
   return json({
-    products: allProducts,
+    products: productsWithReviews,
     storeName: legacyCompat.storeName,
     logo: legacyCompat.logo,
     currency: store?.currency || 'BDT',
@@ -781,7 +848,10 @@ export function ErrorBoundary() {
         <div className="text-center p-8">
           <h1 className="text-4xl font-bold text-red-600 mb-4">{error.status}</h1>
           <p className="text-gray-600 mb-6">{error.data || error.statusText}</p>
-          <a href="/" className="inline-block bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
+          <a
+            href="/"
+            className="inline-block bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+          >
             ← Back to Home
           </a>
         </div>
@@ -793,7 +863,10 @@ export function ErrorBoundary() {
       <div className="text-center p-8">
         <h1 className="text-4xl font-bold text-red-600 mb-4">Oops!</h1>
         <p className="text-gray-600 mb-6">Failed to load products. Please refresh and try again.</p>
-        <a href="/" className="inline-block bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
+        <a
+          href="/"
+          className="inline-block bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+        >
           ← Back to Home
         </a>
       </div>

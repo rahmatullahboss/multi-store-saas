@@ -1,10 +1,10 @@
 /**
  * Template Registry - Dynamic Landing Page Templates
- * 
+ *
  * Central registry for all available landing page templates.
  * All templates use the same LandingPageTemplate component with different theme configs.
  * This ensures PREVIEW and LIVE store show exactly the same design.
- * 
+ *
  * Performance: All templates are lazy loaded to reduce initial bundle size.
  */
 
@@ -23,6 +23,9 @@ export interface SerializedProduct {
   price: number;
   compareAtPrice: number | null;
   imageUrl: string | null;
+  // Review data
+  avgRating?: number | null;
+  reviewCount?: number | null;
 }
 
 // ============================================================================
@@ -35,10 +38,10 @@ export interface TemplateProps {
   config: LandingConfig;
   currency: string;
   isPreview?: boolean;
-  isEditMode?: boolean;  // For Magic Editor integration
+  isEditMode?: boolean; // For Magic Editor integration
   isCustomerAiEnabled?: boolean; // For AI Sales Agent
   planType?: string; // For Growth Branding Loop
-  selectedSection?: string | null;  // Currently selected section for highlighting in editor
+  selectedSection?: string | null; // Currently selected section for highlighting in editor
   manualPaymentConfig?: ManualPaymentConfig | null; // For checkout
   onConfigChange?: (newConfig: LandingConfig) => void;
   landingPageId?: number; // For Analytics Attribution
@@ -90,22 +93,58 @@ export interface TemplateDefinition {
 // ============================================================================
 // LAZY LOADED TEMPLATES - Reducer initial bundle size
 // ============================================================================
-const PremiumBDTemplate = React.lazy(() => import('~/components/templates/premium-bd').then(m => ({ default: m.PremiumBDTemplate })));
-const MobileFirstTemplate = React.lazy(() => import('~/components/templates/mobile-first').then(m => ({ default: m.MobileFirstTemplate })));
-const FlashSaleTemplate = React.lazy(() => import('~/components/templates/flash-sale').then(m => ({ default: m.FlashSaleTemplate })));
-const LuxeTemplate = React.lazy(() => import('~/components/templates/luxe').then(m => ({ default: m.LuxeTemplate })));
-const OrganicTemplate = React.lazy(() => import('~/components/templates/organic').then(m => ({ default: m.OrganicTemplate })));
-const ShowcaseTemplate = React.lazy(() => import('~/components/templates/showcase').then(m => ({ default: m.ShowcaseTemplate })));
-const ModernDarkTemplate = React.lazy(() => import('~/components/templates/modern-dark').then(m => ({ default: m.ModernDarkTemplate })));
-const MinimalLightTemplate = React.lazy(() => import('~/components/templates/minimal-light').then(m => ({ default: m.MinimalLightTemplate })));
-const VideoFocusTemplate = React.lazy(() => import('~/components/templates/video-focus').then(m => ({ default: m.VideoFocusTemplate })));
-const ModernPremiumTemplate = React.lazy(() => import('~/components/templates/modern-premium').then(m => ({ default: m.ModernPremiumTemplate })));
-const QuickStartTemplate = React.lazy(() => import('~/components/templates/quick-start').then(m => ({ default: m.QuickStartTemplate })));
-const TrustFirstTemplate = React.lazy(() => import('~/components/templates/trust-first').then(m => ({ default: m.TrustFirstTemplate })));
-const StoryDrivenTemplate = React.lazy(() => import('~/components/templates/story-driven').then(m => ({ default: m.StoryDrivenTemplate })));
-const MinimalCleanTemplate = React.lazy(() => import('~/components/templates/minimal-clean').then(m => ({ default: m.MinimalCleanTemplate })));
-const SocialProofTemplate = React.lazy(() => import('~/components/templates/social-proof').then(m => ({ default: m.SocialProofTemplate })));
-const UrgencyScarcityTemplate = React.lazy(() => import('~/components/templates/urgency-scarcity').then(m => ({ default: m.UrgencyScarcityTemplate })));
+const PremiumBDTemplate = React.lazy(() =>
+  import('~/components/templates/premium-bd').then((m) => ({ default: m.PremiumBDTemplate }))
+);
+const MobileFirstTemplate = React.lazy(() =>
+  import('~/components/templates/mobile-first').then((m) => ({ default: m.MobileFirstTemplate }))
+);
+const FlashSaleTemplate = React.lazy(() =>
+  import('~/components/templates/flash-sale').then((m) => ({ default: m.FlashSaleTemplate }))
+);
+const LuxeTemplate = React.lazy(() =>
+  import('~/components/templates/luxe').then((m) => ({ default: m.LuxeTemplate }))
+);
+const OrganicTemplate = React.lazy(() =>
+  import('~/components/templates/organic').then((m) => ({ default: m.OrganicTemplate }))
+);
+const ShowcaseTemplate = React.lazy(() =>
+  import('~/components/templates/showcase').then((m) => ({ default: m.ShowcaseTemplate }))
+);
+const ModernDarkTemplate = React.lazy(() =>
+  import('~/components/templates/modern-dark').then((m) => ({ default: m.ModernDarkTemplate }))
+);
+const MinimalLightTemplate = React.lazy(() =>
+  import('~/components/templates/minimal-light').then((m) => ({ default: m.MinimalLightTemplate }))
+);
+const VideoFocusTemplate = React.lazy(() =>
+  import('~/components/templates/video-focus').then((m) => ({ default: m.VideoFocusTemplate }))
+);
+const ModernPremiumTemplate = React.lazy(() =>
+  import('~/components/templates/modern-premium').then((m) => ({
+    default: m.ModernPremiumTemplate,
+  }))
+);
+const QuickStartTemplate = React.lazy(() =>
+  import('~/components/templates/quick-start').then((m) => ({ default: m.QuickStartTemplate }))
+);
+const TrustFirstTemplate = React.lazy(() =>
+  import('~/components/templates/trust-first').then((m) => ({ default: m.TrustFirstTemplate }))
+);
+const StoryDrivenTemplate = React.lazy(() =>
+  import('~/components/templates/story-driven').then((m) => ({ default: m.StoryDrivenTemplate }))
+);
+const MinimalCleanTemplate = React.lazy(() =>
+  import('~/components/templates/minimal-clean').then((m) => ({ default: m.MinimalCleanTemplate }))
+);
+const SocialProofTemplate = React.lazy(() =>
+  import('~/components/templates/social-proof').then((m) => ({ default: m.SocialProofTemplate }))
+);
+const UrgencyScarcityTemplate = React.lazy(() =>
+  import('~/components/templates/urgency-scarcity').then((m) => ({
+    default: m.UrgencyScarcityTemplate,
+  }))
+);
 
 // ============================================================================
 // TEMPLATES REGISTRY - All templates use same component, different themes
@@ -121,7 +160,8 @@ export const TEMPLATES: TemplateDefinition[] = [
   {
     id: 'flash-sale',
     name: '🔥 Flash Sale (Urgency)',
-    description: 'High urgency design with sticky countdown, shake animations, and stock warnings. Perfect for limited-time offers.',
+    description:
+      'High urgency design with sticky countdown, shake animations, and stock warnings. Perfect for limited-time offers.',
     thumbnail: '/templates/flash-sale.png',
     component: FlashSaleTemplate,
   },
@@ -135,14 +175,16 @@ export const TEMPLATES: TemplateDefinition[] = [
   {
     id: 'luxury',
     name: 'Luxury Black (Gold Edition)',
-    description: 'Premium black and gold aesthetic with serif typography, perfect for high-ticket items.',
+    description:
+      'Premium black and gold aesthetic with serif typography, perfect for high-ticket items.',
     thumbnail: '/templates/luxury.png',
     component: LuxeTemplate,
   },
   {
     id: 'organic',
     name: 'Organic Green (Nature)',
-    description: 'Earthy tones, organic shapes, and a natural feel. Perfect for health and eco-friendly products.',
+    description:
+      'Earthy tones, organic shapes, and a natural feel. Perfect for health and eco-friendly products.',
     thumbnail: '/templates/organic.png',
     component: OrganicTemplate,
   },
@@ -170,8 +212,9 @@ export const TEMPLATES: TemplateDefinition[] = [
   {
     id: 'showcase',
     name: '✨ Showcase Gallery (Multi-Image)',
-    description: 'Premium dark aesthetic designed to showcase product details with a gallery grid. Perfect for luxury items.',
-    thumbnail: '/templates/showcase.png', 
+    description:
+      'Premium dark aesthetic designed to showcase product details with a gallery grid. Perfect for luxury items.',
+    thumbnail: '/templates/showcase.png',
     component: ShowcaseTemplate,
   },
   {
@@ -184,42 +227,48 @@ export const TEMPLATES: TemplateDefinition[] = [
   {
     id: 'quick-start',
     name: '⚡ Quick Start (High Conversion)',
-    description: 'Proven high-conversion template with scrolling narrative: specific problem -> solution -> benefits -> social proof -> offer. Perfect for single product stores.',
+    description:
+      'Proven high-conversion template with scrolling narrative: specific problem -> solution -> benefits -> social proof -> offer. Perfect for single product stores.',
     thumbnail: '/templates/quick-start.png',
     component: QuickStartTemplate,
   },
   {
     id: 'trust-first',
     name: '💚 Trust First (Testimonial Heavy)',
-    description: 'Testimonial-focused design with floating review cards, before/after sections, and customer photos. Perfect for health & beauty products.',
+    description:
+      'Testimonial-focused design with floating review cards, before/after sections, and customer photos. Perfect for health & beauty products.',
     thumbnail: '/templates/trust-first.png',
     component: TrustFirstTemplate,
   },
   {
     id: 'story-driven',
     name: '📖 Story Driven (Emotional)',
-    description: 'Long-form storytelling layout with warm colors and personal narrative. Perfect for products that solve personal problems.',
+    description:
+      'Long-form storytelling layout with warm colors and personal narrative. Perfect for products that solve personal problems.',
     thumbnail: '/templates/story-driven.png',
     component: StoryDrivenTemplate,
   },
   {
     id: 'minimal-clean',
     name: '⬜ Minimal Clean (Apple-like)',
-    description: 'Ultra minimal black/white design with massive typography and lots of whitespace. Perfect for premium, simple products.',
+    description:
+      'Ultra minimal black/white design with massive typography and lots of whitespace. Perfect for premium, simple products.',
     thumbnail: '/templates/minimal-clean.png',
     component: MinimalCleanTemplate,
   },
   {
     id: 'social-proof',
     name: '👥 Social Proof (Facebook Style)',
-    description: 'Facebook/WhatsApp inspired design with chat bubbles, comments, and social reactions. Familiar and trustworthy feel.',
+    description:
+      'Facebook/WhatsApp inspired design with chat bubbles, comments, and social reactions. Familiar and trustworthy feel.',
     thumbnail: '/templates/social-proof.png',
     component: SocialProofTemplate,
   },
   {
     id: 'urgency-scarcity',
     name: '🚨 Urgency & Scarcity (FOMO)',
-    description: 'High-pressure design with countdowns, stock warnings, and live viewer counts. Dark dramatic theme for flash sales.',
+    description:
+      'High-pressure design with countdowns, stock warnings, and live viewer counts. Dark dramatic theme for flash sales.',
     thumbnail: '/templates/urgency-scarcity.png',
     component: UrgencyScarcityTemplate,
   },

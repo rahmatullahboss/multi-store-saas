@@ -30,9 +30,9 @@ import {
   useSearchParams,
 } from '@remix-run/react';
 import { useState, useEffect, Suspense, lazy, type ComponentType } from 'react';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, sql } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
-import { stores, products, collections, type Product, type Store } from '@db/schema';
+import { stores, products, collections, reviews, type Product, type Store } from '@db/schema';
 import { type LandingConfig, type ThemeConfig } from '@db/types';
 // NOTE: Avoid static import of landing template registry to keep storefront bundle lean.
 const DEFAULT_LANDING_TEMPLATE_ID = 'premium-bd';
@@ -591,16 +591,18 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
       env: context.cloudflare.env,
     });
 
-    console.log(JSON.stringify({
-      level: 'debug',
-      event: 'storefront_loader_hero_config',
-      storeId: validatedStoreId,
-      templateId: unifiedSettings.theme?.templateId ?? 'unknown',
-      heroBannerSlideCount: unifiedSettings.heroBanner?.slides?.length ?? 0,
-      heroBannerMode: unifiedSettings.heroBanner?.mode ?? 'none',
-      hasFirstSlideImage: Boolean(unifiedSettings.heroBanner?.slides?.[0]?.imageUrl),
-      ts: Date.now(),
-    }));
+    console.log(
+      JSON.stringify({
+        level: 'debug',
+        event: 'storefront_loader_hero_config',
+        storeId: validatedStoreId,
+        templateId: unifiedSettings.theme?.templateId ?? 'unknown',
+        heroBannerSlideCount: unifiedSettings.heroBanner?.slides?.length ?? 0,
+        heroBannerMode: unifiedSettings.heroBanner?.mode ?? 'none',
+        hasFirstSlideImage: Boolean(unifiedSettings.heroBanner?.slides?.[0]?.imageUrl),
+        ts: Date.now(),
+      })
+    );
 
     // Homepage template must follow unified settings to stay consistent with other routes.
     const storeTemplateId = unifiedSettings.theme.templateId
@@ -627,6 +629,42 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
     // Parse footer config
     const footerConfig = parseFooterConfig(validatedStore.footerConfig as string | null);
 
+    // Fetch aggregate ratings for products
+    const productIds = storeProducts.map((p) => p.id);
+    let reviewStats: Record<number, { avgRating: number; reviewCount: number }> = {};
+
+    if (productIds.length > 0) {
+      const ratingResults = await db
+        .select({
+          productId: reviews.productId,
+          avgRating: sql<number>`COALESCE(AVG(${reviews.rating}), 0)`.as('avg_rating'),
+          reviewCount: sql<number>`COUNT(${reviews.id})`.as('review_count'),
+        })
+        .from(reviews)
+        .where(
+          and(
+            eq(reviews.storeId, validatedStoreId),
+            eq(reviews.status, 'approved'),
+            sql`${reviews.productId} IN (${sql.join(
+              productIds.map((id) => sql`${id}`),
+              sql`, `
+            )})`
+          )
+        )
+        .groupBy(reviews.productId);
+
+      reviewStats = ratingResults.reduce(
+        (acc, r) => {
+          acc[r.productId] = {
+            avgRating: Math.round(r.avgRating * 10) / 10,
+            reviewCount: Number(r.reviewCount),
+          };
+          return acc;
+        },
+        {} as Record<number, { avgRating: number; reviewCount: number }>
+      );
+    }
+
     // Serialize products for template
     const serializedProducts: SerializedProduct[] = storeProducts.map((p) => ({
       id: p.id,
@@ -640,6 +678,8 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
       images: p.images ? (typeof p.images === 'string' ? JSON.parse(p.images) : p.images) : [],
       inventory: p.inventory,
       category: p.category,
+      avgRating: reviewStats[p.id]?.avgRating ?? null,
+      reviewCount: reviewStats[p.id]?.reviewCount ?? 0,
     }));
 
     const storeData: StoreModeData = {
@@ -1059,7 +1099,8 @@ export default function Index() {
       heroMode: heroBanner?.mode || 'single',
       heroAutoplay: true,
       heroDelayMs: 4000,
-      heroOverlayOpacity: heroBanner?.overlayOpacity != null ? heroBanner.overlayOpacity / 100 : undefined,
+      heroOverlayOpacity:
+        heroBanner?.overlayOpacity != null ? heroBanner.overlayOpacity / 100 : undefined,
     };
 
     return (

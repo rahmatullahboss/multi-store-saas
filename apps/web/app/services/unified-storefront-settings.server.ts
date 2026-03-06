@@ -286,14 +286,43 @@ export async function migrateStoreToUnifiedSettings<TSchema extends Record<strin
       }
     }
 
-    // Determine layout structure based on legacy template
+    // Map legacy template IDs to unified JSON layouts
     const homeLayout: any[] = [];
-    if (legacyTemplateId === 'daraz') {
+    
+    // Group templates by their unified layout equivalents
+    const isMarketplace = ['daraz', 'tech-modern', 'bdshop'].includes(legacyTemplateId);
+    const isLuxury = ['nova-lux', 'nova-lux-ultra', 'luxe-boutique', 'rovo', 'sokol', 'eclipse'].includes(legacyTemplateId);
+    const isMinimal = ['starter-store', 'aurora-minimal', 'minimal-clean', 'freshness'].includes(legacyTemplateId);
+    const isBold = ['dc-store', 'turbo-sale', 'zenith-rise', 'ozzyl-premium'].includes(legacyTemplateId);
+
+    if (isMarketplace) {
       homeLayout.push(
-        { id: crypto.randomUUID(), type: 'unified-header', variant: 'marketplace', props: {} },
-        { id: crypto.randomUUID(), type: 'unified-hero', variant: 'marketplace', props: {} },
-        { id: crypto.randomUUID(), type: 'unified-product-grid', variant: 'marketplace', props: { limit: 12, columns: 6 } },
-        { id: crypto.randomUUID(), type: 'unified-footer', variant: 'marketplace', props: {} }
+        { id: crypto.randomUUID(), type: 'unified-header', variant: 'marketplace', props: { layout: 'logo-left', showTopBar: true, isSticky: true } },
+        { id: crypto.randomUUID(), type: 'unified-hero', variant: 'marketplace', props: { layout: 'with-sidebar' } },
+        { id: crypto.randomUUID(), type: 'unified-product-grid', variant: 'marketplace', props: { limit: 12, columns: 6, layout: 'bordered' } },
+        { id: crypto.randomUUID(), type: 'unified-footer', variant: 'marketplace', props: { layout: 'multi-column' } }
+      );
+    } else if (isLuxury) {
+      homeLayout.push(
+        { id: crypto.randomUUID(), type: 'unified-header', variant: 'luxury', props: { layout: 'logo-center', enableBlur: true, isSticky: true } },
+        { id: crypto.randomUUID(), type: 'unified-hero', variant: 'luxury', props: { layout: 'full-width' } },
+        { id: crypto.randomUUID(), type: 'unified-product-grid', variant: 'luxury', props: { limit: 8, columns: 4, layout: 'minimal' } },
+        { id: crypto.randomUUID(), type: 'unified-footer', variant: 'luxury', props: { layout: 'minimal' } }
+      );
+    } else if (isBold) {
+       homeLayout.push(
+        { id: crypto.randomUUID(), type: 'unified-header', variant: 'bold', props: { layout: 'logo-left' } },
+        { id: crypto.randomUUID(), type: 'unified-hero', variant: 'bold', props: { layout: 'contained' } },
+        { id: crypto.randomUUID(), type: 'unified-product-grid', variant: 'bold', props: { limit: 10, columns: 5, layout: 'standard' } },
+        { id: crypto.randomUUID(), type: 'unified-footer', variant: 'bold', props: { layout: 'multi-column' } }
+      );
+    } else {
+      // Default / Minimal
+      homeLayout.push(
+        { id: crypto.randomUUID(), type: 'unified-header', variant: 'minimal', props: { layout: 'logo-left' } },
+        { id: crypto.randomUUID(), type: 'unified-hero', variant: 'minimal', props: { layout: 'full-width' } },
+        { id: crypto.randomUUID(), type: 'unified-product-grid', variant: 'minimal', props: { limit: 8, columns: 4, layout: 'standard' } },
+        { id: crypto.randomUUID(), type: 'unified-footer', variant: 'minimal', props: { layout: 'centered' } }
       );
     }
 

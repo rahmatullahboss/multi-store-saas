@@ -1,25 +1,32 @@
 ## Context
 
-The Multi-Store SaaS platform is a multi-tenant e-commerce system built on Cloudflare Workers, Remix v2, and Drizzle ORM with D1 database. Currently, products have no review functionality. Merchants cannot collect customer feedback, and customers cannot make informed purchase decisions based on reviews.
+The Multi-Store SaaS platform is a multi-tenant e-commerce system built on Cloudflare Workers, Remix v2, and Drizzle ORM with D1 database.
 
 ### Current State
 
-- Products table exists with basic fields (name, price, description, images)
+- ✅ **REVIEWS TABLE EXISTS** - Schema defined in `packages/database/src/schema.ts`
+- ✅ **API ENDPOINT EXISTS** - `/api/reviews` handles POST (submit) and PATCH (moderate)
+- ✅ **UI COMPONENT EXISTS** - `ProductReviewsSection.tsx` with StarRating, ReviewForm, ReviewList
 - Orders system exists - we can leverage to verify "verified purchase"
 - Multi-tenant architecture requires all queries to filter by `store_id`
 
-### Constraints
+### What's Already Implemented
 
-- Must work with existing D1 database and Drizzle ORM
-- All data access MUST be filtered by `store_id` for tenant isolation
-- Must be edge-optimized (same as existing codebase)
-- UI must match existing Tailwind CSS 4.0 patterns
+1. Database table `reviews` with: id, storeId, productId, customerName, rating, comment, status, createdAt
+2. POST `/api/reviews` - Submit review (public, for paid stores only)
+3. PATCH `/api/reviews` - Moderate reviews (approve/reject)
+4. StarRating component
+5. ReviewForm component
+6. ReviewList component
+7. ProductReviewsSection
 
-### Stakeholders
+### What Needs to be Added
 
-- Store merchants: Want to build trust and receive feedback
-- Customers: Want authentic reviews before purchase
-- Platform: Need to prevent spam and abuse
+1. Verified purchase check (customer must have ordered the product)
+2. Rate limiting (one review per customer per product)
+3. Aggregate rating on product cards
+4. Admin dashboard UI for review management
+5. Pagination, sorting, distribution chart
 
 ---
 

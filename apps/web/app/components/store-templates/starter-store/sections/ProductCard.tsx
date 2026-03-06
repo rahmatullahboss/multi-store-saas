@@ -1,20 +1,19 @@
 import { PreviewSafeLink } from '~/components/PreviewSafeLink';
 import { AddToCartButton } from '~/components/AddToCartButton';
-import { ShoppingCart } from 'lucide-react';
+import { ShoppingCart, Star } from 'lucide-react';
 import { resolveStarterStoreTheme } from '../theme';
 import type { SerializedProduct, StoreTemplateTheme } from '~/templates/store-registry';
 import { useTranslation } from 'react-i18next';
 import { buildProxyImageUrl, generateProxySrcset } from '~/utils/imageOptimization';
 
-
-export function StarterProductCard({ 
-  product, 
+export function StarterProductCard({
+  product,
   currency = 'BDT',
   storeId = 0,
   theme,
-  isPreview = false
-}: { 
-  product: SerializedProduct; 
+  isPreview = false,
+}: {
+  product: SerializedProduct & { avgRating?: number | null; reviewCount?: number | null };
   currency?: string;
   storeId?: number;
   theme?: StoreTemplateTheme;
@@ -22,12 +21,13 @@ export function StarterProductCard({
 }) {
   const resolvedTheme = resolveStarterStoreTheme(undefined, theme);
   const { t } = useTranslation();
-  const discount = product.compareAtPrice 
-    ? Math.round((1 - product.price / product.compareAtPrice) * 100) 
+  const discount = product.compareAtPrice
+    ? Math.round((1 - product.price / product.compareAtPrice) * 100)
     : 0;
   const imageUrl = product.imageUrl || '/placeholder-product.svg';
   const isRemoteImage = Boolean(product.imageUrl);
-    
+  const hasReviews = product.reviewCount && product.reviewCount > 0;
+
   // Format Price
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -39,24 +39,27 @@ export function StarterProductCard({
 
   return (
     <div className="group">
-      <PreviewSafeLink 
-        to={`/products/${product.id}`} 
-        isPreview={isPreview}
-        className="block"
-      >
-        <div className="relative aspect-square rounded-xl overflow-hidden mb-3" style={{ backgroundColor: resolvedTheme.cardBg }}>
-          <img 
-            src={isRemoteImage ? buildProxyImageUrl(imageUrl, { width: 640, quality: 75 }) : imageUrl}
-            alt={product.title} 
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
-            loading="lazy" 
+      <PreviewSafeLink to={`/products/${product.id}`} isPreview={isPreview} className="block">
+        <div
+          className="relative aspect-square rounded-xl overflow-hidden mb-3"
+          style={{ backgroundColor: resolvedTheme.cardBg }}
+        >
+          <img
+            src={
+              isRemoteImage ? buildProxyImageUrl(imageUrl, { width: 640, quality: 75 }) : imageUrl
+            }
+            alt={product.title}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            loading="lazy"
             srcSet={isRemoteImage ? generateProxySrcset(imageUrl, [320, 480, 640], 75) : undefined}
-            sizes={isRemoteImage ? '(max-width: 768px) 50vw, (max-width: 1280px) 33vw, 25vw' : undefined}
+            sizes={
+              isRemoteImage ? '(max-width: 768px) 50vw, (max-width: 1280px) 33vw, 25vw' : undefined
+            }
             decoding="async"
           />
           {discount > 0 && (
-            <span 
-              className="absolute top-2 left-2 px-2 py-1 text-xs font-medium rounded-full text-white" 
+            <span
+              className="absolute top-2 left-2 px-2 py-1 text-xs font-medium rounded-full text-white"
               style={{ backgroundColor: resolvedTheme.accent }}
             >
               -{discount}%
@@ -64,7 +67,10 @@ export function StarterProductCard({
           )}
         </div>
         <div className="space-y-1">
-          <h3 className="font-medium line-clamp-2 group-hover:underline" style={{ color: resolvedTheme.text }}>
+          <h3
+            className="font-medium line-clamp-2 group-hover:underline"
+            style={{ color: resolvedTheme.text }}
+          >
             {product.title}
           </h3>
           <div className="flex items-center gap-2">
@@ -77,9 +83,29 @@ export function StarterProductCard({
               </span>
             )}
           </div>
+          {/* Rating Display */}
+          {hasReviews && (
+            <div className="flex items-center gap-1 mt-1">
+              <div className="flex items-center">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <Star
+                    key={star}
+                    className={`w-3.5 h-3.5 ${
+                      star <= Math.round(product.avgRating || 0)
+                        ? 'text-amber-400 fill-amber-400'
+                        : 'text-gray-300'
+                    }`}
+                  />
+                ))}
+              </div>
+              <span className="text-xs" style={{ color: resolvedTheme.muted }}>
+                ({product.reviewCount})
+              </span>
+            </div>
+          )}
         </div>
       </PreviewSafeLink>
-      
+
       {/* Add to Cart Button */}
       <div className="mt-2">
         <AddToCartButton
