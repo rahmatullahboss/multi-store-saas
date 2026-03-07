@@ -20,7 +20,8 @@ import { resolveStore } from '~/lib/store.server';
 import { createDb } from '~/lib/db.server';
 import { D1Cache } from '~/services/cache-layer.server';
 import { getStoreConfig } from '~/services/store-config.server';
-import { products, reviews } from '@db/schema';
+import { products } from '@db/schema';
+import { getProductReviewStats, addReviewStatsToProducts } from '~/lib/reviews.server';
 import { type ThemeConfig } from '@db/types';
 import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
 import { getStoreTemplate, getStoreTemplateTheme } from '~/templates/store-registry';
@@ -187,46 +188,10 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   // Fetch aggregate ratings for all products
   const productIds = allProducts.map((p) => p.id);
-  let reviewStats: Record<number, { avgRating: number; reviewCount: number }> = {};
-
-  if (productIds.length > 0) {
-    const ratingResults = await db
-      .select({
-        productId: reviews.productId,
-        avgRating: sql<number>`COALESCE(AVG(${reviews.rating}), 0)`.as('avg_rating'),
-        reviewCount: sql<number>`COUNT(${reviews.id})`.as('review_count'),
-      })
-      .from(reviews)
-      .where(
-        and(
-          eq(reviews.storeId, storeId),
-          eq(reviews.status, 'approved'),
-          sql`${reviews.productId} IN (${sql.join(
-            productIds.map((id) => sql`${id}`),
-            sql`, `
-          )})`
-        )
-      )
-      .groupBy(reviews.productId);
-
-    reviewStats = ratingResults.reduce(
-      (acc, r) => {
-        acc[r.productId] = {
-          avgRating: Math.round(r.avgRating * 10) / 10,
-          reviewCount: Number(r.reviewCount),
-        };
-        return acc;
-      },
-      {} as Record<number, { avgRating: number; reviewCount: number }>
-    );
-  }
+  const reviewStats = await getProductReviewStats(db, storeId, productIds);
 
   // Add review data to products
-  const productsWithReviews = allProducts.map((product) => ({
-    ...product,
-    avgRating: reviewStats[product.id]?.avgRating ?? null,
-    reviewCount: reviewStats[product.id]?.reviewCount ?? 0,
-  }));
+  const productsWithReviews = addReviewStatsToProducts(allProducts, reviewStats);
 
   // Use unified theme config only
   const mergedThemeConfig = buildMergedThemeConfig(

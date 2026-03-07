@@ -11,6 +11,15 @@
  * Free plan stores cannot accept reviews.
  */
 
+// ============================================================================
+// CONSTANTS
+// ============================================================================
+
+const REVIEW_MIN_LENGTH = 10;
+const REVIEW_MAX_LENGTH = 1000;
+const RATING_MIN = 1;
+const RATING_MAX = 5;
+
 import type { ActionFunctionArgs } from '@remix-run/cloudflare';
 import { json } from '@remix-run/cloudflare';
 import { drizzle } from 'drizzle-orm/d1';
@@ -44,7 +53,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       return json({ error: 'Name is required' }, { status: 400 });
     }
 
-    if (!rating || rating < 1 || rating > 5) {
+    if (!rating || rating < RATING_MIN || rating > RATING_MAX) {
       return json({ error: 'Rating must be between 1 and 5' }, { status: 400 });
     }
 
@@ -52,12 +61,18 @@ export async function action({ request, context }: ActionFunctionArgs) {
       return json({ error: 'Comment is required' }, { status: 400 });
     }
 
-    if (comment.trim().length < 10) {
-      return json({ error: 'Review must be at least 10 characters' }, { status: 400 });
+    if (comment.trim().length < REVIEW_MIN_LENGTH) {
+      return json(
+        { error: `Review must be at least ${REVIEW_MIN_LENGTH} characters` },
+        { status: 400 }
+      );
     }
 
-    if (comment.trim().length > 1000) {
-      return json({ error: 'Review cannot exceed 1000 characters' }, { status: 400 });
+    if (comment.trim().length > REVIEW_MAX_LENGTH) {
+      return json(
+        { error: `Review cannot exceed ${REVIEW_MAX_LENGTH} characters` },
+        { status: 400 }
+      );
     }
 
     // Resolve the store from request context
@@ -92,6 +107,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
     }
 
     // ========== RATE LIMIT: Check if already reviewed ==========
+    // SECURITY NOTE: This uses customerName which is user-supplied input.
+    // This provides basic spam protection but can be bypassed by using different names.
+    // For stronger protection, require authentication or email verification.
     const existingReview = await db
       .select()
       .from(reviews)
