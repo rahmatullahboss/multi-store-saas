@@ -774,11 +774,11 @@ function ProductDetailView({ data }: { data: ProductPageData }) {
       businessInfo={businessInfo}
       categories={categories}
       footerConfig={footerConfig}
+      config={themeConfig}
       planType={planType}
       customer={customer}
       isCustomerAiEnabled={isCustomerAiEnabled}
       aiCredits={aiCredits}
-      config={themeConfig}
     >
       {template.ProductPage ? (
         <template.ProductPage
