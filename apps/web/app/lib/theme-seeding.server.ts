@@ -12,6 +12,7 @@
 
 import { eq } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
+import { generateUUID } from '~/lib/uuid';
 import {
   themes,
   themeTemplates,
@@ -352,9 +353,10 @@ const DEFAULT_THEME_PRESET: ThemePresetConfig = {
 
 /**
  * Generate a UUID for IDs
+ * Uses cross-environment UUID generator for compatibility
  */
 function generateId(): string {
-  return crypto.randomUUID();
+  return generateUUID();
 }
 
 /**
@@ -466,7 +468,7 @@ export async function seedDefaultTheme(
         textColor: presetConfig.settings.textColor,
         fontFamily: presetConfig.settings.bodyFont,
         sections: homeTemplate ? homeTemplate.sections.map(s => ({
-          id: crypto.randomUUID(), // New ID for legacy structure
+          id: generateUUID(), // New ID for legacy structure
           type: s.type,
           settings: s.props,
           blocks: s.blocks

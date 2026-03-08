@@ -268,8 +268,14 @@ function buildTemplateFromThemeConfig(
     const themeConfigRaw = (store as unknown as { themeConfig?: string }).themeConfig;
     if (!themeConfigRaw) return null;
 
-    const themeConfig =
-      typeof themeConfigRaw === 'string' ? JSON.parse(themeConfigRaw) : themeConfigRaw;
+    let themeConfig;
+    try {
+      themeConfig =
+        typeof themeConfigRaw === 'string' ? JSON.parse(themeConfigRaw) : themeConfigRaw;
+    } catch (e) {
+      console.error('[buildTemplateFromThemeConfig] Failed to parse themeConfig:', e);
+      return null;
+    }
 
     // Only handle 'home' template for now
     if (templateKey !== 'home') return null;
