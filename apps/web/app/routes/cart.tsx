@@ -136,6 +136,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     customer: customer ? { id: customer.id, name: customer.name, email: customer.email } : null,
     categories,
     shippingConfig: unifiedShippingConfig, // Direct from unified settings - single source of truth
+    manualPaymentConfig: storeData.manualPaymentConfig ? JSON.parse(storeData.manualPaymentConfig as string) : null,
+    returnPolicy: storeData.customRefundPolicy || null,
     isCustomerAiEnabled: Boolean(
       (storeData as { isCustomerAiEnabled?: boolean }).isCustomerAiEnabled
     ),
@@ -319,6 +321,8 @@ export default function CartPage() {
     isCustomerAiEnabled,
     aiCredits,
     shippingConfig,
+    manualPaymentConfig,
+    returnPolicy,
   } = useLoaderData<typeof loader>();
 
   const fetcher = useFetcher<typeof action>();
@@ -503,6 +507,8 @@ export default function CartPage() {
               storeName={storeName}
               theme={theme}
               config={themeConfig}
+              manualPaymentConfig={manualPaymentConfig}
+              returnPolicy={returnPolicy || '7-Day Easy Returns'}
             />
           ) : (
             <SimpleCartPage

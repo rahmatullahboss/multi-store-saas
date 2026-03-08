@@ -18,8 +18,6 @@ import { useTranslation } from 'react-i18next';
 import { eq, and, desc, asc, gte, lte, sql } from 'drizzle-orm';
 import { resolveStore } from '~/lib/store.server';
 import { createDb } from '~/lib/db.server';
-import { D1Cache } from '~/services/cache-layer.server';
-import { getStoreConfig } from '~/services/store-config.server';
 import { products } from '@db/schema';
 import { getProductReviewStats, addReviewStatsToProducts } from '~/lib/reviews.server';
 import { type ThemeConfig } from '@db/types';
@@ -79,21 +77,29 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   }
 
   const { storeId, store } = storeContext;
-  const db = createDb(context.cloudflare.env.DB);
-  const cache = new D1Cache(db);
+  const db = useMemo(() => createDb(context.cloudflare.env.DB), []);
 
-  // Use cached store configuration
-  const storeConfig = await getStoreConfig(db, cache, storeId);
-
-  if (!storeConfig) {
-    throw new Response('Store configuration not found', { status: 404 });
-  }
-
-  const { businessInfo, footerConfig } = storeConfig;
-
+  // Use unified settings as single source of truth
   const unifiedSettings = await getUnifiedStorefrontSettings(db, storeId, {
     env: context.cloudflare.env,
   });
+
+  if (!unifiedSettings) {
+    throw new Response('Store configuration not found', { status: 404 });
+  }
+
+  // Extract business info from unified settings
+  const businessInfo = {
+    phone: unifiedSettings.business?.phone || undefined,
+    email: unifiedSettings.business?.email || undefined,
+    address: unifiedSettings.business?.address || undefined,
+  };
+
+  // Extract footer config from unified settings
+  const footerConfig = {
+    showPoweredBy: true,
+    description: unifiedSettings.navigation?.footerDescription || undefined,
+  };
 
   // Extract settings from unified canonical config
   const storeTemplateId = unifiedSettings.theme.templateId || 'starter-store';
@@ -775,7 +781,13 @@ function ProductListItem({
           {product.title}
         </h3>
         {product.description && (
-          <p className={`text-sm ${textMuted} mt-1 line-clamp-2`}>{product.description}</p>
+          <div
+            className={`text-sm ${textMuted} mt-1 line-clamp-2`}
+            dangerouslySetInnerHTML={{
+              __html:
+                product.description.slice(0, 100) + (product.description.length > 100 ? '...' : ''),
+            }}
+          />
         )}
         <div className="mt-2 flex items-center gap-2">
           <span className={`font-bold ${textPrimary}`} style={{ color: theme.primary }}>

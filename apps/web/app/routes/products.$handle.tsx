@@ -24,8 +24,6 @@ import {
 import { eq, and, desc, ne, sql, like, asc, gte, lte, type SQL } from 'drizzle-orm';
 import { resolveStore } from '~/lib/store.server';
 import { createDb } from '~/lib/db.server';
-import { D1Cache } from '~/services/cache-layer.server';
-import { getStoreConfig } from '~/services/store-config.server';
 import { products, reviews, productVariants, productCollections } from '@db/schema';
 import { type ThemeConfig, type SocialLinks, type FooterConfig } from '@db/types';
 import { useEffect, useRef, useMemo, Suspense } from 'react';
@@ -207,27 +205,27 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
   const isNumericHandle = /^\d+$/.test(handle);
   const productId = isNumericHandle ? parseInt(handle, 10) : NaN;
 
-  // const startTime = Date.now();
   const db = createDb(context.cloudflare.env.DB);
-  const cache = new D1Cache(db);
 
   // Resolve store
   const storeContext = await resolveStore(context, request);
   if (!storeContext) throw new Response('Store not found', { status: 404 });
   const { storeId, store } = storeContext;
 
-  // Common Store Config
-  const storeConfig = await getStoreConfig(db, cache, storeId);
-  if (!storeConfig) throw new Response('Store configuration not found', { status: 404 });
-
   if (store.storeEnabled === false) throw new Response('Store is disabled', { status: 404 });
 
-  // Get common data - use unified settings for shipping (single source of truth)
-  const { footerConfig } = storeConfig;
-
+  // Use unified settings as single source of truth
   const unifiedSettings = await getUnifiedStorefrontSettings(db, storeId, {
     env: context.cloudflare.env,
   });
+
+  if (!unifiedSettings) throw new Response('Store configuration not found', { status: 404 });
+
+  // Extract footer config from unified settings
+  const footerConfig: FooterConfig = {
+    showPoweredBy: true,
+    description: unifiedSettings.navigation?.footerDescription || undefined,
+  };
 
   // Extract settings from unified canonical config
   const storeTemplateId = unifiedSettings.theme.templateId || 'starter-store';
@@ -431,7 +429,13 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
         ...product,
         name: product.title,
         images: product.images
-          ? (() => { try { return JSON.parse(product.images) as string[]; } catch { return undefined; } })()
+          ? (() => {
+              try {
+                return JSON.parse(product.images) as string[];
+              } catch {
+                return undefined;
+              }
+            })()
           : undefined,
         specifications: productDetails.specifications,
         returnPolicy: productDetails.returnPolicy || store?.customRefundPolicy || null,
@@ -680,7 +684,7 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
       products: collectionProducts.map((p) => ({
         id: p.id,
         storeId: p.storeId,
-        name: p.title,   // Add name field mapped from title
+        name: p.title, // Add name field mapped from title
         title: p.title,
         description: p.description,
         price: p.price,
