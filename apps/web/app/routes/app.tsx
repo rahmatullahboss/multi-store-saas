@@ -191,12 +191,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     const user = userResult[0];
 
     if (!store || !store.isActive || store.deletedAt != null) {
-      // Store was deleted — guard all /app/* routes except dashboard
-      const url = new URL(request.url);
-      if (!url.pathname.startsWith('/app/dashboard')) {
-        // Redirect any non-dashboard /app/* route to dashboard so user sees Create New Store UI
-        return redirect('/app/dashboard');
-      }
+      // Store was deleted — DO NOT redirect to avoid infinite loop
+      // Instead, return storeDeleted state for all routes to handle gracefully
       console.warn('[app.loader] Store deleted or inactive for user:', userId, 'storeId:', storeId);
       const session = await getSession(request, context.cloudflare.env);
       session.unset('storeId');
