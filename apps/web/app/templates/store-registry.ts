@@ -10,6 +10,8 @@ import { LUXE_BOUTIQUE_THEME } from '../components/store-templates/luxe-boutique
 import { NOVALUX_THEME } from '../components/store-templates/nova-lux/theme';
 import { STARTER_STORE_THEME } from '../components/store-templates/starter-store/theme';
 import { OZZYL_PREMIUM_THEME } from '../components/store-templates/ozzyl-premium/theme';
+import { DC_STORE_THEME } from '../components/store-templates/dc-store/theme';
+import { DARAZ_THEME } from '../components/store-templates/daraz/theme';
 
 // ============================================================================
 // Shared Pages (Lazy Loaded)
@@ -131,6 +133,50 @@ const OzzylPremiumCollectionPage = React.lazy(() =>
   }))
 );
 
+// --- DC Store ---
+const DCStoreTemplate = React.lazy(() =>
+  import('../components/store-templates/dc-store').then((m) => ({
+    default: m.DCStoreTemplate,
+  }))
+);
+const DCStoreHeader = React.lazy(() =>
+  import('../components/store-templates/dc-store/sections/Header').then((m) => ({
+    default: m.DCStoreHeader,
+  }))
+);
+const DCStoreFooter = React.lazy(() =>
+  import('../components/store-templates/dc-store/sections/Footer').then((m) => ({
+    default: m.DCStoreFooter,
+  }))
+);
+const DCProductPage = React.lazy(() =>
+  import('../components/store-templates/dc-store/pages/ProductPage').then((m) => ({
+    default: m.DCProductPage,
+  }))
+);
+const DCCartPage = React.lazy(() =>
+  import('../components/store-templates/dc-store/pages/CartPage').then((m) => ({
+    default: m.DCCartPage,
+  }))
+);
+const DCCheckoutPage = React.lazy(() =>
+  import('../components/store-templates/dc-store/pages/CheckoutPage').then((m) => ({
+    default: m.DCCheckoutPage,
+  }))
+);
+const DCCollectionPage = React.lazy(() =>
+  import('../components/store-templates/dc-store/pages/CollectionPage').then((m) => ({
+    default: m.DCCollectionPage,
+  }))
+);
+
+// --- Daraz ---
+const DarazTemplate = React.lazy(() =>
+  import('../components/store-templates/daraz').then((m) => ({
+    default: m.DarazTemplate,
+  }))
+);
+
 // ============================================================================
 // Theme Map
 // ============================================================================
@@ -139,6 +185,8 @@ export const STORE_TEMPLATE_THEMES: Record<string, StoreTemplateTheme> = {
   'nova-lux': NOVALUX_THEME as StoreTemplateTheme,
   'starter-store': STARTER_STORE_THEME as StoreTemplateTheme,
   'ozzyl-premium': OZZYL_PREMIUM_THEME as StoreTemplateTheme,
+  'dc-store': DC_STORE_THEME as StoreTemplateTheme,
+  daraz: DARAZ_THEME as StoreTemplateTheme,
 };
 
 // ============================================================================
