@@ -636,11 +636,15 @@ export default {
       (async () => {
         const { createDb } = await import('../app/lib/db.server');
         const { runScheduledTasks } = await import('../app/services/scheduler.server');
+        const { logStorefrontSettingsHealthCheck } = await import('../app/lib/storefront-settings-monitor');
 
         const runTasks = async () => {
           const db = createDb(env.DB);
           const results = await runScheduledTasks(db, env);
           console.log('[CRON] Scheduled tasks completed:', JSON.stringify(results));
+          
+          // Run storefront settings health check
+          await logStorefrontSettingsHealthCheck(env);
         };
 
         if (env.SENTRY_DSN && env.ENVIRONMENT !== 'development') {
