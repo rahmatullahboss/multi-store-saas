@@ -220,8 +220,20 @@ export async function getStoreConfigWithFallback(
       timezone: 'Asia/Dhaka',
       status: result.is_active === 1 ? 'active' : 'inactive',
       plan: (result.plan_type as StoreConfig['plan']) || 'free',
-      settings: result.usage_limits ? JSON.parse(result.usage_limits) : {},
-      theme: result.theme_config ? JSON.parse(result.theme_config) : {},
+      settings: result.usage_limits ? (() => {
+        try { return JSON.parse(result.usage_limits); }
+        catch (e) {
+          console.error('[getStoreConfigWithFallback] Failed to parse usage_limits:', e);
+          return {};
+        }
+      })() : {},
+      theme: result.theme_config ? (() => {
+        try { return JSON.parse(result.theme_config); }
+        catch (e) {
+          console.error('[getStoreConfigWithFallback] Failed to parse theme_config:', e);
+          return {};
+        }
+      })() : {},
       createdAt: result.created_at
         ? new Date(result.created_at * 1000).toISOString()
         : new Date().toISOString(),

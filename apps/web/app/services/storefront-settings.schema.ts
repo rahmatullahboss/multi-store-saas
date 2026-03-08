@@ -9,6 +9,7 @@
  */
 
 import { z } from 'zod';
+import { generateUUID } from '~/lib/uuid';
 
 // ============================================================================
 // THEME SETTINGS
@@ -242,14 +243,14 @@ export const SectionVariantSchema = z.enum([
 ]).default('default');
 
 export const HeroSectionSchema = z.object({
-  id: z.string().default(() => crypto.randomUUID()),
+  id: z.string().default(() => generateUUID()),
   type: z.literal('unified-hero'),
   variant: SectionVariantSchema,
   props: HeroBannerSettingsSchema,
 });
 
 export const ProductGridSchema = z.object({
-  id: z.string().default(() => crypto.randomUUID()),
+  id: z.string().default(() => generateUUID()),
   type: z.literal('unified-product-grid'),
   variant: SectionVariantSchema,
   props: z.object({
@@ -260,14 +261,14 @@ export const ProductGridSchema = z.object({
 });
 
 export const HeaderSectionSchema = z.object({
-  id: z.string().default(() => crypto.randomUUID()),
+  id: z.string().default(() => generateUUID()),
   type: z.literal('unified-header'),
   variant: SectionVariantSchema,
   props: z.object({}).catchall(z.any()).optional()
 });
 
 export const FooterSectionSchema = z.object({
-  id: z.string().default(() => crypto.randomUUID()),
+  id: z.string().default(() => generateUUID()),
   type: z.literal('unified-footer'),
   variant: SectionVariantSchema,
   props: z.object({}).catchall(z.any()).optional()
@@ -527,7 +528,7 @@ export const UnifiedStorefrontSettingsV1Schema = z.object({
   }),
   updatedAt: z
     .string()
-    .datetime()
+    .optional()
     .default(() => new Date().toISOString()),
 });
 
@@ -790,8 +791,15 @@ export function deserializeUnifiedSettings(
   if (!json) return null;
   try {
     const parsed = JSON.parse(json);
-    return UnifiedStorefrontSettingsV1Schema.parse(parsed);
-  } catch {
+    const result = UnifiedStorefrontSettingsV1Schema.parse(parsed);
+    return result;
+  } catch (error) {
+    // Log the error for debugging
+    console.error('[deserializeUnifiedSettings] Failed to parse unified settings:', {
+      error: error instanceof Error ? error.message : String(error),
+      jsonLength: json?.length,
+      jsonPreview: json?.slice(0, 100),
+    });
     return null;
   }
 }
