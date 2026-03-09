@@ -12,6 +12,18 @@ import { STARTER_STORE_THEME } from '../components/store-templates/starter-store
 import { OZZYL_PREMIUM_THEME } from '../components/store-templates/ozzyl-premium/theme';
 import { DC_STORE_THEME } from '../components/store-templates/dc-store/theme';
 import { DARAZ_THEME } from '../components/store-templates/daraz/theme';
+import { ECLIPSE_THEME } from '../components/store-templates/eclipse/theme';
+import { ROVO_THEME } from '../components/store-templates/rovo/theme';
+import { SOKOL_THEME } from '../components/store-templates/sokol/theme';
+import { GHORER_BAZAR_THEME } from '../components/store-templates/ghorer-bazar/theme';
+import { TECH_MODERN_THEME } from '../components/store-templates/tech-modern/theme';
+import { AURORA_THEME } from '../components/store-templates/aurora-minimal/theme';
+import { ARTISAN_MARKET_THEME } from '../components/store-templates/artisan-market/theme';
+import { FRESHNESS_THEME } from '../components/store-templates/freshness/theme';
+import { TURBO_SALE_THEME } from '../components/store-templates/turbo-sale/theme';
+import { ZENITH_RISE_THEME } from '../components/store-templates/zenith-rise/theme';
+import { BDSHOP_THEME } from '../components/store-templates/bdshop/theme';
+import { NOVALUX_ULTRA_THEME } from '../components/store-templates/nova-lux-ultra/theme';
 
 // ============================================================================
 // Shared Pages (Lazy Loaded)
@@ -493,7 +505,19 @@ export const STORE_TEMPLATE_THEMES: Record<string, StoreTemplateTheme> = {
   'starter-store': STARTER_STORE_THEME as StoreTemplateTheme,
   'ozzyl-premium': OZZYL_PREMIUM_THEME as StoreTemplateTheme,
   'dc-store': DC_STORE_THEME as StoreTemplateTheme,
-  daraz: DARAZ_THEME as StoreTemplateTheme,
+  'daraz': DARAZ_THEME as StoreTemplateTheme,
+  'eclipse': ECLIPSE_THEME as unknown as StoreTemplateTheme,
+  'rovo': ROVO_THEME as StoreTemplateTheme,
+  'sokol': SOKOL_THEME as StoreTemplateTheme,
+  'ghorer-bazar': GHORER_BAZAR_THEME as unknown as StoreTemplateTheme,
+  'tech-modern': TECH_MODERN_THEME as unknown as StoreTemplateTheme,
+  'aurora-minimal': AURORA_THEME as unknown as StoreTemplateTheme,
+  'artisan-market': ARTISAN_MARKET_THEME as StoreTemplateTheme,
+  'freshness': FRESHNESS_THEME as unknown as StoreTemplateTheme,
+  'turbo-sale': TURBO_SALE_THEME as unknown as StoreTemplateTheme,
+  'zenith-rise': ZENITH_RISE_THEME as unknown as StoreTemplateTheme,
+  'bdshop': BDSHOP_THEME as unknown as StoreTemplateTheme,
+  'nova-lux-ultra': NOVALUX_ULTRA_THEME as unknown as StoreTemplateTheme,
 };
 
 // ============================================================================
@@ -605,7 +629,7 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
     description: 'Dark mode theme with bold contrast for premium brands.',
     thumbnail: 'https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev/banners/eclipse.webp',
     category: 'dark',
-    theme: STORE_TEMPLATE_THEMES['nova-lux'],
+    theme: STORE_TEMPLATE_THEMES['eclipse'],
     component: EclipseTemplate,
     Header: EclipseHeader,
     Footer: EclipseFooter,
@@ -621,7 +645,7 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
     description: 'High-fashion luxury store design.',
     thumbnail: 'https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev/banners/rovo.webp',
     category: 'fashion',
-    theme: STORE_TEMPLATE_THEMES['luxe-boutique'],
+    theme: STORE_TEMPLATE_THEMES['rovo'],
     component: RovoTemplate,
     Header: RovoHeader,
     Footer: RovoFooter,
@@ -637,7 +661,7 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
     description: 'Modern dark theme with elegant accents.',
     thumbnail: 'https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev/banners/sokol.webp',
     category: 'modern',
-    theme: STORE_TEMPLATE_THEMES['nova-lux'],
+    theme: STORE_TEMPLATE_THEMES['sokol'],
     component: SokolTemplate,
     Header: SokolHeader,
     Footer: SokolFooter,
@@ -653,7 +677,7 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
     description: 'Enhanced version of Nova Lux with more features.',
     thumbnail: 'https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev/banners/nova-lux-ultra.webp',
     category: 'premium',
-    theme: STORE_TEMPLATE_THEMES['nova-lux'],
+    theme: STORE_TEMPLATE_THEMES['nova-lux-ultra'],
     component: NovaLuxUltraTemplate,
     Header: NovaLuxUltraHeader,
     Footer: NovaLuxUltraFooter,
@@ -669,7 +693,7 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
     description: 'Perfect for grocery and daily needs stores with fresh colors.',
     thumbnail: 'https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev/banners/ghorer-bazar.webp',
     category: 'grocery',
-    theme: STORE_TEMPLATE_THEMES['starter-store'],
+    theme: STORE_TEMPLATE_THEMES['ghorer-bazar'],
     component: GhorerBazarTemplate,
     Header: GhorerBazarHeader,
     Footer: GhorerBazarFooter,
@@ -685,7 +709,7 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
     description: 'Sleek design for electronics and tech gadgets stores.',
     thumbnail: 'https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev/banners/tech-modern.webp',
     category: 'tech',
-    theme: STORE_TEMPLATE_THEMES['starter-store'],
+    theme: STORE_TEMPLATE_THEMES['tech-modern'],
     component: TechModernTemplate,
     Header: TechModernHeader,
     Footer: TechModernFooter,
@@ -701,7 +725,7 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
     description: 'Clean and minimal aesthetic for modern brands.',
     thumbnail: 'https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev/banners/aurora-minimal.webp',
     category: 'minimal',
-    theme: STORE_TEMPLATE_THEMES['starter-store'],
+    theme: STORE_TEMPLATE_THEMES['aurora-minimal'],
     component: AuroraMinimalTemplate,
     Header: AuroraMinimalHeader,
     Footer: AuroraMinimalFooter,
@@ -717,7 +741,7 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
     description: 'Handmade and crafts marketplace design.',
     thumbnail: 'https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev/banners/artisan-market.webp',
     category: 'handmade',
-    theme: STORE_TEMPLATE_THEMES['starter-store'],
+    theme: STORE_TEMPLATE_THEMES['artisan-market'],
     component: ArtisanMarketTemplate,
     Header: ArtisanMarketHeader,
     Footer: ArtisanMarketFooter,
@@ -733,7 +757,7 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
     description: 'Organic and fresh produce store design.',
     thumbnail: 'https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev/banners/freshness.webp',
     category: 'organic',
-    theme: STORE_TEMPLATE_THEMES['starter-store'],
+    theme: STORE_TEMPLATE_THEMES['freshness'],
     component: FreshnessTemplate,
     Header: FreshnessHeader,
     Footer: FreshnessFooter,
@@ -749,7 +773,7 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
     description: 'High-conversion flash sale and dropshipping theme.',
     thumbnail: 'https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev/banners/turbo-sale.webp',
     category: 'sales',
-    theme: STORE_TEMPLATE_THEMES['starter-store'],
+    theme: STORE_TEMPLATE_THEMES['turbo-sale'],
     component: TurboSaleTemplate,
     Header: TurboSaleHeader,
     Footer: TurboSaleFooter,
@@ -765,7 +789,7 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
     description: 'SaaS and digital products store design.',
     thumbnail: 'https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev/banners/zenith-rise.webp',
     category: 'saas',
-    theme: STORE_TEMPLATE_THEMES['starter-store'],
+    theme: STORE_TEMPLATE_THEMES['zenith-rise'],
     component: ZenithRiseTemplate,
     Header: ZenithRiseHeader,
     Footer: ZenithRiseFooter,
@@ -781,7 +805,7 @@ export const STORE_TEMPLATES: StoreTemplateDefinition[] = [
     description: 'Localized design for Bangladeshi e-commerce.',
     thumbnail: 'https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev/banners/bdshop.webp',
     category: 'local',
-    theme: STORE_TEMPLATE_THEMES['starter-store'],
+    theme: STORE_TEMPLATE_THEMES['bdshop'],
     component: BDShopTemplate,
     Header: BDShopHeader,
     Footer: BDShopFooter,
