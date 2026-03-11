@@ -32,7 +32,8 @@ export async function addLoyaltyPoints(
   customerId: number, 
   storeId: number, 
   amountSpent: number, 
-  description: string
+  description: string,
+  env: any
 ) {
   // 1. Get Customer for Tier
   const customer = await db.select().from(customers).where(eq(customers.id, customerId)).get();
@@ -62,7 +63,7 @@ export async function addLoyaltyPoints(
       );
 
       // 5. Check and Process Tier Upgrade
-      await checkAndProcessTierUpgrade(db, customerId, (customer.totalSpent || 0) + amountSpent);
+      await checkAndProcessTierUpgrade(db, customerId, storeId, (customer.totalSpent || 0) + amountSpent, env);
 
       // 6. Process Referral Bonus (if applicable)
       // Check if this is their FIRST order (totalOrders was 0 before this transaction, theoretically)
@@ -77,10 +78,12 @@ export async function addLoyaltyPoints(
   }
 }
 
+import { sendPushToCustomer } from '~/services/push.server';
+
 /**
  * Check if customer qualifies for a higher tier
  */
-async function checkAndProcessTierUpgrade(db: Database, customerId: number, newTotalSpent: number) {
+async function checkAndProcessTierUpgrade(db: Database, customerId: number, storeId: number, newTotalSpent: number, env: any) {
     let newTier = 'bronze';
     // Research Paper Thresholds:
     // Platinum: 10000+
@@ -96,8 +99,26 @@ async function checkAndProcessTierUpgrade(db: Database, customerId: number, newT
     
     if (customer && customer.loyaltyTier !== newTier) {
         await db.update(customers).set({ loyaltyTier: newTier as any }).where(eq(customers.id, customerId));
-        // TODO: Trigger Notification: "You reached Gold Tier!"
-        // [SKIPPED] Complex: requires a notification system/table
+
+        const tierMessages: Record<string, string> = {
+            bronze: "🥉 Congratulations! You've reached Bronze Tier!",
+            silver: "🥈 Amazing! You've reached Silver Tier!",
+            gold: "🥇 Outstanding! You've reached Gold Tier!",
+            platinum: "💎 Elite! You've reached Platinum Tier!"
+        };
+
+        const message = tierMessages[newTier];
+        if (message) {
+            try {
+                await sendPushToCustomer(env, storeId, customerId, {
+                    title: 'Loyalty Tier Upgrade!',
+                    body: message
+                });
+            } catch (err) {
+                console.error("[Loyalty] Failed to send push notification:", err);
+            }
+        }
+
         console.log(`[Loyalty] Customer ${customerId} upgraded to ${newTier}`);
     }
 }

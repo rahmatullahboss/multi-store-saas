@@ -835,7 +835,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
             .where(eq(orders.id, orderId!));
 
           // ========== LOYALTY POINTS INTEGRATION ==========
-          await addLoyaltyPoints(db, customer.id, input.store_id, total, `Order ${orderNumber}`);
+          await addLoyaltyPoints(db, customer.id, input.store_id, total, `Order ${orderNumber}`, context.cloudflare.env);
 
         } else {
           // CREATE new customer
@@ -859,7 +859,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
             .where(eq(orders.id, orderId!));
 
           // ========== LOYALTY POINTS FOR NEW CUSTOMER ==========
-          await addLoyaltyPoints(db, newCustomer.id, input.store_id, total, `First Order ${orderNumber}`);
+          await addLoyaltyPoints(db, newCustomer.id, input.store_id, total, `First Order ${orderNumber}`, context.cloudflare.env);
 
           // ========== WEBHOOK: NEW CUSTOMER CREATED ==========
           dispatchWebhook(context.cloudflare.env, input.store_id, 'customer.created', {
