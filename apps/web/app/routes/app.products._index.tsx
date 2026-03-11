@@ -13,7 +13,7 @@
 
 import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
 import { json } from '@remix-run/cloudflare';
-import { useLoaderData, Link, Form, useNavigation, useSearchParams } from '@remix-run/react';
+import { useLoaderData, Link, Form, useNavigation, useSearchParams, useFetcher } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, desc, inArray, sql, and, like, count, or } from 'drizzle-orm';
 import { products, stores, orderItems, savedLandingConfigs, publishedPages, productVariants, productCollections, reviews, orderBumps, upsellOffers, productRecommendations } from '@db/schema';
@@ -187,8 +187,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
 export default function ProductsIndexPage() {
   const { products: storeProducts, currency, stats, storeSubdomain, storeCustomDomain, featuredProductId, canAddProduct, productLimitMessage } = useLoaderData<typeof loader>();
   const navigation = useNavigation();
+  const fetcher = useFetcher();
   const [searchParams, setSearchParams] = useSearchParams();
-  const isSubmitting = navigation.state === 'submitting';
+  const isSubmitting = navigation.state === 'submitting' || fetcher.state === 'submitting';
   const { t, lang } = useTranslation();
   
   // Filter state from URL
@@ -210,14 +211,49 @@ export default function ProductsIndexPage() {
   
   // Delete confirmation modal state
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  // Price Update Modal state
+  const [showPriceModal, setShowPriceModal] = useState(false);
+  const [priceUpdateType, setPriceUpdateType] = useState<'fixed' | 'percent_increase' | 'percent_decrease'>('fixed');
+  const [priceUpdateValue, setPriceUpdateValue] = useState<string>('');
   
   // Close modal and clear selection when form is submitting
   useEffect(() => {
-    if (isSubmitting && showDeleteConfirm) {
-      setShowDeleteConfirm(false);
+    if (isSubmitting) {
+      if (showDeleteConfirm) setShowDeleteConfirm(false);
+      if (showPriceModal) setShowPriceModal(false);
       clearSelection();
     }
-  }, [isSubmitting, showDeleteConfirm]);
+  }, [isSubmitting, showDeleteConfirm, showPriceModal]);
+
+  const handleBulkAction = (action: 'activate' | 'deactivate') => {
+    if (selectedIds.size === 0) return;
+
+    fetcher.submit(
+      {
+        productIds: Array.from(selectedIds),
+        action
+      },
+      { method: 'POST', action: '/api/products/bulk-update', encType: 'application/json' }
+    );
+  };
+
+  const handleBulkPriceUpdate = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (selectedIds.size === 0 || !priceUpdateValue) return;
+
+    fetcher.submit(
+      {
+        productIds: Array.from(selectedIds),
+        action: 'update-price',
+        priceUpdate: {
+          type: priceUpdateType,
+          value: parseFloat(priceUpdateValue)
+        }
+      },
+      { method: 'POST', action: '/api/products/bulk-update', encType: 'application/json' }
+    );
+  };
   
   // Status tabs configuration
   const statusTabs = [
@@ -402,53 +438,53 @@ export default function ProductsIndexPage() {
 
       {/* Bulk Action Bar */}
       {selectedIds.size > 0 && (
-        <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <span className="text-emerald-800 font-medium">
-            {selectedIds.size} {t('productsSelected')}
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 shadow-2xl bg-white rounded-full px-6 py-3 border border-gray-200 flex flex-wrap items-center justify-center gap-4 transition-all duration-300 ease-in-out">
+          <span className="text-emerald-800 font-medium whitespace-nowrap bg-emerald-50 px-3 py-1 rounded-full text-sm">
+            {selectedIds.size} {lang === 'bn' ? 'প্রোডাক্ট নির্বাচিত' : 'products selected'}
           </span>
           <div className="flex flex-wrap items-center gap-2">
-            <Form method="post" className="inline">
-              {Array.from(selectedIds).map(id => (
-                <input key={id} type="hidden" name="productIds" value={id} />
-              ))}
-              <button
-                type="submit"
-                name="intent"
-                value="publish"
-                disabled={isSubmitting}
-                className="inline-flex items-center gap-1.5 px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition"
-              >
-                <Eye className="w-4 h-4" /> {t('publish')}
-              </button>
-            </Form>
-            <Form method="post" className="inline">
-              {Array.from(selectedIds).map(id => (
-                <input key={id} type="hidden" name="productIds" value={id} />
-              ))}
-              <button
-                type="submit"
-                name="intent"
-                value="unpublish"
-                disabled={isSubmitting}
-                className="inline-flex items-center gap-1.5 px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition"
-              >
-                <EyeOff className="w-4 h-4" /> {t('unpublish')}
-              </button>
-            </Form>
+            <button
+              type="button"
+              onClick={() => handleBulkAction('activate')}
+              disabled={isSubmitting}
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition disabled:opacity-50"
+            >
+              <Eye className="w-4 h-4" /> {lang === 'bn' ? 'অ্যাক্টিভ করুন' : 'Set Active'}
+            </button>
+            <button
+              type="button"
+              onClick={() => handleBulkAction('deactivate')}
+              disabled={isSubmitting}
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition disabled:opacity-50"
+            >
+              <EyeOff className="w-4 h-4" /> {lang === 'bn' ? 'ইনঅ্যাক্টিভ করুন' : 'Set Inactive'}
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowPriceModal(true)}
+              disabled={isSubmitting}
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition disabled:opacity-50"
+            >
+              <Pencil className="w-4 h-4" /> {lang === 'bn' ? 'মূল্য আপডেট করুন...' : 'Update Price...'}
+            </button>
+
             {/* Delete button - opens confirmation modal */}
             <button
               type="button"
               onClick={() => setShowDeleteConfirm(true)}
               disabled={isSubmitting || !isHydrated}
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-sm bg-red-500 text-white rounded-lg hover:bg-red-600 transition disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-sm bg-red-50 text-red-600 border border-red-200 rounded-lg hover:bg-red-100 transition disabled:opacity-50"
+              title="Delete selected"
             >
-              <Trash2 className="w-4 h-4" /> {t('delete')}
+              <Trash2 className="w-4 h-4" />
             </button>
+
+            {/* Cancel button */}
             <button
               onClick={clearSelection}
-              className="px-3 py-2 text-sm text-gray-600 hover:text-gray-900 transition"
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-sm text-gray-500 hover:bg-gray-100 rounded-lg transition"
             >
-              {t('cancel')}
+              ✕ {t('cancel')}
             </button>
           </div>
         </div>
@@ -752,6 +788,80 @@ export default function ProductsIndexPage() {
                 </button>
               </Form>
             </div>
+          </GlassCard>
+        </div>
+      )}
+
+      {/* Price Update Modal */}
+      {showPriceModal && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
+          <GlassCard intensity="high" className="p-6 shadow-xl max-w-md mx-4 w-full">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              {lang === 'bn' ? 'মূল্য আপডেট করুন' : 'Update Price'}
+            </h3>
+            <form onSubmit={handleBulkPriceUpdate}>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {lang === 'bn' ? 'আপডেটের ধরন' : 'Update Type'}
+                  </label>
+                  <select
+                    value={priceUpdateType}
+                    onChange={(e) => setPriceUpdateType(e.target.value as any)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 text-sm"
+                  >
+                    <option value="fixed">{lang === 'bn' ? 'নির্দিষ্ট মূল্য সেট করুন' : 'Set fixed price'}</option>
+                    <option value="percent_increase">{lang === 'bn' ? 'শতাংশ বৃদ্ধি করুন (%)' : 'Increase by percentage (%)'}</option>
+                    <option value="percent_decrease">{lang === 'bn' ? 'শতাংশ কমান (%)' : 'Decrease by percentage (%)'}</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {lang === 'bn' ? 'মূল্য / শতাংশ' : 'Value'}
+                  </label>
+                  <div className="relative">
+                    {priceUpdateType === 'fixed' && (
+                      <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">
+                        {currency}
+                      </span>
+                    )}
+                    <input
+                      type="number"
+                      required
+                      min="0"
+                      step={priceUpdateType === 'fixed' ? '1' : '0.1'}
+                      value={priceUpdateValue}
+                      onChange={(e) => setPriceUpdateValue(e.target.value)}
+                      placeholder={priceUpdateType === 'fixed' ? '0.00' : '10'}
+                      className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 text-sm ${
+                        priceUpdateType === 'fixed' ? 'pl-10' : ''
+                      }`}
+                    />
+                    {priceUpdateType !== 'fixed' && (
+                      <span className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500">
+                        %
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <div className="mt-6 flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowPriceModal(false)}
+                  className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900 transition"
+                >
+                  {t('cancel')}
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting || !priceUpdateValue}
+                  className="px-4 py-2 text-sm bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition disabled:opacity-50"
+                >
+                  {lang === 'bn' ? 'আপডেট করুন' : 'Update'}
+                </button>
+              </div>
+            </form>
           </GlassCard>
         </div>
       )}
