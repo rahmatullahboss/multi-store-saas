@@ -147,7 +147,7 @@ fraud.post('/otp/send', requireScope('fraud'), async (c) => {
     ]);
 
     // Generate & store OTP
-    const otp = String(Math.floor(1000 + Math.random() * 9000));
+    const otp = String(1000 + (crypto.getRandomValues(new Uint32Array(1))[0] % 9000));
     await c.env.KV!.put(
       `otp:${phone}:${storeId}`,
       JSON.stringify({ otp, attempts: 0, created_at: Date.now() }),
