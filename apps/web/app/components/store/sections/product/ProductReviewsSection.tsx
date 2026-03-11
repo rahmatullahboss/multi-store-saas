@@ -4,8 +4,9 @@
  * Displays customer reviews and review form.
  */
 
-import { useState } from 'react';
-import { Star, ThumbsUp, User } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { useFetcher } from '@remix-run/react';
+import { Star, ThumbsUp, User, Send, CheckCircle } from 'lucide-react';
 import type { ProductContext } from '~/lib/template-resolver.server';
 
 interface ProductReviewsSectionProps {
@@ -25,6 +26,126 @@ interface Review {
   comment: string | null;
   createdAt: string | null;
   verified?: boolean;
+}
+
+
+
+function StarRatingInput({ value, onChange }: { value: number; onChange: (rating: number) => void }) {
+  const [hoverValue, setHoverValue] = useState(0);
+
+  return (
+    <div className="flex items-center gap-1">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <button
+          key={star}
+          type="button"
+          onMouseEnter={() => setHoverValue(star)}
+          onMouseLeave={() => setHoverValue(0)}
+          onClick={() => onChange(star)}
+          className="p-1 transition-transform hover:scale-110"
+        >
+          <span
+            className={`text-2xl transition-colors ${
+              star <= (hoverValue || value)
+                ? 'text-yellow-400'
+                : 'text-gray-300 hover:text-yellow-200'
+            }`}
+          >★</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function ReviewForm({ productId, storeId, themeColors }: { productId: number; storeId: number; themeColors: any }) {
+  const fetcher = useFetcher();
+  const [rating, setRating] = useState(0);
+  const [showSuccess, setShowSuccess] = useState(false);
+
+  const isSubmitting = fetcher.state === 'submitting';
+  const isSuccess = fetcher.data && typeof fetcher.data === 'object' && 'success' in fetcher.data && fetcher.data.success;
+  const errorMessage = fetcher.data && typeof fetcher.data === 'object' && 'error' in fetcher.data ? String(fetcher.data.error) : null;
+
+  useEffect(() => {
+    if (isSuccess) {
+      setShowSuccess(true);
+      setRating(0);
+      const timer = setTimeout(() => setShowSuccess(false), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [isSuccess]);
+
+  if (showSuccess) {
+    return (
+      <div className="bg-green-50 border border-green-200 rounded-xl p-6 text-center">
+        <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-3" />
+        <h3 className="text-lg font-semibold text-green-800 mb-1">Thank you for your review!</h3>
+        <p className="text-green-600">Your review has been submitted and is pending approval.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-gray-50 rounded-xl p-6">
+      <h3 className="text-lg font-semibold mb-4" style={{ color: themeColors.textColor }}>
+        Write a Review
+      </h3>
+
+      <fetcher.Form method="post" action="/api/reviews" className="space-y-4">
+        <input type="hidden" name="productId" value={productId} />
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Your Rating <span className="text-red-500">*</span>
+          </label>
+          <StarRatingInput value={rating} onChange={setRating} />
+          <input type="hidden" name="rating" value={rating} />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Your Name <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            name="customerName"
+            required
+            placeholder="Enter your name"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Your Review <span className="text-red-500">*</span>
+          </label>
+          <textarea
+            name="comment"
+            required
+            rows={4}
+            placeholder="Share your experience with this product..."
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none bg-white"
+          />
+        </div>
+
+        {errorMessage && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+            <p className="text-red-700 text-sm">{errorMessage}</p>
+          </div>
+        )}
+
+        <button
+          type="submit"
+          disabled={isSubmitting || rating === 0}
+          className="inline-flex items-center gap-2 px-6 py-3 text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition"
+          style={{ backgroundColor: themeColors.accentColor || '#4f46e5' }}
+        >
+          <Send className="w-4 h-4" />
+          {isSubmitting ? 'Submitting...' : 'Submit Review'}
+        </button>
+      </fetcher.Form>
+    </div>
+  );
 }
 
 export default function ProductReviewsSection({ sectionId, props, context }: ProductReviewsSectionProps) {
@@ -140,13 +261,8 @@ export default function ProductReviewsSection({ sectionId, props, context }: Pro
 
         {/* Review Form */}
         {showForm && (
-          <div className="mt-8 p-6 bg-gray-50 rounded-xl">
-            <h3 className="text-lg font-semibold mb-4" style={{ color: themeColors.textColor }}>
-              Write a Review
-            </h3>
-            <p className="text-sm text-gray-500">
-              Review form functionality coming soon. Check back later!
-            </p>
+          <div className="mt-8">
+            <ReviewForm productId={product?.id} storeId={context.storeId} themeColors={themeColors} />
           </div>
         )}
       </div>
