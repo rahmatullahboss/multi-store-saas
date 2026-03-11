@@ -14,8 +14,13 @@
 import type { PLSummary } from '~/services/pl-report.server';
 import { PackageX } from 'lucide-react';
 
+// Custom type to handle Remix date-to-string serialization
+type JsonifyObject<T> = {
+  [P in keyof T]: T[P] extends Date ? string : T[P] extends object ? JsonifyObject<T[P]> : T[P];
+};
+
 interface ReturnImpactCardProps {
-  summary: PLSummary;
+  summary: JsonifyObject<PLSummary>;
 }
 
 function formatBDT(amount: number): string {

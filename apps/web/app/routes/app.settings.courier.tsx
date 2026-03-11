@@ -25,6 +25,7 @@ import type { DrizzleD1Database } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
 import { stores } from '@db/schema';
 import { requireTenant } from '~/lib/tenant-guard.server';
+import { getUserId } from '~/services/auth.server';
 import { createPathaoClient } from '~/services/pathao.server';
 import { createSteadfastClient } from '~/services/steadfast.server';
 import { createRedXClient } from '~/services/redx.server';

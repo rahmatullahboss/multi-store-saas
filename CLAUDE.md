@@ -35,6 +35,7 @@ Hono passes `storeId`, `store`, and `isCustomDomain` to Remix's `loadContext`, a
 Hostname → `store_id` resolution happens in tenant middleware (`server/middleware/tenant.ts`). Uses KV cache with D1 fallback. **Every DB query must filter by `store_id`** (except super-admin operations).
 
 Two store modes controlled by `store.storeEnabled`:
+
 - **Landing mode**: Single-product landing pages only (e.g., `/p/:slug`)
 - **Store mode**: Full e-commerce (products, cart, checkout, collections, etc.)
 
@@ -47,16 +48,16 @@ Route-level gating via `isRouteAllowedForMode()` in `app/lib/store.server.ts`.
 
 ### Route Organization (253 routes in `apps/web/app/routes/`)
 
-| Prefix | Purpose | Auth Guard |
-|--------|---------|------------|
-| `app.*` | Merchant Dashboard (87 routes) | `requireUserId()` |
-| `admin.*` | Super Admin Panel (16 routes) | `requireSuperAdmin()` |
-| `api.*` | Remix API endpoints (50+ routes) | Varies |
-| `store.*` | Storefront customer auth (6 routes) | Customer auth |
-| `account.*` | Customer account pages (9 routes) | Customer session |
-| `auth.*` | Merchant auth (7 routes) | Public |
-| `lead-gen.*` | Lead generation auth (9 routes) | Customer auth |
-| _(no prefix)_ | Public storefront | None |
+| Prefix        | Purpose                             | Auth Guard            |
+| ------------- | ----------------------------------- | --------------------- |
+| `app.*`       | Merchant Dashboard (87 routes)      | `requireUserId()`     |
+| `admin.*`     | Super Admin Panel (16 routes)       | `requireSuperAdmin()` |
+| `api.*`       | Remix API endpoints (50+ routes)    | Varies                |
+| `store.*`     | Storefront customer auth (6 routes) | Customer auth         |
+| `account.*`   | Customer account pages (9 routes)   | Customer session      |
+| `auth.*`      | Merchant auth (7 routes)            | Public                |
+| `lead-gen.*`  | Lead generation auth (9 routes)     | Customer auth         |
+| _(no prefix)_ | Public storefront                   | None                  |
 
 **Hono-level API routes** live separately in `server/api/` (products, orders, stores, graphql, oauth, customers).
 
@@ -67,11 +68,12 @@ Route-level gating via `isRouteAllowedForMode()` in `app/lib/store.server.ts`.
 - **Data**: Single JSON column `stores.storefrontSettings` managed by `app/services/unified-storefront-settings.server.ts`. This is the **single source of truth** for all storefront config (theme, branding, business info, social, announcements, SEO, checkout, shipping, navigation, hero, trust badges, typography, flags).
 - **Schema**: `app/services/storefront-settings.schema.ts` defines `UnifiedStorefrontSettingsV1Schema` (Zod). `theme.templateId` selects the template.
 - **Rendering**: Hardcoded React component templates from `app/templates/store-registry.ts`. Each template defines its own layout (Header, Footer, ProductPage, CartPage, CollectionPage, CheckoutPage). No dynamic section ordering.
-- **MVP Templates**: `starter-store`, `luxe-boutique`, `nova-lux` (+ `ghorer-bazar`, `tech-modern` allowed). All `React.lazy()` loaded.
+- **MVP Templates**: `starter-store`, `luxe-boutique`, `nova-lux`, `dc-store` (+ `ghorer-bazar`, `tech-modern` allowed). All `React.lazy()` loaded.
 - **Merchant config**: Dashboard at `app.store.settings.tsx` — reads via `getUnifiedStorefrontSettings()`, writes via `saveUnifiedStorefrontSettingsWithCacheInvalidation()`.
 - **Landing templates** (`app/templates/registry.ts`): 10+ templates for single-product landing pages (separate system).
 
 **Legacy/Archived** (still in codebase but NOT the primary rendering path):
+
 - Shopify 2.0 section-based system: `themes`/`themeTemplates`/`templateSectionsDraft`/`templateSectionsPublished` DB tables, `app/lib/template-resolver.server.ts`, `app/lib/theme-seeding.server.ts`. Only `checkout.tsx` still calls `resolveTemplate()`. Theme seeding still runs during onboarding. Do NOT build new features on this system.
 - `app/services/mvp-settings.server.ts` — old MVP key-value settings, now only used as fallback data source inside unified settings migration.
 

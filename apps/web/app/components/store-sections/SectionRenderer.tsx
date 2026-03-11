@@ -31,6 +31,8 @@ interface SectionRendererProps {
   logo?: string;
   socialLinks?: any;
   businessInfo?: any;
+  footerConfig?: any;
+  planType?: string;
 }
 
 export function SectionRenderer(props: SectionRendererProps) {

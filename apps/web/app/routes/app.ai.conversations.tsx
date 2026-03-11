@@ -34,6 +34,7 @@ interface Message {
 }
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
+  const env = context.cloudflare.env;
   const { storeId } = await requireTenant(request, context, {
     requirePermission: 'analytics',
   });

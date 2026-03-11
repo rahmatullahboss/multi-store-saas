@@ -1,0 +1,42 @@
+{
+  "mcpServers": {
+    "cloudflare": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@cloudflare/mcp-server-cloudflare",
+        "run",
+        "474078d5f990169d7dadf4e1df83214a"
+      ],
+      "env": {
+        "CLOUDFLARE_API_TOKEN": "DS3K-wT2TbkvIhuHFsoH8OUXCXwwp7w2PBCnBIcS",
+        "DEBUG": ""
+      },
+      "disabled": false
+    },
+    "sequential-thinking": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"],
+      "env": {}
+    },
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp@latest"],
+      "env": {
+        "CONTEXT7_API_KEY": "ctx7sk-e4f963e4-6fa5-4f1f-a214-2cf3e86300d1"
+      }
+    },
+    "stitch": {
+      "command": "npx",
+      "args": ["-y", "--quiet", "@_davideast/stitch-mcp", "proxy"],
+      "env": {
+        "STITCH_API_KEY": "AQ.Ab8RN6I1EUmBpHZUltdW1I936HABEUYitMGli_QfpfQ-2MvBbw"
+      }
+    },
+    "webmcp": {
+      "command": "npx",
+      "args": ["-y", "@jason.today/webmcp@latest", "--mcp"],
+      "env": {}
+    }
+  }
+}

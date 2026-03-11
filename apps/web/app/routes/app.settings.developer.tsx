@@ -27,6 +27,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, context }: ActionFunctionArgs) {
+  const env = context.cloudflare.env;
   const { storeId, userId } = await requireTenant(request, context, {
     requirePermission: 'settings',
   });

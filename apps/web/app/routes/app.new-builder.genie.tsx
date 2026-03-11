@@ -101,7 +101,7 @@ const INDUSTRY_LABEL: Record<string, string> = Object.fromEntries(
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const { storeId } = await requireTenant(request, context, {
-    requirePermission: 'pages',
+    requirePermission: 'products',
   });
   return json<LoaderData>({ storeName: `Store ${storeId}`, storeId });
 }
@@ -112,7 +112,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
 export async function action({ request, context }: ActionFunctionArgs) {
   const { storeId } = await requireTenant(request, context, {
-    requirePermission: 'pages',
+    requirePermission: 'products',
   });
   const db = context.cloudflare.env.DB;
 

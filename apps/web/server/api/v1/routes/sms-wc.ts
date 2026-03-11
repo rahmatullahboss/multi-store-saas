@@ -6,6 +6,9 @@
 
 import { Hono } from 'hono';
 import { z } from 'zod';
+import { createDb } from '~/lib/db.server';
+import { sendSMS } from '~/services/messaging.server';
+
 const smsWc = new Hono<{ Bindings: Env }>();
 
 const requireScope = (scope: string) => async (c: any, next: any) => {
@@ -51,11 +54,23 @@ smsWc.post('/send', requireScope('sms'), async (c) => {
       }
     }
 
-    // TODO: Integrate with messaging.server.ts for actual SMS delivery
-    // For now, log and return success
-    const message_id = `sms_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-    console.log(`[SMS] Store=${storeId} Phone=${phone} Type=${data.type} MsgId=${message_id}`);
+    // Integrate with messaging.server.ts for actual SMS delivery
+    const db = createDb(c.env.DB);
+    const msisdn = phone.startsWith('0') ? '88' + phone : phone;
+
+    const smsRes = await sendSMS(db, c.env, {
+      to: msisdn,
+      message: data.message,
+      storeId: Number(storeId),
+    });
+
+    const message_id = smsRes.messageId || `sms_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    console.log(`[SMS] Store=${storeId} Phone=${msisdn} Type=${data.type} MsgId=${message_id} Success=${smsRes.success}`);
     console.log(`[SMS] Message: ${data.message}`);
+
+    if (!smsRes.success) {
+      return c.json({ sent: false, error: smsRes.error || 'gateway_error' }, 502);
+    }
 
     // Log to D1 for analytics
     await c.env.DB.prepare(

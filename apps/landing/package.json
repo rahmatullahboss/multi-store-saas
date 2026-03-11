@@ -9,8 +9,7 @@
     "start": "wrangler pages dev ./build/client",
     "typecheck": "tsc --skipLibCheck",
     "deploy": "npm run build && wrangler pages deploy ./build/client --project-name=ozzyl-landing",
-    "test": "vitest run",
-    "test:watch": "vitest"
+    "test": "vitest run"
   },
   "dependencies": {
     "@remix-run/cloudflare": "^2.17.4",

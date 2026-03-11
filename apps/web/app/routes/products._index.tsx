@@ -7,19 +7,24 @@
  */
 
 import { json, type LoaderFunctionArgs, type MetaFunction } from '@remix-run/cloudflare';
-import { useLoaderData, Link, useSearchParams, useRouteError, isRouteErrorResponse } from '@remix-run/react';
+import {
+  useLoaderData,
+  Link,
+  useSearchParams,
+  useRouteError,
+  isRouteErrorResponse,
+} from '@remix-run/react';
 import { useTranslation } from 'react-i18next';
 import { eq, and, desc, asc, gte, lte, sql } from 'drizzle-orm';
 import { resolveStore } from '~/lib/store.server';
 import { createDb } from '~/lib/db.server';
-import { D1Cache } from '~/services/cache-layer.server';
-import { getStoreConfig } from '~/services/store-config.server';
 import { products } from '@db/schema';
+import { getProductReviewStats, addReviewStatsToProducts } from '~/lib/reviews.server';
 import { type ThemeConfig } from '@db/types';
 import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
 import { getStoreTemplate, getStoreTemplateTheme } from '~/templates/store-registry';
 import { ShoppingBag, Filter, ChevronRight, Grid, List } from 'lucide-react';
-import { Suspense, useMemo, useState } from 'react';
+import { Suspense, useState } from 'react';
 import { getCustomer } from '~/services/customer-auth.server';
 import { parsePriceRange } from '~/utils/price';
 import { getUnifiedStorefrontSettings } from '~/services/unified-storefront-settings.server';
@@ -46,6 +51,9 @@ interface SerializedProduct {
   isPublished: boolean | null;
   createdAt: string | null;
   updatedAt: string | null;
+  // Review data
+  avgRating?: number | null;
+  reviewCount?: number | null;
 }
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
@@ -70,20 +78,28 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   const { storeId, store } = storeContext;
   const db = createDb(context.cloudflare.env.DB);
-  const cache = new D1Cache(db);
 
-  // Use cached store configuration
-  const storeConfig = await getStoreConfig(db, cache, storeId);
-
-  if (!storeConfig) {
-    throw new Response('Store configuration not found', { status: 404 });
-  }
-
-  const { businessInfo, footerConfig } = storeConfig;
-
+  // Use unified settings as single source of truth
   const unifiedSettings = await getUnifiedStorefrontSettings(db, storeId, {
     env: context.cloudflare.env,
   });
+
+  if (!unifiedSettings) {
+    throw new Response('Store configuration not found', { status: 404 });
+  }
+
+  // Extract business info from unified settings
+  const businessInfo = {
+    phone: unifiedSettings.business?.phone || undefined,
+    email: unifiedSettings.business?.email || undefined,
+    address: unifiedSettings.business?.address || undefined,
+  };
+
+  // Extract footer config from unified settings
+  const footerConfig = {
+    showPoweredBy: true,
+    description: unifiedSettings.navigation?.footerDescription || undefined,
+  };
 
   // Extract settings from unified canonical config
   const storeTemplateId = unifiedSettings.theme.templateId || 'starter-store';
@@ -143,7 +159,22 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   // Fetch products with optional category filter and sorting
   const allProducts = await db
-    .select()
+    .select({
+      id: products.id,
+      storeId: products.storeId,
+      title: products.title,
+      description: products.description,
+      price: products.price,
+      compareAtPrice: products.compareAtPrice,
+      imageUrl: products.imageUrl,
+      images: products.images,
+      category: products.category,
+      inventory: products.inventory,
+      sku: products.sku,
+      isPublished: products.isPublished,
+      createdAt: products.createdAt,
+      updatedAt: products.updatedAt,
+    })
     .from(products)
     .where(
       and(
@@ -161,6 +192,13 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     .orderBy(orderByClause)
     .limit(100);
 
+  // Fetch aggregate ratings for all products
+  const productIds = allProducts.map((p) => p.id);
+  const reviewStats = await getProductReviewStats(db, storeId, productIds);
+
+  // Add review data to products
+  const productsWithReviews = addReviewStatsToProducts(allProducts, reviewStats);
+
   // Use unified theme config only
   const mergedThemeConfig = buildMergedThemeConfig(
     null,
@@ -171,7 +209,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   );
 
   return json({
-    products: allProducts,
+    products: productsWithReviews,
     storeName: legacyCompat.storeName,
     logo: legacyCompat.logo,
     currency: store?.currency || 'BDT',
@@ -229,7 +267,7 @@ export default function ProductsIndex() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
   // Resolve the active store template
-  const template = useMemo(() => getStoreTemplate(storeTemplateId), [storeTemplateId]);
+  const template = getStoreTemplate(storeTemplateId);
   const TemplateCollectionPage = template.CollectionPage;
 
   const isDarkTheme = storeTemplateId === 'modern-premium' || storeTemplateId === 'tech-modern';
@@ -743,7 +781,9 @@ function ProductListItem({
           {product.title}
         </h3>
         {product.description && (
-          <p className={`text-sm ${textMuted} mt-1 line-clamp-2`}>{product.description}</p>
+          <p className={`text-sm ${textMuted} mt-1 line-clamp-2`}>
+            {product.description.replace(/<[^>]*>/g, '').slice(0, 100)}{product.description.length > 100 ? '...' : ''}
+          </p>
         )}
         <div className="mt-2 flex items-center gap-2">
           <span className={`font-bold ${textPrimary}`} style={{ color: theme.primary }}>
@@ -781,7 +821,10 @@ export function ErrorBoundary() {
         <div className="text-center p-8">
           <h1 className="text-4xl font-bold text-red-600 mb-4">{error.status}</h1>
           <p className="text-gray-600 mb-6">{error.data || error.statusText}</p>
-          <a href="/" className="inline-block bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
+          <a
+            href="/"
+            className="inline-block bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+          >
             ← Back to Home
           </a>
         </div>
@@ -793,7 +836,10 @@ export function ErrorBoundary() {
       <div className="text-center p-8">
         <h1 className="text-4xl font-bold text-red-600 mb-4">Oops!</h1>
         <p className="text-gray-600 mb-6">Failed to load products. Please refresh and try again.</p>
-        <a href="/" className="inline-block bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
+        <a
+          href="/"
+          className="inline-block bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+        >
           ← Back to Home
         </a>
       </div>

@@ -159,8 +159,6 @@ export const dashboard = {
   navGeneral: 'সাধারণ',
   navStorefront: 'স্টোরফ্রন্ট',
   navBusinessMode: 'বিজনেস মোড',
-  navLeadGenSettings: 'লিড জেন সেটিংস',
-  navLeadInbox: 'লিড ইনবক্স',
   navPayments: 'পেমেন্ট',
   navPlanBilling: 'প্ল্যান ও বিলিং',
   navTeam: 'টিম',
@@ -248,8 +246,6 @@ export const dashboard = {
   // Settings / Landing Mode fixes
   landingSettings: 'ল্যান্ডিং পেজ সেটিংস',
   landingSettingsDesc: 'আপনার ল্যান্ডিং পেজ মোড এবং কন্টেন্ট কনফিগার করুন',
-  leadGenSettings: 'লিড জেনারেশন সেটিংস',
-  leadGenSettingsDesc: 'আপনার লিড ক্যাপচার ওয়েবসাইট কাস্টমাইজ করুন',
   storeMode: 'স্টোর মোড',
   storeModeDesc: 'আপনার স্টোর কিভাবে কাস্টমারদের কাছে প্রদর্শিত হবে তা বেছে নিন',
   fullStore: 'ফুল স্টোর',

@@ -174,7 +174,7 @@ export function getCartSessionId(request: Request): string {
  * Generate a new cart session ID
  */
 export function generateSessionId(): string {
-  return `cs_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
+  return `cs_${crypto.randomUUID()}`;
 }
 
 /**

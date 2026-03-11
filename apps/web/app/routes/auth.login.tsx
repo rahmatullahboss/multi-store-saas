@@ -15,6 +15,9 @@ import { login, createUserSession, getUserId } from '~/services/auth.server';
 import { useTranslation } from '~/contexts/LanguageContext';
 import i18next from '~/services/i18n.server';
 import { checkMigrationStatus } from '~/lib/db-migration-check';
+import { drizzle } from 'drizzle-orm/d1';
+import { users } from '@db/schema';
+import { eq } from 'drizzle-orm';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Login - Ozzyl' }];
@@ -24,6 +27,12 @@ export const meta: MetaFunction = () => {
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const userId = await getUserId(request, context.cloudflare.env);
   if (userId) {
+    const db = drizzle(context.cloudflare.env.DB);
+    const userResult = await db.select({ role: users.role }).from(users).where(eq(users.id, userId)).limit(1);
+    const role = userResult[0]?.role;
+    if (role === 'admin' || role === 'super_admin') {
+      return redirect('/admin');
+    }
     return redirect('/app/orders');
   }
   return json({});

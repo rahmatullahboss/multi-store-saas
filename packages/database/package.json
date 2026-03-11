@@ -9,7 +9,8 @@
     "migrate": "wrangler --config ../../apps/web/wrangler.toml d1 migrations apply multi-store-saas-db --local",
     "migrate:prod": "wrangler --config ../../apps/web/wrangler.toml d1 migrations apply multi-store-saas-db --remote",
     "studio": "drizzle-kit studio",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "test": "vitest run"
   },
   "dependencies": {
     "drizzle-orm": "^0.38.4"
@@ -17,6 +18,8 @@
   "devDependencies": {
     "drizzle-kit": "^0.30.6",
     "typescript": "^5.9.3",
+    "vitest": "^1.6.0",
+    "@types/node": "^20.0.0",
     "wrangler": "^4.63.0"
   }
 }
