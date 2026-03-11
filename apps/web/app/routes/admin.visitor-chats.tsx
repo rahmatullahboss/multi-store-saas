@@ -1,11 +1,12 @@
 import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
 import { json } from '@remix-run/cloudflare';
-import { useLoaderData, Link } from '@remix-run/react';
+import { useLoaderData, Link, useSearchParams } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { desc, sql, eq } from 'drizzle-orm';
 import { visitors, visitorMessages } from '@db/schema';
 import { requireSuperAdmin } from '~/services/auth.server';
 import { MessageCircle, User, Phone, Clock, Search, ChevronRight } from 'lucide-react';
+import { ChatViewModal } from '~/components/admin/ChatViewModal';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Visitor Chats - Super Admin' }];
@@ -60,11 +61,42 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       return dateB - dateA;
   });
 
-  return json({ visitors: visitorsWithData });
+  // Handle selected chat fetch
+  const url = new URL(request.url);
+  const chatId = url.searchParams.get('chatId');
+  let selectedMessages: typeof visitorMessages.$inferSelect[] = [];
+  let selectedVisitor = null;
+
+  if (chatId) {
+    const visitorIdNum = Number(chatId);
+    if (!isNaN(visitorIdNum)) {
+      selectedVisitor = visitorsWithData.find(v => v.id === visitorIdNum) || null;
+      selectedMessages = await db
+        .select()
+        .from(visitorMessages)
+        .where(eq(visitorMessages.visitorId, visitorIdNum))
+        .orderBy(visitorMessages.createdAt);
+    }
+  }
+
+  return json({
+    visitors: visitorsWithData,
+    selectedMessages,
+    selectedVisitor
+  });
 }
 
 export default function VisitorChats() {
-  const { visitors } = useLoaderData<typeof loader>();
+  const { visitors, selectedMessages, selectedVisitor } = useLoaderData<typeof loader>();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const chatId = searchParams.get('chatId');
+
+  const handleCloseModal = () => {
+    setSearchParams((prev) => {
+      prev.delete('chatId');
+      return prev;
+    }, { replace: true, preventScrollReset: true });
+  };
 
   return (
     <div className="space-y-6">
@@ -135,13 +167,13 @@ export default function VisitorChats() {
                       </div>
                     </td>
                     <td className="px-6 py-4 text-right">
-                       {/* 
-                          TODO: Implement Chat View Modal or Page. 
-                          For now, just a placeholder button.
-                       */}
-                      <button className="text-blue-400 hover:text-blue-300 text-sm font-medium inline-flex items-center gap-1 opacity-50 cursor-not-allowed">
+                      <Link
+                        to={`?chatId=${visitor.id}`}
+                        preventScrollReset
+                        className="text-blue-400 hover:text-blue-300 text-sm font-medium inline-flex items-center gap-1 transition-colors"
+                      >
                         View Chat <ChevronRight className="w-4 h-4" />
-                      </button>
+                      </Link>
                     </td>
                   </tr>
                 ))
@@ -150,6 +182,19 @@ export default function VisitorChats() {
           </table>
         </div>
       </div>
+
+      <ChatViewModal
+        isOpen={!!chatId && !!selectedVisitor}
+        visitor={selectedVisitor ? {
+          ...selectedVisitor,
+          createdAt: new Date(selectedVisitor.createdAt)
+        } : null}
+        messages={selectedMessages.map(msg => ({
+          ...msg,
+          createdAt: new Date(msg.createdAt)
+        }))}
+        onClose={handleCloseModal}
+      />
     </div>
   );
 }
