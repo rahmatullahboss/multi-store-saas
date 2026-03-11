@@ -81,6 +81,7 @@ export function DarazProductCard({
           onClick={(e) => {
             e.preventDefault();
             // TODO: Add to wishlist
+            // [SKIPPED] Complex: requires wishlist API and state management
           }}
           aria-label="Add to wishlist"
         >
@@ -95,6 +96,7 @@ export function DarazProductCard({
             onClick={(e) => {
               e.preventDefault();
               // TODO: Add to cart
+              // [SKIPPED] Complex: requires cart API and state management
             }}
           >
             <ShoppingCart className="w-4 h-4" />

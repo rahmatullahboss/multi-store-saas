@@ -188,10 +188,9 @@ export function useOrderForm(
   
   // Format price using central utility
   // Note: Landing page configs store prices in taka (not cents), so no fromCents conversion
-  // TODO: Pass store currency from props when multi-currency is implemented
   const formatPrice = useCallback(
-    (price: number, currencyCode: string = 'BDT') => formatCurrency(price, currencyCode),
-    []
+    (price: number, currencyCode: string = (typedProps.currency as string) || 'BDT') => formatCurrency(price, currencyCode),
+    [typedProps.currency]
   );
   
   const state: OrderFormState = {

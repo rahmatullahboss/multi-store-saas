@@ -97,6 +97,7 @@ async function checkAndProcessTierUpgrade(db: Database, customerId: number, newT
     if (customer && customer.loyaltyTier !== newTier) {
         await db.update(customers).set({ loyaltyTier: newTier as any }).where(eq(customers.id, customerId));
         // TODO: Trigger Notification: "You reached Gold Tier!"
+        // [SKIPPED] Complex: requires a notification system/table
         console.log(`[Loyalty] Customer ${customerId} upgraded to ${newTier}`);
     }
 }

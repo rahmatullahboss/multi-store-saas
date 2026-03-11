@@ -137,6 +137,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
           }
           
           // TODO: Store all productIds in page metadata for multi-product landing pages
+          // [SKIPPED] Complex: requires updating createPageFromTemplate to accept metadata and potentially DB schema changes
           // This can be used later to render multiple product showcases
         } else if (productIdStr) {
           // Single product selected
