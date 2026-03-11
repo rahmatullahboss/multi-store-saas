@@ -10,11 +10,14 @@
  * - Hover elevation effect
  */
 
-import { Link } from '@remix-run/react';
+import { Link, useFetcher } from '@remix-run/react';
 import { Star, Heart, ShoppingCart } from 'lucide-react';
 import { DARAZ_THEME } from '../theme';
 import type { SerializedProduct } from '~/templates/store-registry';
 import { formatPrice } from '~/utils/formatPrice';
+import { useWishlist } from '~/hooks/useWishlist';
+import { AddToCartButton } from '~/components/AddToCartButton';
+import { useEffect, useState } from 'react';
 
 type Product = SerializedProduct;
 
@@ -41,6 +44,30 @@ export function DarazProductCard({
   showRating = true,
   showAddToCart = false
 }: ProductCardProps) {
+  const { isInWishlist, toggleWishlist } = useWishlist();
+  const isContextLiked = isInWishlist(product.id);
+  const [isLiked, setIsLiked] = useState(isContextLiked);
+  const fetcher = useFetcher();
+
+  useEffect(() => {
+    setIsLiked(isContextLiked);
+  }, [isContextLiked]);
+
+  const handleWishlistToggle = (e: React.MouseEvent) => {
+    e.preventDefault();
+
+    // Optimistic UI update
+    const newLikedState = !isLiked;
+    setIsLiked(newLikedState);
+    toggleWishlist(product.id);
+
+    // Call the wishlist API endpoint as requested
+    fetcher.submit(
+      { productId: String(product.id), action: newLikedState ? 'add' : 'remove' },
+      { method: 'post', action: '/api/wishlist/add' }
+    );
+  };
+
   const hasDiscount = product.compareAtPrice && product.compareAtPrice > product.price;
   const discountPercent = hasDiscount
     ? Math.round((1 - product.price / product.compareAtPrice!) * 100)
@@ -77,31 +104,33 @@ export function DarazProductCard({
 
         {/* Wishlist Button (on hover) */}
         <button
-          className="absolute top-2 right-2 w-8 h-8 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white cursor-pointer"
-          onClick={(e) => {
-            e.preventDefault();
-            // TODO: Add to wishlist
-            // [SKIPPED] Complex: requires wishlist API and state management
-          }}
-          aria-label="Add to wishlist"
+          className={`absolute top-2 right-2 w-8 h-8 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center transition-all hover:bg-white cursor-pointer ${
+            isLiked ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+          } ${fetcher.state !== 'idle' ? 'opacity-50 pointer-events-none' : ''}`}
+          onClick={handleWishlistToggle}
+          aria-label={isLiked ? "Remove from wishlist" : "Add to wishlist"}
         >
-          <Heart className="w-4 h-4" style={{ color: DARAZ_THEME.textSecondary }} />
+          <Heart
+            className={`w-4 h-4 ${isLiked ? 'fill-current' : ''}`}
+            style={{ color: isLiked ? '#ef4444' : DARAZ_THEME.textSecondary }}
+          />
         </button>
 
         {/* Quick Add to Cart (on hover) */}
         {showAddToCart && (
-          <button
-            className="absolute bottom-2 left-2 right-2 py-2 rounded bg-white/90 backdrop-blur-sm flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white cursor-pointer text-sm font-medium"
-            style={{ color: DARAZ_THEME.primary }}
-            onClick={(e) => {
-              e.preventDefault();
-              // TODO: Add to cart
-              // [SKIPPED] Complex: requires cart API and state management
-            }}
-          >
-            <ShoppingCart className="w-4 h-4" />
-            Add to Cart
-          </button>
+          <div className="absolute bottom-2 left-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.preventDefault()}>
+            <AddToCartButton
+              productId={product.id}
+              productName={product.title}
+              productPrice={product.price}
+              currency={currency}
+              className="w-full py-2 rounded bg-white/90 backdrop-blur-sm flex items-center justify-center gap-2 hover:bg-white cursor-pointer text-sm font-medium"
+              style={{ color: DARAZ_THEME.primary }}
+            >
+              <ShoppingCart className="w-4 h-4" />
+              Add to Cart
+            </AddToCartButton>
+          </div>
         )}
       </div>
 
