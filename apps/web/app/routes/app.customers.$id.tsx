@@ -20,7 +20,6 @@ import {
 import { useLoaderData, Link, useFetcher } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
 import { customers, orders, stores, customerAddresses, customerNotes, studentDocuments } from '@db/schema';
-import { AdminLeadDocuments } from '~/components/lead-gen/AdminLeadDocuments';
 import { eq, desc, and } from 'drizzle-orm';
 import { requireTenant } from '~/lib/tenant-guard.server';
 import {
@@ -633,12 +632,6 @@ export default function CustomerDetailsPage() {
 
         {/* Right Column: Order History & Timeline */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Documents Manager */}
-          <AdminLeadDocuments 
-             documents={documents.map(d => ({ ...d, createdAt: d.createdAt ? new Date(d.createdAt) : null }))}
-             customerId={customer.id}
-          />
-          
           {/* Order History */}
           <GlassCard className="p-0 overflow-hidden">
             <div className="p-4 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">

@@ -170,6 +170,8 @@ describe('getUnifiedStorefrontSettings — heroBanner contract', () => {
       heroBanner: {
         mode: 'single',
         overlayOpacity: 40,
+        autoPlayInterval: 5000,
+        showAppWidget: true,
         slides: [
           {
             imageUrl: '',
@@ -314,6 +316,8 @@ describe('saveUnifiedStorefrontSettings — heroBanner write contract', () => {
       heroBanner: {
         mode: 'single',
         overlayOpacity: 40,
+        autoPlayInterval: 5000,
+        showAppWidget: true,
         slides: [
           {
             imageUrl: 'https://r2.example.com/old-banner.jpg',
@@ -382,6 +386,8 @@ describe('saveUnifiedStorefrontSettings — heroBanner write contract', () => {
       heroBanner: {
         mode: 'single',
         overlayOpacity: 75,
+        autoPlayInterval: 5000,
+        showAppWidget: true,
         slides: [
           {
             imageUrl: 'https://r2.example.com/keep.jpg',
@@ -442,6 +448,8 @@ describe('heroBanner serialization round-trip', () => {
       heroBanner: {
         mode: 'carousel' as const,
         overlayOpacity: 60,
+        autoPlayInterval: 5000,
+        showAppWidget: true,
         slides: [
           {
             imageUrl: 'https://cdn.example.com/img.jpg',

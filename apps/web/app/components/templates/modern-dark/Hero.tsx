@@ -72,9 +72,10 @@ export function ModernDarkHero({
             <h2 className="text-2xl md:text-3xl font-bold">{product.title}</h2>
             
             {product.description && (
-              <p className="text-gray-300 text-lg leading-relaxed">
-                {product.description}
-              </p>
+              <div 
+                className="text-gray-300 text-lg leading-relaxed"
+                dangerouslySetInnerHTML={{ __html: product.description }} 
+              />
             )}
 
             {/* Price Display */}

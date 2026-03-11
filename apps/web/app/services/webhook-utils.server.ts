@@ -1,6 +1,6 @@
 /**
  * Webhook Utilities
- * 
+ *
  * Idempotency helpers for incoming webhook processing.
  * Prevents duplicate processing of payment webhooks (bKash, Stripe, couriers).
  */
@@ -9,7 +9,15 @@ import { drizzle } from 'drizzle-orm/d1';
 import { eq, and } from 'drizzle-orm';
 import { webhookEvents } from '@db/schema';
 
-type WebhookProvider = 'stripe' | 'bkash' | 'nagad' | 'sslcommerz' | 'steadfast' | 'pathao' | 'redx' | 'meta';
+type WebhookProvider =
+  | 'stripe'
+  | 'bkash'
+  | 'nagad'
+  | 'sslcommerz'
+  | 'steadfast'
+  | 'pathao'
+  | 'redx'
+  | 'meta';
 
 /**
  * Check if a webhook event has already been processed
@@ -21,16 +29,13 @@ export async function isWebhookProcessed(
   eventId: string
 ): Promise<boolean> {
   const drizzleDb = drizzle(db);
-  
+
   const existing = await drizzleDb
     .select({ id: webhookEvents.id })
     .from(webhookEvents)
-    .where(and(
-      eq(webhookEvents.provider, provider),
-      eq(webhookEvents.eventId, eventId)
-    ))
+    .where(and(eq(webhookEvents.provider, provider), eq(webhookEvents.eventId, eventId)))
     .limit(1);
-  
+
   return existing.length > 0;
 }
 
@@ -47,7 +52,7 @@ export async function markWebhookProcessed(
   storeId?: number
 ): Promise<void> {
   const drizzleDb = drizzle(db);
-  
+
   await drizzleDb.insert(webhookEvents).values({
     storeId: storeId || null,
     provider,
@@ -73,7 +78,7 @@ export async function checkAndMarkWebhook(
   storeId?: number
 ): Promise<{ isNew: boolean }> {
   const drizzleDb = drizzle(db);
-  
+
   try {
     // Try to insert first (will fail if duplicate due to UNIQUE constraint)
     await drizzleDb.insert(webhookEvents).values({
@@ -85,7 +90,7 @@ export async function checkAndMarkWebhook(
       status: 'processed',
       processedAt: new Date(),
     });
-    
+
     return { isNew: true };
   } catch (error) {
     // Check if it's a duplicate key error
@@ -100,15 +105,21 @@ export async function checkAndMarkWebhook(
 
 /**
  * Generate idempotency key for checkout sessions
- * Based on: storeId + phone + first product + timestamp bucket (5 min)
+ * Based on: storeId + phone + first product + timestamp bucket (1 min) + random
+ *
+ * FIXED: Added random suffix to prevent collisions when user retries checkout
+ * within the same time bucket. Previous 5-minute bucket caused duplicate key
+ * errors when customers refreshed or retried checkout quickly.
  */
 export function generateCheckoutIdempotencyKey(
   storeId: number,
   phone: string,
   productId: number
 ): string {
-  // 5 minute time bucket
-  const timeBucket = Math.floor(Date.now() / (5 * 60 * 1000));
+  // 1 minute time bucket (reduced from 5 min for faster turnover)
+  const timeBucket = Math.floor(Date.now() / (60 * 1000));
   const normalized = phone.replace(/[^\d]/g, '').slice(-10);
-  return `${storeId}-${normalized}-${productId}-${timeBucket}`;
+  // Add random suffix to prevent collisions on retry
+  const random = Math.random().toString(36).substring(2, 8);
+  return `${storeId}-${normalized}-${productId}-${timeBucket}-${random}`;
 }

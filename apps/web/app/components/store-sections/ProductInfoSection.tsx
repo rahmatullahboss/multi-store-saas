@@ -110,7 +110,10 @@ export function ProductInfoSection({ settings, product, currency = 'BDT', avgRat
       
       {product.description && (
         <div className={`prose ${isDarkTheme ? 'prose-invert' : 'prose-gray'} max-w-none`}>
-          <p className={textMuted}>{product.description}</p>
+          <div 
+            className={textMuted}
+            dangerouslySetInnerHTML={{ __html: product.description }} 
+          />
         </div>
       )}
       
