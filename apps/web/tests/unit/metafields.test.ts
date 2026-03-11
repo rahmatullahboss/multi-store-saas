@@ -52,6 +52,12 @@ describe('Metafields', () => {
       const result = parseMetafieldValue('2024-01-15', 'date');
       expect(result).toBeInstanceOf(Date);
     });
+
+    it('should return original string on parsing failure (fallback)', () => {
+      const malformedJson = 'malformed { json';
+      const result = parseMetafieldValue(malformedJson, 'json');
+      expect(result).toBe(malformedJson);
+    });
   });
 
   describe('serializeMetafieldValue', () => {
