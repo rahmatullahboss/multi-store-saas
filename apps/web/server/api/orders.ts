@@ -211,7 +211,7 @@ ordersApi.post('/', async (c) => {
           id: order.id,
           order_number: order.orderNumber,
           total: order.total,
-          currency: 'BDT', // TODO: Fetch from store config
+          currency: c.get('store')?.currency || 'BDT',
           customer: {
             name: order.customerName,
             email: order.customerEmail,
