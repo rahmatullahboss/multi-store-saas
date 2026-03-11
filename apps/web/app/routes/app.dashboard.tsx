@@ -15,7 +15,7 @@ import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
 import { json } from '@remix-run/cloudflare';
 import { useNavigate, useLoaderData, Link } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, and, gte, sql } from 'drizzle-orm';
 import { orders, stores } from '@db/schema';
 import * as schema from '@db/schema';
 import { getStoreId } from '~/services/auth.server';
@@ -33,7 +33,7 @@ import {
   CheckCircle2,
   AlertTriangle
 } from 'lucide-react';
-import { MetricCard, SalesChart, ActionItems, RecentOrders } from '~/components/dashboard';
+import { MetricCard, SalesChart, ActionItems, RecentOrders, RevenueChart } from '~/components/dashboard';
 import { GlassCard } from '~/components/ui/GlassCard';
 import { FirstSaleChecklist } from '~/components/dashboard/FirstSaleChecklist';
 import { LimitWarningBanner } from '~/components/LimitWarningBanner';
@@ -84,6 +84,34 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       abandonedCarts: abandonedCount,
       salesData 
   } = statsResult;
+
+  // Get last 90 days revenue grouped by date
+  const ninetyDaysAgo = new Date();
+  ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+
+  const rawRevenueData = await db
+    .select({
+      date: sql<string>`DATE(${orders.createdAt})`.as('date'),
+      revenue: sql<number>`SUM(${orders.total})`.as('revenue'),
+      ordersCount: sql<number>`COUNT(*)`.as('ordersCount'),
+    })
+    .from(orders)
+    .where(
+      and(
+        eq(orders.storeId, storeId),
+        gte(orders.createdAt, ninetyDaysAgo),
+        eq(orders.status, 'confirmed')
+      )
+    )
+    .groupBy(sql`DATE(${orders.createdAt})`)
+    .orderBy(sql`DATE(${orders.createdAt})`);
+
+  // Ensure data has the correct keys expected by the component
+  const revenueData = rawRevenueData.map((d: any) => ({
+    date: d.date,
+    revenue: d.revenue || 0,
+    orders: d.ordersCount || 0,
+  }));
 
   // Build action items
   const actionItems: Array<{
@@ -178,6 +206,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     actionItems,
     forecast,
     clv,
+    revenueData,
     recentOrders: recentOrders.map(o => ({
       ...o,
       createdAt: o.createdAt?.toISOString() || new Date().toISOString(),
@@ -199,6 +228,7 @@ export default function DashboardPage() {
     actionItems,
     forecast,
     clv,
+    revenueData,
     recentOrders 
   } = useLoaderData<typeof loader>();
   const { t, lang } = useTranslation();
@@ -367,6 +397,11 @@ export default function DashboardPage() {
           </GlassCard>
         )}
       </div>
+
+      {/* Analytics Main Section */}
+      <GlassCard intensity="low" className="p-6 mb-8">
+        <RevenueChart data={revenueData} currency={currency} />
+      </GlassCard>
 
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
