@@ -13,6 +13,7 @@
 import { useState } from 'react';
 import { ShoppingCart, Zap, Heart, Share2, ChevronLeft, ChevronRight, Package, CheckCircle } from 'lucide-react';
 import type { Product } from '@db/schema';
+import { sanitizeHtml } from "~/utils/sanitize";
 
 // BDShop Theme Colors
 const BDSHOP_THEME = {
@@ -303,7 +304,7 @@ export function BDShopProductPage({
             <div 
               className="prose prose-sm max-w-none"
               style={{ color: BDSHOP_THEME.textSecondary }}
-              dangerouslySetInnerHTML={{ __html: product.description }}
+              dangerouslySetInnerHTML={{ __html: sanitizeHtml(product.description) }}
             />
           </div>
         )}

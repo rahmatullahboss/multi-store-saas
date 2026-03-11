@@ -7,6 +7,7 @@
 
 import React from 'react';
 import { type Block, BLOCK_REGISTRY, getBlockDefinition } from '~/lib/block-registry';
+import { sanitizeHtml } from "~/utils/sanitize";
 
 interface BlockRendererProps {
   blocks: Block[];
@@ -52,7 +53,7 @@ function renderBlock(block: Block, theme?: BlockRendererProps['theme']) {
       return (
         <div 
           className={`prose max-w-none ${settings.alignment === 'center' ? 'text-center' : ''} ${settings.alignment === 'right' ? 'text-right' : ''}`}
-          dangerouslySetInnerHTML={{ __html: settings.content as string || '' }}
+          dangerouslySetInnerHTML={{ __html: sanitizeHtml(settings.content as string || '') }}
         />
       );
 

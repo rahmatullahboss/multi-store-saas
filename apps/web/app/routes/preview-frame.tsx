@@ -163,7 +163,7 @@ export default function PreviewFrame() {
           {/* Custom Head Code injection (scripts, meta tags) */}
           {liveConfig.customHeadCode && (
             <div 
-              dangerouslySetInnerHTML={{ __html: liveConfig.customHeadCode }} 
+              dangerouslySetInnerHTML={{ __html: liveConfig.customHeadCode }}
               style={{ display: 'none' }}
             />
           )}
@@ -182,7 +182,7 @@ export default function PreviewFrame() {
           {/* Custom Body Code injection (chat widgets, etc.) */}
           {liveConfig.customBodyCode && (
             <div 
-              dangerouslySetInnerHTML={{ __html: liveConfig.customBodyCode }} 
+              dangerouslySetInnerHTML={{ __html: liveConfig.customBodyCode }}
             />
           )}
         </div>

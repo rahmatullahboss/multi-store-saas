@@ -7,6 +7,7 @@
 import { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import type { ProductContext } from '~/lib/template-resolver.server';
+import { sanitizeHtml } from "~/utils/sanitize";
 
 interface ProductDescriptionSectionProps {
   sectionId: string;
@@ -33,7 +34,7 @@ export default function ProductDescriptionSection({ sectionId, props, context }:
     description: (
       <div 
         className="prose max-w-none"
-        dangerouslySetInnerHTML={{ __html: product.description || '<p>No description available.</p>' }}
+        dangerouslySetInnerHTML={{ __html: sanitizeHtml(product.description || '<p>No description available.</p>') }}
       />
     ),
     specifications: (

@@ -27,6 +27,7 @@ import { getTemplateComponent, DEFAULT_TEMPLATE_ID } from '~/templates/registry'
 import { useTrackVisit } from '~/hooks/use-track-visit';
 import { ProductSchema } from '~/components/seo/ProductSchema';
 
+
 // ============================================================================
 // CDN CACHING HEADERS - Same as _index.tsx
 // ============================================================================
@@ -313,7 +314,7 @@ export default function OfferProductPage() {
       {/* Custom Head Code injection (additional scripts) */}
       {data.landingConfig.customHeadCode && (
         <div 
-          dangerouslySetInnerHTML={{ __html: data.landingConfig.customHeadCode }} 
+          dangerouslySetInnerHTML={{ __html: data.landingConfig.customHeadCode }}
           style={{ display: 'none' }}
         />
       )}
@@ -386,7 +387,7 @@ export default function OfferProductPage() {
       {/* Custom Body Code injection (chat widgets, etc.) */}
       {data.landingConfig.customBodyCode && (
         <div 
-          dangerouslySetInnerHTML={{ __html: data.landingConfig.customBodyCode }} 
+          dangerouslySetInnerHTML={{ __html: data.landingConfig.customBodyCode }}
         />
       )}
     </>

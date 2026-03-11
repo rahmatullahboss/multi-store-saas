@@ -6,6 +6,7 @@
  */
 
 import { memo } from 'react';
+import { sanitizeHtml } from "~/utils/sanitize";
 
 export interface CustomSection {
   id: string;
@@ -47,7 +48,7 @@ export function CustomSectionRenderer({ customSections, position }: CustomSectio
           )}
           {/* Render HTML content */}
           <div 
-            dangerouslySetInnerHTML={{ __html: section.html }}
+            dangerouslySetInnerHTML={{ __html: sanitizeHtml(section.html) }}
           />
         </div>
       ))}

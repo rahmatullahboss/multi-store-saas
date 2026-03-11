@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { X, Search, Layout, Sparkles, Box, Check } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
+import { sanitizeHtml } from "~/utils/sanitize";
 
 interface BlockLibraryModalProps {
   isOpen: boolean;
@@ -155,7 +156,7 @@ export default function BlockLibraryModal({ isOpen, onClose, editor }: BlockLibr
                     <div className="h-40 bg-white flex items-center justify-center p-6 relative overflow-hidden border-b border-gray-50">
                        <div 
                          className="text-gray-300 scale-150 transition-transform duration-500 group-hover:scale-[1.8] group-hover:text-indigo-600/20"
-                         dangerouslySetInnerHTML={{ __html: block.getMedia() || '<svg viewBox="0 0 24 24" fill="none" class="w-12 h-12" stroke="currentColor"><rect width="18" height="18" x="3" y="3" rx="2" /></svg>' }}
+                         dangerouslySetInnerHTML={{ __html: sanitizeHtml(block.getMedia() || '<svg viewBox="0 0 24 24" fill="none" class="w-12 h-12" stroke="currentColor"><rect width="18" height="18" x="3" y="3" rx="2" /></svg>') }}
                        />
                        
                        {/* Overlay Action */}

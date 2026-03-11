@@ -9,6 +9,7 @@ import { ModernPremiumSectionRenderer } from './SectionRenderer';
 import { MODERN_PREMIUM_THEME } from './theme';
 import { applyCustomColors } from '../_core/types';
 import { StickyBuyButton } from '../_core/StickyBuyButton';
+import { sanitizeHtml } from "~/utils/sanitize";
 
 export function ModernPremiumTemplate({
   storeName,
@@ -74,7 +75,7 @@ export function ModernPremiumTemplate({
           <div className="flex items-center justify-center gap-2 text-sm text-gray-500 font-medium mb-24" suppressHydrationWarning>
             <span className="w-1 h-1 rounded-full bg-amber-500/50"></span>
             {config.orderFormText?.footerCopyright ? (
-              <span dangerouslySetInnerHTML={{ __html: config.orderFormText.footerCopyright }} />
+              <span dangerouslySetInnerHTML={{ __html: sanitizeHtml(config.orderFormText.footerCopyright) }} />
             ) : (
               <>© {new Date().getFullYear()} {storeName}. All rights reserved.</>
             )}

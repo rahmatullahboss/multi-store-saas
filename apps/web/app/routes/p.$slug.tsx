@@ -22,6 +22,7 @@ import { SectionRenderer } from '~/components/page-builder/SectionRenderer';
 import { FloatingActionButtons } from '~/components/page-builder/FloatingActionButtons';
 import { OzzylBranding } from '~/components/OzzylBranding';
 import { TemplateLayoutRenderer } from '~/components/page-builder/TemplateLayoutRenderer';
+import { sanitizeHtml } from "~/utils/sanitize";
 
 // Type Guards
 interface CustomPageData {
@@ -414,7 +415,7 @@ function CustomPageRenderer({ page }: { page: any }) {
       <style dangerouslySetInnerHTML={{ __html: page.cssContent || '' }} />
       
       {/* Page HTML Content */}
-      <div dangerouslySetInnerHTML={{ __html: page.htmlContent || '' }} />
+      <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(page.htmlContent || '') }} />
 
       {/* Lucide Icons */}
       <script src="https://unpkg.com/lucide@latest"></script>
