@@ -5,6 +5,7 @@
  */
 
 import type { RenderContext } from '~/lib/template-resolver.server';
+import { sanitizeHtml } from "~/utils/sanitize";
 
 interface RichTextSectionProps {
   sectionId: string;
@@ -56,7 +57,7 @@ export default function RichTextSection({ sectionId, props, context }: RichTextS
           <div 
             className="prose max-w-none"
             style={{ color: themeColors.textColor }}
-            dangerouslySetInnerHTML={{ __html: text }}
+            dangerouslySetInnerHTML={{ __html: sanitizeHtml(text) }}
           />
         )}
       </div>

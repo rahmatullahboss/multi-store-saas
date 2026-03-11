@@ -21,6 +21,7 @@ import { createEmailService } from '~/services/email.server';
 import { ArrowLeft, Send, Save, Users, AlertCircle } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from '~/contexts/LanguageContext';
+import { sanitizeHtml } from "~/utils/sanitize";
 
 export const meta: MetaFunction = () => {
   return [{ title: 'New Campaign - Ozzyl' }];
@@ -300,7 +301,7 @@ export default function NewCampaignPage() {
           </label>
           <div 
             className="border border-gray-200 rounded-lg p-6 bg-gray-50"
-            dangerouslySetInnerHTML={{ __html: content }}
+            dangerouslySetInnerHTML={{ __html: sanitizeHtml(content) }}
           />
         </div>
 

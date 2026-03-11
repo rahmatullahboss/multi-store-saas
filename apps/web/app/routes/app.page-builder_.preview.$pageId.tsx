@@ -14,6 +14,7 @@ import { drizzle } from 'drizzle-orm/d1';
 import { eq, and } from 'drizzle-orm';
 import { landingPages, stores } from '@db/schema';
 import { getStoreId } from '~/services/auth.server';
+import { sanitizeHtml } from "~/utils/sanitize";
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   return [{ title: data?.pageName ? `Preview: ${data.pageName}` : 'Page Preview' }];
@@ -184,7 +185,7 @@ export default function PageBuilderPreview() {
         <style dangerouslySetInnerHTML={{ __html: css }} />
         
         {/* HTML Content */}
-        <div dangerouslySetInnerHTML={{ __html: html }} />
+        <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(html) }} />
         
         {/* Button Action Handler Script */}
         <script dangerouslySetInnerHTML={{ __html: `

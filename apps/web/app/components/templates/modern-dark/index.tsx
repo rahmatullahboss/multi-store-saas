@@ -9,6 +9,7 @@ import { ModernDarkSectionRenderer } from './SectionRenderer';
 import { MODERN_DARK_THEME } from './theme';
 import { applyCustomColors } from '../_core/types';
 import { StickyBuyButton } from '../_core/StickyBuyButton';
+import { sanitizeHtml } from "~/utils/sanitize";
 
 export function ModernDarkTemplate({
   storeName,
@@ -51,7 +52,7 @@ export function ModernDarkTemplate({
           
           <div className="text-zinc-700 text-xs font-bold uppercase tracking-[0.3em] mb-12" suppressHydrationWarning>
             {config.orderFormText?.footerCopyright ? (
-              <span dangerouslySetInnerHTML={{ __html: config.orderFormText.footerCopyright }} />
+              <span dangerouslySetInnerHTML={{ __html: sanitizeHtml(config.orderFormText.footerCopyright) }} />
             ) : (
               <>© {new Date().getFullYear()} • {storeName} • High Performance Guaranteed</>
             )}

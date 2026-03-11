@@ -31,6 +31,7 @@ import {
 import { AddToCartButton } from '~/components/AddToCartButton';
 import { BDShopPageWrapper, BDSHOP_THEME } from './BDShopPageWrapper';
 import type { SocialLinks } from '@db/types';
+import { sanitizeHtml } from "~/utils/sanitize";
 
 interface Product {
   id: number;
@@ -370,7 +371,7 @@ export function BDShopProductDetail({
             {activeTab === 'description' && (
               <div className="prose prose-sm max-w-none" style={{ color: BDSHOP_THEME.text }}>
                 {product.description ? (
-                  <div dangerouslySetInnerHTML={{ __html: product.description.replace(/\n/g, '<br/>') }} />
+                  <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(product.description.replace(/\n/g, '<br/>')) }} />
                 ) : (
                   <p className="text-gray-500">No description available.</p>
                 )}

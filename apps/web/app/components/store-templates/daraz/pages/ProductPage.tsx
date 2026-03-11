@@ -13,6 +13,7 @@ import { useState } from 'react';
 import { ShoppingCart, Heart, Share2, ChevronLeft, ChevronRight, Star, Truck, Shield, RotateCcw } from 'lucide-react';
 import { DARAZ_THEME } from '../theme';
 import type { Product } from '@db/schema';
+import { sanitizeHtml } from "~/utils/sanitize";
 
 interface ProductPageProps {
   product: Product;
@@ -275,7 +276,7 @@ export function DarazProductPage({
             <div 
               className="prose prose-sm max-w-none"
               style={{ color: DARAZ_THEME.textSecondary }}
-              dangerouslySetInnerHTML={{ __html: product.description }}
+              dangerouslySetInnerHTML={{ __html: sanitizeHtml(product.description) }}
             />
           </div>
         )}

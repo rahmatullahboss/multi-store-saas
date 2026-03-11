@@ -6,6 +6,7 @@ import TemplatesPanel from './TemplatesPanel';
 import PageSettingsPanel from './PageSettingsPanel';
 import StateSelector from './StateSelector';
 import StyleControls from './StyleControls';
+import { sanitizeHtml } from "~/utils/sanitize";
 
 interface SidebarPanelProps {
   themeConfig?: any;
@@ -408,9 +409,9 @@ function SidebarPanelBase({
                             <div
                               className="text-gray-300 group-hover:text-indigo-600 mb-2 transition transform group-hover:scale-110"
                               dangerouslySetInnerHTML={{
-                                __html: block.getMedia() || `
+                                __html: sanitizeHtml(block.getMedia() || `
                                   <svg viewBox="0 0 24 24" fill="none" class="w-8 h-8"><rect width="18" height="18" x="3" y="3" rx="2" stroke="currentColor"/></svg>
-                                ` }}
+                                `) }}
                             />
                             <span className="text-[9px] font-black text-gray-500 group-hover:text-indigo-700 text-center line-clamp-1 uppercase">
                               {block.getLabel()}

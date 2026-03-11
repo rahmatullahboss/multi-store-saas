@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { CheckCircle2, ArrowRight } from 'lucide-react';
 import { calculateShipping, DEFAULT_SHIPPING_CONFIG, type DivisionValue } from '~/utils/shipping';
 import type { SectionProps } from '../_core/types';
+import { sanitizeHtml } from "~/utils/sanitize";
 
 export function LuxeOrderForm({
   config,
@@ -119,7 +120,7 @@ export function LuxeOrderForm({
               </span>
               <h2 className="text-4xl lg:text-6xl font-serif-display text-white tracking-widest uppercase leading-none">
                 {config.orderFormText?.headline ? (
-                   <span dangerouslySetInnerHTML={{ __html: config.orderFormText.headline }} />
+                   <span dangerouslySetInnerHTML={{ __html: sanitizeHtml(config.orderFormText.headline) }} />
                 ) : (
                   <>Secure Your <span className="text-amber-200 block italic font-light mt-2">Selection</span></>
                 )}

@@ -26,6 +26,7 @@ import { parseLandingConfig, defaultLandingConfig, type LandingConfig } from '@d
 import { getTemplateComponent, DEFAULT_TEMPLATE_ID } from '~/templates/registry';
 import { useTrackVisit } from '~/hooks/use-track-visit';
 import { ProductSchema } from '~/components/seo/ProductSchema';
+import { sanitizeHtml } from "~/utils/sanitize";
 
 // ============================================================================
 // CDN CACHING HEADERS - Same as _index.tsx
@@ -278,7 +279,7 @@ export default function OfferProductPage() {
       
       {/* Custom CSS injection */}
       {data.landingConfig.customCSS && (
-        <style dangerouslySetInnerHTML={{ __html: data.landingConfig.customCSS }} />
+        <style dangerouslySetInnerHTML={{ __html: sanitizeHtml(data.landingConfig.customCSS) }} />
       )}
       
       {/* Facebook Pixel from Store Settings (automatic) */}
@@ -313,7 +314,7 @@ export default function OfferProductPage() {
       {/* Custom Head Code injection (additional scripts) */}
       {data.landingConfig.customHeadCode && (
         <div 
-          dangerouslySetInnerHTML={{ __html: data.landingConfig.customHeadCode }} 
+          dangerouslySetInnerHTML={{ __html: sanitizeHtml(data.landingConfig.customHeadCode) }}
           style={{ display: 'none' }}
         />
       )}
@@ -386,7 +387,7 @@ export default function OfferProductPage() {
       {/* Custom Body Code injection (chat widgets, etc.) */}
       {data.landingConfig.customBodyCode && (
         <div 
-          dangerouslySetInnerHTML={{ __html: data.landingConfig.customBodyCode }} 
+          dangerouslySetInnerHTML={{ __html: sanitizeHtml(data.landingConfig.customBodyCode) }}
         />
       )}
     </>

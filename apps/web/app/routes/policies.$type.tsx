@@ -13,6 +13,7 @@ import { useLoaderData, Link } from '@remix-run/react';
 import { eq } from 'drizzle-orm';
 import { stores } from '@db/schema';
 import { getPolicyContent, type PolicyType } from '~/lib/policies';
+import { sanitizeHtml } from "~/utils/sanitize";
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   if (!data) return [{ title: 'Policy - Store' }];
@@ -172,7 +173,7 @@ export default function PolicyPage() {
           <p 
             key={key++} 
             className="text-gray-600 mb-4 leading-relaxed"
-            dangerouslySetInnerHTML={{ __html: formattedLine }}
+            dangerouslySetInnerHTML={{ __html: sanitizeHtml(formattedLine) }}
           />
         );
       }

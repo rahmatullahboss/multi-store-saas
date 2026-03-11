@@ -1,4 +1,5 @@
 import type { SectionProps } from '../_core/types';
+import { sanitizeHtml } from "~/utils/sanitize";
 
 export function LuxeSocialProof({ config }: SectionProps) {
   const socialProof = config.socialProof;
@@ -28,10 +29,10 @@ export function LuxeSocialProof({ config }: SectionProps) {
               {socialProof.title ? (
                 // Safe way to render formatted number inside user text
                 <span dangerouslySetInnerHTML={{ 
-                  __html: socialProof.title.replace(
+                  __html: sanitizeHtml(socialProof.title.replace(
                     '{{count}}', 
                     `<span class="text-amber-500 font-sans font-black">${socialProof.count.toLocaleString()}</span>`
-                  ) 
+                  ))
                 }} />
               ) : (
                 <>The choice of <span className="text-amber-500 font-sans font-black">{socialProof.count.toLocaleString()}</span> connoisseurs.</>

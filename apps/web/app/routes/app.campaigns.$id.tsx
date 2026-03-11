@@ -30,6 +30,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
+import { sanitizeHtml } from "~/utils/sanitize";
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Campaign Details - Ozzyl' }];
@@ -285,7 +286,7 @@ export default function CampaignDetailPage() {
           <h3 className="text-sm font-medium text-gray-700 mb-3">{t('preview')}</h3>
           <div 
             className="border border-gray-200 rounded-lg p-6 bg-gray-50"
-            dangerouslySetInnerHTML={{ __html: campaign.content }}
+            dangerouslySetInnerHTML={{ __html: sanitizeHtml(campaign.content) }}
           />
         </div>
       </div>
