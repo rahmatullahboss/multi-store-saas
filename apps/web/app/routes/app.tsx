@@ -53,6 +53,7 @@ import {
 } from 'lucide-react';
 import { LanguageSelector } from '~/components/LanguageSelector';
 import { ThemeToggle } from '~/components/ThemeToggle';
+import { NotificationBell } from '~/components/NotificationBell';
 import { useTranslation } from '~/contexts/LanguageContext';
 import DashboardChatWidget from '~/components/dashboard/DashboardChatWidget';
 import { useState, useEffect } from 'react';
@@ -610,8 +611,9 @@ export default function AppLayout() {
               >
                 <Menu className="w-5 h-5" />
               </button>
-              <h1 className="font-semibold text-gray-900 dark:text-white">{store.name}</h1>
+              <h1 className="font-semibold text-gray-900 dark:text-white truncate flex-1 px-4 text-center">{store.name}</h1>
               <div className="flex items-center gap-2">
+                <NotificationBell storeId={store.id} />
                 <ThemeToggle />
                 <LanguageSelector variant="toggle" size="sm" />
               </div>
@@ -623,6 +625,7 @@ export default function AppLayout() {
         {!isBuilderRoute && (
           <header className="hidden lg:block sticky top-0 z-30 bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl border-b border-white/20 dark:border-gray-800 px-8 py-3">
             <div className="flex items-center justify-end gap-3">
+              <NotificationBell storeId={store.id} />
               <ThemeToggle />
               <LanguageSelector variant="pills" size="sm" />
             </div>
