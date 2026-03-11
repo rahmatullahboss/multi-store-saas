@@ -2,6 +2,7 @@ import { useFetcher } from '@remix-run/react';
 import { useState, useEffect } from 'react';
 import { CheckCircle2, ArrowRight } from 'lucide-react';
 import { calculateShipping, DEFAULT_SHIPPING_CONFIG, type DivisionValue } from '~/utils/shipping';
+import { sanitizeHtml } from '~/utils/sanitize';
 import type { SectionProps } from '../_core/types';
 
 export function LuxeOrderForm({
@@ -119,7 +120,7 @@ export function LuxeOrderForm({
               </span>
               <h2 className="text-4xl lg:text-6xl font-serif-display text-white tracking-widest uppercase leading-none">
                 {config.orderFormText?.headline ? (
-                   <span dangerouslySetInnerHTML={{ __html: config.orderFormText.headline }} />
+                   <span dangerouslySetInnerHTML={{ __html: sanitizeHtml(config.orderFormText.headline) }} />
                 ) : (
                   <>Secure Your <span className="text-amber-200 block italic font-light mt-2">Selection</span></>
                 )}
