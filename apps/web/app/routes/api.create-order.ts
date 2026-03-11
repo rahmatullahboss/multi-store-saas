@@ -904,11 +904,23 @@ export async function action({ request, context }: ActionFunctionArgs) {
     if (resendApiKey) {
       const emailService = createEmailService(resendApiKey);
       if (input.customer_email) {
+        let contactPhone = '';
+        if (storeData.businessInfo) {
+          try {
+            const parsedInfo = JSON.parse(storeData.businessInfo as string);
+            if (parsedInfo.phone) contactPhone = parsedInfo.phone;
+          } catch (e) {
+            // Ignore parse errors
+          }
+        }
+
         context.cloudflare.ctx.waitUntil(
           emailService.sendOrderConfirmation({
             orderNumber,
             customerName: input.customer_name,
             customerEmail: input.customer_email,
+            subtotal: discountedSubtotal,
+            shipping,
             total,
             currency: storeData.currency || 'BDT',
             items: finalOrderItems.map(i => ({ title: i.title, quantity: i.quantity, price: i.unitPrice })),
@@ -916,7 +928,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
             paymentMethod: input.payment_method === 'cod' ? 'Cash on Delivery' : input.payment_method.toUpperCase(),
             storeName: storeData.name,
             storeLogo: storeData.logo || undefined,
-            primaryColor: (storeData.themeConfig && JSON.parse(storeData.themeConfig as string)?.primaryColor) || undefined
+            primaryColor: (storeData.themeConfig && JSON.parse(storeData.themeConfig as string)?.primaryColor) || undefined,
+            contactPhone
           })
         );
       }

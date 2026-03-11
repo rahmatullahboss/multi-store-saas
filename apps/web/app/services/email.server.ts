@@ -145,11 +145,14 @@ interface SendOrderConfirmationParams {
   orderNumber: string;
   customerName: string;
   customerEmail: string;
+  subtotal: number;
+  shipping: number;
   total: number;
   currency: string;
   items: { title: string; quantity: number; price: number }[];
   shippingAddress: string;
   paymentMethod: string;
+  contactPhone?: string;
 }
 
 interface SendNewOrderAlertParams {
@@ -242,24 +245,27 @@ export function createEmailService(apiKey: string) {
       });
     },
 
-    async sendOrderConfirmation({ orderNumber, customerName, customerEmail, total, currency, items, shippingAddress, paymentMethod, storeLogo, primaryColor, storeName }: SendOrderConfirmationParams & { storeLogo?: string, primaryColor?: string, storeName: string }) {
+    async sendOrderConfirmation({ orderNumber, customerName, customerEmail, subtotal, shipping, total, currency, items, shippingAddress, paymentMethod, storeLogo, primaryColor, storeName, contactPhone }: SendOrderConfirmationParams & { storeLogo?: string, primaryColor?: string, storeName: string }) {
       const html = getOrderConfirmationHtml({
         customerName,
         orderNumber,
         paymentMethod,
         items,
         currency,
+        subtotal,
+        shipping,
         total,
         shippingAddress,
         storeName,
         storeLogo,
         primaryColor,
+        contactPhone,
       });
 
       return resend.emails.send({
         from: fromEmail,
         to: [customerEmail],
-        subject: `Order Confirmation #${orderNumber} - ${storeName}`,
+        subject: `✅ আপনার অর্ডার নিশ্চিত হয়েছে - #${orderNumber}`,
         html,
       });
     },
