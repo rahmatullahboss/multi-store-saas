@@ -56,7 +56,7 @@ import { ThemeToggle } from '~/components/ThemeToggle';
 import { useTranslation } from '~/contexts/LanguageContext';
 import DashboardChatWidget from '~/components/dashboard/DashboardChatWidget';
 import { useState, useEffect } from 'react';
-import type { TranslationKey } from '~/utils/i18n/index';
+
 
 // Custom Ozzyl Icon Component (for nav)
 const OzzylIcon = ({ className }: { className?: string }) => {
@@ -238,7 +238,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 // ============================================================================
 type NavItem = {
   to: string;
-  labelKey: TranslationKey;
+  labelKey: string;
   icon: typeof LayoutDashboard;
   isPaidOnly?: boolean; // Feature requires paid plan
   storeOnly?: boolean; // Only show when storeEnabled=true
@@ -246,7 +246,7 @@ type NavItem = {
 };
 
 type NavSection = {
-  titleKey: TranslationKey;
+  titleKey: string;
   items: NavItem[];
   storeOnly?: boolean; // Hide entire section if store disabled
 };
@@ -256,7 +256,7 @@ const navSections: NavSection[] = [
   {
     titleKey: 'sidebarHome',
     items: [
-      { to: '/app/dashboard', labelKey: 'navDashboard', icon: LayoutDashboard },
+      { to: '/app/dashboard', labelKey: 'nav.dashboard', icon: LayoutDashboard },
       { to: '/app/tutorials', labelKey: 'navTutorials', icon: BookOpen },
     ],
   },
@@ -264,7 +264,7 @@ const navSections: NavSection[] = [
   {
     titleKey: 'sidebarOrders',
     items: [
-      { to: '/app/orders', labelKey: 'navAllOrders', icon: ShoppingCart },
+      { to: '/app/orders', labelKey: 'nav.orders', icon: ShoppingCart },
       { to: '/app/abandoned-carts', labelKey: 'navAbandonedCarts', icon: ShoppingBag },
     ],
   },
@@ -272,14 +272,14 @@ const navSections: NavSection[] = [
   {
     titleKey: 'sidebarCustomers',
     items: [
-      { to: '/app/customers', labelKey: 'navCustomers', icon: Users },
+      { to: '/app/customers', labelKey: 'nav.customers', icon: Users },
     ],
   },
   // === CATALOG ===
   {
     titleKey: 'sidebarCatalog',
     items: [
-      { to: '/app/products', labelKey: 'navProducts', icon: Package },
+      { to: '/app/products', labelKey: 'nav.products', icon: Package },
       { to: '/app/inventory', labelKey: 'navInventory', icon: Warehouse },
     ],
   },
@@ -309,7 +309,7 @@ const navSections: NavSection[] = [
   {
     titleKey: 'sidebarSettings',
     items: [
-      { to: '/app/settings', labelKey: 'navGeneral', icon: Settings },
+      { to: '/app/settings', labelKey: 'nav.settings', icon: Settings },
       { to: '/app/settings/homepage', labelKey: 'navStorefront', icon: Home },
       { to: '/app/settings/domain', labelKey: 'navDomain', icon: Globe },
       { to: '/app/settings/shipping', labelKey: 'navShipping', icon: Truck },
@@ -569,7 +569,7 @@ export default function AppLayout() {
           <div className="p-4 border-t border-white/10 dark:border-gray-800 bg-white/30 dark:bg-gray-900/30 backdrop-blur-sm">
             {/* Language Selector - Temporarily disabled - Bengali is default */}
             {/* <div className="mb-3">
-              <LanguageSelector variant="pills" size="sm" className="w-full" />
+              <LanguageToggle />
             </div> */}
 
             <div className="flex items-center gap-3 mb-3">
