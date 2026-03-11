@@ -8,19 +8,13 @@
 import { useState } from 'react';
 import { Form } from '@remix-run/react';
 
-// Available MVP themes matching the store-registry.ts
+// Available themes matching the store-registry.ts (18 themes)
 const AVAILABLE_THEMES = [
   {
     id: 'starter-store',
     name: 'Starter Store',
     description: 'Clean, minimal design perfect for any business',
     color: '#4F46E5',
-  },
-  {
-    id: 'ghorer-bazar',
-    name: 'Ghorer Bazar',
-    description: 'Vibrant marketplace style for grocery and essentials',
-    color: '#fc8934',
   },
   {
     id: 'luxe-boutique',
@@ -35,10 +29,94 @@ const AVAILABLE_THEMES = [
     color: '#1C1C1E',
   },
   {
+    id: 'ozzyl-premium',
+    name: 'Ozzyl Premium',
+    description: 'Award-winning luxury dark theme with gold accents',
+    color: '#C8A961',
+  },
+  {
+    id: 'dc-store',
+    name: 'DC Store',
+    description: 'Golden gradient theme with warm colors for modern e-commerce',
+    color: '#f59e0b',
+  },
+  {
+    id: 'daraz',
+    name: 'Daraz Style',
+    description: 'Marketplace style design inspired by popular e-commerce platforms',
+    color: '#F85606',
+  },
+  {
+    id: 'eclipse',
+    name: 'Eclipse',
+    description: 'Dark mode theme with bold contrast and violet accents',
+    color: '#030712',
+  },
+  {
+    id: 'rovo',
+    name: 'Rovo',
+    description: 'High-fashion luxury store with bold red accents',
+    color: '#000000',
+  },
+  {
+    id: 'sokol',
+    name: 'Sokol',
+    description: 'Modern dark theme with elegant rose accents',
+    color: '#0D0D0D',
+  },
+  {
+    id: 'ghorer-bazar',
+    name: 'Ghorer Bazar',
+    description: 'Vibrant marketplace style for grocery and essentials',
+    color: '#fc8934',
+  },
+  {
     id: 'tech-modern',
     name: 'Tech Modern',
-    description: 'Sleek dark theme perfect for electronics',
+    description: 'Sleek dark theme perfect for electronics and gadgets',
     color: '#0f172a',
+  },
+  {
+    id: 'aurora-minimal',
+    name: 'Aurora Minimal',
+    description: 'Clean and minimal aesthetic with warm rose gradients',
+    color: '#E8C4C4',
+  },
+  {
+    id: 'artisan-market',
+    name: 'Artisan Market',
+    description: 'Handmade and crafts marketplace design',
+    color: '#8B5CF6',
+  },
+  {
+    id: 'freshness',
+    name: 'Freshness',
+    description: 'Organic and fresh produce store design',
+    color: '#10B981',
+  },
+  {
+    id: 'turbo-sale',
+    name: 'Turbo Sale',
+    description: 'High-conversion flash sale and dropshipping theme',
+    color: '#EF4444',
+  },
+  {
+    id: 'zenith-rise',
+    name: 'Zenith Rise',
+    description: 'SaaS and digital products store design',
+    color: '#3B82F6',
+  },
+  {
+    id: 'bdshop',
+    name: 'BDShop',
+    description: 'Localized design for Bangladeshi e-commerce',
+    color: '#1E3A8A',
+  },
+  {
+    id: 'nova-lux-ultra',
+    name: 'Nova Lux Ultra',
+    description: 'Enhanced version of Nova Lux with more features',
+    color: '#1C1C1E',
   },
 ];
 

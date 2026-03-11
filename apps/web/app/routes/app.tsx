@@ -191,12 +191,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     const user = userResult[0];
 
     if (!store || !store.isActive || store.deletedAt != null) {
-      // Store was deleted — guard all /app/* routes except dashboard
-      const url = new URL(request.url);
-      if (!url.pathname.startsWith('/app/dashboard')) {
-        // Redirect any non-dashboard /app/* route to dashboard so user sees Create New Store UI
-        return redirect('/app/dashboard');
-      }
+      // Store was deleted — DO NOT redirect to avoid infinite loop
+      // Instead, return storeDeleted state for all routes to handle gracefully
       console.warn('[app.loader] Store deleted or inactive for user:', userId, 'storeId:', storeId);
       const session = await getSession(request, context.cloudflare.env);
       session.unset('storeId');
@@ -363,10 +359,6 @@ const navSections: NavSection[] = [
     mobileHidden: false, // Show settings in mobile sidebar too
     items: [
       { to: '/app/settings', labelKey: 'navGeneral', icon: Settings },
-      // Work In Progress - hidden from production, moved to Super Admin
-      // { to: '/app/settings/homepage', labelKey: 'navStorefront', icon: Home },
-      // { to: '/app/settings/business-mode', labelKey: 'navBusinessMode', icon: Layers },
-      // { to: '/app/settings/lead-gen', labelKey: 'navLeadGenSettings', icon: Palette },
       { to: '/app/settings/domain', labelKey: 'navDomain', icon: Globe },
       { to: '/app/settings/shipping', labelKey: 'navShipping', icon: Truck },
       { to: '/app/settings/courier', labelKey: 'navCourier', icon: Package },

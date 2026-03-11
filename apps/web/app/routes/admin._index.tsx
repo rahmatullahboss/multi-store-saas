@@ -299,6 +299,20 @@ export default function AdminDashboard() {
           >
             {t('createBroadcast')}
           </a>
+          <button
+            onClick={async () => {
+              const res = await fetch('/api/admin/migrate-unified-settings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ dryRun: false })
+              });
+              const data = await res.json();
+              alert(JSON.stringify(data, null, 2));
+            }}
+            className="px-4 py-2 bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 rounded-lg text-sm font-medium transition"
+          >
+            Migrate Templates to JSON
+          </button>
         </div>
       </GlassCard>
     </div>

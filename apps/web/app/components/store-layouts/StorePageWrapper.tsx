@@ -20,7 +20,6 @@ import { getStoreTemplate, type StoreTemplateTheme } from '~/templates/store-reg
 import { MobileBottomNav } from '~/components/store/MobileBottomNav';
 import { FloatingContactButtons } from '~/components/FloatingContactButtons';
 import type { SocialLinks, FooterConfig } from '@db/types';
-import type { MVPSettingsWithTheme } from '~/services/mvp-settings.server';
 
 interface FloatingContactConfig {
   headerMenu?: Array<{
@@ -72,7 +71,6 @@ interface StorePageWrapperProps {
   aiCredits?: number;
   accentColor?: string;
   agentName?: string;
-  mvpSettings?: MVPSettingsWithTheme;
 }
 
 // ============================================================================
@@ -166,7 +164,6 @@ function StorePageWrapperComponent({
   aiCredits = 0,
   accentColor,
   agentName,
-  mvpSettings,
 }: StorePageWrapperProps) {
   // Memoize template lookup (expensive operation)
   const template = useMemo(() => getStoreTemplate(templateId), [templateId]);
@@ -176,8 +173,8 @@ function StorePageWrapperComponent({
 
   // Memoize dark theme detection
   const isDarkTheme = useMemo(
-    () => templateId === 'modern-premium' || templateId === 'tech-modern',
-    [templateId]
+    () => resolvedTheme.isDark === true,
+    [resolvedTheme.isDark]
   );
 
   // Memoize background class
@@ -257,7 +254,6 @@ function StorePageWrapperComponent({
       categories,
       currentCategory,
       socialLinks,
-      mvpSettings,
     }),
     [
       storeName,
@@ -268,7 +264,6 @@ function StorePageWrapperComponent({
       categories,
       currentCategory,
       socialLinks,
-      mvpSettings,
     ]
   );
 
@@ -299,7 +294,6 @@ function StorePageWrapperComponent({
       categories,
       planType,
       isPreview,
-      mvpSettings,
     }),
     [
       storeName,
@@ -311,7 +305,6 @@ function StorePageWrapperComponent({
       categories,
       planType,
       isPreview,
-      mvpSettings,
     ]
   );
 
@@ -330,7 +323,6 @@ function StorePageWrapperComponent({
       showPoweredBy: footerConfig?.showPoweredBy ?? true,
       config,
       isPreview,
-      mvpSettings,
     }),
     [
       storeName,
@@ -345,7 +337,6 @@ function StorePageWrapperComponent({
       footerConfig?.showPoweredBy,
       config,
       isPreview,
-      mvpSettings,
     ]
   );
 
@@ -373,12 +364,8 @@ function StorePageWrapperComponent({
 
   const chatAccentColor = useMemo(() => {
     if (accentColor) return accentColor;
-    if (templateId === 'starter-store') {
-      // Keep starter-store chat color consistent with homepage template behavior.
-      return resolvedTheme.primary;
-    }
     return resolvedTheme.accent || resolvedTheme.primary;
-  }, [accentColor, templateId, resolvedTheme.primary, resolvedTheme.accent]);
+  }, [accentColor, resolvedTheme.primary, resolvedTheme.accent]);
 
   // Error handlers
   const handleHeaderError = React.useCallback((error: Error) => {

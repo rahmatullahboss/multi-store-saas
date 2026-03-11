@@ -35,6 +35,7 @@ export const links: LinksFunction = () => [
   { rel: 'dns-prefetch', href: 'https://connect.facebook.net' },
   { rel: 'preconnect', href: 'https://connect.facebook.net', crossOrigin: 'anonymous' },
   { rel: 'manifest', href: '/manifest.webmanifest' },
+
 ];
 
 /**

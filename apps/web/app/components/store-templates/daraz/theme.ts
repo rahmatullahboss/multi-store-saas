@@ -12,6 +12,7 @@ export const DARAZ_THEME = {
   // Background colors
   background: '#F5F5F5',     // Page background gray
   cardBg: '#FFFFFF',         // Product cards, content areas
+  headerBg: '#F85606',       // Main header background
   topBarBg: '#2E2E2E',       // Top utility bar
   
   // Text colors

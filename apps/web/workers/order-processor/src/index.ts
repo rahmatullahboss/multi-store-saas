@@ -50,8 +50,8 @@ const CONFIG = {
   // Batch settings (KEY COST OPTIMIZATION)
   BATCH_SIZE: 50,                    // Increased from 10 - process more per alarm
   BATCH_WINDOW_MS: 500,              // Collect tasks for 500ms before processing
-  MAX_PENDING_BATCH: 100,            // 🔴 FIX: Max pending requests (memory safety)
-  MAX_TASKS_PER_REQUEST: 100,        // 🔴 FIX: Max tasks per enqueue request
+  MAX_PENDING_BATCH: 100,            // Max pending requests (memory safety)
+  MAX_TASKS_PER_REQUEST: 100,        // Max tasks per enqueue request
   
   // Cleanup settings  
   CLEANUP_DAYS: 3,                   // Reduced from 7 to save storage
@@ -240,7 +240,7 @@ export class OrderProcessor extends DurableObject<Env> {
           tasks: Array<{ type: string; payload: Record<string, unknown> }>;
         };
         
-        // 🔴 FIX: Input validation for /process too
+        // Input validation for /process too
         if (!body.orderId || !body.storeId || !Array.isArray(body.tasks)) {
           return Response.json({ 
             success: false, 
@@ -282,7 +282,7 @@ export class OrderProcessor extends DurableObject<Env> {
           tasks: Array<{ type: string; payload: Record<string, unknown> }>;
         };
         
-        // 🔴 FIX: Input validation
+        // Input validation
         if (!body.orderId || !body.storeId || !Array.isArray(body.tasks)) {
           return Response.json({ 
             success: false, 
@@ -290,7 +290,7 @@ export class OrderProcessor extends DurableObject<Env> {
           }, { status: 400 });
         }
         
-        // 🔴 FIX: Limit tasks per request
+        // Limit tasks per request
         if (body.tasks.length > CONFIG.MAX_TASKS_PER_REQUEST) {
           return Response.json({ 
             success: false, 
@@ -298,7 +298,7 @@ export class OrderProcessor extends DurableObject<Env> {
           }, { status: 400 });
         }
         
-        // 🔴 FIX: Validate task types
+        // Validate task types
         const validatedTasks = body.tasks.filter(t => 
           t && typeof t.type === 'string' && VALID_TASK_TYPES.includes(t.type as any)
         );
@@ -390,7 +390,7 @@ export class OrderProcessor extends DurableObject<Env> {
     tasks: Array<{ type: string; payload: Record<string, unknown> }>;
   }): Promise<ProcessResult> {
     return new Promise((resolve) => {
-      // 🔴 FIX: Memory safety - reject if batch queue is full
+      // Memory safety - reject if batch queue is full
       if (this.pendingBatch.length >= CONFIG.MAX_PENDING_BATCH) {
         // Flush immediately and retry
         this.flushBatch();

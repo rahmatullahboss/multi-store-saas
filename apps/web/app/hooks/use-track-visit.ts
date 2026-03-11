@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useLocation } from '@remix-run/react';
+import { generateUUID } from '~/lib/uuid';
 
 const STORAGE_KEY = 'store_visitor_id';
 const BATCH_KEY = 'store_analytics_batch';
@@ -14,7 +15,7 @@ export function useTrackVisit(storeId: number | undefined | null) {
     // 1. Get or create visitor ID
     let visitorId = localStorage.getItem(STORAGE_KEY);
     if (!visitorId) {
-      visitorId = crypto.randomUUID();
+      visitorId = generateUUID();
       localStorage.setItem(STORAGE_KEY, visitorId);
     }
 

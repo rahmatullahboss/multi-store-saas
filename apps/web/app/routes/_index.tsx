@@ -30,11 +30,11 @@ import {
   useSearchParams,
 } from '@remix-run/react';
 import { useState, useEffect, Suspense, lazy, type ComponentType } from 'react';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, sql } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
 import { stores, products, collections, type Product, type Store } from '@db/schema';
+import { getProductReviewStats, addReviewStatsToProducts } from '~/lib/reviews.server';
 import { type LandingConfig, type ThemeConfig } from '@db/types';
-import type { LeadGenSettingsWithTheme } from '~/config/lead-gen-theme-settings';
 // NOTE: Avoid static import of landing template registry to keep storefront bundle lean.
 const DEFAULT_LANDING_TEMPLATE_ID = 'premium-bd';
 import { useTranslation } from '~/contexts/LanguageContext';
@@ -52,6 +52,7 @@ import { getUnifiedStorefrontSettings } from '~/services/unified-storefront-sett
 import { parseFooterConfig, type SocialLinks } from '@db/types';
 // import { createDb } from '~/lib/db.server';
 import { getCustomer } from '~/services/customer-auth.server';
+import { SectionRenderer } from '~/components/store-sections/SectionRenderer';
 
 // ============================================================================
 // AGGRESSIVE CDN CACHING HEADERS
@@ -140,7 +141,8 @@ export const meta: MetaFunction = ({ data }) => {
     return [{ title }, { name: 'description', content: description }];
   }
 
-  return [{ title: loaderData.storeName || 'Store' }];
+  const name = (loaderData as any).storeName || 'Store';
+  return [{ title: name }];
 };
 
 // ============================================================================
@@ -224,26 +226,15 @@ interface StoreModeData {
   // Explicitly null for this mode
   featuredProduct: null;
   landingConfig: null;
+  unifiedLayout?: any[];
 }
 
 interface MarketingModeData {
   mode: 'marketing';
-}
-interface LeadGenModeData {
-  mode: 'lead_gen';
-  storeId: number;
   storeName: string;
-  themeId: string;
-  settings: LeadGenSettingsWithTheme;
-  customer: {
-    id: number;
-    name: string;
-    email: string;
-    imageUrl?: string | null;
-  } | null;
 }
 
-export type LoaderData = LandingModeData | StoreModeData | MarketingModeData | LeadGenModeData;
+export type LoaderData = LandingModeData | StoreModeData | MarketingModeData;
 
 // ============================================================================
 // HELPER: Database query with timeout
@@ -437,52 +428,9 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
   // Check if homepage should show a page (builder or grapes)
   const isPageHome = homeEntry.startsWith('page:');
 
-  // ========== LEAD GEN SITE (NEW) ==========
-  if (isLeadGenSite) {
-    try {
-      // Import lead gen modules
-      const { getLeadGenSettings } = await import('~/services/lead-gen-settings.server');
-
-      // Get theme ID from config
-      let themeId = 'professional-services';
-      if ((validatedStore as Store & { leadGenConfig?: string | null }).leadGenConfig) {
-        try {
-          const config = JSON.parse(
-            (validatedStore as Store & { leadGenConfig?: string | null }).leadGenConfig || '{}'
-          );
-          themeId = config.themeId || 'professional-services';
-        } catch (e) {
-          console.error('Failed to parse leadGenConfig:', e);
-        }
-      }
-
-      // Get lead gen settings
-      const leadGenSettings = await getLeadGenSettings(db, validatedStoreId, themeId);
-
-      // Get customer if logged in (for header state)
-      const customer = await getCustomer(request, cloudflare.env, cloudflare.env.DB);
-
-      // Return lead gen mode data
-      return json({
-        mode: 'lead_gen',
-        storeId: validatedStoreId,
-        storeName: validatedStore.name,
-        themeId,
-        settings: leadGenSettings,
-        customer: customer
-          ? {
-              id: customer.id,
-              name: customer.name ?? '',
-              email: customer.email ?? '',
-              imageUrl: undefined,
-            }
-          : null,
-      });
-    } catch (error) {
-      console.error('[LOADER] Lead gen mode error:', error);
-      // Fall through to store mode on error
-    }
-  }
+  // ========== LEAD GEN SITE (REMOVED) ==========
+  // Lead gen system has been removed. Stores configured for lead gen will render default storefront.
+  // Legacy leadGenConfig data remains in database but is no longer used.
 
   // ========== PAGE AS HOMEPAGE (Builder v2 or GrapesJS) ==========
   if (isPageHome) {
@@ -644,16 +592,18 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
       env: context.cloudflare.env,
     });
 
-    console.log(JSON.stringify({
-      level: 'debug',
-      event: 'storefront_loader_hero_config',
-      storeId: validatedStoreId,
-      templateId: unifiedSettings.theme?.templateId ?? 'unknown',
-      heroBannerSlideCount: unifiedSettings.heroBanner?.slides?.length ?? 0,
-      heroBannerMode: unifiedSettings.heroBanner?.mode ?? 'none',
-      hasFirstSlideImage: Boolean(unifiedSettings.heroBanner?.slides?.[0]?.imageUrl),
-      ts: Date.now(),
-    }));
+    console.log(
+      JSON.stringify({
+        level: 'debug',
+        event: 'storefront_loader_hero_config',
+        storeId: validatedStoreId,
+        templateId: unifiedSettings.theme?.templateId ?? 'unknown',
+        heroBannerSlideCount: unifiedSettings.heroBanner?.slides?.length ?? 0,
+        heroBannerMode: unifiedSettings.heroBanner?.mode ?? 'none',
+        hasFirstSlideImage: Boolean(unifiedSettings.heroBanner?.slides?.[0]?.imageUrl),
+        ts: Date.now(),
+      })
+    );
 
     // Homepage template must follow unified settings to stay consistent with other routes.
     const storeTemplateId = unifiedSettings.theme.templateId
@@ -680,8 +630,15 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
     // Parse footer config
     const footerConfig = parseFooterConfig(validatedStore.footerConfig as string | null);
 
+    // Fetch aggregate ratings for products
+    const productIds = storeProducts.map((p) => p.id);
+    const reviewStats = await getProductReviewStats(db, validatedStoreId, productIds);
+
     // Serialize products for template
-    const serializedProducts: SerializedProduct[] = storeProducts.map((p) => ({
+    const serializedProducts: SerializedProduct[] = addReviewStatsToProducts(
+      storeProducts,
+      reviewStats
+    ).map((p) => ({
       id: p.id,
       storeId: p.storeId,
       name: p.title,
@@ -693,6 +650,8 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
       images: p.images ? (typeof p.images === 'string' ? JSON.parse(p.images) : p.images) : [],
       inventory: p.inventory,
       category: p.category,
+      avgRating: p.avgRating,
+      reviewCount: p.reviewCount,
     }));
 
     const storeData: StoreModeData = {
@@ -739,6 +698,7 @@ export async function loader({ context, request }: LoaderFunctionArgs): Promise<
       // Explicitly null for store mode
       featuredProduct: null,
       landingConfig: null,
+      unifiedLayout: unifiedSettings.layout?.home || [],
     };
 
     return json(storeData);
@@ -829,28 +789,8 @@ export default function Index() {
   // RENDERING LOGIC - EARLY RETURNS BELOW HERE
   // ============================================================================
 
-  // ========== LEAD GEN MODE (NEW) ==========
-  if (data.mode === 'lead_gen') {
-    const LeadGenRenderer = lazy(() => import('~/components/lead-gen/LeadGenRenderer'));
-
-    return (
-      <Suspense
-        fallback={
-          <div className="min-h-screen flex items-center justify-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-          </div>
-        }
-      >
-        <LeadGenRenderer
-          themeId={data.themeId}
-          settings={data.settings}
-          storeId={data.storeId}
-          storeName={data.storeName}
-          customer={data.customer}
-        />
-      </Suspense>
-    );
-  }
+  // ========== LEAD GEN MODE (REMOVED) ==========
+  // Lead gen system has been removed. Stores in lead_gen mode will render default storefront.
 
   // ========== MARKETING MODE (REDIRECT TO LANDING) ==========
   if (data.mode === 'marketing') {
@@ -1131,7 +1071,8 @@ export default function Index() {
       heroMode: heroBanner?.mode || 'single',
       heroAutoplay: true,
       heroDelayMs: 4000,
-      heroOverlayOpacity: heroBanner?.overlayOpacity != null ? heroBanner.overlayOpacity / 100 : undefined,
+      heroOverlayOpacity:
+        heroBanner?.overlayOpacity != null ? heroBanner.overlayOpacity / 100 : undefined,
     };
 
     return (
@@ -1162,23 +1103,41 @@ export default function Index() {
               planType={data.planType}
               hideHeaderFooter={true}
             >
-              <TemplateComponent
-                storeName={data.storeName}
-                storeId={data.storeId}
-                logo={data.logo}
-                products={data.products}
-                categories={data.categories}
-                currentCategory={data.currentCategory}
-                config={themeConfig}
-                currency={data.currency}
-                socialLinks={data.socialLinks}
-                footerConfig={data.footerConfig}
-                businessInfo={data.businessInfo}
-                planType={data.planType}
-                isPreview={false}
-                aiCredits={data.aiCredits}
-                isCustomerAiEnabled={data.isCustomerAiEnabled}
-              />
+              {data.unifiedLayout && data.unifiedLayout.length > 0 ? (
+                <SectionRenderer
+                  sections={data.unifiedLayout}
+                  theme={data.theme}
+                  storeId={data.storeId}
+                  storeName={data.storeName}
+                  logo={data.logo || undefined}
+                  products={data.products}
+                  categories={data.categories}
+                  currentCategory={data.currentCategory || undefined}
+                  currency={data.currency}
+                  socialLinks={data.socialLinks}
+                  footerConfig={data.footerConfig}
+                  businessInfo={data.businessInfo}
+                  planType={data.planType}
+                />
+              ) : (
+                <TemplateComponent
+                  storeName={data.storeName}
+                  storeId={data.storeId}
+                  logo={data.logo}
+                  products={data.products}
+                  categories={data.categories}
+                  currentCategory={data.currentCategory}
+                  config={themeConfig}
+                  currency={data.currency}
+                  socialLinks={data.socialLinks}
+                  footerConfig={data.footerConfig}
+                  businessInfo={data.businessInfo}
+                  planType={data.planType}
+                  isPreview={false}
+                  aiCredits={data.aiCredits}
+                  isCustomerAiEnabled={data.isCustomerAiEnabled}
+                />
+              )}
             </StorePageWrapper>
           </>
         </WishlistProvider>

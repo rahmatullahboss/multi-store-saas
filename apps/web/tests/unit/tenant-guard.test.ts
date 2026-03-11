@@ -308,7 +308,7 @@ describe('assertWithinLimit', () => {
     expect(thrown).toBeInstanceOf(Response);
     expect((thrown as Response).status).toBe(429);
 
-    const body = await (thrown as Response).json();
+    const body = (await (thrown as Response).json()) as any;
     expect(body.code).toBe('PRODUCT_LIMIT_REACHED');
     expect(body.limit).toBe(50);
     expect(body.current).toBe(50);
