@@ -239,6 +239,7 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
         const id = Number(body.get('id'));
         await db.delete(schema.knowledgeSources).where(eq(schema.knowledgeSources.id, id));
         // TODO: Delete form Vectorize (Requires prefix deletion or storing vector IDs)
+        // [SKIPPED] Complex: requires external Vector DB operations
         // await deleteDocuments([...], env); 
         return json({ success: true });
     }

@@ -150,6 +150,7 @@ ordersApi.post('/', async (c) => {
   }
   
   // TODO: Calculate tax and shipping based on store settings
+  // [SKIPPED] Complex: requires fetching store settings and changing order calculation logic
   const tax = 0;
   const shipping = 0;
   const total = subtotal + tax + shipping;
