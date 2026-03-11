@@ -46,7 +46,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   
   let currentMode = 'ecommerce';
   if (homeEntry === 'lead_gen' || homeEntry.startsWith('page:')) {
-    currentMode = 'lead-gen';
+    currentMode = 'hybrid'; // Legacy lead_gen mode treated as hybrid
   }
   if (storeEnabled && leadGenEnabled) {
     currentMode = 'hybrid';
@@ -69,7 +69,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const mode = formData.get('mode') as string;
 
   // Server-side enum validation before any DB operation
-  const ALLOWED_MODES = ['ecommerce', 'lead-gen', 'hybrid'] as const;
+  const ALLOWED_MODES = ['ecommerce', 'hybrid'] as const;
   type BusinessMode = typeof ALLOWED_MODES[number];
   if (!ALLOWED_MODES.includes(mode as BusinessMode)) {
     return json({ success: false, error: 'Invalid mode' }, { status: 400 });
@@ -82,30 +82,15 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
     switch (mode as BusinessMode) {
       case 'ecommerce':
-        // Enable e-commerce, disable lead gen
+        // Enable e-commerce
         updateData.storeEnabled = true;
         updateData.homeEntry = 'store_home';
-        updateData.leadGenConfig = JSON.stringify({ enabled: false });
-        break;
-
-      case 'lead-gen':
-        // Disable e-commerce, enable lead gen
-        updateData.storeEnabled = false;
-        updateData.homeEntry = 'lead_gen';
-        updateData.leadGenConfig = JSON.stringify({ 
-          enabled: true, 
-          themeId: 'professional-services' 
-        });
         break;
 
       case 'hybrid':
-        // Enable both
+        // Enable both (legacy compatibility)
         updateData.storeEnabled = true;
         updateData.homeEntry = 'store_home';
-        updateData.leadGenConfig = JSON.stringify({ 
-          enabled: true, 
-          themeId: 'professional-services' 
-        });
         break;
     }
 
@@ -127,10 +112,10 @@ export async function action({ request, context }: ActionFunctionArgs) {
       console.error('Cache invalidation error:', cacheError);
     }
 
-    return json({ 
-      success: true, 
+    return json({
+      success: true,
       message: 'Business mode updated successfully',
-      redirect: mode === 'lead-gen' ? '/app/settings/lead-gen' : '/app/settings/homepage',
+      redirect: '/app/settings/homepage',
     });
 
   } catch (error) {
@@ -232,42 +217,6 @@ export default function BusinessModePage() {
               </div>
             </label>
 
-            {/* Lead Generation Mode */}
-            <label className="block cursor-pointer">
-              <input
-                type="radio"
-                name="mode"
-                value="lead-gen"
-                defaultChecked={currentMode === 'lead-gen'}
-                onChange={(e) => {
-                  if (e.target.checked) e.target.form?.requestSubmit();
-                }}
-                disabled={isSubmitting}
-                className="sr-only peer"
-              />
-              <div className="bg-white p-4 rounded-2xl border-2 border-gray-100 shadow-sm peer-checked:border-purple-500 peer-checked:bg-purple-50 transition-colors">
-                <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <Users className="w-5 h-5 text-purple-600" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between">
-                      <h3 className="font-semibold text-gray-900">Lead Generation</h3>
-                      {currentMode === 'lead-gen' && (
-                        <CheckCircle className="w-5 h-5 text-purple-600 flex-shrink-0" />
-                      )}
-                    </div>
-                    <p className="text-xs text-gray-600 mt-1">Capture leads with landing pages</p>
-                    <div className="flex flex-wrap gap-1.5 mt-2">
-                      <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full">Landing Pages</span>
-                      <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full">Forms</span>
-                      <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full">Leads</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </label>
-
             {/* Hybrid Mode */}
             <label className="block cursor-pointer">
               <input
@@ -309,7 +258,6 @@ export default function BusinessModePage() {
             <h4 className="font-medium text-blue-900 text-sm mb-2">What happens when you switch?</h4>
             <ul className="text-xs text-blue-800 space-y-1">
               <li>• <strong>E-commerce:</strong> Store homepage with products</li>
-              <li>• <strong>Lead Gen:</strong> Professional landing page</li>
               <li>• <strong>Hybrid:</strong> E-commerce + lead capture</li>
               <li>• Switch anytime without losing data</li>
             </ul>
@@ -321,7 +269,7 @@ export default function BusinessModePage() {
               <strong className="text-gray-900">Current Status:</strong>
               <div className="mt-2 space-y-1 text-xs">
                 <div>• Store Enabled: {storeEnabled ? '✅ Yes' : '❌ No'}</div>
-                <div>• Mode: {currentMode === 'ecommerce' ? '🛒 E-commerce' : currentMode === 'lead-gen' ? '📋 Lead Gen' : '🔄 Hybrid'}</div>
+                <div>• Mode: {currentMode === 'ecommerce' ? '🛒 E-commerce' : '🔄 Hybrid'}</div>
               </div>
             </div>
           </div>
@@ -408,55 +356,6 @@ export default function BusinessModePage() {
             </div>
           </label>
 
-          {/* Lead Generation Mode */}
-          <label className="block cursor-pointer">
-            <input
-              type="radio"
-              name="mode"
-              value="lead-gen"
-              defaultChecked={currentMode === 'lead-gen'}
-              onChange={(e) => {
-                if (e.target.checked) {
-                  e.target.form?.requestSubmit();
-                }
-              }}
-              disabled={isSubmitting}
-              className="sr-only peer"
-            />
-            <div className="bg-white p-6 rounded-lg border-2 peer-checked:border-purple-500 peer-checked:bg-purple-50 hover:border-gray-400 transition-colors">
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <Users className="w-6 h-6 text-purple-600" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold text-lg text-gray-900 mb-2">
-                    Lead Generation Website
-                  </h3>
-                  <p className="text-gray-600 mb-3">
-                    Capture leads with professional landing pages and contact forms
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">
-                      Landing Pages
-                    </span>
-                    <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">
-                      Contact Forms
-                    </span>
-                    <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">
-                      Lead Dashboard
-                    </span>
-                    <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">
-                      Email Alerts
-                    </span>
-                  </div>
-                </div>
-                {currentMode === 'lead-gen' && (
-                  <CheckCircle className="w-6 h-6 text-purple-600 flex-shrink-0" />
-                )}
-              </div>
-            </div>
-          </label>
-
           {/* Hybrid Mode */}
           <label className="block cursor-pointer">
             <input
@@ -489,9 +388,6 @@ export default function BusinessModePage() {
                       All E-commerce Features
                     </span>
                     <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">
-                      All Lead Gen Features
-                    </span>
-                    <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">
                       Maximum Flexibility
                     </span>
                   </div>
@@ -509,7 +405,6 @@ export default function BusinessModePage() {
           <h4 className="font-medium text-blue-900 mb-2">What happens when you switch?</h4>
           <ul className="text-sm text-blue-800 space-y-1">
             <li>• <strong>E-commerce:</strong> Your store homepage with products will be shown</li>
-            <li>• <strong>Lead Gen:</strong> A professional landing page with contact form will be shown</li>
             <li>• <strong>Hybrid:</strong> E-commerce homepage shown, but lead capture also available</li>
             <li>• You can switch modes anytime without losing data</li>
           </ul>
@@ -521,7 +416,7 @@ export default function BusinessModePage() {
             <strong>Current Status:</strong>
             <div className="mt-2 space-y-1">
               <div>• Store Enabled: {storeEnabled ? '✅ Yes' : '❌ No'}</div>
-              <div>• Mode: {currentMode === 'ecommerce' ? '🛒 E-commerce' : currentMode === 'lead-gen' ? '📋 Lead Generation' : '🔄 Hybrid'}</div>
+              <div>• Mode: {currentMode === 'ecommerce' ? '🛒 E-commerce' : '🔄 Hybrid'}</div>
             </div>
           </div>
         </div>

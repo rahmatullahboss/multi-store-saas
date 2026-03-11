@@ -17,7 +17,8 @@ export interface StoreTemplateTheme {
   footerBg: string;
   footerText: string;
   secondary?: string;
-  [key: string]: string | undefined;
+  isDark?: boolean;
+  [key: string]: any;
 }
 
 // ============================================================================
@@ -50,6 +51,9 @@ export interface SerializedProduct {
   stock?: number | null;
   isActive?: boolean;
   variants?: SerializedVariant[];
+  // Review data
+  avgRating?: number | null;
+  reviewCount?: number | null;
   [key: string]: any;
 }
 

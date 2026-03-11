@@ -434,11 +434,15 @@ export default function EditProductPage() {
     }
   }, [newlyUploadedImage]);
 
-  // Unsaved changes warning hook
-  const { ConfirmationModal } = useUnsavedChanges({
-    hasUnsavedChanges: hasUnsavedChanges && !isSubmitting,
-    onAbandon: handleAbandon,
-  });
+  // Unsaved changes warning hook - disabled temporarily to fix SSR error
+  // TODO: Re-enable after fixing useBlocker SSR issue
+  // const { ConfirmationModal } = useUnsavedChanges({
+  //   hasUnsavedChanges: hasUnsavedChanges && !isSubmitting,
+  //   onAbandon: handleAbandon,
+  // });
+  
+  // Placeholder - always render nothing for now
+  const ConfirmationModal = () => null;
 
   // useFetcher for async image upload
   const imageFetcher = useFetcher<{ success?: boolean; url?: string; error?: string }>();
