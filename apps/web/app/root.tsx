@@ -17,7 +17,7 @@ import { GeneralError } from '~/components/GeneralError';
 import { LanguageProvider } from '~/contexts/LanguageContext';
 import i18nextServer from '~/services/i18n.server';
 import { useChangeLanguage } from 'remix-i18next/react';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
 export const links: LinksFunction = () => [
   { rel: 'preload', href: tailwindStyles, as: 'style' },
@@ -35,8 +35,7 @@ export const links: LinksFunction = () => [
   { rel: 'dns-prefetch', href: 'https://connect.facebook.net' },
   { rel: 'preconnect', href: 'https://connect.facebook.net', crossOrigin: 'anonymous' },
   { rel: 'manifest', href: '/manifest.webmanifest' },
-  // WebMCP Script
-  { rel: 'module', href: 'https://esm.sh/@jason.today/webmcp@latest' },
+
 ];
 
 /**
@@ -138,160 +137,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   const { store, ENV, locale, masterPixelId } = useLoaderData<typeof loader>();
-  const [webMcpLoaded, setWebMcpLoaded] = useState(false);
 
   // This hook tells remix-i18next to change the language when the locale changes
   // It syncs the client-side i18next instance with the server-detected locale
   useChangeLanguage(locale);
-
-  // Initialize WebMCP
-  useEffect(() => {
-    const initWebMCP = async () => {
-      try {
-        // @ts-expect-error - External CDN module
-        const WebMCP = (await import('https://esm.sh/@jason.today/webmcp@latest')).default;
-
-        const mcp = new WebMCP({
-          color: '#4F46E5', // Ozzyl brand color
-          position: 'bottom-right',
-          size: '48px',
-          padding: '12px',
-        });
-
-        // Register e-commerce tools
-        mcp.registerTool('getStoreInfo', 'Get current store information', {}, function () {
-          return {
-            content: [
-              {
-                type: 'text',
-                text: JSON.stringify(
-                  {
-                    name: store.name,
-                    id: store.id,
-                    currency: store.currency,
-                    theme: store.theme,
-                  },
-                  null,
-                  2
-                ),
-              },
-            ],
-          };
-        });
-
-        mcp.registerTool(
-          'getAnalyticsSummary',
-          'Get store analytics summary (orders, revenue, customers)',
-          {},
-          function () {
-            return {
-              content: [
-                {
-                  type: 'text',
-                  text: `📊 Analytics Summary for ${store.name}
-
-• Store ID: ${store.id}
-• Currency: ${store.currency}
-• Theme: ${store.theme}
-
-🔗 Connected Services:
-• Google Analytics: ${store.googleAnalyticsId ? 'Yes' : 'No'}
-• Facebook Pixel: ${store.facebookPixelId ? 'Yes' : 'No'}`,
-                },
-              ],
-            };
-          }
-        );
-
-        mcp.registerTool(
-          'getQuickActions',
-          'Get available quick actions for store management',
-          {},
-          function () {
-            return {
-              content: [
-                {
-                  type: 'text',
-                  text: `⚡ Quick Actions for ${store.name}:
-
-1. 📦 Products - Add/Edit products
-2. 🛒 Orders - View & manage orders  
-3. 👥 Customers - Customer management
-4. 🎨 Themes - Customize store appearance
-5. 📱 Settings - Store configuration
-
-Navigate to /app to access the admin dashboard.`,
-                },
-              ],
-            };
-          }
-        );
-
-        mcp.registerTool(
-          'searchProducts',
-          'Search products in the store',
-          {
-            query: { type: 'string', description: 'Search query for products' },
-          },
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          function (args: any) {
-            // This is a demo - in real implementation would call API
-            return {
-              content: [
-                {
-                  type: 'text',
-                  text: `🔍 Search results for "${args.query}":
-
-Demo mode: Product search would return results from your store.
-
-To search products:
-1. Go to /app/products
-2. Use the search bar
-3. Filter by category, price, status`,
-                },
-              ],
-            };
-          }
-        );
-
-        mcp.registerTool(
-          'getOrderStatus',
-          'Get status of recent orders',
-          {
-            limit: { type: 'number', description: 'Number of orders to show (default 5)' },
-          },
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          function (args: any) {
-            const limit = args.limit || 5;
-            return {
-              content: [
-                {
-                  type: 'text',
-                  text: `📦 Recent Orders (last ${limit}):
-
-Demo mode: Recent orders would appear here.
-
-To view orders:
-1. Go to /app/orders
-2. View order details
-3. Update fulfillment status
-
-Order statuses: Pending → Processing → Shipped → Delivered`,
-                },
-              ],
-            };
-          }
-        );
-
-        setWebMcpLoaded(true);
-        console.log('✅ WebMCP initialized for', store.name);
-      } catch (error) {
-        console.error('❌ WebMCP failed to load:', error);
-      }
-    };
-
-    initWebMCP();
-  }, [store]);
 
   // Inject analytics scripts client-side to avoid hydration mismatches
   // These are dynamic and should not be server-rendered

@@ -282,10 +282,9 @@ export default function UpsellPage() {
                 <div>
                   <h2 className="text-2xl font-bold mb-2">{product.title}</h2>
                   {product.description && (
-                  <div 
-                    className="text-white/70"
-                    dangerouslySetInnerHTML={{ __html: product.description }} 
-                  />
+                  <p className="text-white/70">
+                    {product.description.replace(/<[^>]*>/g, '')}
+                  </p>
                 )}
                 </div>
 

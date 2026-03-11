@@ -24,7 +24,7 @@ import { type ThemeConfig } from '@db/types';
 import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
 import { getStoreTemplate, getStoreTemplateTheme } from '~/templates/store-registry';
 import { ShoppingBag, Filter, ChevronRight, Grid, List } from 'lucide-react';
-import { Suspense, useMemo, useState } from 'react';
+import { Suspense, useState } from 'react';
 import { getCustomer } from '~/services/customer-auth.server';
 import { parsePriceRange } from '~/utils/price';
 import { getUnifiedStorefrontSettings } from '~/services/unified-storefront-settings.server';
@@ -77,7 +77,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   }
 
   const { storeId, store } = storeContext;
-  const db = useMemo(() => createDb(context.cloudflare.env.DB), []);
+  const db = createDb(context.cloudflare.env.DB);
 
   // Use unified settings as single source of truth
   const unifiedSettings = await getUnifiedStorefrontSettings(db, storeId, {
@@ -267,7 +267,7 @@ export default function ProductsIndex() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
   // Resolve the active store template
-  const template = useMemo(() => getStoreTemplate(storeTemplateId), [storeTemplateId]);
+  const template = getStoreTemplate(storeTemplateId);
   const TemplateCollectionPage = template.CollectionPage;
 
   const isDarkTheme = storeTemplateId === 'modern-premium' || storeTemplateId === 'tech-modern';
@@ -781,13 +781,9 @@ function ProductListItem({
           {product.title}
         </h3>
         {product.description && (
-          <div
-            className={`text-sm ${textMuted} mt-1 line-clamp-2`}
-            dangerouslySetInnerHTML={{
-              __html:
-                product.description.slice(0, 100) + (product.description.length > 100 ? '...' : ''),
-            }}
-          />
+          <p className={`text-sm ${textMuted} mt-1 line-clamp-2`}>
+            {product.description.replace(/<[^>]*>/g, '').slice(0, 100)}{product.description.length > 100 ? '...' : ''}
+          </p>
         )}
         <div className="mt-2 flex items-center gap-2">
           <span className={`font-bold ${textPrimary}`} style={{ color: theme.primary }}>

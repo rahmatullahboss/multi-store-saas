@@ -244,10 +244,9 @@ function FallbackProductPage({
               {formatPrice(product.price)}
             </p>
             {product.description && (
-              <div 
-                className="text-gray-600"
-                dangerouslySetInnerHTML={{ __html: product.description }} 
-              />
+              <p className="text-gray-600">
+                {product.description.replace(/<[^>]*>/g, '')}
+              </p>
             )}
             <div className="flex gap-3 pt-4">
               <button
