@@ -29,6 +29,7 @@ import { AddToCartButton } from '~/components/AddToCartButton';
 import { GhorerBazarPageWrapper, GHORER_BAZAR_THEME } from './GhorerBazarPageWrapper';
 import type { SocialLinks } from '@db/types';
 import { formatPrice } from '~/lib/formatting';
+import { sanitizeHtml } from '~/utils/sanitize';
 
 interface Product {
   id: number;
@@ -280,7 +281,7 @@ export function GhorerBazarProductDetail({
               <div className="px-6 pb-6">
                 <div
                   className="prose prose-sm max-w-none text-gray-600"
-                  dangerouslySetInnerHTML={{ __html: product.description }}
+                  dangerouslySetInnerHTML={{ __html: sanitizeHtml(product.description || '') }}
                 />
               </div>
             )}
