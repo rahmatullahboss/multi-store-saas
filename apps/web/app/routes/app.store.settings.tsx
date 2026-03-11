@@ -30,8 +30,6 @@ import {
   type StoreTemplateDefinition,
 } from '~/templates/store-registry';
 import { KVCache, CACHE_KEYS } from '~/services/kv-cache.server';
-import { D1Cache } from '~/services/cache-layer.server';
-import { invalidateStoreConfig as invalidateStoreConfigD1 } from '~/services/store-config.server';
 import { createDb } from '~/lib/db.server';
 
 import { compressImage, getOptimalFormat } from '~/lib/imageCompression';
@@ -286,7 +284,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
           : Promise.resolve(),
       ]);
     }
-    await invalidateStoreConfigD1(new D1Cache(createDb(context.cloudflare.env.DB)), storeId);
+
+    // Note: KV cache already invalidated above
+    // Settings are saved via saveUnifiedStorefrontSettings in individual intent handlers
 
     return json({ success: true, intent });
   } catch (error) {

@@ -12,7 +12,11 @@ import { WishlistProvider } from '~/contexts/WishlistContext';
 import { ClientOnly } from 'remix-utils/client-only';
 import { SkeletonLoader } from '~/components/SkeletonLoader';
 import { FloatingContactButtons } from '~/components/FloatingContactButtons';
-import { buildProxyImageUrl, generateProxySrcset, optimizeUnsplashUrl } from '~/utils/imageOptimization';
+import {
+  buildProxyImageUrl,
+  generateProxySrcset,
+  optimizeUnsplashUrl,
+} from '~/utils/imageOptimization';
 import { getHeroBehavior } from '~/lib/hero-slides';
 
 import { NOVALUX_THEME } from './theme';
@@ -62,7 +66,10 @@ function dedupeSectionsByType(sections: SectionInstance[]) {
 // NOVALUX PRODUCT CARD COMPONENT (Live)
 // ============================================================================
 interface NovaLuxProductCardProps {
-  product: NonNullable<StoreTemplateProps['products']>[0];
+  product: NonNullable<StoreTemplateProps['products']>[0] & {
+    avgRating?: number | null;
+    reviewCount?: number | null;
+  };
   storeId: number;
   formatPrice: (price: number) => string;
   isPreview?: boolean;
@@ -201,19 +208,27 @@ export function NovaLuxProductCard({
         </Link>
 
         <div className="flex items-center gap-1 mb-3">
-          {[...Array(5)].map((_, i) => (
-            <Star
-              key={i}
-              className="w-3.5 h-3.5"
-              style={{
-                color: THEME.accent,
-                fill: i < 4 ? THEME.accent : 'none',
-              }}
-            />
-          ))}
-          <span className="text-xs ml-1" style={{ color: THEME.muted }}>
-            (24)
-          </span>
+          {product.reviewCount && product.reviewCount > 0 ? (
+            <>
+              {[...Array(5)].map((_, i) => (
+                <Star
+                  key={i}
+                  className="w-3.5 h-3.5"
+                  style={{
+                    color: THEME.accent,
+                    fill: i < Math.round(product.avgRating || 0) ? THEME.accent : 'none',
+                  }}
+                />
+              ))}
+              <span className="text-xs ml-1" style={{ color: THEME.muted }}>
+                ({product.reviewCount})
+              </span>
+            </>
+          ) : (
+            <span className="text-xs" style={{ color: THEME.muted }}>
+              No reviews yet
+            </span>
+          )}
         </div>
 
         <div className="flex items-center justify-between">
@@ -263,7 +278,8 @@ export function LiveNovaLuxHomepage({
   const [heroIndex, setHeroIndex] = useState(0);
 
   useEffect(() => {
-    if (!heroBehavior.isCarousel || !heroBehavior.autoplay || heroBehavior.slides.length < 2) return;
+    if (!heroBehavior.isCarousel || !heroBehavior.autoplay || heroBehavior.slides.length < 2)
+      return;
     const timer = setInterval(() => {
       setHeroIndex((prev) => (prev + 1) % heroBehavior.slides.length);
     }, heroBehavior.delayMs);
@@ -386,10 +402,7 @@ export function LiveNovaLuxHomepage({
                 ].includes(section.type);
 
                 return (
-                  <div
-                    key={section.id}
-                    className={isHeroSection ? 'relative overflow-hidden' : ''}
-                  >
+                  <div key={section.id} className={isHeroSection ? 'relative overflow-hidden' : ''}>
                     {/* Crossfade background layers for carousel hero sections */}
                     {isHeroSection && heroBehavior.isCarousel && heroBehavior.slides.length > 1 && (
                       <>
@@ -398,9 +411,22 @@ export function LiveNovaLuxHomepage({
                             key={slideIdx}
                             className="absolute inset-0 bg-cover bg-center pointer-events-none"
                             style={{
-                              backgroundImage: slide.imageUrl ? `url(${slide.imageUrl.includes('unsplash.com')
-                                ? optimizeUnsplashUrl(slide.imageUrl, { width: 1600, height: 900, quality: 80, format: 'webp' })
-                                : buildProxyImageUrl(slide.imageUrl, { width: 1600, height: 900, quality: 78 })})` : 'none',
+                              backgroundImage: slide.imageUrl
+                                ? `url(${
+                                    slide.imageUrl.includes('unsplash.com')
+                                      ? optimizeUnsplashUrl(slide.imageUrl, {
+                                          width: 1600,
+                                          height: 900,
+                                          quality: 80,
+                                          format: 'webp',
+                                        })
+                                      : buildProxyImageUrl(slide.imageUrl, {
+                                          width: 1600,
+                                          height: 900,
+                                          quality: 78,
+                                        })
+                                  })`
+                                : 'none',
                               opacity: slideIdx === heroIndex ? 1 : 0,
                               transition: 'opacity 1s ease-in-out',
                               zIndex: 0,
@@ -408,7 +434,10 @@ export function LiveNovaLuxHomepage({
                           />
                         ))}
                         {/* Dot indicators */}
-                        <div className="absolute bottom-6 left-0 right-0 flex justify-center gap-2" style={{ zIndex: 10 }}>
+                        <div
+                          className="absolute bottom-6 left-0 right-0 flex justify-center gap-2"
+                          style={{ zIndex: 10 }}
+                        >
                           {heroBehavior.slides.map((_, dotIdx) => (
                             <button
                               key={dotIdx}
@@ -418,7 +447,8 @@ export function LiveNovaLuxHomepage({
                               style={{
                                 width: dotIdx === heroIndex ? '24px' : '8px',
                                 height: '8px',
-                                backgroundColor: dotIdx === heroIndex ? '#C4A35A' : 'rgba(255,255,255,0.5)',
+                                backgroundColor:
+                                  dotIdx === heroIndex ? '#C4A35A' : 'rgba(255,255,255,0.5)',
                               }}
                             />
                           ))}
@@ -478,20 +508,28 @@ export function LiveNovaLuxHomepage({
               <NovaLuxFooter
                 storeName={storeName ?? ''}
                 logo={logo}
-                socialLinks={socialLinks ? {
-                  facebook: socialLinks.facebook ?? undefined,
-                  instagram: socialLinks.instagram ?? undefined,
-                  whatsapp: socialLinks.whatsapp ?? undefined,
-                  twitter: socialLinks.twitter ?? undefined,
-                  youtube: socialLinks.youtube ?? undefined,
-                  linkedin: socialLinks.linkedin ?? undefined,
-                } : undefined}
+                socialLinks={
+                  socialLinks
+                    ? {
+                        facebook: socialLinks.facebook ?? undefined,
+                        instagram: socialLinks.instagram ?? undefined,
+                        whatsapp: socialLinks.whatsapp ?? undefined,
+                        twitter: socialLinks.twitter ?? undefined,
+                        youtube: socialLinks.youtube ?? undefined,
+                        linkedin: socialLinks.linkedin ?? undefined,
+                      }
+                    : undefined
+                }
                 footerConfig={footerConfig}
-                businessInfo={businessInfo ? {
-                  phone: businessInfo.phone ?? undefined,
-                  email: businessInfo.email ?? undefined,
-                  address: businessInfo.address ?? undefined,
-                } : undefined}
+                businessInfo={
+                  businessInfo
+                    ? {
+                        phone: businessInfo.phone ?? undefined,
+                        email: businessInfo.email ?? undefined,
+                        address: businessInfo.address ?? undefined,
+                      }
+                    : undefined
+                }
                 categories={validCategories}
                 showNewsletter={false}
               />

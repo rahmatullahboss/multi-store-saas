@@ -5,17 +5,18 @@
  * POST /api/cart - Add item to cart
  * PUT /api/cart - Update item quantity
  * DELETE /api/cart - Remove item from cart
- * 
+ *
  * Uses Durable Objects for:
  * - Race-condition free cart operations
  * - Multi-tab synchronization
  * - Real-time state management
- * 
+ *
  * Falls back to D1 for persistence when customer is authenticated.
  */
 
 import { json, type ActionFunctionArgs, type LoaderFunctionArgs } from '@remix-run/cloudflare';
 import { z } from 'zod';
+import { generateUUID } from '~/lib/uuid';
 import {
   getOrCreateCart,
   getCartWithItems,
@@ -829,7 +830,7 @@ function getVisitorId(request: Request): string {
   }
 
   // Generate new visitor ID
-  return crypto.randomUUID();
+  return generateUUID();
 }
 
 

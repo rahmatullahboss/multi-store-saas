@@ -11,9 +11,14 @@ import type { PLSummary } from '~/services/pl-report.server';
 import { Link } from '@remix-run/react';
 import { TrendingUp, TrendingDown, Minus, AlertTriangle, ExternalLink } from 'lucide-react';
 
+// Custom type to handle Remix date-to-string serialization
+type JsonifyObject<T> = {
+  [P in keyof T]: T[P] extends Date ? string : T[P] extends object ? JsonifyObject<T[P]> : T[P];
+};
+
 interface PLSummaryCardsProps {
-  summary: PLSummary;
-  previousSummary?: PLSummary | null;
+  summary: JsonifyObject<PLSummary>;
+  previousSummary?: JsonifyObject<PLSummary> | null;
   showIncompleteWarning?: boolean;
   productsWithNoCost?: number;
   compact?: boolean; // For dashboard (fewer details)

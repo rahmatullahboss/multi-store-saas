@@ -243,7 +243,11 @@ function FallbackProductPage({
             <p className="text-3xl font-bold" style={{ color: theme.primary }}>
               {formatPrice(product.price)}
             </p>
-            {product.description && <p className="text-gray-600">{product.description}</p>}
+            {product.description && (
+              <p className="text-gray-600">
+                {product.description.replace(/<[^>]*>/g, '')}
+              </p>
+            )}
             <div className="flex gap-3 pt-4">
               <button
                 className="flex-1 py-3 rounded-lg font-medium text-white"
