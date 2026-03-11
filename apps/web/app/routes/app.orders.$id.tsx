@@ -18,8 +18,8 @@ import { drizzle } from 'drizzle-orm/d1';
 import { eq, and, desc, sql } from 'drizzle-orm';
 import { orders, orderItems, products, productVariants, stores, activityLogs, users } from '@db/schema';
 import { getStoreId, getUserId } from '~/services/auth.server';
-import { ArrowLeft, Package, User, Phone, MapPin, Loader2, CheckCircle, Printer, Truck, ExternalLink, Send, Download } from 'lucide-react';
-import { useState } from 'react';
+import { ArrowLeft, Package, User, Phone, MapPin, Loader2, CheckCircle, Printer, Truck, ExternalLink, Send, Download, Copy, Check } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { RiskBadge } from '~/components/RiskBadge';
 import { TrackingTimeline } from '~/components/TrackingTimeline';
 import { OrderTimeline } from '~/components/OrderTimeline';
@@ -578,6 +578,20 @@ export default function OrderDetailPage() {
   const navigation = useNavigation();
   const isUpdating = navigation.state === 'submitting';
   const [isTrackingOpen, setIsTrackingOpen] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
+
+  useEffect(() => {
+    if (isCopied) {
+      const timeout = setTimeout(() => setIsCopied(false), 2000);
+      return () => clearTimeout(timeout);
+    }
+  }, [isCopied]);
+
+  const handleCopyTrackingLink = () => {
+    const link = `${window.location.origin}/track/${order.orderNumber}`;
+    navigator.clipboard.writeText(link);
+    setIsCopied(true);
+  };
   const steadfastFetcher = useFetcher();
   const isBooking = steadfastFetcher.state === 'submitting';
 
@@ -672,6 +686,13 @@ export default function OrderDetailPage() {
                 <Download className="w-4 h-4" />
                 {t('downloadPdf')}
               </a>
+              <button
+                onClick={handleCopyTrackingLink}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+              >
+                {isCopied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                {isCopied ? 'Copied!' : 'Copy Tracking Link'}
+              </button>
               <button
                 onClick={handlePrint}
                 className="inline-flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition"
