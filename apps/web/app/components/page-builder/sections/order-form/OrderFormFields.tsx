@@ -3,7 +3,7 @@
  * Reusable form field components for all variants
  */
 
-import { Truck, Package, Loader2, ArrowRight, ShieldCheck, CheckCircle } from 'lucide-react';
+import { Truck, Package, Loader2, ArrowRight, ShieldCheck, CheckCircle, Tag, X } from 'lucide-react';
 import { SearchableSelect } from '~/components/SearchableSelect';
 import { DISTRICTS } from '~/data/bd-locations';
 import type { OrderFormState, OrderFormActions, OrderFormCalculations } from './useOrderForm';
@@ -98,12 +98,34 @@ export function OrderFormFields({
   const { 
     subtotal, 
     deliveryCharge, 
-    total, 
     calculatedShippingZone,
     availableUpazilas,
     formatPrice,
     validateBDPhone,
   } = calculations;
+
+  // Calculate the effective subtotal after combo discounts (if any)
+  const effectiveSubtotal = comboSummary?.discountedSubtotal ?? subtotal;
+
+  // Calculate dynamic coupon discount based on the rule and effective subtotal
+  let dynamicCouponDiscount = 0;
+  if (state.couponRule) {
+    if (state.couponRule.minOrderAmount && effectiveSubtotal < state.couponRule.minOrderAmount) {
+      dynamicCouponDiscount = 0; // Does not meet minimum order amount
+    } else if (state.couponRule.type === 'percentage') {
+      dynamicCouponDiscount = effectiveSubtotal * (state.couponRule.value / 100);
+      if (state.couponRule.maxDiscountAmount && dynamicCouponDiscount > state.couponRule.maxDiscountAmount) {
+        dynamicCouponDiscount = state.couponRule.maxDiscountAmount;
+      }
+    } else {
+      dynamicCouponDiscount = state.couponRule.value;
+    }
+    // Cap discount to effective subtotal
+    dynamicCouponDiscount = Math.min(dynamicCouponDiscount, effectiveSubtotal);
+  } else if (state.couponDiscount > 0) {
+    // Fallback if rule not fully loaded but we have an initial discount
+    dynamicCouponDiscount = Math.min(state.couponDiscount, effectiveSubtotal);
+  }
   
   // Success state
   if (state.orderSuccess) {
@@ -162,6 +184,9 @@ export function OrderFormFields({
         <input type="hidden" name="upazila" value={state.selectedUpazilaId} />
         {state.selectedVariant?.id && (
           <input type="hidden" name="variant_id" value={state.selectedVariant.id} />
+        )}
+        {state.appliedCouponCode && (
+          <input type="hidden" name="discount_code" value={state.appliedCouponCode} />
         )}
         {/* Honeypot (offscreen, not display:none) */}
         <div className="sr-only" aria-hidden="true">
@@ -438,6 +463,67 @@ export function OrderFormFields({
           </div>
         )}
         
+        {/* Coupon Code Section */}
+        {storeId && (
+          <div className="mb-4">
+            <label className="block text-sm font-medium mb-1.5" style={{ color: mutedColor }}>
+              ডিসকাউন্ট কুপন (থাকলে)
+            </label>
+            <div className="flex items-start gap-2">
+              <div className="relative flex-1">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Tag size={16} className="text-gray-400" />
+                </div>
+                <input
+                  type="text"
+                  value={state.couponCode}
+                  onChange={(e) => actions.setCouponCode(e.target.value)}
+                  placeholder="কুপন কোড লিখুন"
+                  disabled={!!state.appliedCouponCode || state.isApplyingCoupon || fetcher.state !== 'idle'}
+                  className="w-full pl-10 pr-4 py-3 rounded-xl font-medium outline-none uppercase transition-all focus:ring-2 disabled:bg-opacity-50"
+                  style={{
+                    backgroundColor: inputBg,
+                    border: `2px solid ${state.appliedCouponCode ? '#10B981' : state.couponError ? '#EF4444' : inputBorder}`,
+                    color: state.appliedCouponCode ? '#10B981' : inputText,
+                  }}
+                />
+                {state.appliedCouponCode && (
+                  <button
+                    type="button"
+                    onClick={actions.removeCoupon}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-red-500"
+                  >
+                    <X size={16} />
+                  </button>
+                )}
+              </div>
+              {!state.appliedCouponCode && (
+                <button
+                  type="button"
+                  onClick={() => actions.applyCoupon(storeId, effectiveSubtotal)}
+                  disabled={!state.couponCode || state.isApplyingCoupon || fetcher.state !== 'idle'}
+                  className="px-5 py-3 rounded-xl font-bold transition-all disabled:opacity-50"
+                  style={{
+                    backgroundColor: primaryColor,
+                    color: '#FFFFFF',
+                    border: `2px solid ${primaryColor}`,
+                  }}
+                >
+                  {state.isApplyingCoupon ? <Loader2 size={18} className="animate-spin" /> : 'এপ্লাই'}
+                </button>
+              )}
+            </div>
+
+            {/* Coupon Status Messages */}
+            {state.couponError && (
+              <p className="mt-1.5 text-xs text-red-500 font-medium">{state.couponError}</p>
+            )}
+            {state.couponSuccess && (
+              <p className="mt-1.5 text-xs text-green-600 font-medium">{state.couponSuccess}</p>
+            )}
+          </div>
+        )}
+
         {/* Order Summary Preview */}
         <div 
           className="p-4 rounded-xl space-y-3"
@@ -490,7 +576,7 @@ export function OrderFormFields({
             <div className="flex justify-between text-sm">
               <span style={{ color: mutedColor }}>{subtotalLabel}</span>
               <span className="font-semibold" style={{ color: textColor }}>
-                {formatPrice(comboSummary?.discountedSubtotal ?? subtotal)}
+                {formatPrice(subtotal)}
               </span>
             </div>
             {comboSummary && comboSummary.savings > 0 && (
@@ -510,13 +596,20 @@ export function OrderFormFields({
             </div>
             
             {/* Free shipping indicator - using configurable threshold */}
-            {props.showFreeShippingProgress !== false && props.freeShippingThreshold && subtotal >= props.freeShippingThreshold && (
+            {props.showFreeShippingProgress !== false && props.freeShippingThreshold && effectiveSubtotal >= props.freeShippingThreshold && (
               <div className="flex justify-between text-sm">
                 <span className="text-green-600">🎁 ফ্রি ডেলিভারি ছাড়</span>
                 <span className="text-green-600 font-semibold">-{formatPrice(deliveryCharge)}</span>
               </div>
             )}
             
+            {dynamicCouponDiscount > 0 && (
+              <div className="flex justify-between text-sm">
+                <span className="text-green-600">🏷️ কুপন ছাড় ({state.appliedCouponCode})</span>
+                <span className="text-green-600 font-semibold">-{formatPrice(dynamicCouponDiscount)}</span>
+              </div>
+            )}
+
             <div 
               className="flex justify-between pt-2 border-t"
               style={{ borderColor: cardBorder }}
@@ -526,7 +619,10 @@ export function OrderFormFields({
                 className="font-bold text-xl"
                 style={{ color: primaryColor }}
               >
-                {formatPrice(props.showFreeShippingProgress !== false && props.freeShippingThreshold && subtotal >= props.freeShippingThreshold ? (comboSummary?.discountedSubtotal ?? subtotal) : (comboSummary?.discountedSubtotal ? comboSummary.discountedSubtotal + deliveryCharge : total))}
+                {(() => {
+                  let finalShipping = (props.showFreeShippingProgress !== false && props.freeShippingThreshold && effectiveSubtotal >= props.freeShippingThreshold) ? 0 : deliveryCharge;
+                  return formatPrice(effectiveSubtotal - Math.round(dynamicCouponDiscount) + finalShipping);
+                })()}
               </span>
             </div>
           </div>

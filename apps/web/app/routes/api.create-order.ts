@@ -63,6 +63,7 @@ export const OrderSchema = z.object({
   payment_method: z.string().default('cod'), // 'cod', 'bkash', 'nagad'
   transaction_id: z.string().optional(),
   variant_id: z.number().int().optional(), // Product variant ID
+  discount_code: z.string().optional(), // Coupon Code
   manual_payment_details: z.object({
     senderNumber: z.string().optional(),
     method: z.string().optional(),
@@ -591,8 +592,48 @@ export async function action({ request, context }: ActionFunctionArgs) {
     }
     
     // Apply combo discount to subtotal
-    const discountedSubtotal = subtotal - comboDiscountAmount;
+    let discountedSubtotal = subtotal - comboDiscountAmount;
 
+    // ============================================================================
+    // COUPON DISCOUNT VALIDATION & CALCULATION
+    // ============================================================================
+    let couponDiscountAmount = 0;
+    let appliedDiscountId: number | undefined;
+
+    if (input.discount_code) {
+      // TODO: Fetch from `discounts` table when available
+      /*
+      const discountResult = await db.select().from(discounts).where(...).limit(1);
+      ...
+      */
+
+      // MOCK VALIDATION LOGIC matching `api.validate-coupon.ts`
+      let discount = null;
+      const normalizedCode = input.discount_code.toUpperCase().trim();
+      if (normalizedCode === 'SAVE20') {
+        discount = { id: 1, type: 'percentage', value: 20, minOrderAmount: 1000, maxDiscountAmount: 500 };
+      } else if (normalizedCode === 'FLAT100') {
+        discount = { id: 2, type: 'fixed', value: 100, minOrderAmount: 500, maxDiscountAmount: null };
+      }
+
+      if (discount && (!discount.minOrderAmount || discountedSubtotal >= discount.minOrderAmount)) {
+        appliedDiscountId = discount.id;
+        if (discount.type === 'percentage') {
+          couponDiscountAmount = discountedSubtotal * (discount.value / 100);
+          if (discount.maxDiscountAmount && couponDiscountAmount > discount.maxDiscountAmount) {
+            couponDiscountAmount = discount.maxDiscountAmount;
+          }
+        } else {
+          couponDiscountAmount = discount.value;
+        }
+
+        if (couponDiscountAmount > discountedSubtotal) {
+          couponDiscountAmount = discountedSubtotal;
+        }
+      }
+    }
+
+    discountedSubtotal = discountedSubtotal - Math.round(couponDiscountAmount);
     const total = discountedSubtotal + tax + shipping;
 
     // Generate order number
@@ -673,6 +714,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
           comboDiscount: comboDiscountAmount,
           comboDiscountRate: comboDiscountRate,
           uniqueProductCount: uniqueProductCount,
+          couponDiscount: Math.round(couponDiscountAmount),
+          couponCode: appliedDiscountId ? input.discount_code?.toUpperCase() : undefined,
           discountedSubtotal: discountedSubtotal,
           shipping,
           tax,
@@ -739,6 +782,17 @@ export async function action({ request, context }: ActionFunctionArgs) {
           created_at: now.toISOString(),
         }).catch(e => console.error('[Webhook] order.created failed:', e))
       );
+
+      // 4. Update Discount usage if applied
+      if (appliedDiscountId) {
+        // TODO: Update usage count when `discounts` table is available
+        /*
+        context.cloudflare.ctx.waitUntil(
+          db.update(discounts).set({ usedCount: sql`${discounts.usedCount} + 1` }).where(eq(discounts.id, appliedDiscountId))
+        );
+        */
+        console.log(`MOCK UPDATE: Incremented usage count for discount ID ${appliedDiscountId}`);
+      }
 
       // ========== CHECKOUT SESSION: MARK COMPLETED ==========
       // Create checkout session for idempotency tracking
