@@ -30,11 +30,14 @@ export function getOrderConfirmationHtml(data: {
   paymentMethod?: string;
   items: OrderItem[];
   currency: string;
+  subtotal: number;
+  shipping: number;
   total: number;
   shippingAddress?: string;
   storeName: string;
   storeLogo?: string;
   primaryColor?: string;
+  contactPhone?: string;
 }) {
   const symbol = getSymbol(data.currency);
   
@@ -44,7 +47,7 @@ export function getOrderConfirmationHtml(data: {
       <tr>
         <td style="padding: 12px; border-bottom: 1px solid #eee;">${item.title}</td>
         <td style="padding: 12px; border-bottom: 1px solid #eee; text-align: center;">${item.quantity}</td>
-        <td style="padding: 12px; border-bottom: 1px solid #eee; text-align: right;">${symbol}${(item.price * item.quantity).toLocaleString()}</td>
+        <td style="padding: 12px; border-bottom: 1px solid #eee; text-align: right;">${symbol}${(item.price * item.quantity).toLocaleString('en-IN')}</td>
       </tr>
     `
     )
@@ -65,48 +68,65 @@ export function getOrderConfirmationHtml(data: {
     <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
       <div style="background: linear-gradient(135deg, ${themeColor} 0%, #059669 100%); padding: 30px; border-radius: 12px 12px 0 0; text-align: center;">
         ${brandHeader}
-        <h1 style="color: white; margin: 0; font-size: 24px;">Order Confirmed! 🎉</h1>
+        <h1 style="color: white; margin: 0; font-size: 24px;">আপনার অর্ডার গ্রহণ করা হয়েছে 🎉</h1>
       </div>
       
       <div style="background: white; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 12px 12px;">
-        <p style="font-size: 16px;">Hi <strong>${data.customerName}</strong>,</p>
-        <p>Thank you for your order from ${data.storeName}! We've received your order and will process it shortly.</p>
+        <p style="font-size: 16px;">হ্যালো <strong>${data.customerName}</strong>,</p>
+        <p>${data.storeName} থেকে অর্ডার করার জন্য ধন্যবাদ! আমরা আপনার অর্ডারটি পেয়েছি এবং শীঘ্রই এটি প্রক্রিয়া করা হবে।</p>
         
         <div style="background: #f9fafb; padding: 20px; border-radius: 8px; margin: 20px 0;">
-          <p style="margin: 0 0 10px 0;"><strong>Order Number:</strong> #${data.orderNumber}</p>
-          ${data.paymentMethod ? `<p style="margin: 0;"><strong>Payment:</strong> ${data.paymentMethod}</p>` : ''}
+          <p style="margin: 0 0 10px 0;"><strong>অর্ডার নম্বর:</strong> #${data.orderNumber}</p>
+          ${data.paymentMethod ? `<p style="margin: 0;"><strong>পেমেন্ট মাধ্যম:</strong> ${data.paymentMethod}</p>` : ''}
         </div>
         
-        <h3 style="color: #374151; border-bottom: 2px solid #10b981; padding-bottom: 10px;">Order Details</h3>
+        <h3 style="color: #374151; border-bottom: 2px solid #10b981; padding-bottom: 10px;">অর্ডারের বিবরণ</h3>
         <table style="width: 100%; border-collapse: collapse;">
           <thead>
             <tr style="background: #f3f4f6;">
-              <th style="padding: 12px; text-align: left;">Item</th>
-              <th style="padding: 12px; text-align: center;">Qty</th>
-              <th style="padding: 12px; text-align: right;">Price</th>
+              <th style="padding: 12px; text-align: left;">পণ্য</th>
+              <th style="padding: 12px; text-align: center;">পরিমাণ</th>
+              <th style="padding: 12px; text-align: right;">মূল্য</th>
             </tr>
           </thead>
           <tbody>
             ${itemsHtml}
             <tr>
-              <td colspan="2" style="padding: 12px; text-align: right;"><strong>Total:</strong></td>
-              <td style="padding: 12px; text-align: right; font-size: 18px; color: #10b981;"><strong>${symbol}${data.total.toLocaleString()}</strong></td>
+              <td colspan="2" style="padding: 12px; text-align: right; color: #6b7280;">সাবটোটাল:</td>
+              <td style="padding: 12px; text-align: right; color: #6b7280;">${symbol}${data.subtotal.toLocaleString('en-IN')}</td>
+            </tr>
+            <tr>
+              <td colspan="2" style="padding: 12px; text-align: right; border-bottom: 1px solid #eee; color: #6b7280;">ডেলিভারি চার্জ:</td>
+              <td style="padding: 12px; text-align: right; border-bottom: 1px solid #eee; color: #6b7280;">${symbol}${data.shipping.toLocaleString('en-IN')}</td>
+            </tr>
+            <tr>
+              <td colspan="2" style="padding: 12px; text-align: right;"><strong>সর্বমোট:</strong></td>
+              <td style="padding: 12px; text-align: right; font-size: 18px; color: #10b981;"><strong>${symbol}${data.total.toLocaleString('en-IN')}</strong></td>
             </tr>
           </tbody>
         </table>
         
         ${data.shippingAddress ? `
-          <h3 style="color: #374151; margin-top: 30px;">Shipping Address</h3>
+          <h3 style="color: #374151; margin-top: 30px;">ডেলিভারি ঠিকানা</h3>
           <p style="background: #f9fafb; padding: 15px; border-radius: 8px;">${data.shippingAddress}</p>
         ` : ''}
         
-        <p style="margin-top: 30px; color: #6b7280; font-size: 14px;">
-          If you have any questions, just reply to this email. We're here to help!
-        </p>
+        <div style="margin-top: 30px; background: #eff6ff; padding: 15px; border-radius: 8px; border-left: 4px solid #3b82f6;">
+          <h4 style="margin: 0 0 5px 0; color: #1e3a8a;">ডেলিভারি সময়</h4>
+          <p style="margin: 0; font-size: 14px; color: #1e40af;">ঢাকার ভেতরে ২-৩ দিন এবং ঢাকার বাইরে ৩-৫ দিন এর মধ্যে ডেলিভারি পাবেন ইনশাআল্লাহ।</p>
+        </div>
+
+        <div style="margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px;">
+          <h4 style="margin: 0 0 10px 0; color: #374151;">যোগাযোগ</h4>
+          <p style="margin: 0; color: #6b7280; font-size: 14px;">
+            যেকোনো প্রয়োজনে আমাদের সাথে যোগাযোগ করুন:
+            ${data.contactPhone ? `<br>WhatsApp/Phone: <a href="https://wa.me/${data.contactPhone.replace(/[^0-9]/g, '')}" style="color: ${themeColor}; text-decoration: none; font-weight: bold;">${data.contactPhone}</a>` : ''}
+          </p>
+        </div>
       </div>
       
       <p style="text-align: center; color: #9ca3af; font-size: 12px; margin-top: 20px;">
-        This email was sent to you because you placed an order.
+        ${data.storeName} থেকে অর্ডার করার জন্য এই ইমেইলটি পাঠানো হয়েছে।
       </p>
     </body>
     </html>
