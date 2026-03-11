@@ -10,6 +10,9 @@
 
 import { Hono } from 'hono';
 import { z } from 'zod';
+import { createDb } from '~/lib/db.server';
+import { sendSMS } from '~/services/messaging.server';
+
 const fraud = new Hono<{ Bindings: Env }>();
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -154,8 +157,19 @@ fraud.post('/otp/send', requireScope('fraud'), async (c) => {
       { expirationTtl: 600 }
     );
 
-    // TODO: integrate messaging.server.ts to actually send SMS
-    console.log(`[OTP] Store=${storeId} Phone=${phone} OTP=${otp}`);
+    // Integrate messaging.server.ts to actually send SMS
+    const db = createDb(c.env.DB);
+    const msisdn = phone.startsWith('0') ? '88' + phone : phone;
+
+    await sendSMS(db, c.env, {
+      to: msisdn,
+      message: `Your OTP is: ${otp}. Valid for 10 minutes.`,
+      storeId: Number(storeId),
+    }).catch(err => {
+      console.error('[OTP SMS Error]', err);
+    });
+
+    console.log(`[OTP] Store=${storeId} Phone=${msisdn} OTP=${otp}`);
 
     return c.json({ sent: true, expires_in: 600 });
   } catch (err) {
