@@ -18,7 +18,6 @@ import { getStoreId } from '~/services/auth.server';
 import { useState, useEffect, useRef } from 'react';
 import { getTemplateComponent } from '~/templates/registry';
 import { ClientOnly } from 'remix-utils/client-only';
-import { sanitizeHtml } from "~/utils/sanitize";
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Preview Frame' }];
@@ -158,13 +157,13 @@ export default function PreviewFrame() {
         <div className="min-h-screen">
           {/* Custom CSS injection */}
           {liveConfig.customCSS && (
-            <style dangerouslySetInnerHTML={{ __html: sanitizeHtml(liveConfig.customCSS) }} />
+            <style dangerouslySetInnerHTML={{ __html: liveConfig.customCSS }} />
           )}
           
           {/* Custom Head Code injection (scripts, meta tags) */}
           {liveConfig.customHeadCode && (
             <div 
-              dangerouslySetInnerHTML={{ __html: sanitizeHtml(liveConfig.customHeadCode) }}
+              dangerouslySetInnerHTML={{ __html: liveConfig.customHeadCode }}
               style={{ display: 'none' }}
             />
           )}
@@ -183,7 +182,7 @@ export default function PreviewFrame() {
           {/* Custom Body Code injection (chat widgets, etc.) */}
           {liveConfig.customBodyCode && (
             <div 
-              dangerouslySetInnerHTML={{ __html: sanitizeHtml(liveConfig.customBodyCode) }}
+              dangerouslySetInnerHTML={{ __html: liveConfig.customBodyCode }}
             />
           )}
         </div>

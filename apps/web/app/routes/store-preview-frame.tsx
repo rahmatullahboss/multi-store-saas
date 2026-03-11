@@ -20,7 +20,6 @@ import { getStoreId } from '~/services/auth.server';
 import { getStoreTemplate, DEFAULT_STORE_TEMPLATE_ID, STORE_TEMPLATE_THEMES, type SerializedProduct } from '~/templates/store-registry';
 import { useState, useEffect, useCallback } from 'react';
 import { ArrowLeft, Home, ShoppingCart, Package, Check, Minus, Plus, CreditCard } from 'lucide-react';
-import { sanitizeHtml } from "~/utils/sanitize";
 
 // Demo cart items for preview
 const DEMO_CART_ITEMS_COUNT = 3;
@@ -950,7 +949,7 @@ export default function StorePreviewFrame() {
 
       {/* Inject custom CSS */}
       {mergedConfig.customCSS && (
-        <style dangerouslySetInnerHTML={{ __html: sanitizeHtml(mergedConfig.customCSS) }} />
+        <style dangerouslySetInnerHTML={{ __html: mergedConfig.customCSS }} />
       )}
 
       {/* Inject Google Fonts - English + Bengali */}
