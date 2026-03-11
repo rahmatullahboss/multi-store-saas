@@ -85,16 +85,21 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
   const testId = testResult[0].id;
 
-  // Create variants
+  // Create variants in batch
+  const variantsToInsert = [];
   for (let i = 0; i < variantNames.length; i++) {
     if (variantNames[i]) {
-      await db.insert(abTestVariants).values({
+      variantsToInsert.push({
         testId,
         name: variantNames[i],
         trafficWeight: Number(variantWeights[i]) || 50,
         landingConfig: variantConfigs[i] || null,
       });
     }
+  }
+
+  if (variantsToInsert.length > 0) {
+    await db.insert(abTestVariants).values(variantsToInsert);
   }
 
   return redirect('/app/ab-tests');

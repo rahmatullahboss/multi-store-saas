@@ -104,7 +104,7 @@ export function MobileFirstHero({
                 >
                   <div className="text-base text-gray-600 leading-relaxed space-y-3 pb-2">
                     {config.subheadline && <p>{config.subheadline}</p>}
-                    <p>{product.description}</p>
+                    <div dangerouslySetInnerHTML={{ __html: product.description || '' }} />
                   </div>
                 </motion.div>
               )}

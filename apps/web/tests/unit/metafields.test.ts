@@ -52,6 +52,12 @@ describe('Metafields', () => {
       const result = parseMetafieldValue('2024-01-15', 'date');
       expect(result).toBeInstanceOf(Date);
     });
+
+    it('should return original string on parsing failure (fallback)', () => {
+      const malformedJson = 'malformed { json';
+      const result = parseMetafieldValue(malformedJson, 'json');
+      expect(result).toBe(malformedJson);
+    });
   });
 
   describe('serializeMetafieldValue', () => {
@@ -163,27 +169,28 @@ describe('Metafields', () => {
   });
 
   describe('getMetafieldDefaultValue', () => {
-    it('should return 0 for number types', () => {
-      expect(getMetafieldDefaultValue('number_integer')).toBe(0);
-      expect(getMetafieldDefaultValue('number_decimal')).toBe(0);
-    });
-
-    it('should return false for boolean', () => {
-      expect(getMetafieldDefaultValue('boolean')).toBe(false);
-    });
-
-    it('should return empty array for list types', () => {
-      expect(getMetafieldDefaultValue('list.single_line_text_field')).toEqual([]);
-      expect(getMetafieldDefaultValue('list.number_integer')).toEqual([]);
-    });
-
-    it('should return empty object for json', () => {
-      expect(getMetafieldDefaultValue('json')).toEqual({});
-    });
-
-    it('should return empty string for text types', () => {
-      expect(getMetafieldDefaultValue('single_line_text_field')).toBe('');
-      expect(getMetafieldDefaultValue('url')).toBe('');
+    it.each([
+      { type: 'number_integer', expected: 0 },
+      { type: 'number_decimal', expected: 0 },
+      { type: 'boolean', expected: false },
+      { type: 'list.single_line_text_field', expected: [] },
+      { type: 'list.number_integer', expected: [] },
+      { type: 'list.product_reference', expected: [] },
+      { type: 'list.file_reference', expected: [] },
+      { type: 'json', expected: {} },
+      // String defaults
+      { type: 'single_line_text_field', expected: '' },
+      { type: 'multi_line_text_field', expected: '' },
+      { type: 'rich_text_field', expected: '' },
+      { type: 'date', expected: '' },
+      { type: 'date_time', expected: '' },
+      { type: 'url', expected: '' },
+      { type: 'color', expected: '' },
+      { type: 'file_reference', expected: '' },
+      { type: 'product_reference', expected: '' },
+      { type: 'collection_reference', expected: '' },
+    ] as const)('should return $expected for $type', ({ type, expected }) => {
+      expect(getMetafieldDefaultValue(type)).toEqual(expected);
     });
   });
 });

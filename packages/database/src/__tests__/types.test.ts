@@ -1,31 +1,32 @@
 import { describe, it, expect } from 'vitest';
-import { parseLandingConfig } from '../types';
+import { parseThemeConfig } from '../types';
 
-describe('parseLandingConfig', () => {
-  it('should return null if input is null', () => {
-    expect(parseLandingConfig(null)).toBeNull();
+describe('parseThemeConfig', () => {
+  it('returns null when input is null', () => {
+    expect(parseThemeConfig(null)).toBeNull();
   });
 
-  it('should return null if input is an empty string', () => {
-    expect(parseLandingConfig('')).toBeNull();
+  it('returns null when input is undefined', () => {
+    // @ts-expect-error Testing invalid input
+    expect(parseThemeConfig(undefined)).toBeNull();
   });
 
-  it('should return null if input is invalid JSON', () => {
-    expect(parseLandingConfig('invalid json')).toBeNull();
-    expect(parseLandingConfig('{')).toBeNull();
-    expect(parseLandingConfig('{"foo": "bar"')).toBeNull();
+  it('returns null when input is an empty string', () => {
+    expect(parseThemeConfig('')).toBeNull();
   });
 
-  it('should parse valid JSON correctly', () => {
-    const validConfig = {
-      headline: 'Test Headline',
-      ctaText: 'Buy Now'
-    };
-
-    expect(parseLandingConfig(JSON.stringify(validConfig))).toEqual(validConfig);
+  it('returns the input object directly when given an object', () => {
+    const input = { primaryColor: '#ffffff' };
+    expect(parseThemeConfig(input)).toBe(input);
   });
 
-  it('should parse an empty object correctly', () => {
-    expect(parseLandingConfig('{}')).toEqual({});
+  it('parses a valid JSON string and returns the object', () => {
+    const input = '{"primaryColor":"#ffffff"}';
+    expect(parseThemeConfig(input)).toEqual({ primaryColor: '#ffffff' });
+  });
+
+  it('returns null when given an invalid JSON string', () => {
+    const input = 'invalid json';
+    expect(parseThemeConfig(input)).toBeNull();
   });
 });

@@ -148,7 +148,7 @@
     "vite": "^6.4.1",
     "vite-tsconfig-paths": "5.1.4",
     "vitest": "^4.0.16",
-    "wrangler": "^4.66.0",
+    "wrangler": "^4.71.0",
     "yaml": "^2.8.2"
   }
 }

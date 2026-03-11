@@ -282,8 +282,10 @@ export default function UpsellPage() {
                 <div>
                   <h2 className="text-2xl font-bold mb-2">{product.title}</h2>
                   {product.description && (
-                    <p className="text-white/70">{product.description}</p>
-                  )}
+                  <p className="text-white/70">
+                    {product.description.replace(/<[^>]*>/g, '')}
+                  </p>
+                )}
                 </div>
 
                 {/* Price Display */}

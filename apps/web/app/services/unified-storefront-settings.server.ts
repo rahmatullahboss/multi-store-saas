@@ -50,7 +50,26 @@ export interface SaveUnifiedSettingsOptions {
   dualWrite?: boolean;
 }
 
-const ACTIVE_TEMPLATE_IDS = new Set(['starter-store', 'luxe-boutique', 'nova-lux']);
+const ACTIVE_TEMPLATE_IDS = new Set([
+  'starter-store',
+  'luxe-boutique',
+  'nova-lux',
+  'ozzyl-premium',
+  'dc-store',
+  'daraz',
+  'ghorer-bazar',
+  'tech-modern',
+  'aurora-minimal',
+  'eclipse',
+  'artisan-market',
+  'freshness',
+  'rovo',
+  'sokol',
+  'turbo-sale',
+  'zenith-rise',
+  'nova-lux-ultra',
+  'bdshop',
+]);
 
 function sanitizeTemplateId(templateId: string | null | undefined): string {
   if (!templateId) return 'starter-store';
@@ -90,10 +109,8 @@ export interface MigrateLegacyOptions {
 export async function getUnifiedStorefrontSettings<TSchema extends Record<string, unknown>>(
   db: DrizzleD1Database<TSchema>,
   storeId: number,
-  options: GetUnifiedSettingsOptions = {}
+  _options: GetUnifiedSettingsOptions = {}
 ): Promise<UnifiedStorefrontSettingsV1> {
-  void options;
-
   // Try to get from canonical column first
   try {
     const result = await db
@@ -235,6 +252,8 @@ export async function migrateStoreToUnifiedSettings<TSchema extends Record<strin
         tagline: stores.tagline,
         description: stores.description,
         fontFamily: stores.fontFamily,
+        theme: stores.theme,
+        themeConfig: stores.themeConfig,
         storefrontSettings: stores.storefrontSettings,
       })
       .from(stores)
@@ -253,8 +272,65 @@ export async function migrateStoreToUnifiedSettings<TSchema extends Record<strin
       return { success: true, settings: sanitizeUnifiedSettings(existing) };
     }
 
+    // Extract legacy template info
+    let legacyTemplateId = store.theme || 'starter-store';
+    let legacyConfig = null;
+    if (store.themeConfig) {
+      try {
+        legacyConfig = typeof store.themeConfig === 'string' ? JSON.parse(store.themeConfig) : store.themeConfig;
+        if (legacyConfig?.storeTemplateId) {
+          legacyTemplateId = legacyConfig.storeTemplateId;
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+
+    // Map legacy template IDs to unified JSON layouts
+    const homeLayout: any[] = [];
+    
+    // Group templates by their unified layout equivalents
+    const isMarketplace = ['daraz', 'tech-modern', 'bdshop'].includes(legacyTemplateId);
+    const isLuxury = ['nova-lux', 'nova-lux-ultra', 'luxe-boutique', 'rovo', 'sokol', 'eclipse'].includes(legacyTemplateId);
+    const isMinimal = ['starter-store', 'aurora-minimal', 'minimal-clean', 'freshness'].includes(legacyTemplateId);
+    const isBold = ['dc-store', 'turbo-sale', 'zenith-rise', 'ozzyl-premium'].includes(legacyTemplateId);
+
+    if (isMarketplace) {
+      homeLayout.push(
+        { id: crypto.randomUUID(), type: 'unified-header', variant: 'marketplace', props: { layout: 'logo-left', showTopBar: true, isSticky: true } },
+        { id: crypto.randomUUID(), type: 'unified-hero', variant: 'marketplace', props: { layout: 'with-sidebar' } },
+        { id: crypto.randomUUID(), type: 'unified-product-grid', variant: 'marketplace', props: { limit: 12, columns: 6, layout: 'bordered' } },
+        { id: crypto.randomUUID(), type: 'unified-footer', variant: 'marketplace', props: { layout: 'multi-column' } }
+      );
+    } else if (isLuxury) {
+      homeLayout.push(
+        { id: crypto.randomUUID(), type: 'unified-header', variant: 'luxury', props: { layout: 'logo-center', enableBlur: true, isSticky: true } },
+        { id: crypto.randomUUID(), type: 'unified-hero', variant: 'luxury', props: { layout: 'full-width' } },
+        { id: crypto.randomUUID(), type: 'unified-product-grid', variant: 'luxury', props: { limit: 8, columns: 4, layout: 'minimal' } },
+        { id: crypto.randomUUID(), type: 'unified-footer', variant: 'luxury', props: { layout: 'minimal' } }
+      );
+    } else if (isBold) {
+       homeLayout.push(
+        { id: crypto.randomUUID(), type: 'unified-header', variant: 'bold', props: { layout: 'logo-left' } },
+        { id: crypto.randomUUID(), type: 'unified-hero', variant: 'bold', props: { layout: 'contained' } },
+        { id: crypto.randomUUID(), type: 'unified-product-grid', variant: 'bold', props: { limit: 10, columns: 5, layout: 'standard' } },
+        { id: crypto.randomUUID(), type: 'unified-footer', variant: 'bold', props: { layout: 'multi-column' } }
+      );
+    } else {
+      // Default / Minimal
+      homeLayout.push(
+        { id: crypto.randomUUID(), type: 'unified-header', variant: 'minimal', props: { layout: 'logo-left' } },
+        { id: crypto.randomUUID(), type: 'unified-hero', variant: 'minimal', props: { layout: 'full-width' } },
+        { id: crypto.randomUUID(), type: 'unified-product-grid', variant: 'minimal', props: { limit: 8, columns: 4, layout: 'standard' } },
+        { id: crypto.randomUUID(), type: 'unified-footer', variant: 'minimal', props: { layout: 'centered' } }
+      );
+    }
+
     const unified: UnifiedStorefrontSettingsV1 = {
       ...DEFAULT_UNIFIED_SETTINGS,
+      layout: {
+        home: homeLayout.length > 0 ? homeLayout : DEFAULT_UNIFIED_SETTINGS.layout.home,
+      },
       branding: {
         ...DEFAULT_UNIFIED_SETTINGS.branding,
         storeName: store.name || DEFAULT_UNIFIED_SETTINGS.branding.storeName,
@@ -301,8 +377,6 @@ export async function migrateAllStoresToUnifiedSettings<TSchema extends Record<s
   releaseTag: string,
   dryRun: boolean = false
 ): Promise<{ migrated: number; failed: number; errors: string[] }> {
-  void releaseTag;
-
   const allStores = await db
     .select({ id: stores.id, storefrontSettings: stores.storefrontSettings })
     .from(stores);

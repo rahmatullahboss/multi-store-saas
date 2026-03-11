@@ -57,7 +57,7 @@ interface ActionData {
 // ============================================================================
 export async function loader({ request, params, context }: LoaderFunctionArgs) {
   const { storeId } = await requireTenant(request, context, {
-    requirePermission: 'pages',
+    requirePermission: 'products',
   });
   const pageId = params.pageId;
 
@@ -111,10 +111,10 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
       store: {
         id: storeId,
         name: unifiedSettings.branding.storeName,
-        subdomain: unifiedSettings.domain.subdomain || '',
+        subdomain: unifiedSettings.domain?.subdomain || '',
         // Analytics
-        facebookPixelId: unifiedSettings.tracking.facebookPixelId,
-        googleAnalyticsId: unifiedSettings.tracking.googleAnalyticsId,
+        facebookPixelId: unifiedSettings.tracking?.facebookPixelId,
+        googleAnalyticsId: unifiedSettings.tracking?.googleAnalyticsId,
         // Branding
         logo: unifiedSettings.branding.logo || null,
         favicon: unifiedSettings.branding.favicon || null,
@@ -239,11 +239,9 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
     store: {
       id: storeId,
       name: unifiedSettings.branding.storeName,
-      subdomain: unifiedSettings.domain.subdomain || '',
-      // Analytics
-      facebookPixelId: unifiedSettings.tracking.facebookPixelId,
-      googleAnalyticsId: unifiedSettings.tracking.googleAnalyticsId,
-      // Branding
+      subdomain: unifiedSettings.domain?.subdomain || '',
+      facebookPixelId: unifiedSettings.tracking?.facebookPixelId,
+      googleAnalyticsId: unifiedSettings.tracking?.googleAnalyticsId,
       logo: unifiedSettings.branding.logo || null,
       favicon: unifiedSettings.branding.favicon || null,
       fontFamily: unifiedSettings.branding.fontFamily || 'Inter',
@@ -263,7 +261,7 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
 // ============================================================================
 export async function action({ request, params, context }: ActionFunctionArgs) {
   const { storeId } = await requireTenant(request, context, {
-    requirePermission: 'pages',
+    requirePermission: 'products',
   });
   const db = context.cloudflare.env.DB;
   const formData = await request.formData();

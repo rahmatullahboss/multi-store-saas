@@ -157,7 +157,9 @@ export async function requireTenant(
   // No row → user has no store or store is deleted
   if (!row) {
     // Super-admins don't own a store — they use the /admin/* routes
-    throw redirect(loginRedirect);
+    // For merchant routes, return a 404 Response instead of redirecting to avoid redirect loops
+    // The calling route should handle this gracefully by showing "create new store" UI
+    throw new Response('Store not found or deleted', { status: 404 });
   }
 
   // Ownership cross-check: session cookie must not carry a different storeId

@@ -20,6 +20,7 @@ import {
   getUnifiedStorefrontSettings,
   saveUnifiedStorefrontSettingsWithCacheInvalidation,
 } from '~/services/unified-storefront-settings.server';
+import { generateUUID } from '~/lib/uuid';
 
 const MAX_HEADER_ITEMS = 8;
 const MAX_DEPTH = 3;
@@ -27,12 +28,12 @@ const MAX_FOOTER_COLUMNS = 3;
 const MAX_COLUMN_LINKS = 6;
 
 const emptyMenuItem = () => ({
-  id: crypto.randomUUID(),
+  id: generateUUID(),
   label: '',
   url: '',
   children: [] as Array<{ id?: string; label: string; url: string; children?: any[] }>,
 });
-const emptyFooterColumn = () => ({ id: crypto.randomUUID(), title: '', links: [] as Array<{ label: string; url: string }> });
+const emptyFooterColumn = () => ({ id: generateUUID(), title: '', links: [] as Array<{ label: string; url: string }> });
 import { ArrowLeft, CheckCircle, Loader2, Plus, Trash2, List } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from '~/contexts/LanguageContext';
@@ -204,10 +205,10 @@ export default function NavigationSettingsPage() {
   const navigation = useNavigation();
   const { t } = useTranslation();
   const [menu, setMenu] = useState(() =>
-    headerMenu.map((item) => ({ id: crypto.randomUUID(), ...item }))
+    headerMenu.map((item) => ({ id: generateUUID(), ...item }))
   );
   const [columns, setColumns] = useState(() =>
-    footerColumns.map((col) => ({ id: crypto.randomUUID(), ...col }))
+    footerColumns.map((col) => ({ id: generateUUID(), ...col }))
   );
   const [description, setDescription] = useState(footerDescription);
   const [showSuccess, setShowSuccess] = useState(false);
