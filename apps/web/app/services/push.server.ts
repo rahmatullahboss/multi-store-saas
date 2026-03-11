@@ -1,7 +1,7 @@
 import webpush from 'web-push';
 import { drizzle } from 'drizzle-orm/d1';
 import { pushSubscriptions } from '@db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 
 export interface PushMessage {
   title: string;
@@ -10,8 +10,66 @@ export interface PushMessage {
   icon?: string;
 }
 
+export async function sendPushToCustomer(
+  env: any,
+  storeId: number,
+  customerId: number,
+  message: PushMessage
+) {
+  if (!env.VAPID_PUBLIC_KEY || !env.VAPID_PRIVATE_KEY) {
+    console.warn('[PUSH] VAPID keys not configured');
+    return;
+  }
+
+  try {
+    webpush.setVapidDetails(
+      'mailto:contact@ozzyl.com',
+      env.VAPID_PUBLIC_KEY,
+      env.VAPID_PRIVATE_KEY
+    );
+
+    const db = drizzle(env.DB);
+    // In our schema, userId on pushSubscriptions can act as customerId for storefronts
+    const subs = await db.select().from(pushSubscriptions).where(
+      and(eq(pushSubscriptions.storeId, storeId), eq(pushSubscriptions.userId, customerId))
+    );
+
+    if (subs.length === 0) return;
+
+    const payload = JSON.stringify({
+      icon: message.icon || '/icons/icon-192x192.png',
+      ...message,
+    });
+
+    await Promise.allSettled(
+      subs.map(async (sub) => {
+        const pushSubscription = {
+          endpoint: sub.endpoint,
+          keys: {
+            p256dh: sub.p256dh,
+            auth: sub.auth,
+          },
+        };
+
+        try {
+          await webpush.sendNotification(pushSubscription, payload);
+        } catch (error: any) {
+          if (error.statusCode === 410 || error.statusCode === 404) {
+            console.log(`[PUSH] Cleaning up expired subscription ${sub.id}`);
+            await db.delete(pushSubscriptions).where(eq(pushSubscriptions.id, sub.id));
+          } else {
+            console.error('[PUSH] Send Error', error);
+          }
+        }
+      })
+    );
+  } catch (e) {
+    console.error('[PUSH] General Error', e);
+  }
+}
+
 export async function sendPushToStore(
-  env: Env,
+  env: any,
   storeId: number, 
   message: PushMessage
 ) {
@@ -71,7 +129,7 @@ export async function sendPushToStore(
 export async function sendPushNotification(
   subscription: { endpoint: string; keys: { p256dh: string; auth: string } },
   payload: PushMessage | string,
-  env: Env
+  env: any
 ) {
   if (!env.VAPID_PUBLIC_KEY || !env.VAPID_PRIVATE_KEY) {
     console.warn('[PUSH] VAPID keys not configured');
