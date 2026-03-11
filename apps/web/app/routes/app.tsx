@@ -339,6 +339,18 @@ export default function AppLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [dismissedNotifications, setDismissedNotifications] = useState<number[]>([]);
 
+  // Initialize sidebar state based on screen size
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setSidebarOpen(window.innerWidth >= 768);
+      const handleResize = () => {
+        setSidebarOpen(window.innerWidth >= 768);
+      };
+      window.addEventListener('resize', handleResize);
+      return () => window.removeEventListener('resize', handleResize);
+    }
+  }, []);
+
   // Load dismissed notifications from localStorage AFTER hydration to prevent mismatch
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -395,7 +407,7 @@ export default function AppLayout() {
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 transition-colors">
       {/* SHADOW MODE BANNER */}
       {isImpersonating && (
-        <div className="bg-red-600 text-white px-4 py-2 flex items-center justify-between sticky top-0 z-[60]">
+        <div className="bg-red-600 text-white px-4 py-2 flex items-center justify-between sticky top-0 z-[60] w-full shrink-0">
           <div className="flex items-center gap-2">
             <Eye className="w-5 h-5" />
             <span className="font-bold">{t('shadowModeActive')}: {t('viewingAs')} {store.name}</span>
@@ -408,10 +420,11 @@ export default function AppLayout() {
         </div>
       )}
 
+      <div className="flex-1 overflow-hidden flex flex-col md:flex-row relative">
       {/* Mobile Sidebar Overlay - hide on builder routes */}
       {!isBuilderRoute && sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          className="fixed inset-0 bg-black/50 z-40 md:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
@@ -423,9 +436,10 @@ export default function AppLayout() {
           transform transition-transform duration-200 ease-in-out
           lg:translate-x-0
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+          md:relative md:translate-x-0 md:z-auto border-r border-gray-200
         `}
       >
-        <div className="flex flex-col h-full">
+        <div className="flex flex-col h-full bg-white/90 backdrop-blur-xl">
           {/* Logo/Store Header */}
           <div className="p-4 border-b border-white/10">
             <div className="flex items-center justify-between">
@@ -600,7 +614,7 @@ export default function AppLayout() {
       </aside>}
 
       {/* Main Content - no left padding on builder routes */}
-      <div className={isBuilderRoute ? '' : 'lg:pl-64'}>
+      <div className={`flex-1 overflow-y-auto ${isBuilderRoute ? '' : ''}`}>
         {/* Mobile Header - hide on builder routes */}
         {!isBuilderRoute && (
           <header className="lg:hidden sticky top-0 z-30 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-white/20 dark:border-gray-800 px-4 py-3">
@@ -634,7 +648,7 @@ export default function AppLayout() {
 
         {/* System Notifications - hide on builder routes */}
         {!isBuilderRoute && visibleNotifications.length > 0 && (
-          <div className="px-4 lg:px-8 pt-4 space-y-2">
+          <div className="px-4 md:px-8 pt-4 space-y-2">
             {visibleNotifications.map((notification) => {
               const style = getNotificationStyle(notification.type);
               const Icon = style.icon;
@@ -661,7 +675,7 @@ export default function AppLayout() {
         )}
 
         {/* Page Content - full width on builder routes */}
-        <main className={isBuilderRoute ? '' : 'p-4 lg:p-8'}>
+        <main className={isBuilderRoute ? '' : 'p-4 md:p-8'}>
           <div className={isBuilderRoute ? 'w-full h-full' : 'max-w-7xl mx-auto w-full'}>
             <Outlet />
           </div>
@@ -676,6 +690,7 @@ export default function AppLayout() {
           isLocked={false}
         />
       )}
+      </div>
     </div>
   );
 }
