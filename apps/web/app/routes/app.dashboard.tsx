@@ -257,7 +257,7 @@ export default function DashboardPage() {
       {/* Low Stock Alert */}
       <LowStockAlertBanner 
         count={stats.lowStock} 
-        threshold={10} 
+        threshold={5}
         onAction={() => navigate('/app/inventory?filter=low')}
       />
 

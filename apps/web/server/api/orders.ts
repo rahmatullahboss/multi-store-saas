@@ -10,6 +10,7 @@ import { drizzle } from 'drizzle-orm/d1';
 import { orders, orderItems, products, type NewOrder, type NewOrderItem } from '@db/schema';
 import type { TenantEnv, TenantContext } from '../middleware/tenant';
 import { parseShippingConfig, calculateShipping, type DivisionValue } from '../../app/utils/shipping';
+import { checkLowStockAfterOrder } from '../../app/services/inventory.server';
 
 type OrdersContext = {
   Bindings: TenantEnv;
@@ -193,6 +194,23 @@ ordersApi.post('/', async (c) => {
       }))
     )
     .returning();
+
+  // Deduct stock and check low stock threshold
+  for (const item of body.items) {
+    const product = productMap.get(item.productId);
+    if (product) {
+      const currentInventory = product.inventory || 0;
+      const newStockLevel = Math.max(0, currentInventory - item.quantity);
+
+      await db
+        .update(products)
+        .set({ inventory: newStockLevel, updatedAt: new Date() })
+        .where(eq(products.id, item.productId));
+
+      // Check low stock threshold
+      await checkLowStockAfterOrder(db, storeId, item.productId, newStockLevel);
+    }
+  }
   
   return c.json({ order, items }, 201);
 });
