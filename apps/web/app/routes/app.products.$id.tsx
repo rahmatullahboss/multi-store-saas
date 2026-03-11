@@ -248,10 +248,11 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
       await db.delete(productVariants).where(eq(productVariants.productId, productId));
 
       // Insert new variants
-      for (const v of variants) {
-        if (v.option1Value) {
+      const variantsToInsert = variants
+        .filter((v) => v.option1Value)
+        .map((v) => {
           const variantInventory = v.inventory ?? 0;
-          await db.insert(productVariants).values({
+          return {
             productId,
             option1Name: v.option1Name,
             option1Value: v.option1Value,
@@ -263,8 +264,11 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
             available: variantInventory,
             reserved: 0,
             costPrice: v.costPrice ?? null, // P&L: variant cost override
-          });
-        }
+          };
+        });
+
+      if (variantsToInsert.length > 0) {
+        await db.insert(productVariants).values(variantsToInsert);
       }
     } catch (e) {
       console.error('Failed to update variants', e);

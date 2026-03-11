@@ -118,10 +118,11 @@ export async function action({ request, context }: ActionFunctionArgs) {
   if (variantsJson) {
     try {
       const variants: Variant[] = JSON.parse(variantsJson);
-      for (const v of variants) {
-        if (v.option1Value) {
+      const variantsToInsert = variants
+        .filter((v) => v.option1Value)
+        .map((v) => {
           const variantInventory = v.inventory ?? 0;
-          await db.insert(productVariants).values({
+          return {
             productId: inserted.id,
             option1Name: v.option1Name,
             option1Value: v.option1Value,
@@ -132,8 +133,11 @@ export async function action({ request, context }: ActionFunctionArgs) {
             inventory: variantInventory,
             available: variantInventory,
             reserved: 0,
-          });
-        }
+          };
+        });
+
+      if (variantsToInsert.length > 0) {
+        await db.insert(productVariants).values(variantsToInsert);
       }
     } catch (e) {
       console.error('Failed to parse variants', e);
