@@ -12,7 +12,6 @@ import { eq, and, desc, SQL, or } from 'drizzle-orm';
 import { requireTenant } from '~/lib/tenant-guard.server';
 import { ArrowLeft, Mail, Phone, Building2, Calendar, Globe, Tag, Brain, Save, Loader2 } from 'lucide-react';
 import { Link } from '@remix-run/react';
-import { AdminLeadDocuments } from '~/components/lead-gen/AdminLeadDocuments';
 import { UserPlus } from 'lucide-react';
 
 export async function loader({ request, params, context }: LoaderFunctionArgs) {
@@ -266,12 +265,6 @@ export default function LeadDetailPage() {
               </div>
             </div>
           )}
-
-          {/* Documents */}
-          <AdminLeadDocuments 
-            documents={allDocuments.map(d => ({ ...d, createdAt: d.createdAt ? new Date(d.createdAt) : null }))} 
-            customerId={matchedCustomerId ?? undefined}
-          />
 
           {/* AI Insights */}
           {aiInsights && (

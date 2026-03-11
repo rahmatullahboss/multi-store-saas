@@ -52,13 +52,19 @@ export const meta: MetaFunction = () => {
 };
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  const { storeId } = await requireTenant(request, context, {
-    requirePermission: 'analytics',
-  });
-  if (!storeId) {
-    // User has no store — show create-new-store UI in dashboard (not onboarding)
-    return json({ storeDeleted: true });
+  let tenantResult;
+  try {
+    tenantResult = await requireTenant(request, context, {
+      requirePermission: 'analytics',
+    });
+  } catch (error) {
+    if (error instanceof Response && error.status === 404) {
+      // User has no store or store is deleted — show create-new-store UI
+      return json({ storeDeleted: true });
+    }
+    throw error;
   }
+  const { storeId } = tenantResult;
 
   const db = drizzle(context.cloudflare.env.DB, { schema }); // Fix: Initialize with schema
 

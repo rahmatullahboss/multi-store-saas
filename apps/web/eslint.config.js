@@ -154,8 +154,6 @@ export default tseslint.config(
       'app/components/templates/**/*.tsx',
       'app/components/store/**/*.ts',
       'app/components/store/**/*.tsx',
-      'app/components/lead-gen/**/*.ts',
-      'app/components/lead-gen/**/*.tsx',
       'app/components/store-builder/**/*.ts',
       'app/components/store-builder/**/*.tsx',
     ],

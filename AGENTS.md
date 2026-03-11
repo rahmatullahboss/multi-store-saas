@@ -1,9 +1,10 @@
 # AGENTS.md — Multi Store SaaS
 
-> **🎯 Mission**: Build the **Shopify of Bangladesh** — A world-class, multi-tenant e-commerce SaaS on Cloudflare's edge. 🇧🇩🚀  
-> **Standard**: 99.99% Uptime, Sub-100ms TTFB, Infinite Scale.  
-> **Last Updated**: 2026-02-18  
+> **🎯 Mission**: Build the **Shopify of Bangladesh** — A world-class, multi-tenant e-commerce SaaS on Cloudflare's edge. 🇧🇩🚀
+> **Standard**: 99.99% Uptime, Sub-100ms TTFB, Infinite Scale.
+> **Last Updated**: 2026-03-07
 > **Docs Verified**: ✅ Context7 MCP (Cloudflare, Remix v2, Drizzle ORM, Shopify Themes)
+> **System Version**: 2.0 (Unified JSON Settings)
 
 ---
 
@@ -1860,6 +1861,200 @@ import { Button } from '@ozzyl/ui';
 - **Components**: Use Radix UI primitives via `@ozzyl/ui`
 - **Loading**: Use Remix `Pending` states or Skeleton loaders for streamed data
 - **Language**: Banglish (English letters, Bangla words) for user-facing text
+
+---
+
+## 🎨 JSON Theme Design System
+
+### Designing Stores with JSON (No Backend Changes)
+
+The unified settings system allows **complete store customization via JSON only**. No backend code changes needed for design updates.
+
+#### What You Can Customize via JSON
+
+```typescript
+// Example: Complete store design in JSON
+{
+  "theme": {
+    "templateId": "nova-lux",      // Select template
+    "primary": "#4F46E5",          // Brand color
+    "accent": "#F59E0B",           // CTA buttons
+    "background": "#ffffff"        // Page background
+  },
+  "branding": {
+    "storeName": "My Store",
+    "logo": "https://r2.cloud/...",
+    "favicon": "https://r2.cloud/...",
+    "tagline": "Best products in BD"
+  },
+  "heroBanner": {
+    "mode": "carousel",
+    "slides": [
+      {
+        "imageUrl": "https://r2.cloud/banner1.jpg",
+        "heading": "ঈধধড়প ঋড়ড়ফ ঈড়ষধপঃবড়হ",
+        "subheading": "৫০% ছাড়",
+        "ctaText": "ঋড়ধড়হ",
+        "ctaLink": "/collections/food"
+      }
+    ]
+  },
+  "trustBadges": [
+    { "icon": "truck", "title": "দ্রুত ডেলিভারি", "description": "১-২ দিনে" },
+    { "icon": "shield", "title": "নিরাপদ পেমেন্ট", "description": "১০০% সিকিউর" }
+  ],
+  "shippingConfig": {
+    "insideDhaka": 60,
+    "outsideDhaka": 120,
+    "freeShippingAbove": 1000
+  }
+}
+```
+
+#### How to Create New Designs
+
+**Step 1**: Choose a base template (`starter-store`, `nova-lux`, etc.)
+
+**Step 2**: Customize colors and branding
+```json
+{
+  "theme": {
+    "templateId": "nova-lux",
+    "primary": "#FF5722",  // Change to your brand color
+    "accent": "#FFC107"
+  },
+  "branding": {
+    "storeName": "Your Store",
+    "logo": "your-logo-url"
+  }
+}
+```
+
+**Step 3**: Add hero banners
+```json
+{
+  "heroBanner": {
+    "mode": "single",
+    "slides": [{
+      "imageUrl": "your-banner.jpg",
+      "heading": "Your Headline",
+      "ctaText": "Shop Now",
+      "ctaLink": "/products"
+    }]
+  }
+}
+```
+
+**Step 4**: Configure trust badges
+```json
+{
+  "trustBadges": [
+    { "icon": "truck", "title": "Fast Delivery", "description": "2-3 days" },
+    { "icon": "refresh", "title": "Easy Returns", "description": "7 days" }
+  ]
+}
+```
+
+#### Available Templates
+
+| Template ID     | Style            | Best For              |
+| --------------- | ---------------- | --------------------- |
+| `starter-store` | Clean, modern    | General stores        |
+| `nova-lux`      | Dark, luxury     | Premium brands        |
+| `luxe-boutique` | Fashion-focused  | Clothing stores       |
+| `dc-store`      | Golden gradients | Jewelry, cosmetics    |
+| `daraz`         | Marketplace      | Multi-vendor stores   |
+| `tech-modern`   | Sleek, tech      | Electronics           |
+| `freshness`     | Fresh, green     | Organic, food         |
+
+#### Color Guidelines
+
+- **Primary**: Main brand color (buttons, links, accents)
+- **Accent**: CTA buttons, sale badges, highlights
+- **Background**: Page background (usually white or light)
+- **Text**: Main text color (dark gray or black)
+- **Muted**: Secondary text, descriptions (light gray)
+
+#### Best Practices
+
+1. **Keep it simple** - Don't overload with too many colors
+2. **High contrast** - Ensure text is readable
+3. **Consistent branding** - Use same colors across all pages
+4. **Mobile-first** - Test on mobile devices
+5. **Fast loading** - Optimize images (use WebP, < 200KB)
+
+#### Common Design Patterns
+
+**Fashion Store**:
+```json
+{
+  "theme": {
+    "templateId": "luxe-boutique",
+    "primary": "#E91E63",
+    "accent": "#FFC0CB"
+  },
+  "trustBadges": [
+    { "icon": "shield", "title": "Original Products" },
+    { "icon": "refresh", "title": "Easy Exchange" }
+  ]
+}
+```
+
+**Food Store**:
+```json
+{
+  "theme": {
+    "templateId": "freshness",
+    "primary": "#4CAF50",
+    "accent": "#FF9800"
+  },
+  "trustBadges": [
+    { "icon": "truck", "title": "Fresh Delivery" },
+    { "icon": "shield", "title": "Hygienic Pack" }
+  ]
+}
+```
+
+**Electronics Store**:
+```json
+{
+  "theme": {
+    "templateId": "tech-modern",
+    "primary": "#2196F3",
+    "accent": "#FF5722"
+  },
+  "trustBadges": [
+    { "icon": "shield", "title": "1 Year Warranty" },
+    { "icon": "refresh", "title": "7 Day Return" }
+  ]
+}
+```
+
+### Component Binding System
+
+Templates automatically bind to JSON settings:
+
+```typescript
+// Template reads JSON and applies settings
+function Template({ config }) {
+  const primaryColor = config?.theme?.primary;
+  const heroSlides = config?.heroBanner?.slides;
+  const badges = config?.trustBadges?.badges;
+  
+  return (
+    <div style={{ '--color-primary': primaryColor }}>
+      <HeroBanner slides={heroSlides} />
+      <TrustBadges badges={badges} />
+    </div>
+  );
+}
+```
+
+### Testing Designs
+
+1. **Preview Mode**: Use `/store-template-preview/:templateId` to test
+2. **Live Edit**: Update JSON in admin dashboard, see changes instantly
+3. **A/B Testing**: Create multiple JSON configs, test conversion rates
 
 ---
 
