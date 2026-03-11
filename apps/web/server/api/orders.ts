@@ -9,6 +9,7 @@ import { eq, and, desc } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
 import { orders, orderItems, products, type NewOrder, type NewOrderItem } from '@db/schema';
 import type { TenantEnv, TenantContext } from '../middleware/tenant';
+import { parseShippingConfig, calculateShipping, type DivisionValue } from '../../app/utils/shipping';
 
 type OrdersContext = {
   Bindings: TenantEnv;
@@ -108,6 +109,7 @@ ordersApi.post('/', async (c) => {
     customerName?: string;
     shippingAddress?: string;
     billingAddress?: string;
+    division?: DivisionValue | string;
     items: CartItem[];
     notes?: string;
   }
@@ -149,10 +151,14 @@ ordersApi.post('/', async (c) => {
     });
   }
   
-  // TODO: Calculate tax and shipping based on store settings
-  // [SKIPPED] Complex: requires fetching store settings and changing order calculation logic
+  // Calculate tax and shipping based on store settings
+  const store = c.get('store');
+  const shippingConfig = parseShippingConfig(store?.shippingConfig);
+  const shippingCalculation = calculateShipping(shippingConfig, body.division || '', subtotal);
+  const shipping = shippingCalculation.cost;
+
+  // Tax logic is skipped since there's no native taxRate column on store
   const tax = 0;
-  const shipping = 0;
   const total = subtotal + tax + shipping;
   
   // Create order
