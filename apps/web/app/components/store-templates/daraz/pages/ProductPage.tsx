@@ -24,6 +24,7 @@ import {
 import { DARAZ_THEME } from '../theme';
 import type { Product } from '@db/schema';
 import { formatPrice } from '~/lib/formatting';
+import { AddToCartButton } from '~/components/AddToCartButton';
 
 interface ProductPageProps {
   product: Product;
@@ -245,14 +246,17 @@ export function DarazProductPage({
               >
                 Buy Now
               </button>
-              <button
-                onClick={handleAddToCart}
+              <AddToCartButton
+                productId={product.id}
+                productName={product.title}
+                productPrice={product.price}
+                quantity={quantity}
                 className="flex-1 py-3 rounded-sm font-medium text-white flex items-center justify-center gap-2 transition hover:opacity-90"
                 style={{ backgroundColor: DARAZ_THEME.primary }}
               >
                 <ShoppingCart size={18} />
                 Add to Cart
-              </button>
+              </AddToCartButton>
             </div>
 
             {/* Actions Row */}

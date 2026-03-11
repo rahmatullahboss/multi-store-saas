@@ -48,7 +48,7 @@ const QuickProductSchema = z.object({
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const { storeId } = await requireTenant(request, context, {
-    requirePermission: 'pages',
+    requirePermission: 'products',
   });
 
   const db = drizzle(context.cloudflare.env.DB);
@@ -95,7 +95,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
 export async function action({ request, context }: ActionFunctionArgs) {
   const { storeId, userId } = await requireTenant(request, context, {
-    requirePermission: 'pages',
+    requirePermission: 'products',
   });
 
   const db = drizzle(context.cloudflare.env.DB);

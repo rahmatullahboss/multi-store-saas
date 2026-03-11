@@ -25,6 +25,7 @@ interface AddToCartButtonProps {
   productPrice?: number;
   currency?: string;
   quantity?: number;
+  onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
 }
 
 export function AddToCartButton({
@@ -42,6 +43,7 @@ export function AddToCartButton({
   productPrice,
   currency = 'BDT',
   quantity = 1,
+  onClick,
 }: AddToCartButtonProps) {
   const [isAdded, setIsAdded] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
@@ -110,7 +112,12 @@ export function AddToCartButton({
 
   return (
     <button
-      onClick={handleAddToCart}
+      onClick={(e) => {
+        if (onClick) {
+          onClick(e);
+        }
+        handleAddToCart();
+      }}
       disabled={disabled || isAdding}
       className={buttonClasses}
       style={style}

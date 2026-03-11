@@ -158,8 +158,6 @@ export const dashboard = {
   navGeneral: 'General',
   navStorefront: 'Storefront',
   navBusinessMode: 'Business Mode',
-  navLeadGenSettings: 'Lead Gen Settings',
-  navLeadInbox: 'Lead Inbox',
   navPayments: 'Payments',
   navPlanBilling: 'Plan & Billing',
   navTeam: 'Team',
@@ -246,8 +244,6 @@ export const dashboard = {
   // Settings / Landing Mode fixes
   landingSettings: 'Landing Page Settings',
   landingSettingsDesc: 'Configure your landing page mode and content',
-  leadGenSettings: 'Lead Generation Settings',
-  leadGenSettingsDesc: 'Customize your lead capture website',
   storeMode: 'Store Mode',
   storeModeDesc: 'Choose how your store is displayed to customers',
   fullStore: 'Full Store',

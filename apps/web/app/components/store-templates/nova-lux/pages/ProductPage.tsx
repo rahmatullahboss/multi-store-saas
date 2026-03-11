@@ -13,8 +13,10 @@ import {
   Truck,
   Package,
   ShieldCheck,
+  ShoppingCart,
 } from 'lucide-react';
 import type { StoreTemplateTheme } from '~/templates/store-registry';
+import { AddToCartButton } from '~/components/AddToCartButton';
 
 interface ProductVariant {
   id: number;
@@ -397,14 +399,18 @@ export function NovaLuxProductPage({
                   <Plus className="w-4 h-4" />
                 </button>
               </div>
-              <button
-                onClick={handleAddToCart}
-                disabled={isOutOfStock || isAdding}
-                className="flex-1 py-3 px-6 text-white text-sm font-medium uppercase tracking-widest transition-all hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+              <AddToCartButton
+                productId={product.id}
+                productName={product.title}
+                productPrice={currentPrice}
+                quantity={quantity}
+                disabled={isOutOfStock}
+                className="flex-1 py-3 px-6 text-white text-sm font-medium uppercase tracking-widest transition-all hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 style={{ backgroundColor: colors.primary }}
               >
-                {isAdding ? 'Adding...' : addedToCart ? 'Added to Cart' : isOutOfStock ? 'Out of Stock' : 'Add to Cart'}
-              </button>
+                <ShoppingCart className="w-5 h-5" />
+                {isOutOfStock ? 'Out of Stock' : 'Add to Cart'}
+              </AddToCartButton>
               <button 
                 onClick={() => setIsWishlisted(!isWishlisted)}
                 className="p-3 border border-gray-200 rounded-sm hover:border-black transition-colors"

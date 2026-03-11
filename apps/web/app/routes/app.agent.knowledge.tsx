@@ -9,6 +9,7 @@ import { indexDocuments, deleteDocuments, chunkText, type VectorDocument, type E
 import { useState, useRef, useEffect } from 'react';
 import { Plus, Trash2, RefreshCw, FileText, Globe, Type, Upload, AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
+import { generateUUID } from '~/lib/uuid';
 
 // Extend Env to include R2 if strictly typed
 // Rename to RouteEnv to avoid naming collision with RagEnv
@@ -72,7 +73,8 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
       if (!file || file.size === 0) return json({ error: 'No file uploaded' }, { status: 400 });
 
       const fileName = file.name;
-      const sourceId = crypto.randomUUID(); // Temporary ID until inserted? No, use DB ID.
+      // Insert into DB first to get ID (DB will generate the real ID)
+      // const sourceId = crypto.randomUUID(); // Removed - using DB-generated ID
       // Insert into DB first to get ID
       const result = await db.insert(schema.knowledgeSources).values({
         agentId: agent.id,
