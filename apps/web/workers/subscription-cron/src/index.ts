@@ -166,24 +166,29 @@ export default {
 
       console.log(`[SUBSCRIPTION-CRON] Found ${expiringStores.results?.length || 0} stores expiring in 3 days`);
 
+      const section1Promises: Promise<any>[] = [];
       for (const store of expiringStores.results || []) {
         if (!store.ownerEmail || !resend) continue;
 
         const endDate = new Date(store.subscriptionEndDate!);
         const daysLeft = Math.ceil((store.subscriptionEndDate! - now) / (24 * 60 * 60 * 1000));
 
-        try {
-          await resend.emails.send({
+        section1Promises.push(
+          resend.emails.send({
             from: 'Ozzyl <contact@ozzyl.com>',
             to: [store.ownerEmail],
             subject: `⏰ Your ${store.name} subscription expires in ${daysLeft} days`,
             html: getExpiringEmailHtml(store.name, daysLeft, endDate),
-          });
-          console.log(`[SUBSCRIPTION-CRON] Sent expiring email to ${store.ownerEmail} for store ${store.id}`);
-        } catch (emailError) {
-          console.error(`[SUBSCRIPTION-CRON] Failed to send email to ${store.ownerEmail}:`, emailError);
-        }
+          })
+            .then(() => {
+              console.log(`[SUBSCRIPTION-CRON] Sent expiring email to ${store.ownerEmail} for store ${store.id}`);
+            })
+            .catch((emailError) => {
+              console.error(`[SUBSCRIPTION-CRON] Failed to send email to ${store.ownerEmail}:`, emailError);
+            })
+        );
       }
+      await Promise.allSettled(section1Promises);
 
       // =======================================================================
       // 2. EXPIRED TODAY - Mark as past_due, send expired email
@@ -210,33 +215,43 @@ export default {
 
       console.log(`[SUBSCRIPTION-CRON] Found ${expiredToday.results?.length || 0} stores expired today`);
 
+      const section2UpdateStmts: D1PreparedStatement[] = [];
+      const section2EmailPromises: Promise<any>[] = [];
+
       for (const store of expiredToday.results || []) {
         // Update status to past_due
-        await env.DB.prepare(`
-          UPDATE stores 
-          SET subscription_status = 'past_due', updated_at = ?
-          WHERE id = ?
-        `)
-          .bind(nowDate.toISOString(), store.id)
-          .run();
-
-        console.log(`[SUBSCRIPTION-CRON] Marked store ${store.id} as past_due`);
+        section2UpdateStmts.push(
+          env.DB.prepare(`
+            UPDATE stores
+            SET subscription_status = 'past_due', updated_at = ?
+            WHERE id = ?
+          `).bind(nowDate.toISOString(), store.id)
+        );
 
         // Send expired email
         if (store.ownerEmail && resend) {
-          try {
-            await resend.emails.send({
+          section2EmailPromises.push(
+            resend.emails.send({
               from: 'Ozzyl <contact@ozzyl.com>',
               to: [store.ownerEmail],
               subject: `⚠️ Your ${store.name} subscription has expired`,
               html: getExpiredEmailHtml(store.name),
-            });
-            console.log(`[SUBSCRIPTION-CRON] Sent expired email to ${store.ownerEmail}`);
-          } catch (emailError) {
-            console.error(`[SUBSCRIPTION-CRON] Failed to send expired email:`, emailError);
-          }
+            })
+              .then(() => {
+                console.log(`[SUBSCRIPTION-CRON] Sent expired email to ${store.ownerEmail}`);
+              })
+              .catch((emailError) => {
+                console.error(`[SUBSCRIPTION-CRON] Failed to send expired email:`, emailError);
+              })
+          );
         }
       }
+
+      if (section2UpdateStmts.length > 0) {
+        await env.DB.batch(section2UpdateStmts);
+        console.log(`[SUBSCRIPTION-CRON] Batched marked ${section2UpdateStmts.length} stores as past_due`);
+      }
+      await Promise.allSettled(section2EmailPromises);
 
       // =======================================================================
       // 3. EXPIRED 7+ DAYS AGO - Downgrade to Free, disable store
@@ -263,35 +278,45 @@ export default {
 
       console.log(`[SUBSCRIPTION-CRON] Found ${expiredOverGrace.results?.length || 0} stores past grace period`);
 
+      const section3UpdateStmts: D1PreparedStatement[] = [];
+      const section3EmailPromises: Promise<any>[] = [];
+
       for (const store of expiredOverGrace.results || []) {
         // Downgrade to Free plan
-        await env.DB.prepare(`
-          UPDATE stores 
-          SET plan_type = 'free',
-              subscription_status = 'canceled',
-              updated_at = ?
-          WHERE id = ?
-        `)
-          .bind(nowDate.toISOString(), store.id)
-          .run();
-
-        console.log(`[SUBSCRIPTION-CRON] Downgraded store ${store.id} to Free plan`);
+        section3UpdateStmts.push(
+          env.DB.prepare(`
+            UPDATE stores
+            SET plan_type = 'free',
+                subscription_status = 'canceled',
+                updated_at = ?
+            WHERE id = ?
+          `).bind(nowDate.toISOString(), store.id)
+        );
 
         // Send downgraded email
         if (store.ownerEmail && resend) {
-          try {
-            await resend.emails.send({
+          section3EmailPromises.push(
+            resend.emails.send({
               from: 'Ozzyl <contact@ozzyl.com>',
               to: [store.ownerEmail],
               subject: `📉 Your ${store.name} has been downgraded to Free`,
               html: getDowngradedEmailHtml(store.name),
-            });
-            console.log(`[SUBSCRIPTION-CRON] Sent downgrade email to ${store.ownerEmail}`);
-          } catch (emailError) {
-            console.error(`[SUBSCRIPTION-CRON] Failed to send downgrade email:`, emailError);
-          }
+            })
+              .then(() => {
+                console.log(`[SUBSCRIPTION-CRON] Sent downgrade email to ${store.ownerEmail}`);
+              })
+              .catch((emailError) => {
+                console.error(`[SUBSCRIPTION-CRON] Failed to send downgrade email:`, emailError);
+              })
+          );
         }
       }
+
+      if (section3UpdateStmts.length > 0) {
+        await env.DB.batch(section3UpdateStmts);
+        console.log(`[SUBSCRIPTION-CRON] Batched downgraded ${section3UpdateStmts.length} stores to Free plan`);
+      }
+      await Promise.allSettled(section3EmailPromises);
 
       console.log('[SUBSCRIPTION-CRON] Completed scheduled task');
     } catch (error) {
