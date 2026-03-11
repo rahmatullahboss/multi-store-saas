@@ -154,9 +154,8 @@ export const action: ActionFunction = async ({ request, context }) => {
         await db.delete(templateSectionsDraft)
           .where(eq(templateSectionsDraft.templateId, templateId));
         
-        for (let i = 0; i < sections.length; i++) {
-          const section = sections[i];
-          await db.insert(templateSectionsDraft).values({
+        if (sections.length > 0) {
+          const draftedSections = sections.map((section: any, i: number) => ({
             id: `draft_${section.id}_${Date.now()}_${i}`,
             shopId: store.id,
             templateId: templateId,
@@ -166,7 +165,8 @@ export const action: ActionFunction = async ({ request, context }) => {
             propsJson: JSON.stringify(section.settings || {}),
             blocksJson: '[]',
             version: 1,
-          });
+          }));
+          await db.insert(templateSectionsDraft).values(draftedSections);
         }
 
         // Step 4: Migrate theme settings to draft
@@ -226,8 +226,8 @@ export const action: ActionFunction = async ({ request, context }) => {
           const draftSections = await db.select().from(templateSectionsDraft)
             .where(eq(templateSectionsDraft.templateId, templateId));
           
-          for (const section of draftSections) {
-            await db.insert(templateSectionsPublished).values({
+          if (draftSections.length > 0) {
+            const publishedSections = draftSections.map((section: any) => ({
               id: `pub_${section.id}_${Date.now()}`,
               shopId: store.id,
               templateId: templateId,
@@ -236,7 +236,8 @@ export const action: ActionFunction = async ({ request, context }) => {
               sortOrder: section.sortOrder,
               propsJson: section.propsJson,
               blocksJson: section.blocksJson,
-            });
+            }));
+            await db.insert(templateSectionsPublished).values(publishedSections);
           }
 
           await db.delete(themeSettingsPublished)

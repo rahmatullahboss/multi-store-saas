@@ -400,20 +400,18 @@ export async function action({ request, context }: ActionFunctionArgs) {
       
       // Insert new sections
       if (pageSections.length > 0) {
-        for (let i = 0; i < pageSections.length; i++) {
-          const section = pageSections[i];
-          await db.insert(templateSectionsDraft).values({
-            id: `draft_${section.id}_${Date.now()}_${i}`,
-            shopId: storeId,
-            templateId: pageTemplateId,
-            type: section.type,
-            enabled: 1,
-            sortOrder: i,
-            propsJson: JSON.stringify(section.settings || {}),
-            blocksJson: JSON.stringify(section.blocks || []),
-            version: 1,
-          });
-        }
+        const sectionsToInsert = pageSections.map((section, i) => ({
+          id: `draft_${section.id}_${Date.now()}_${i}`,
+          shopId: storeId,
+          templateId: pageTemplateId,
+          type: section.type,
+          enabled: 1,
+          sortOrder: i,
+          propsJson: JSON.stringify(section.settings || {}),
+          blocksJson: JSON.stringify(section.blocks || []),
+          version: 1,
+        }));
+        await db.insert(templateSectionsDraft).values(sectionsToInsert);
       }
     }
 
@@ -572,8 +570,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
       const draftSections = await db.select().from(templateSectionsDraft)
         .where(eq(templateSectionsDraft.templateId, templateId));
       
-      for (const section of draftSections) {
-        await db.insert(templateSectionsPublished).values({
+      if (draftSections.length > 0) {
+        const publishedSections = draftSections.map(section => ({
           id: `pub_${section.id}_${Date.now()}`,
           shopId: storeId,
           templateId: templateId,
@@ -582,7 +580,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
           sortOrder: section.sortOrder,
           propsJson: section.propsJson,
           blocksJson: section.blocksJson,
-        });
+        }));
+        await db.insert(templateSectionsPublished).values(publishedSections);
       }
 
       // Copy theme settings from draft to published
