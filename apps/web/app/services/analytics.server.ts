@@ -26,28 +26,48 @@ export async function getStoreStats(db: Database, storeId: number) {
   const yesterday = new Date(today);
   yesterday.setDate(yesterday.getDate() - 1);
 
-  // 1. Basic Counts
-  const [productCount] = await db.select({ count: count() }).from(products).where(and(eq(products.storeId, storeId), eq(products.isPublished, true)));
-  const [lowStockCount] = await db.select({ count: count() }).from(products).where(and(eq(products.storeId, storeId), sql`inventory <= 10`));
-  const [orderCount] = await db.select({ count: count() }).from(orders).where(eq(orders.storeId, storeId));
-  const [pendingOrders] = await db.select({ count: count() }).from(orders).where(and(eq(orders.storeId, storeId), eq(orders.status, 'pending')));
-  const [abandonedCartsCount] = await db.select({ count: count() }).from(abandonedCarts).where(and(eq(abandonedCarts.storeId, storeId), eq(abandonedCarts.status, 'abandoned')));
+  const last7Days = new Date();
+  last7Days.setDate(last7Days.getDate() - 7);
 
-  // 2. Revenue & Sales
-  const revenueResult = await db.select({ total: sql<number>`sum(total)` }).from(orders).where(and(eq(orders.storeId, storeId), sql`status != 'cancelled'`));
-  const revenue = revenueResult[0]?.total || 0;
-
-  const todayResult = await db
-    .select({
+  // Combine independent D1 queries using Promise.all to reduce latency
+  // This changes the execution time from O(8 * query_latency) to O(max(query_latency))
+  const [
+    [productCount],
+    [lowStockCount],
+    [orderCount],
+    [pendingOrders],
+    [abandonedCartsCount],
+    revenueResult,
+    todayResult,
+    yesterdayResult,
+    salesDataRaw,
+  ] = await Promise.all([
+    // 1. Basic Counts
+    db.select({ count: count() }).from(products).where(and(eq(products.storeId, storeId), eq(products.isPublished, true))),
+    db.select({ count: count() }).from(products).where(and(eq(products.storeId, storeId), sql`inventory <= 10`)),
+    db.select({ count: count() }).from(orders).where(eq(orders.storeId, storeId)),
+    db.select({ count: count() }).from(orders).where(and(eq(orders.storeId, storeId), eq(orders.status, 'pending'))),
+    db.select({ count: count() }).from(abandonedCarts).where(and(eq(abandonedCarts.storeId, storeId), eq(abandonedCarts.status, 'abandoned'))),
+    // 2. Revenue & Sales
+    db.select({ total: sql<number>`sum(total)` }).from(orders).where(and(eq(orders.storeId, storeId), sql`status != 'cancelled'`)),
+    db.select({
       total: sql<number>`sum(total)`,
       count: sql<number>`count(*)`,
+    }).from(orders).where(and(eq(orders.storeId, storeId), gte(orders.createdAt, today), sql`status != 'cancelled'`)),
+    db.select({ total: sql<number>`sum(total)` }).from(orders).where(and(eq(orders.storeId, storeId), gte(orders.createdAt, yesterday), sql`created_at < ${today.getTime()/1000}` /* approximated */, sql`status != 'cancelled'`)),
+    db.select({
+      date: sql<string>`date(created_at, 'unixepoch')`,
+      amount: sql<number>`sum(total)`
     })
-    .from(orders)
-    .where(and(eq(orders.storeId, storeId), gte(orders.createdAt, today), sql`status != 'cancelled'`));
+      .from(orders)
+      .where(and(eq(orders.storeId, storeId), gte(orders.createdAt, last7Days), sql`status != 'cancelled'`))
+      .groupBy(sql`date(created_at, 'unixepoch')`)
+      .orderBy(sql`date(created_at, 'unixepoch')`)
+  ]);
+
+  const revenue = revenueResult[0]?.total || 0;
   const todaySales = todayResult[0]?.total || 0;
   const todayOrders = todayResult[0]?.count || 0;
-
-  const yesterdayResult = await db.select({ total: sql<number>`sum(total)` }).from(orders).where(and(eq(orders.storeId, storeId), gte(orders.createdAt, yesterday), sql`created_at < ${today.getTime()/1000}` /* approximated */, sql`status != 'cancelled'`));
   // Note: D1 dates are stored as integers/timestamps usually or strings depending on schema. 
   // Assuming standard implementation:
   
@@ -70,19 +90,6 @@ export async function getStoreStats(db: Database, storeId: number) {
       const dateStr = d.toISOString().split('T')[0];
       salesData.push({ date: dateStr, amount: 0 });
   }
-
-  const last7Days = new Date();
-  last7Days.setDate(last7Days.getDate() - 7);
-  
-  const salesDataRaw = await db
-      .select({
-          date: sql<string>`date(created_at, 'unixepoch')`,
-          amount: sql<number>`sum(total)`
-      })
-      .from(orders)
-      .where(and(eq(orders.storeId, storeId), gte(orders.createdAt, last7Days), sql`status != 'cancelled'`))
-      .groupBy(sql`date(created_at, 'unixepoch')`)
-      .orderBy(sql`date(created_at, 'unixepoch')`);
 
   // Merge raw data into our 7-day skeleton
   salesDataRaw.forEach(row => {
