@@ -4,6 +4,7 @@ import { Link } from '@remix-run/react';
 import { SectionSettings } from './registry';
 import { Star } from 'lucide-react';
 import { AddToCartButton } from '~/components/AddToCartButton';
+import { sanitizeHtml } from '~/utils/sanitize';
 
 interface ProductInfoSectionProps {
   settings: SectionSettings;
@@ -112,7 +113,7 @@ export function ProductInfoSection({ settings, product, currency = 'BDT', avgRat
         <div className={`prose ${isDarkTheme ? 'prose-invert' : 'prose-gray'} max-w-none`}>
           <div 
             className={textMuted}
-            dangerouslySetInnerHTML={{ __html: product.description }} 
+            dangerouslySetInnerHTML={{ __html: sanitizeHtml(product.description || '') }}
           />
         </div>
       )}
