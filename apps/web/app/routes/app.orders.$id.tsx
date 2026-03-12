@@ -18,7 +18,7 @@ import { drizzle } from 'drizzle-orm/d1';
 import { eq, and, desc, sql } from 'drizzle-orm';
 import { orders, orderItems, products, productVariants, stores, activityLogs, users } from '@db/schema';
 import { getStoreId, getUserId } from '~/services/auth.server';
-import { ArrowLeft, Package, User, Phone, MapPin, Loader2, CheckCircle, Printer, Truck, ExternalLink, Send, Download, Copy, Check } from 'lucide-react';
+import { ArrowLeft, Package, User, Phone, MapPin, Loader2, CheckCircle, Printer, Truck, ExternalLink, Send, Download, Copy, Check, StickyNote } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { RiskBadge } from '~/components/RiskBadge';
 import { TrackingTimeline } from '~/components/TrackingTimeline';
@@ -594,6 +594,7 @@ export default function OrderDetailPage() {
   };
   const steadfastFetcher = useFetcher();
   const isBooking = steadfastFetcher.state === 'submitting';
+  const fetcher = useFetcher();
 
   const currency = store?.currency || 'BDT';
   const { t, lang } = useTranslation();
@@ -962,13 +963,100 @@ export default function OrderDetailPage() {
           </div>
         </div>
 
-        {/* Order Timeline */}
-        <div className="no-print">
-          <OrderTimeline
-            logs={activityLogs}
-            orderId={order.id}
-            isSubmitting={isUpdating}
-          />
+        {/* Internal Notes & Order Timeline */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 no-print">
+          {/* Internal Notes */}
+          <div className="bg-white rounded-xl border border-gray-200 p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <StickyNote className="w-5 h-5 text-gray-500" />
+              📝 Internal Notes
+            </h2>
+
+            <fetcher.Form method="post" className="mb-6">
+              <input type="hidden" name="intent" value="addNote" />
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  name="note"
+                  placeholder="Add a note..."
+                  required
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      if (e.currentTarget.value.trim()) {
+                        e.currentTarget.form?.requestSubmit();
+                        e.currentTarget.value = '';
+                      }
+                    }
+                  }}
+                />
+                <button
+                  type="submit"
+                  disabled={fetcher.state === 'submitting'}
+                  className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 disabled:opacity-50 transition whitespace-nowrap"
+                  onClick={(e) => {
+                    const form = e.currentTarget.form;
+                    if (form) {
+                      const input = form.querySelector('input[name="note"]') as HTMLInputElement;
+                      if (!input.value.trim()) {
+                        e.preventDefault();
+                        return;
+                      }
+                      setTimeout(() => {
+                        input.value = '';
+                      }, 10);
+                    }
+                  }}
+                >
+                  {fetcher.state === 'submitting' ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    'Add Note'
+                  )}
+                </button>
+              </div>
+            </fetcher.Form>
+
+            <div className="space-y-3">
+              {activityLogs
+                .filter(log => log.action === 'order_note_added')
+                .map((log) => {
+                  let noteContent = '';
+                  try {
+                    const parsed = JSON.parse(log.details || '{}');
+                    noteContent = parsed.note || '';
+                  } catch (e) {
+                    noteContent = log.details || '';
+                  }
+
+                  return (
+                    <div key={log.id} className="flex gap-2 text-sm text-gray-700">
+                      <span className="text-gray-400 mt-0.5">•</span>
+                      <div>
+                        <span>"{noteContent}"</span>
+                        <span className="text-gray-400 ml-2">
+                          - {log.user?.name || log.user?.email || 'System'}, {new Date(log.createdAt || '').toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+
+              {activityLogs.filter(log => log.action === 'order_note_added').length === 0 && (
+                <p className="text-sm text-gray-500 italic text-center py-4">No internal notes yet.</p>
+              )}
+            </div>
+          </div>
+
+          {/* Order Timeline */}
+          <div>
+            <OrderTimeline
+              logs={activityLogs}
+              orderId={order.id}
+              isSubmitting={isUpdating}
+            />
+          </div>
         </div>
 
         {/* Order Items - Screen only */}
