@@ -1,0 +1,41 @@
+{
+  "sorted_middleware": [
+    "/api/generate/route"
+  ],
+  "middleware": {},
+  "instrumentation": null,
+  "functions": {
+    "/api/generate/route": {
+      "files": [
+        "server/middleware-build-manifest.js",
+        "server/interception-route-rewrite-manifest.js",
+        "server/server-reference-manifest.js",
+        "server/app/api/generate/route_client-reference-manifest.js",
+        "server/edge/chunks/apps_ai-builder__next-internal_server_app_api_generate_route_actions_0d940168.js",
+        "server/edge/chunks/1fb28_next_dist_esm_d7e5ccf6._.js",
+        "server/edge/chunks/1fb28_next_dist_compiled_df2cc7bf._.js",
+        "server/edge/chunks/1fb28_next_dist_145e111d._.js",
+        "server/edge/chunks/node_modules_@opentelemetry_api_build_esm_5713bd62._.js",
+        "server/edge/chunks/[root-of-the-server]__f499f706._.js",
+        "server/edge/chunks/8fe09_next_dist_esm_build_templates_edge-wrapper_161d3add.js"
+      ],
+      "name": "app/api/generate/route",
+      "page": "/api/generate/route",
+      "matchers": [
+        {
+          "regexp": "^/api/generate(?:/)?$",
+          "originalSource": "/api/generate"
+        }
+      ],
+      "wasm": [],
+      "assets": [],
+      "env": {
+        "__NEXT_BUILD_ID": "development",
+        "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "RIsoQhBRfqnroyGyGWLKp41aW5+OWs6eaI+4LXWuwoE=",
+        "__NEXT_PREVIEW_MODE_ID": "74e9e22548cb68fbe433bd8c5c78d2d8",
+        "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "44884a8022e42f843e06c89e902479045118cfbcab99d41af9e330f9d8c78962",
+        "__NEXT_PREVIEW_MODE_SIGNING_KEY": "f9e10927836ca9e5aad9c0e4a76b0cd0772652c3fc8ce79f3fa4c577f965f044"
+      }
+    }
+  }
+}
