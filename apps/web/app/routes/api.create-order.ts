@@ -28,6 +28,7 @@ import { addLoyaltyPoints } from '~/services/loyalty.server';
 import { triggerAutomation } from '~/services/automation.server';
 import { parseLandingConfig } from '@db/types';
 import { generateCheckoutIdempotencyKey } from '~/services/webhook-utils.server';
+import { notifyMerchantViaWhatsApp } from '~/services/whatsapp-notify.server';
 
 
 // ============================================================================
@@ -989,7 +990,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       }
 
       // Merchant Alert
-      const merchantUser = await db.select({ email: users.email, name: users.name }).from(users).where(eq(users.storeId, input.store_id)).limit(1);
+      const merchantUser = await db.select({ email: users.email, name: users.name, phone: users.phone }).from(users).where(eq(users.storeId, input.store_id)).limit(1);
       if (merchantUser.length > 0 && merchantUser[0].email) {
         context.cloudflare.ctx.waitUntil(
           emailService.sendNewOrderAlert({
@@ -1015,6 +1016,21 @@ export async function action({ request, context }: ActionFunctionArgs) {
             })
           );
         }
+      }
+
+      // WhatsApp Notification to Merchant
+      if (merchantUser.length > 0 && merchantUser[0].phone) {
+        context.cloudflare.ctx.waitUntil(
+          notifyMerchantViaWhatsApp(merchantUser[0].phone, {
+            orderNumber,
+            customerName: input.customer_name,
+            customerPhone: input.phone,
+            total,
+            currency: storeData.currency || 'BDT',
+            itemCount: finalOrderItems.reduce((acc, i) => acc + i.quantity, 0),
+            address: input.address,
+          }).catch(e => console.error('[WhatsApp Notify] Error in waitUntil:', e))
+        );
       }
     }
 
