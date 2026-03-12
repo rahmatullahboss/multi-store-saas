@@ -23,6 +23,7 @@ import { VariantManager, type Variant } from '~/components/VariantManager';
 import { compressImage, getOptimalFormat } from '~/lib/imageCompression';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { useUnsavedChanges, deleteOrphanedImage } from '~/hooks/useUnsavedChanges';
+import { SeoPreview } from '~/components/SeoPreview';
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   return [{ title: data?.product?.title ? `Edit ${data.product.title}` : 'Edit Product' }];
@@ -114,6 +115,7 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
   const seoTitle = formData.get('seoTitle') as string;
   const seoDescription = formData.get('seoDescription') as string;
   const seoKeywords = formData.get('seoKeywords') as string;
+  const slug = formData.get('slug') as string; // TODO: add slug to schema
   // Bundle pricing
   const bundlePricing = formData.get('bundlePricing') as string;
 
@@ -328,11 +330,19 @@ export default function EditProductPage() {
   const [formSeoTitle, setFormSeoTitle] = useState<string>((product as any).seoTitle || '');
   const [formSeoDescription, setFormSeoDescription] = useState<string>((product as any).seoDescription || '');
   const [formSeoKeywords, setFormSeoKeywords] = useState<string>((product as any).seoKeywords || '');
+  const [formSlug, setFormSlug] = useState<string>((product as any).slug || ''); // TODO: add slug to schema
   
   // Auto-generate SEO values
   const autoSeoTitle = formTitle || product.title;
   const autoSeoDescription = (formDescription || product.description || '').slice(0, 155);
   
+  // Generate slug
+  const autoSlug = formTitle
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)+/g, '');
+  const displaySlug = formSlug || autoSlug;
+
   // Track newly uploaded images (not the original)
   const [newlyUploadedImage, setNewlyUploadedImage] = useState<string>('');
   
@@ -702,15 +712,34 @@ export default function EditProductPage() {
           {seoExpanded && (
             <div className="p-4 pt-0 border-t border-gray-100 space-y-4">
               {/* Google Preview */}
-              <div className="bg-gray-50 rounded-lg p-4">
-                <p className="text-xs text-gray-500 mb-2">Google Preview:</p>
-                <p className="text-sm text-emerald-700 truncate">yourstore.ozzyl.com/products/...</p>
-                <h4 className="text-lg text-blue-800 hover:underline cursor-pointer truncate">
-                  {formSeoTitle || autoSeoTitle}
-                </h4>
-                <p className="text-sm text-gray-600 line-clamp-2">
-                  {formSeoDescription || autoSeoDescription || 'এই প্রোডাক্টের বিবরণ এখানে দেখা যাবে...'}
-                </p>
+              <SeoPreview
+                title={formSeoTitle || autoSeoTitle}
+                description={formSeoDescription || autoSeoDescription || 'এই প্রোডাক্টের বিবরণ এখানে দেখা যাবে...'}
+                slug={displaySlug}
+                urlPrefix="yourstore.ozzyl.com/"
+                previewLabel="Google Preview:"
+              />
+
+              {/* URL Slug */}
+              <div>
+                <label htmlFor="slug" className="block text-sm font-medium text-gray-700 mb-1">
+                  URL Slug
+                  <span className="text-xs text-gray-400 ml-2">(খালি থাকলে অটো-জেনারেট হবে)</span>
+                </label>
+                <div className="flex rounded-lg shadow-sm">
+                  <span className="px-3 inline-flex items-center min-w-fit rounded-l-lg border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
+                    yourstore.ozzyl.com/products/
+                  </span>
+                  <input
+                    type="text"
+                    id="slug"
+                    name="slug"
+                    value={formSlug}
+                    onChange={(e) => setFormSlug(e.target.value)}
+                    placeholder={autoSlug}
+                    className="flex-1 block w-full px-4 py-2.5 border border-gray-300 rounded-none rounded-r-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                  />
+                </div>
               </div>
               
               {/* Meta Title */}

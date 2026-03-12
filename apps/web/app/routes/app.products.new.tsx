@@ -25,6 +25,7 @@ import { compressImage, getOptimalFormat } from '~/lib/imageCompression';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { useUnsavedChanges, deleteOrphanedImage } from '~/hooks/useUnsavedChanges';
 import { LazyRichTextEditor } from '~/components/RichTextEditor.lazy';
+import { SeoPreview } from '~/components/SeoPreview';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Add Product - Ozzyl' }];
@@ -51,6 +52,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const seoTitle = formData.get('seoTitle') as string;
   const seoDescription = formData.get('seoDescription') as string;
   const seoKeywords = formData.get('seoKeywords') as string;
+  const slug = formData.get('slug') as string; // TODO: add slug to schema
 
   // Validation
   const errors: Record<string, string> = {};
@@ -218,10 +220,18 @@ export default function NewProductPage() {
   const [formSeoTitle, setFormSeoTitle] = useState<string>('');
   const [formSeoDescription, setFormSeoDescription] = useState<string>('');
   const [formSeoKeywords, setFormSeoKeywords] = useState<string>('');
+  const [formSlug, setFormSlug] = useState<string>(''); // TODO: add slug to schema
 
   // Auto-generate SEO values
   const autoSeoTitle = formTitle;
   const autoSeoDescription = formDescription.slice(0, 155);
+
+  // Generate slug
+  const autoSlug = formTitle
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)+/g, '');
+  const displaySlug = formSlug || autoSlug;
 
   // Check if form has unsaved changes
   const hasUnsavedChanges = !!(formTitle || formPrice || formDescription || imageUrl || variants.length > 0);
@@ -513,15 +523,34 @@ export default function NewProductPage() {
           {seoExpanded && (
             <div className="p-4 pt-0 border-t border-gray-100 space-y-4">
               {/* Google Preview */}
-              <div className="bg-gray-50 rounded-lg p-4">
-                <p className="text-xs text-gray-500 mb-2">{t('googlePreview')}</p>
-                <p className="text-sm text-emerald-700 truncate">yourstore.ozzyl.com/products/...</p>
-                <h4 className="text-lg text-blue-800 hover:underline cursor-pointer truncate">
-                  {formSeoTitle || autoSeoTitle || t('productTitle')}
-                </h4>
-                <p className="text-sm text-gray-600 line-clamp-2">
-                  {formSeoDescription || autoSeoDescription || t('seoDescriptionPreview')}
-                </p>
+              <SeoPreview
+                title={formSeoTitle || autoSeoTitle || t('productTitle')}
+                description={formSeoDescription || autoSeoDescription || t('seoDescriptionPreview')}
+                slug={displaySlug}
+                urlPrefix="yourstore.ozzyl.com/"
+                previewLabel={t('googlePreview')}
+              />
+
+              {/* URL Slug */}
+              <div>
+                <label htmlFor="slug" className="block text-sm font-medium text-gray-700 mb-1">
+                  URL Slug
+                  <span className="text-xs text-gray-400 ml-2">({t('autoGenerateHint') || 'খালি থাকলে অটো-জেনারেট হবে'})</span>
+                </label>
+                <div className="flex rounded-lg shadow-sm">
+                  <span className="px-3 inline-flex items-center min-w-fit rounded-l-lg border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
+                    yourstore.ozzyl.com/products/
+                  </span>
+                  <input
+                    type="text"
+                    id="slug"
+                    name="slug"
+                    value={formSlug}
+                    onChange={(e) => setFormSlug(e.target.value)}
+                    placeholder={autoSlug}
+                    className="flex-1 block w-full px-4 py-2.5 border border-gray-300 rounded-none rounded-r-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                  />
+                </div>
               </div>
 
               {/* Meta Title */}
