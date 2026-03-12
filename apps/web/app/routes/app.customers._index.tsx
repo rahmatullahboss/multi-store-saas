@@ -24,7 +24,8 @@ import {
   ShoppingBag, 
   Calendar, 
   ArrowRight,
-  UserPlus
+  UserPlus,
+  Download
 } from 'lucide-react';
 import { useState, useMemo } from 'react';
 import { PageHeader, EmptyState } from '~/components/ui';
@@ -129,11 +130,14 @@ export default function CustomersListPage() {
           title={t('customersTitle')}
           description={t('customersDescription')}
         />
-        {/* Placeholder for Add Customer (Manual) - MVP P1 */}
-        {/* <button className="btn-primary flex items-center gap-2">
-          <UserPlus className="w-4 h-4" />
-          Add Customer
-        </button> */}
+        <a
+          href="/api/export-customers"
+          download
+          className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition"
+        >
+          <Download className="w-4 h-4" />
+          Export {stats.total} customers
+        </a>
       </div>
 
       {/* Stats Cards */}
