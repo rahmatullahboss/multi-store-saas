@@ -22,7 +22,12 @@ export const ordersApi = new Hono<OrdersContext>();
 // Generate unique order number
 function generateOrderNumber(): string {
   const timestamp = Date.now().toString(36).toUpperCase();
-  const random = Math.random().toString(36).substring(2, 6).toUpperCase();
+  // Security Enhancement: Use Web Crypto API for secure random generation instead of Math.random()
+  const array = new Uint32Array(1);
+  crypto.getRandomValues(array);
+  // Use the last 4 characters to avoid leading-digit bias, then pad to at least 4 chars if needed
+  const randomStr = array[0].toString(36).toUpperCase();
+  const random = randomStr.length >= 4 ? randomStr.slice(-4) : randomStr.padStart(4, '0');
   return `ORD-${timestamp}-${random}`;
 }
 
