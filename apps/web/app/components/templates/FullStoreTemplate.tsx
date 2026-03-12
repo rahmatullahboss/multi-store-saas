@@ -10,6 +10,7 @@ import { useState } from 'react';
 import { Menu, X } from 'lucide-react';
 import type { ThemeConfig } from '@db/types';
 import { AddToCartButton } from '~/components/AddToCartButton';
+import { AnnouncementBar } from '../store-sections/AnnouncementBar';
 
 // Serialized product type (JSON converts Date to string)
 interface SerializedProduct {
@@ -69,18 +70,15 @@ export function FullStoreTemplate({
     <div className="min-h-screen bg-white">
       {/* Announcement Bar */}
       {config?.announcement && (
-        <div 
-          className="text-white text-center py-2.5 text-sm font-medium"
-          style={{ backgroundColor: primaryColor }}
-        >
-          {config.announcement.link ? (
-            <Link to={config.announcement.link} className="hover:underline">
-              {config.announcement.text}
-            </Link>
-          ) : (
-            config.announcement.text
-          )}
-        </div>
+        <AnnouncementBar
+          enabled={config.announcement.enabled ?? true}
+          text={config.announcement.text}
+          link={config.announcement.link}
+          bgColor={config.announcement.bgColor}
+          textColor={config.announcement.textColor}
+          dismissible={config.announcement.dismissible}
+          storeAccentColor={primaryColor}
+        />
       )}
 
       {/* Header */}

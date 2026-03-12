@@ -219,8 +219,12 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const fontFamily = formData.get('fontFamily') as string || 'inter';
   const bannerUrl = formData.get('bannerUrl') as string || '';
   const bannerText = formData.get('bannerText') as string || '';
+  const announcementEnabled = formData.get('announcementEnabled') === 'true';
   const announcementText = formData.get('announcementText') as string || '';
   const announcementLink = formData.get('announcementLink') as string || '';
+  const announcementBgColor = formData.get('announcementBgColor') as string || '';
+  const announcementTextColor = formData.get('announcementTextColor') as string || '';
+  const announcementDismissible = formData.get('announcementDismissible') === 'true';
   const customCSS = formData.get('customCSS') as string || '';
   
   // Info
@@ -292,7 +296,14 @@ export async function action({ request, context }: ActionFunctionArgs) {
     bannerUrl,
     bannerText,
     customCSS,
-    announcement: announcementText ? { text: announcementText, link: announcementLink } : undefined,
+    announcement: announcementText ? {
+      enabled: announcementEnabled,
+      text: announcementText,
+      link: announcementLink || undefined,
+      bgColor: announcementBgColor || undefined,
+      textColor: announcementTextColor || undefined,
+      dismissible: announcementDismissible
+    } : undefined,
     headerLayout,
     headerShowSearch,
     headerShowCart,
@@ -737,8 +748,12 @@ export default function StoreLiveEditor() {
   const [fontFamily, setFontFamily] = useState(store.fontFamily);
   const [bannerUrl, setBannerUrl] = useState(themeConfig.bannerUrl || '');
   const [bannerText, setBannerText] = useState(themeConfig.bannerText || '');
+  const [announcementEnabled, setAnnouncementEnabled] = useState(themeConfig.announcement?.enabled ?? false);
   const [announcementText, setAnnouncementText] = useState(themeConfig.announcement?.text || '');
   const [announcementLink, setAnnouncementLink] = useState(themeConfig.announcement?.link || '');
+  const [announcementBgColor, setAnnouncementBgColor] = useState(themeConfig.announcement?.bgColor || themeConfig.primaryColor || '#4f46e5');
+  const [announcementTextColor, setAnnouncementTextColor] = useState(themeConfig.announcement?.textColor || '#ffffff');
+  const [announcementDismissible, setAnnouncementDismissible] = useState(themeConfig.announcement?.dismissible ?? false);
   const [customCSS, setCustomCSS] = useState(themeConfig.customCSS || '');
   
   // Info state
@@ -946,8 +961,12 @@ export default function StoreLiveEditor() {
     fontFamily,
     bannerUrl,
     bannerText,
+    announcementEnabled,
     announcementText,
     announcementLink,
+    announcementBgColor,
+    announcementTextColor,
+    announcementDismissible,
     customCSS,
     logo,
     phone,
@@ -964,7 +983,7 @@ export default function StoreLiveEditor() {
     footerColumns,
     checkoutStyle,
     sections,
-  }), [selectedTemplateId, primaryColor, accentColor, backgroundColor, textColor, borderColor, typography, fontFamily, bannerUrl, bannerText, announcementText, announcementLink, customCSS, logo, phone, email, address, facebook, instagram, whatsapp, headerLayout, headerShowSearch, headerShowCart, footerDescription, copyrightText, footerColumns, sections]);
+  }), [selectedTemplateId, primaryColor, accentColor, backgroundColor, textColor, borderColor, typography, fontFamily, bannerUrl, bannerText, announcementEnabled, announcementText, announcementLink, announcementBgColor, announcementTextColor, announcementDismissible, customCSS, logo, phone, email, address, facebook, instagram, whatsapp, headerLayout, headerShowSearch, headerShowCart, footerDescription, copyrightText, footerColumns, sections]);
 
 
   const initialSnapshot = useRef(createStateSnapshot());
@@ -991,8 +1010,12 @@ export default function StoreLiveEditor() {
     setFontFamily(snapshot.fontFamily);
     setBannerUrl(snapshot.bannerUrl);
     setBannerText(snapshot.bannerText);
+    setAnnouncementEnabled(snapshot.announcementEnabled);
     setAnnouncementText(snapshot.announcementText);
     setAnnouncementLink(snapshot.announcementLink);
+    setAnnouncementBgColor(snapshot.announcementBgColor);
+    setAnnouncementTextColor(snapshot.announcementTextColor);
+    setAnnouncementDismissible(snapshot.announcementDismissible);
     setCustomCSS(snapshot.customCSS);
     setLogo(snapshot.logo);
     setPhone(snapshot.phone);
@@ -1051,7 +1074,7 @@ export default function StoreLiveEditor() {
       return;
     }
     setHasChanges(true);
-  }, [selectedTemplateId, primaryColor, accentColor, backgroundColor, textColor, borderColor, typography, fontFamily, bannerUrl, bannerText, announcementText, announcementLink, customCSS, logo, phone, email, address, facebook, instagram, whatsapp, headerLayout, headerShowSearch, headerShowCart, footerDescription, copyrightText, footerColumns, floatingWhatsappEnabled, floatingWhatsappNumber, floatingWhatsappMessage, floatingCallEnabled, floatingCallNumber, checkoutStyle, sections]);
+  }, [selectedTemplateId, primaryColor, accentColor, backgroundColor, textColor, borderColor, typography, fontFamily, bannerUrl, bannerText, announcementEnabled, announcementText, announcementLink, announcementBgColor, announcementTextColor, announcementDismissible, customCSS, logo, phone, email, address, facebook, instagram, whatsapp, headerLayout, headerShowSearch, headerShowCart, footerDescription, copyrightText, footerColumns, floatingWhatsappEnabled, floatingWhatsappNumber, floatingWhatsappMessage, floatingCallEnabled, floatingCallNumber, checkoutStyle, sections]);
 
 
   // Show success/error message
@@ -1106,7 +1129,14 @@ export default function StoreLiveEditor() {
           fontFamily,
           bannerUrl,
           bannerText,
-          announcement: { text: announcementText, link: announcementLink },
+          announcement: {
+            enabled: announcementEnabled,
+            text: announcementText,
+            link: announcementLink,
+            bgColor: announcementBgColor,
+            textColor: announcementTextColor,
+            dismissible: announcementDismissible
+          },
           customCSS,
           sections: homeSections,
           productSections: productSections,
@@ -1133,7 +1163,7 @@ export default function StoreLiveEditor() {
     }
   }, [
     iframeReady, selectedTemplateId, primaryColor, accentColor, backgroundColor, textColor, borderColor, 
-    typography, fontFamily, bannerUrl, bannerText, announcementText, announcementLink, customCSS, 
+    typography, fontFamily, bannerUrl, bannerText, announcementEnabled, announcementText, announcementLink, announcementBgColor, announcementTextColor, announcementDismissible, customCSS,
     homeSections, productSections, logo, phone, email, address, facebook, instagram, whatsapp,
     headerLayout, headerShowSearch, headerShowCart, footerDescription, copyrightText, footerColumns,
     floatingWhatsappEnabled, floatingWhatsappNumber, floatingWhatsappMessage, floatingCallEnabled, 
@@ -1314,8 +1344,12 @@ export default function StoreLiveEditor() {
       // ============ NEW ACTIONS ============
 
       case 'update_announcement':
+        if (command.value?.enabled !== undefined) setAnnouncementEnabled(command.value.enabled);
         if (command.value?.text !== undefined) setAnnouncementText(command.value.text);
         if (command.value?.link !== undefined) setAnnouncementLink(command.value.link);
+        if (command.value?.bgColor !== undefined) setAnnouncementBgColor(command.value.bgColor);
+        if (command.value?.textColor !== undefined) setAnnouncementTextColor(command.value.textColor);
+        if (command.value?.dismissible !== undefined) setAnnouncementDismissible(command.value.dismissible);
         break;
 
       case 'update_banner':
@@ -1618,8 +1652,12 @@ export default function StoreLiveEditor() {
             <input type="hidden" name="fontFamily" value={fontFamily} />
             <input type="hidden" name="bannerUrl" value={bannerUrl} />
             <input type="hidden" name="bannerText" value={bannerText} />
+            <input type="hidden" name="announcementEnabled" value={announcementEnabled.toString()} />
             <input type="hidden" name="announcementText" value={announcementText} />
             <input type="hidden" name="announcementLink" value={announcementLink} />
+            <input type="hidden" name="announcementBgColor" value={announcementBgColor} />
+            <input type="hidden" name="announcementTextColor" value={announcementTextColor} />
+            <input type="hidden" name="announcementDismissible" value={announcementDismissible.toString()} />
             <input type="hidden" name="customCSS" value={customCSS} />
             <input type="hidden" name="logo" value={logo} />
             <input type="hidden" name="phone" value={phone} />
@@ -2653,14 +2691,91 @@ export default function StoreLiveEditor() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Announcement Text</label>
-                  <input
-                    type="text"
-                    value={announcementText}
-                    onChange={(e) => setAnnouncementText(e.target.value)}
-                    placeholder="🔥 Free shipping on orders over $50!"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  />
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-xs font-medium text-gray-700 mb-1">Announcement Bar</label>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        className="sr-only peer"
+                        checked={announcementEnabled}
+                        onChange={(e) => setAnnouncementEnabled(e.target.checked)}
+                      />
+                      <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-purple-600"></div>
+                    </label>
+                  </div>
+
+                  {announcementEnabled && (
+                    <div className="space-y-3 mt-3">
+                      <div>
+                        <label className="block text-[10px] text-gray-500 mb-1">Text</label>
+                        <input
+                          type="text"
+                          value={announcementText}
+                          onChange={(e) => setAnnouncementText(e.target.value)}
+                          placeholder="🔥 Free shipping on orders over $50!"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          maxLength={150}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] text-gray-500 mb-1">Link URL (Optional)</label>
+                        <input
+                          type="url"
+                          value={announcementLink}
+                          onChange={(e) => setAnnouncementLink(e.target.value)}
+                          placeholder="https://..."
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="block text-[10px] text-gray-500 mb-1">Background</label>
+                          <div className="flex gap-2">
+                            <input
+                              type="color"
+                              value={announcementBgColor}
+                              onChange={(e) => setAnnouncementBgColor(e.target.value)}
+                              className="h-8 w-8 rounded border border-gray-300 cursor-pointer p-0.5"
+                            />
+                            <input
+                              type="text"
+                              value={announcementBgColor}
+                              onChange={(e) => setAnnouncementBgColor(e.target.value)}
+                              className="flex-1 px-2 py-1 border border-gray-300 rounded text-xs"
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block text-[10px] text-gray-500 mb-1">Text Color</label>
+                          <div className="flex gap-2">
+                            <input
+                              type="color"
+                              value={announcementTextColor}
+                              onChange={(e) => setAnnouncementTextColor(e.target.value)}
+                              className="h-8 w-8 rounded border border-gray-300 cursor-pointer p-0.5"
+                            />
+                            <input
+                              type="text"
+                              value={announcementTextColor}
+                              onChange={(e) => setAnnouncementTextColor(e.target.value)}
+                              className="flex-1 px-2 py-1 border border-gray-300 rounded text-xs"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <label className="flex items-center gap-2 mt-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={announcementDismissible}
+                          onChange={(e) => setAnnouncementDismissible(e.target.checked)}
+                          className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                        />
+                        <span className="text-xs text-gray-600">User can dismiss</span>
+                      </label>
+                    </div>
+                  )}
                 </div>
               </div>
             </AccordionSection>
