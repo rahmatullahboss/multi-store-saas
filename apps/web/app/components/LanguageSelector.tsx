@@ -61,6 +61,7 @@ export function LanguageSelector({
           ${sizeClasses[size]} ${className}
         `}
         title="Toggle language"
+        aria-label={`Switch to ${lang === 'en' ? 'বাংলা' : 'English'}`}
       >
         {showFlag && currentLanguage?.flag}
         {showName && (
@@ -106,6 +107,8 @@ export function LanguageSelector({
           bg-white hover:bg-gray-50 transition-colors
           ${sizeClasses[size]}
         `}
+        aria-label="Select language"
+        aria-expanded={isOpen}
       >
         <Globe className="w-4 h-4 text-gray-500" />
         {showFlag && currentLanguage?.flag}
@@ -164,6 +167,7 @@ export function CompactLanguageToggle({ className = '' }: { className?: string }
         ${className}
       `}
       title={`Switch to ${lang === 'en' ? 'বাংলা' : 'English'}`}
+      aria-label={`Switch to ${lang === 'en' ? 'বাংলা' : 'English'}`}
     >
       <span className="text-base">{currentLanguage?.flag}</span>
       <span className="uppercase font-bold text-gray-700">{lang}</span>
