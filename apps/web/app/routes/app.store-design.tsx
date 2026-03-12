@@ -128,14 +128,25 @@ export const action = async ({ request, context }: any) => {
   if (intent === 'save-banner') {
     const bannerUrl = formData.get('bannerUrl') as string || '';
     const bannerText = formData.get('bannerText') as string || '';
+    const announcementEnabled = formData.get('announcementEnabled') === 'true';
     const announcementText = formData.get('announcementText') as string || '';
     const announcementLink = formData.get('announcementLink') as string || '';
+    const announcementBgColor = formData.get('announcementBgColor') as string || '';
+    const announcementTextColor = formData.get('announcementTextColor') as string || '';
+    const announcementDismissible = formData.get('announcementDismissible') === 'true';
     
     const updatedConfig: ThemeConfig = { 
       ...currentConfig, 
       bannerUrl: bannerUrl || undefined,
       bannerText: bannerText || undefined,
-      announcement: announcementText ? { text: announcementText, link: announcementLink || undefined } : undefined,
+      announcement: announcementText ? {
+        enabled: announcementEnabled,
+        text: announcementText,
+        link: announcementLink || undefined,
+        bgColor: announcementBgColor || undefined,
+        textColor: announcementTextColor || undefined,
+        dismissible: announcementDismissible
+      } : undefined,
     };
     await db.update(stores).set({ 
       themeConfig: JSON.stringify(updatedConfig), 
@@ -207,8 +218,12 @@ export default function StoreDesignPage() {
   // Banner state
   const [bannerUrl, setBannerUrl] = useState(themeConfig.bannerUrl || '');
   const [bannerText, setBannerText] = useState(themeConfig.bannerText || '');
+  const [announcementEnabled, setAnnouncementEnabled] = useState(themeConfig.announcement?.enabled ?? false);
   const [announcementText, setAnnouncementText] = useState(themeConfig.announcement?.text || '');
   const [announcementLink, setAnnouncementLink] = useState(themeConfig.announcement?.link || '');
+  const [announcementBgColor, setAnnouncementBgColor] = useState(themeConfig.announcement?.bgColor || themeConfig.primaryColor || '#4f46e5');
+  const [announcementTextColor, setAnnouncementTextColor] = useState(themeConfig.announcement?.textColor || '#ffffff');
+  const [announcementDismissible, setAnnouncementDismissible] = useState(themeConfig.announcement?.dismissible ?? false);
   
   // Info state
   const [logo, setLogo] = useState(storeLogo);
@@ -683,10 +698,22 @@ export default function StoreDesignPage() {
 
               {/* Announcement Bar */}
               <div className="bg-white rounded-xl border border-gray-200 p-6">
-                <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                  <Megaphone className="w-5 h-5 text-purple-600" />
-                  {t('announcementBar')}
-                </h3>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                    <Megaphone className="w-5 h-5 text-purple-600" />
+                    {t('announcementBar')}
+                  </h3>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="sr-only peer"
+                      checked={announcementEnabled}
+                      onChange={(e) => setAnnouncementEnabled(e.target.checked)}
+                    />
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                  </label>
+                  <input type="hidden" name="announcementEnabled" value={announcementEnabled.toString()} />
+                </div>
                 <p className="text-sm text-gray-500 mb-4">
                   {t('announcementBarDesc')}
                 </p>
@@ -701,6 +728,7 @@ export default function StoreDesignPage() {
                       onChange={(e) => setAnnouncementText(e.target.value)}
                       placeholder={t('announcementPlaceholder')}
                       className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      maxLength={150}
                     />
                   </div>
 
@@ -716,14 +744,71 @@ export default function StoreDesignPage() {
                     />
                   </div>
 
-                  {announcementText && (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Background Color</label>
+                      <div className="flex gap-2">
+                        <input
+                          type="color"
+                          name="announcementBgColor"
+                          value={announcementBgColor}
+                          onChange={(e) => setAnnouncementBgColor(e.target.value)}
+                          className="h-10 w-10 rounded border border-gray-300 cursor-pointer p-1"
+                        />
+                        <input
+                          type="text"
+                          value={announcementBgColor}
+                          onChange={(e) => setAnnouncementBgColor(e.target.value)}
+                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Text Color</label>
+                      <div className="flex gap-2">
+                        <input
+                          type="color"
+                          name="announcementTextColor"
+                          value={announcementTextColor}
+                          onChange={(e) => setAnnouncementTextColor(e.target.value)}
+                          className="h-10 w-10 rounded border border-gray-300 cursor-pointer p-1"
+                        />
+                        <input
+                          type="text"
+                          value={announcementTextColor}
+                          onChange={(e) => setAnnouncementTextColor(e.target.value)}
+                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={announcementDismissible}
+                        onChange={(e) => setAnnouncementDismissible(e.target.checked)}
+                        className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                      />
+                      <span className="text-sm text-gray-700">Allow customers to dismiss (close) the announcement</span>
+                    </label>
+                    <input type="hidden" name="announcementDismissible" value={announcementDismissible.toString()} />
+                  </div>
+
+                  {announcementText && announcementEnabled && (
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">{t('preview')}</label>
                       <div 
-                        className="py-2.5 px-4 text-center text-sm font-medium text-white rounded-lg"
-                        style={{ backgroundColor: primaryColor }}
+                        className="py-2.5 px-4 text-center text-sm font-medium rounded-lg relative"
+                        style={{ backgroundColor: announcementBgColor, color: announcementTextColor }}
                       >
                         {announcementText}
+                        {announcementDismissible && (
+                          <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                            <span className="opacity-70 text-xs px-2 py-1">✕</span>
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}
