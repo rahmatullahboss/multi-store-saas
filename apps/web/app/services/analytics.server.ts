@@ -26,28 +26,53 @@ export async function getStoreStats(db: Database, storeId: number) {
   const yesterday = new Date(today);
   yesterday.setDate(yesterday.getDate() - 1);
 
-  // 1. Basic Counts
-  const [productCount] = await db.select({ count: count() }).from(products).where(and(eq(products.storeId, storeId), eq(products.isPublished, true)));
-  const [lowStockCount] = await db.select({ count: count() }).from(products).where(and(eq(products.storeId, storeId), sql`inventory <= 10`));
-  const [orderCount] = await db.select({ count: count() }).from(orders).where(eq(orders.storeId, storeId));
-  const [pendingOrders] = await db.select({ count: count() }).from(orders).where(and(eq(orders.storeId, storeId), eq(orders.status, 'pending')));
-  const [abandonedCartsCount] = await db.select({ count: count() }).from(abandonedCarts).where(and(eq(abandonedCarts.storeId, storeId), eq(abandonedCarts.status, 'abandoned')));
+  const last7Days = new Date();
+  last7Days.setDate(last7Days.getDate() - 7);
 
-  // 2. Revenue & Sales
-  const revenueResult = await db.select({ total: sql<number>`sum(total)` }).from(orders).where(and(eq(orders.storeId, storeId), sql`status != 'cancelled'`));
-  const revenue = revenueResult[0]?.total || 0;
-
-  const todayResult = await db
-    .select({
-      total: sql<number>`sum(total)`,
-      count: sql<number>`count(*)`,
+  // 1. & 2. Execute DB queries concurrently
+  const [
+    productCountResult,
+    lowStockCountResult,
+    orderCountResult,
+    pendingOrdersResult,
+    abandonedCartsCountResult,
+    revenueResult,
+    todayResult,
+    yesterdayResult,
+    salesDataRaw
+  ] = await Promise.all([
+    db.select({ count: count() }).from(products).where(and(eq(products.storeId, storeId), eq(products.isPublished, true))),
+    db.select({ count: count() }).from(products).where(and(eq(products.storeId, storeId), sql`inventory <= 10`)),
+    db.select({ count: count() }).from(orders).where(eq(orders.storeId, storeId)),
+    db.select({ count: count() }).from(orders).where(and(eq(orders.storeId, storeId), eq(orders.status, 'pending'))),
+    db.select({ count: count() }).from(abandonedCarts).where(and(eq(abandonedCarts.storeId, storeId), eq(abandonedCarts.status, 'abandoned'))),
+    db.select({ total: sql<number>`sum(total)` }).from(orders).where(and(eq(orders.storeId, storeId), sql`status != 'cancelled'`)),
+    db.select({
+        total: sql<number>`sum(total)`,
+        count: sql<number>`count(*)`,
+      }).from(orders).where(and(eq(orders.storeId, storeId), gte(orders.createdAt, today), sql`status != 'cancelled'`)),
+    db.select({ total: sql<number>`sum(total)` }).from(orders).where(and(eq(orders.storeId, storeId), gte(orders.createdAt, yesterday), sql`created_at < ${today.getTime()/1000}` /* approximated */, sql`status != 'cancelled'`)),
+    db.select({
+        date: sql<string>`date(created_at, 'unixepoch')`,
+        amount: sql<number>`sum(total)`
     })
     .from(orders)
-    .where(and(eq(orders.storeId, storeId), gte(orders.createdAt, today), sql`status != 'cancelled'`));
+    .where(and(eq(orders.storeId, storeId), gte(orders.createdAt, last7Days), sql`status != 'cancelled'`))
+    .groupBy(sql`date(created_at, 'unixepoch')`)
+    .orderBy(sql`date(created_at, 'unixepoch')`)
+  ]);
+
+  const productCount = productCountResult[0];
+  const lowStockCount = lowStockCountResult[0];
+  const orderCount = orderCountResult[0];
+  const pendingOrders = pendingOrdersResult[0];
+  const abandonedCartsCount = abandonedCartsCountResult[0];
+
+  const revenue = revenueResult[0]?.total || 0;
+
   const todaySales = todayResult[0]?.total || 0;
   const todayOrders = todayResult[0]?.count || 0;
 
-  const yesterdayResult = await db.select({ total: sql<number>`sum(total)` }).from(orders).where(and(eq(orders.storeId, storeId), gte(orders.createdAt, yesterday), sql`created_at < ${today.getTime()/1000}` /* approximated */, sql`status != 'cancelled'`));
   // Note: D1 dates are stored as integers/timestamps usually or strings depending on schema. 
   // Assuming standard implementation:
   
@@ -70,19 +95,6 @@ export async function getStoreStats(db: Database, storeId: number) {
       const dateStr = d.toISOString().split('T')[0];
       salesData.push({ date: dateStr, amount: 0 });
   }
-
-  const last7Days = new Date();
-  last7Days.setDate(last7Days.getDate() - 7);
-  
-  const salesDataRaw = await db
-      .select({
-          date: sql<string>`date(created_at, 'unixepoch')`,
-          amount: sql<number>`sum(total)`
-      })
-      .from(orders)
-      .where(and(eq(orders.storeId, storeId), gte(orders.createdAt, last7Days), sql`status != 'cancelled'`))
-      .groupBy(sql`date(created_at, 'unixepoch')`)
-      .orderBy(sql`date(created_at, 'unixepoch')`);
 
   // Merge raw data into our 7-day skeleton
   salesDataRaw.forEach(row => {
@@ -197,25 +209,24 @@ export async function getAbandonedCartRecoveryStats(db: Database, storeId?: numb
 }
 
 export async function getStoreFunnelMetrics(db: Database, storeId: number) {
-  const views = await db
-    .select({ count: sql<number>`count(distinct ${pageViews.visitorId})` })
-    .from(pageViews)
-    .where(eq(pageViews.storeId, storeId));
-
-  const cartsCount = await db
-    .select({ count: sql<number>`count(distinct ${carts.visitorId})` })
-    .from(carts)
-    .where(eq(carts.storeId, storeId));
-
-  const checkouts = await db
-    .select({ count: sql<number>`count(distinct ${checkoutSessions.id})` })
-    .from(checkoutSessions)
-    .where(eq(checkoutSessions.storeId, storeId));
-
-  const ordersCount = await db
-    .select({ count: sql<number>`count(distinct ${orders.id})` })
-    .from(orders)
-    .where(and(eq(orders.storeId, storeId), sql`status != 'cancelled'`));
+  const [views, cartsCount, checkouts, ordersCount] = await Promise.all([
+    db
+      .select({ count: sql<number>`count(distinct ${pageViews.visitorId})` })
+      .from(pageViews)
+      .where(eq(pageViews.storeId, storeId)),
+    db
+      .select({ count: sql<number>`count(distinct ${carts.visitorId})` })
+      .from(carts)
+      .where(eq(carts.storeId, storeId)),
+    db
+      .select({ count: sql<number>`count(distinct ${checkoutSessions.id})` })
+      .from(checkoutSessions)
+      .where(eq(checkoutSessions.storeId, storeId)),
+    db
+      .select({ count: sql<number>`count(distinct ${orders.id})` })
+      .from(orders)
+      .where(and(eq(orders.storeId, storeId), sql`status != 'cancelled'`))
+  ]);
 
   const viewCount = Number(views[0]?.count || 0);
   const cartCount = Number(cartsCount[0]?.count || 0);
