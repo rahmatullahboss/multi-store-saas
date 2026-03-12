@@ -142,6 +142,8 @@ export function AIEnhanceButton({
         onClick={() => setIsOpen(!isOpen)}
         className={`${buttonSize} flex items-center justify-center rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600 transition-all shadow-sm hover:shadow-md`}
         title="AI দিয়ে তৈরি করুন"
+        aria-label="AI দিয়ে তৈরি করুন"
+        aria-expanded={isOpen}
       >
         <Sparkles className={iconSize} />
       </button>
@@ -162,6 +164,7 @@ export function AIEnhanceButton({
               type="button"
               onClick={() => setIsOpen(false)}
               className="p-1 hover:bg-white/20 rounded-lg transition-colors"
+              aria-label="Close AI panel"
             >
               <X className="w-4 h-4" />
             </button>
@@ -183,6 +186,7 @@ export function AIEnhanceButton({
                 type="submit"
                 disabled={!prompt.trim() || isLoading}
                 className="absolute right-1.5 top-1/2 -translate-y-1/2 p-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-md disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                aria-label={isLoading ? 'Generating AI text...' : 'Generate AI text'}
               >
                 {isLoading ? (
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
