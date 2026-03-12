@@ -1,3 +1,5 @@
 ## 2026-03-11 - [Optimize Analytics Dashboard DB Latency]
 **Learning:** The dashboard previously ran 8 distinct database queries sequentially to gather data for the dashboard stats. Drizzle ORM array-based queries are independent and don't rely on previous DB data in this function. Using a `Promise.all` allows these to execute concurrently, fundamentally changing the performance profile from sum-latency to max-latency.
-**Action:** Always identify sequential Drizzle SQL calls that do not rely on previous queries. By wrapping independent fetches in `Promise.all`, network round-trips to Cloudflare D1 are parallelized, minimizing performance bottleneck.
+**Action:** Always identify sequential Drizzle SQL calls that do not rely on previous queries. By wrapping independent fetches in `Promise.all`, network round-trips to Cloudflare D1 are parallelized, minimizing performance bottleneck.## 2026-03-12 - [N+1 Query Optimization in Drizzle ORM]
+**Learning:** Found an N+1 query vulnerability when iterating over order items inside a `Promise.all`. Querying single products inside the loop results in an excessive number of round-trips to the DB.
+**Action:** Extract the unique IDs first using a `Set`, run a single batched query using Drizzle's `inArray` combined with `and(eq(...))`, and then map the results back into memory.

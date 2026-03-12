@@ -15,7 +15,7 @@ import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remi
 import { json, redirect } from '@remix-run/cloudflare';
 import { Form, useLoaderData, Link, useNavigation, useFetcher } from '@remix-run/react';
 import { drizzle } from 'drizzle-orm/d1';
-import { eq, and, desc, sql } from 'drizzle-orm';
+import { eq, and, desc, sql, inArray } from 'drizzle-orm';
 import { getUnifiedStorefrontSettings } from '~/services/unified-storefront-settings.server';
 import {
   orders,
@@ -118,20 +118,27 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
     .from(orderItems)
     .where(eq(orderItems.orderId, orderId));
 
-  // Get product images for items
-  const itemsWithImages = await Promise.all(
-    items.map(async (item) => {
-      if (item.productId) {
-        const product = await db
-          .select({ imageUrl: products.imageUrl })
-          .from(products)
-          .where(and(eq(products.id, item.productId), eq(products.storeId, storeId)))
-          .limit(1);
-        return { ...item, imageUrl: product[0]?.imageUrl };
-      }
-      return { ...item, imageUrl: null };
-    })
-  );
+  // Get product images for items (Optimized N+1 query)
+  const productIds = Array.from(new Set(items.map((i) => i.productId).filter((id): id is number => id !== null)));
+
+  const productsMap = new Map<number, string | null>();
+  if (productIds.length > 0) {
+    const productsData = await db
+      .select({ id: products.id, imageUrl: products.imageUrl })
+      .from(products)
+      .where(and(eq(products.storeId, storeId), inArray(products.id, productIds)));
+
+    for (const p of productsData) {
+      productsMap.set(p.id, p.imageUrl);
+    }
+  }
+
+  const itemsWithImages = items.map((item) => {
+    return {
+      ...item,
+      imageUrl: item.productId ? productsMap.get(item.productId) ?? null : null,
+    };
+  });
 
   // Get courier settings from unified settings (single source of truth)
   const courierConfig = unifiedSettings.courier || {};
