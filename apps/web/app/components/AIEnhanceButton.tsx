@@ -1,6 +1,6 @@
 /**
  * AI Enhance Button Component
- * 
+ *
  * A reusable button that adds AI-powered text enhancement to any input field.
  * User enters keywords/topic, AI generates improved text.
  */
@@ -11,7 +11,15 @@ import { Sparkles, X, Loader2, Send, Wand2 } from 'lucide-react';
 
 interface AIEnhanceButtonProps {
   /** Type of field for context-aware generation */
-  fieldType: 'headline' | 'subheadline' | 'description' | 'urgency' | 'guarantee' | 'cta' | 'testimonial' | 'seo';
+  fieldType:
+    | 'headline'
+    | 'subheadline'
+    | 'description'
+    | 'urgency'
+    | 'guarantee'
+    | 'cta'
+    | 'testimonial'
+    | 'seo';
   /** Current text in the field (for improvement) */
   currentText?: string;
   /** Callback when AI generates new text */
@@ -78,7 +86,7 @@ export function AIEnhanceButton({
   const popoverRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const fetcher = useFetcher<{ success: boolean; data?: string; error?: string }>();
-  
+
   const isLoading = fetcher.state === 'submitting' || fetcher.state === 'loading';
   const config = FIELD_CONFIG[fieldType] || FIELD_CONFIG.headline;
 
@@ -105,7 +113,7 @@ export function AIEnhanceButton({
         setIsOpen(false);
       }
     };
-    
+
     if (isOpen) {
       document.addEventListener('mousedown', handleClickOutside);
       return () => document.removeEventListener('mousedown', handleClickOutside);
@@ -142,6 +150,8 @@ export function AIEnhanceButton({
         onClick={() => setIsOpen(!isOpen)}
         className={`${buttonSize} flex items-center justify-center rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600 transition-all shadow-sm hover:shadow-md`}
         title="AI দিয়ে তৈরি করুন"
+        aria-label="AI দিয়ে তৈরি করুন"
+        aria-expanded={isOpen}
       >
         <Sparkles className={iconSize} />
       </button>
@@ -162,6 +172,7 @@ export function AIEnhanceButton({
               type="button"
               onClick={() => setIsOpen(false)}
               className="p-1 hover:bg-white/20 rounded-lg transition-colors"
+              aria-label="Close AI panel"
             >
               <X className="w-4 h-4" />
             </button>
@@ -183,6 +194,7 @@ export function AIEnhanceButton({
                 type="submit"
                 disabled={!prompt.trim() || isLoading}
                 className="absolute right-1.5 top-1/2 -translate-y-1/2 p-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-md disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                aria-label={isLoading ? 'Generating AI text...' : 'Generate AI text'}
               >
                 {isLoading ? (
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
