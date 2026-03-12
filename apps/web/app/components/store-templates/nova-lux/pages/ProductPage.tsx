@@ -1,3 +1,4 @@
+import { sanitizeHtml } from '~/utils/sanitize';
 import { useState } from 'react';
 import { Link, useFetcher, useParams } from '@remix-run/react';
 import { formatPrice } from '~/lib/formatting';
@@ -427,7 +428,7 @@ export function NovaLuxProductPage({
                  onClick={() => setOpenAccordion(openAccordion === 'description' ? null : 'description')}
                  colors={colors}
                >
-                 <div dangerouslySetInnerHTML={{ __html: product.description || '' }} />
+                 <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(product.description || '') }} />
                </AccordionItem>
                
                <AccordionItem 

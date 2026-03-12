@@ -1,3 +1,4 @@
+import { sanitizeHtml } from '~/utils/sanitize';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Star, ChevronDown, ChevronUp, ShoppingCart, Truck, ShieldCheck } from 'lucide-react';
@@ -104,7 +105,7 @@ export function MobileFirstHero({
                 >
                   <div className="text-base text-gray-600 leading-relaxed space-y-3 pb-2">
                     {config.subheadline && <p>{config.subheadline}</p>}
-                    <div dangerouslySetInnerHTML={{ __html: product.description || '' }} />
+                    <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(product.description || '') }} />
                   </div>
                 </motion.div>
               )}

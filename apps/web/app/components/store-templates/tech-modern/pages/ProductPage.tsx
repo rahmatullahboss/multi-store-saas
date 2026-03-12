@@ -1,3 +1,4 @@
+import { sanitizeHtml } from '~/utils/sanitize';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from '@remix-run/react';
 import { ShoppingCart, Star, ShieldCheck, Truck, Cpu, ChevronRight } from 'lucide-react';
@@ -256,7 +257,7 @@ export function TechModernProductPage({
             {activeTab === 'description' && (
               <div className="prose max-w-none text-gray-600">
                 {product.description ? (
-                  <div dangerouslySetInnerHTML={{ __html: product.description }} />
+                  <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(product.description || '') }} />
                 ) : (
                   <p>No description available for this product.</p>
                 )}

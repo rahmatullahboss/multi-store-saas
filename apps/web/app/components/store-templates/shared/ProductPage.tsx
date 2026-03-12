@@ -1,3 +1,4 @@
+import { sanitizeHtml } from '~/utils/sanitize';
 /**
  * Shared Product Page Component (Theme-Aware) - Shopify Standard
  *
@@ -1249,7 +1250,7 @@ export default function SharedProductPage({
             {activeTab === 'description' && (
               <div className="prose max-w-none" style={{ color: colors.text }}>
                 {product.description ? (
-                  <div dangerouslySetInnerHTML={{ __html: product.description }} />
+                  <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(product.description || '') }} />
                 ) : (
                   <p style={{ color: colors.muted }}>No description available yet.</p>
                 )}

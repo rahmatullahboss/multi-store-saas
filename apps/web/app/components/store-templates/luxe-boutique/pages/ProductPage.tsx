@@ -1,3 +1,4 @@
+import { sanitizeHtml } from '~/utils/sanitize';
 /**
  * LuxeBoutiqueProductPage - Elegant Luxury Product Page
  *
@@ -298,9 +299,10 @@ export function LuxeBoutiqueProductPage({
                 className="text-sm leading-relaxed"
                 style={{ color: theme.muted }}
                 dangerouslySetInnerHTML={{
-                  __html:
+                  __html: sanitizeHtml(
                     product.description.slice(0, 200) +
-                    (product.description.length > 200 ? '...' : ''),
+                    (product.description.length > 200 ? '...' : '')
+                  ),
                 }}
               />
             )}
