@@ -5,6 +5,7 @@ import type { Product } from '@db/schema';
 import { PreviewSafeLink } from '~/components/PreviewSafeLink';
 import { AddToCartButton } from '~/components/AddToCartButton';
 import { formatPrice } from '~/lib/formatting';
+import { sanitizeHtml } from '~/utils/sanitize';
 
 interface ProductPageProps {
   product: Product;
@@ -208,7 +209,7 @@ export function GhorerBazarProductPage({
                 </h3>
                 <div
                   className="prose prose-sm max-w-none text-gray-600 leading-relaxed"
-                  dangerouslySetInnerHTML={{ __html: product.description || 'কোনো বিবরণ নেই' }}
+                  dangerouslySetInnerHTML={{ __html: sanitizeHtml(product.description || 'কোনো বিবরণ নেই') }}
                 />
               </div>
             </div>
