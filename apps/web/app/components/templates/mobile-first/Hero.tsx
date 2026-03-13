@@ -4,6 +4,7 @@ import { Star, ChevronDown, ChevronUp, ShoppingCart, Truck, ShieldCheck } from '
 import { MagicSectionWrapper } from '~/components/editor';
 import { OptimizedImage } from '~/components/OptimizedImage';
 import type { SectionProps } from '../_core/types';
+import { sanitizeHtml } from '~/utils/sanitize';
 
 export function MobileFirstHero({
   config,
@@ -104,7 +105,7 @@ export function MobileFirstHero({
                 >
                   <div className="text-base text-gray-600 leading-relaxed space-y-3 pb-2">
                     {config.subheadline && <p>{config.subheadline}</p>}
-                    <div dangerouslySetInnerHTML={{ __html: product.description || '' }} />
+                    <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(product.description || '') }} />
                   </div>
                 </motion.div>
               )}
