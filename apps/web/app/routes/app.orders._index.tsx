@@ -65,18 +65,19 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   const db = drizzle(context.cloudflare.env.DB);
 
-  // Fetch store info
-  const storeResult = await db.select().from(stores).where(eq(stores.id, storeId)).limit(1);
+  // Fetch store info, orders, and settings concurrently to reduce latency
+  const [storeResult, storeOrders, unifiedSettingsResult] = await Promise.all([
+    db.select().from(stores).where(eq(stores.id, storeId)).limit(1),
+    db
+      .select()
+      .from(orders)
+      .where(eq(orders.storeId, storeId))
+      .orderBy(desc(orders.createdAt))
+      .limit(200),
+    getUnifiedStorefrontSettings(db, storeId, { env: context.cloudflare.env }).catch(() => null)
+  ]);
 
   const store = storeResult[0];
-
-  // Fetch orders for this store, newest first
-  const storeOrders = await db
-    .select()
-    .from(orders)
-    .where(eq(orders.storeId, storeId))
-    .orderBy(desc(orders.createdAt))
-    .limit(200);
 
   // Parse shippingAddress for each order to get display-friendly address
   const ordersWithAddress = storeOrders.map((o) => {
@@ -125,16 +126,11 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   // Read courier provider from unified settings (single source of truth)
   let courierProvider: string | null = null;
   let allCouriers: string[] = [];
-  try {
-    const unified = await getUnifiedStorefrontSettings(db, storeId, {
-      env: context.cloudflare.env,
-    });
-    courierProvider = unified.courier?.provider || null;
-    if (unified.courier?.pathao) allCouriers.push('pathao');
-    if (unified.courier?.redx) allCouriers.push('redx');
-    if (unified.courier?.steadfast) allCouriers.push('steadfast');
-  } catch {
-    courierProvider = null;
+  if (unifiedSettingsResult) {
+    courierProvider = unifiedSettingsResult.courier?.provider || null;
+    if (unifiedSettingsResult.courier?.pathao) allCouriers.push('pathao');
+    if (unifiedSettingsResult.courier?.redx) allCouriers.push('redx');
+    if (unifiedSettingsResult.courier?.steadfast) allCouriers.push('steadfast');
   }
 
   // Ensure unique couriers
@@ -180,8 +176,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     }
   });
 
-  // === BULK LOAD FRAUD CACHE FROM KV ===
-  // Read previously cached Steadfast fraud results for all unique phones in this order list
+  // === BULK LOAD FRAUD CACHE FROM KV AND FETCH ORDER ITEMS CONCURRENTLY ===
+  // These operations only depend on the previously fetched orders
   const fraudCacheByPhone: Record<
     string,
     {
@@ -195,61 +191,68 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     }
   > = {};
 
-  try {
-    const kv = context.cloudflare.env.STORE_CACHE;
-    if (kv) {
-      const uniquePhones = [
-        ...new Set(ordersWithAddress.map((o) => o.customerPhone).filter((p): p is string => !!p)),
-      ];
+  let itemsByOrderId: Record<number, Array<{ title: string; quantity: number; imageUrl: string | null }>> = {};
 
-      // Fetch in parallel (up to 20 unique phones at a time to avoid overloading)
-      const phoneSlice = uniquePhones.slice(0, 40);
-      const cacheResults = await Promise.all(
-        phoneSlice.map((phone) =>
-          kv
-            .get(ozzylGuardCacheKey(storeId, phone), 'json')
-            .then((val) => ({ phone, val }))
-            .catch(() => ({ phone, val: null }))
-        )
-      );
+  const fetchFraudCache = async () => {
+    try {
+      const kv = context.cloudflare.env.STORE_CACHE;
+      if (kv) {
+        const uniquePhones = [
+          ...new Set(ordersWithAddress.map((o) => o.customerPhone).filter((p): p is string => !!p)),
+        ];
 
-      for (const { phone, val } of cacheResults) {
-        if (val) {
-          fraudCacheByPhone[phone] = val as (typeof fraudCacheByPhone)[string];
+        // Fetch in parallel (up to 40 unique phones at a time to avoid overloading)
+        const phoneSlice = uniquePhones.slice(0, 40);
+        const cacheResults = await Promise.all(
+          phoneSlice.map((phone) =>
+            kv
+              .get(ozzylGuardCacheKey(storeId, phone), 'json')
+              .then((val) => ({ phone, val }))
+              .catch(() => ({ phone, val: null }))
+          )
+        );
+
+        for (const { phone, val } of cacheResults) {
+          if (val) {
+            fraudCacheByPhone[phone] = val as (typeof fraudCacheByPhone)[string];
+          }
         }
       }
+    } catch (e) {
+      // Non-blocking — fraud cache is optional display data
+      console.warn('[FRAUD CACHE] Bulk KV read failed:', e);
     }
-  } catch (e) {
-    // Non-blocking — fraud cache is optional display data
-    console.warn('[FRAUD CACHE] Bulk KV read failed:', e);
-  }
+  };
 
-  // Fetch order items for all orders (with product image)
-  const orderIds = storeOrders.map((o) => o.id);
-  let itemsByOrderId: Record<number, Array<{ title: string; quantity: number; imageUrl: string | null }>> = {};
-  if (orderIds.length > 0) {
-    try {
-      const allItems = await db
-        .select({
-          orderId: orderItems.orderId,
-          title: orderItems.title,
-          quantity: orderItems.quantity,
-          imageUrl: products.imageUrl,
-        })
-        .from(orderItems)
-        .leftJoin(products, eq(orderItems.productId, products.id))
-        .where(inArray(orderItems.orderId, orderIds));
+  const fetchOrderItems = async () => {
+    const orderIds = storeOrders.map((o) => o.id);
+    if (orderIds.length > 0) {
+      try {
+        const allItems = await db
+          .select({
+            orderId: orderItems.orderId,
+            title: orderItems.title,
+            quantity: orderItems.quantity,
+            imageUrl: products.imageUrl,
+          })
+          .from(orderItems)
+          .leftJoin(products, eq(orderItems.productId, products.id))
+          .where(inArray(orderItems.orderId, orderIds));
 
-      for (const item of allItems) {
-        if (!itemsByOrderId[item.orderId]) itemsByOrderId[item.orderId] = [];
-        itemsByOrderId[item.orderId].push({
-          title: item.title,
-          quantity: item.quantity,
-          imageUrl: item.imageUrl ?? null,
-        });
-      }
-    } catch { /* ignore */ }
-  }
+        for (const item of allItems) {
+          if (!itemsByOrderId[item.orderId]) itemsByOrderId[item.orderId] = [];
+          itemsByOrderId[item.orderId].push({
+            title: item.title,
+            quantity: item.quantity,
+            imageUrl: item.imageUrl ?? null,
+          });
+        }
+      } catch { /* ignore */ }
+    }
+  };
+
+  // Run secondary dependent fetches concurrently
+  await Promise.all([fetchFraudCache(), fetchOrderItems()]);
 
   // Attach cached fraud data to each order
   const ordersWithFraud = ordersWithAddress.map((o) => ({
