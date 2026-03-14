@@ -28,6 +28,7 @@ interface Env extends TenantEnv {
   ASSETS: Fetcher;
   RATE_LIMIT_KV?: KVNamespace;
   ENVIRONMENT?: string;
+  HMS_WORKER?: Fetcher; // Service Binding to HMS SaaS worker
 }
 
 type AppContext = {
@@ -49,6 +50,49 @@ app.onError((err, c) => {
 
 app.notFound((c) => {
   return c.json({ error: 'Not Found' }, 404);
+});
+
+// ============================================================================
+// HMS ROUTING — Forward hms.ozzyl.com & hms-*.ozzyl.com to HMS Worker
+// ============================================================================
+
+app.use('*', async (c, next) => {
+  const hostname = c.req.header('x-forwarded-host') || c.req.header('host') || '';
+  const cleanHostname = hostname.split(':')[0];
+  const saasDomain = c.env.SAAS_DOMAIN || 'ozzyl.com';
+
+  // Only intercept subdomains of the SaaS domain
+  if (cleanHostname.endsWith(`.${saasDomain}`)) {
+    const subdomain = cleanHostname.replace(`.${saasDomain}`, '');
+
+    // Route hms-* subdomains to HMS Worker (hospital tenants)
+    // Note: bare 'hms.ozzyl.com' is handled by Pages (landing page) via DNS CNAME
+    if (subdomain.startsWith('hms-')) {
+      if (!c.env.HMS_WORKER) {
+        console.error('[HMS] HMS_WORKER service binding not configured');
+        return c.json({ error: 'HMS service unavailable' }, 503);
+      }
+
+      const tenantSlug = subdomain.replace('hms-', '');
+      console.log(`[HMS] Routing to HMS Worker — subdomain: ${subdomain}, tenant: ${tenantSlug || '(landing)'}`);
+
+      // Forward request to HMS worker with tenant context headers
+      const hmsHeaders = new Headers(c.req.raw.headers);
+      hmsHeaders.set('X-Forwarded-Host', cleanHostname);
+      hmsHeaders.set('X-HMS-Tenant', tenantSlug);
+
+      const url = new URL(c.req.url);
+      return c.env.HMS_WORKER.fetch(
+        new Request(url.toString(), {
+          method: c.req.method,
+          headers: hmsHeaders,
+          body: c.req.raw.body,
+        })
+      );
+    }
+  }
+
+  return next();
 });
 
 // ============================================================================

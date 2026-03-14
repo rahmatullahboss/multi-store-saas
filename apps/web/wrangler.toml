@@ -86,6 +86,15 @@ GOOGLE_CLIENT_ID = "477759293578-24qqc1l4mg7dtm2f44vtqbrme6p9cqa3.apps.googleuse
 # GOOGLE_CLIENT_SECRET - SET IN CLOUDFLARE DASHBOARD (secret, not here)
 
 # ============================================================================
+# SERVICE BINDINGS — Cross-project routing
+# ============================================================================
+
+# HMS SaaS Worker — handles hms.ozzyl.com & hms-*.ozzyl.com
+[[services]]
+binding = "HMS_WORKER"
+service = "hms-saas-production"
+
+# ============================================================================
 # DEVELOPMENT SETTINGS
 # ============================================================================
 [dev]
