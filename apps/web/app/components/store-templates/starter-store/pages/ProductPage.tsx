@@ -1,3 +1,4 @@
+import { sanitizeHtml } from '~/utils/sanitize';
 import { useState, useEffect, useMemo } from 'react';
 import {
   ShoppingBag,
@@ -430,7 +431,7 @@ export function StarterProductPage({
           <div className="py-8 prose max-w-none text-gray-600 leading-relaxed">
             {product.description && (
               <div 
-                dangerouslySetInnerHTML={{ __html: product.description }} 
+                dangerouslySetInnerHTML={{ __html: sanitizeHtml(product.description || '') }}
                 className="prose max-w-none"
               />
             )}

@@ -1,3 +1,4 @@
+import { sanitizeHtml } from '~/utils/sanitize';
 import { OptimizedImage } from '~/components/OptimizedImage';
 import { MagicSectionWrapper } from '~/components/editor';
 import type { SectionProps } from '../_core/types';
@@ -74,7 +75,7 @@ export function ModernDarkHero({
             {product.description && (
               <div 
                 className="text-gray-300 text-lg leading-relaxed"
-                dangerouslySetInnerHTML={{ __html: product.description }} 
+                dangerouslySetInnerHTML={{ __html: sanitizeHtml(product.description || '') }}
               />
             )}
 

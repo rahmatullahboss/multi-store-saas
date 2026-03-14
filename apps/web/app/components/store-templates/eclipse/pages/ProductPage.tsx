@@ -1,3 +1,4 @@
+import { sanitizeHtml } from '~/utils/sanitize';
 /**
  * EclipseProductPage - Futuristic Dark Mode Product Page
  *
@@ -305,9 +306,10 @@ export function EclipseProductPage({
                 className="text-base leading-relaxed prose prose-invert max-w-none"
                 style={{ color: theme.textMuted }}
                 dangerouslySetInnerHTML={{
-                  __html:
+                  __html: sanitizeHtml(
                     product.description.slice(0, 300) +
-                    (product.description.length > 300 ? '...' : ''),
+                    (product.description.length > 300 ? '...' : '')
+                  ),
                 }}
               />
             )}

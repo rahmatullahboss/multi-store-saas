@@ -1,3 +1,4 @@
+import { sanitizeHtml } from '~/utils/sanitize';
 import { useState } from 'react';
 import {
   ShoppingCart,
@@ -126,7 +127,7 @@ export function FreshnessProductPage({
 
               <div 
                 className="text-gray-600 mb-8 leading-relaxed prose prose-sm max-w-none"
-                dangerouslySetInnerHTML={{ __html: product.description || 'Experience the freshness of nature with our premium quality products. Sourced directly from trusted farms to your table.' }}
+                dangerouslySetInnerHTML={{ __html: sanitizeHtml(product.description || 'Experience the freshness of nature with our premium quality products. Sourced directly from trusted farms to your table.') }}
               />
 
               {/* Quantity */}

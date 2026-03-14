@@ -1,3 +1,4 @@
+import { sanitizeHtml } from '~/utils/sanitize';
 import { useState } from 'react';
 import { ShoppingCart, Heart, Minus, Plus, Truck, Shield, CheckCircle } from 'lucide-react';
 import { GHORER_BAZAR_THEME } from '../theme';
@@ -208,7 +209,7 @@ export function GhorerBazarProductPage({
                 </h3>
                 <div
                   className="prose prose-sm max-w-none text-gray-600 leading-relaxed"
-                  dangerouslySetInnerHTML={{ __html: product.description || 'কোনো বিবরণ নেই' }}
+                  dangerouslySetInnerHTML={{ __html: sanitizeHtml(product.description || 'কোনো বিবরণ নেই') }}
                 />
               </div>
             </div>

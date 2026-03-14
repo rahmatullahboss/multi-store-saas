@@ -1,3 +1,4 @@
+import { sanitizeHtml } from '~/utils/sanitize';
 import { useState } from 'react';
 import { ShoppingBag, Star, Minus, Plus, Heart, Share2, Truck, RotateCcw } from 'lucide-react';
 import { RovoLayout } from '~/components/store/rovo/RovoLayout';
@@ -237,7 +238,7 @@ export function RovoProductDetail({
           </h2>
           <div
             className="prose max-w-4xl mx-auto"
-            dangerouslySetInnerHTML={{ __html: product.description || '' }}
+            dangerouslySetInnerHTML={{ __html: sanitizeHtml(product.description || '') }}
           />
         </div>
 
