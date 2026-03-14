@@ -22,6 +22,7 @@ import type {
   StoreTemplateTheme,
 } from '../../../../templates/store-registry';
 import type { ThemeConfig } from '@db/types';
+import { sanitizeHtml } from '~/utils/sanitize';
 
 interface StarterProductPageProps {
   product: SerializedProduct;
@@ -430,7 +431,7 @@ export function StarterProductPage({
           <div className="py-8 prose max-w-none text-gray-600 leading-relaxed">
             {product.description && (
               <div 
-                dangerouslySetInnerHTML={{ __html: product.description }} 
+                dangerouslySetInnerHTML={{ __html: sanitizeHtml(product.description) }}
                 className="prose max-w-none"
               />
             )}

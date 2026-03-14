@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import type { StoreTemplateTheme } from '~/templates/store-registry';
 import { AddToCartButton } from '~/components/AddToCartButton';
+import { sanitizeHtml } from '~/utils/sanitize';
 
 interface ProductVariant {
   id: number;
@@ -427,7 +428,7 @@ export function NovaLuxProductPage({
                  onClick={() => setOpenAccordion(openAccordion === 'description' ? null : 'description')}
                  colors={colors}
                >
-                 <div dangerouslySetInnerHTML={{ __html: product.description || '' }} />
+                 <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(product.description || '') }} />
                </AccordionItem>
                
                <AccordionItem 

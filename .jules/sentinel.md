@@ -1,0 +1,5 @@
+
+## 2024-03-13 - [HIGH] XSS Vulnerability in Product Descriptions
+**Vulnerability:** Found multiple instances where `product.description` (which is user-controlled content from merchants) was being rendered directly using React's `dangerouslySetInnerHTML` without proper sanitization. This was especially prevalent in store layout components (`StorePageWrapper`, `ProductPage` variations, `Hero` components).
+**Learning:** This repo has a `sanitizeHtml` utility explicitly created to prevent this exact issue (`apps/web/app/utils/sanitize.ts`), but developers often forget to import and use it when creating new themes or layouts. The codebase relies heavily on dynamic user HTML content for themes, making this a recurring high-risk pattern.
+**Prevention:** In the future, I must check all new templates and components for `dangerouslySetInnerHTML` usage. Ensure `sanitizeHtml` is globally enforced for user-generated text fields like `product.description` and `campaign.content` whenever they are rendered directly as raw HTML.
