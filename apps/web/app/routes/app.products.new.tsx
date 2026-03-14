@@ -16,8 +16,7 @@ import { Form, useActionData, useNavigation, useFetcher } from '@remix-run/react
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and } from 'drizzle-orm';
 import { products, productVariants, stores } from '@db/schema';
-import { requireTenant } from '~/lib/tenant-guard.server';
-import { assertWithinLimit } from '~/lib/plan-gate.server';
+import { getStoreId } from '~/services/auth.server';
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Upload, X, Loader2, Image as ImageIcon, ArrowLeft, Search, ChevronDown, ChevronUp } from 'lucide-react';
 import { Link } from '@remix-run/react';
@@ -26,7 +25,7 @@ import { compressImage, getOptimalFormat } from '~/lib/imageCompression';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { useUnsavedChanges, deleteOrphanedImage } from '~/hooks/useUnsavedChanges';
 import { LazyRichTextEditor } from '~/components/RichTextEditor.lazy';
-import { saveProductDetailsMetafields } from '~/lib/product-details.server';
+import { SeoPreview } from '~/components/SeoPreview';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Add Product - Ozzyl' }];
@@ -36,14 +35,14 @@ export const meta: MetaFunction = () => {
 // ACTION - Create new product (with plan limit validation)
 // ============================================================================
 export async function action({ request, context }: ActionFunctionArgs) {
-  const { storeId, planType } = await requireTenant(request, context, {
-    requirePermission: 'products',
-  });
+  const storeId = await getStoreId(request, context.cloudflare.env);
+  if (!storeId) {
+    return json({ errors: { form: 'Store not found' } }, { status: 404 });
+  }
 
   const formData = await request.formData();
   const title = formData.get('title') as string;
   const price = formData.get('price') as string;
-  const compareAtPrice = formData.get('compareAtPrice') as string;
   const stock = formData.get('stock') as string;
   const category = formData.get('category') as string;
   const description = formData.get('description') as string;
@@ -53,17 +52,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const seoTitle = formData.get('seoTitle') as string;
   const seoDescription = formData.get('seoDescription') as string;
   const seoKeywords = formData.get('seoKeywords') as string;
-  const material = formData.get('material') as string;
-  const weight = formData.get('weight') as string;
-  const dimensions = formData.get('dimensions') as string;
-  const origin = formData.get('origin') as string;
-  const warranty = formData.get('warranty') as string;
-  const shippingInfo = formData.get('shippingInfo') as string;
-  const returnPolicy = formData.get('returnPolicy') as string;
-  // P&L: Cost price
-  const costPriceRaw = formData.get('costPrice') as string;
-  const costPrice =
-    costPriceRaw && costPriceRaw.trim() !== '' ? parseFloat(costPriceRaw) : null;
+  const slug = formData.get('slug') as string; // TODO: add slug to schema
 
   // Validation
   const errors: Record<string, string> = {};
@@ -72,15 +61,6 @@ export async function action({ request, context }: ActionFunctionArgs) {
   }
   if (!price || isNaN(parseFloat(price)) || parseFloat(price) < 0) {
     errors.price = 'Valid price is required';
-  }
-  if (compareAtPrice && compareAtPrice.trim()) {
-    const comparePrice = parseFloat(compareAtPrice);
-    const sellingPrice = parseFloat(price);
-    if (isNaN(comparePrice) || comparePrice < 0) {
-      errors.compareAtPrice = 'Valid compare-at price is required';
-    } else if (comparePrice < sellingPrice) {
-      errors.compareAtPrice = 'Original price must be greater than or equal to selling price';
-    }
   }
   if (!stock || isNaN(parseInt(stock)) || parseInt(stock) < 0) {
     errors.stock = 'Valid stock quantity is required';
@@ -93,7 +73,17 @@ export async function action({ request, context }: ActionFunctionArgs) {
   // ========================================================================
   // SERVER-SIDE VALIDATION: Check product limit before creating
   // ========================================================================
-  await assertWithinLimit(context.cloudflare.env.DB, storeId, planType, 'product');
+  const { checkUsageLimit } = await import('~/utils/plans.server');
+  const limitCheck = await checkUsageLimit(context.cloudflare.env.DB, storeId, 'product');
+
+  if (!limitCheck.allowed) {
+    console.warn(`[SECURITY] Store ${storeId} attempted to exceed product limit`);
+    return json({
+      errors: {
+        form: limitCheck.error?.message || 'Product limit reached. Please upgrade your plan to add more products.'
+      }
+    }, { status: 403 });
+  }
 
   const db = drizzle(context.cloudflare.env.DB);
 
@@ -102,7 +92,6 @@ export async function action({ request, context }: ActionFunctionArgs) {
     storeId,
     title: title.trim(),
     price: parseFloat(price),
-    compareAtPrice: compareAtPrice && compareAtPrice.trim() ? parseFloat(compareAtPrice) : null,
     inventory: parseInt(stock),
     category: category?.trim() || null,
     description: description?.trim() || null,
@@ -111,48 +100,30 @@ export async function action({ request, context }: ActionFunctionArgs) {
     seoTitle: seoTitle?.trim() || null,
     seoDescription: seoDescription?.trim() || null,
     seoKeywords: seoKeywords?.trim() || null,
-    costPrice: costPrice,
   }).returning({ id: products.id });
 
   // Create variants if any
   if (variantsJson) {
     try {
       const variants: Variant[] = JSON.parse(variantsJson);
-      const variantsToInsert = variants
-        .filter((v) => v.option1Value)
-        .map((v) => {
-          const variantInventory = v.inventory ?? 0;
-          return {
+      for (const v of variants) {
+        if (v.option1Value) {
+          await db.insert(productVariants).values({
             productId: inserted.id,
             option1Name: v.option1Name,
             option1Value: v.option1Value,
             option2Name: v.option2Name || null,
             option2Value: v.option2Value || null,
-            price: v.price ?? null,
+            price: v.price || null,
             sku: v.sku || null,
-            inventory: variantInventory,
-            available: variantInventory,
-            reserved: 0,
-          };
-        });
-
-      if (variantsToInsert.length > 0) {
-        await db.insert(productVariants).values(variantsToInsert);
+            inventory: v.inventory || 0,
+          });
+        }
       }
     } catch (e) {
       console.error('Failed to parse variants', e);
     }
   }
-
-  await saveProductDetailsMetafields(db, storeId, inserted.id, {
-    material,
-    weight,
-    dimensions,
-    origin,
-    warranty,
-    shippingInfo,
-    returnPolicy,
-  });
 
   // ========================================================================
   // AUTO-PUBLISH LOGIC: If this is the first product, auto-set as featured & publish store
@@ -242,13 +213,6 @@ export default function NewProductPage() {
   // Form dirty state (track if user has made changes)
   const [formTitle, setFormTitle] = useState<string>('');
   const [formPrice, setFormPrice] = useState<string>('');
-  const [formCompareAtPrice, setFormCompareAtPrice] = useState<string>('');
-  // P&L: Cost price state
-  const [formCostPrice, setFormCostPrice] = useState<string>('');
-  const marginPct =
-    formPrice && formCostPrice && parseFloat(formPrice) > 0
-      ? ((parseFloat(formPrice) - parseFloat(formCostPrice)) / parseFloat(formPrice)) * 100
-      : null;
   const [formDescription, setFormDescription] = useState<string>('');
 
   // SEO state
@@ -256,11 +220,18 @@ export default function NewProductPage() {
   const [formSeoTitle, setFormSeoTitle] = useState<string>('');
   const [formSeoDescription, setFormSeoDescription] = useState<string>('');
   const [formSeoKeywords, setFormSeoKeywords] = useState<string>('');
-  const [detailsExpanded, setDetailsExpanded] = useState(false);
+  const [formSlug, setFormSlug] = useState<string>(''); // TODO: add slug to schema
 
   // Auto-generate SEO values
   const autoSeoTitle = formTitle;
   const autoSeoDescription = formDescription.slice(0, 155);
+
+  // Generate slug
+  const autoSlug = formTitle
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)+/g, '');
+  const displaySlug = formSlug || autoSlug;
 
   // Check if form has unsaved changes
   const hasUnsavedChanges = !!(formTitle || formPrice || formDescription || imageUrl || variants.length > 0);
@@ -272,15 +243,11 @@ export default function NewProductPage() {
     }
   }, [imageUrl]);
 
-  // Unsaved changes warning hook - disabled temporarily to fix SSR error
-  // TODO: Re-enable after fixing useBlocker SSR issue
-  // const { ConfirmationModal } = useUnsavedChanges({
-  //   hasUnsavedChanges: hasUnsavedChanges && !isSubmitting,
-  //   onAbandon: handleAbandon,
-  // });
-  
-  // Placeholder - always render nothing for now
-  const ConfirmationModal = () => null;
+  // Unsaved changes warning hook
+  const { ConfirmationModal } = useUnsavedChanges({
+    hasUnsavedChanges: hasUnsavedChanges && !isSubmitting,
+    onAbandon: handleAbandon,
+  });
 
   // useFetcher for async image upload
   const imageFetcher = useFetcher<{ success?: boolean; url?: string; error?: string }>();
@@ -457,11 +424,11 @@ export default function NewProductPage() {
             )}
           </div>
 
-          {/* Price Row - Selling Price & Original Price */}
+          {/* Price & Stock Row */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">
-                {t('sellingPrice', 'Selling Price')} <span className="text-red-500">*</span>
+                {t('price')} <span className="text-red-500">*</span>
               </label>
               <input
                 type="number"
@@ -480,81 +447,23 @@ export default function NewProductPage() {
               )}
             </div>
             <div>
-              <label htmlFor="compareAtPrice" className="block text-sm font-medium text-gray-700 mb-1">
-                {t('originalPrice', 'Original Price')} <span className="text-gray-400 text-xs">({t('optional', 'Optional')})</span>
+              <label htmlFor="stock" className="block text-sm font-medium text-gray-700 mb-1">
+                {t('stock')} <span className="text-red-500">*</span>
               </label>
               <input
                 type="number"
-                id="compareAtPrice"
-                name="compareAtPrice"
-                step="0.01"
+                id="stock"
+                name="stock"
                 min="0"
-                value={formCompareAtPrice}
-                onChange={(e) => setFormCompareAtPrice(e.target.value)}
+                required
+                defaultValue="0"
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
-                placeholder="0.00"
+                placeholder="0"
               />
-              {actionData && 'errors' in actionData && (actionData.errors as Record<string, string>)?.compareAtPrice && (
-                <p className="text-red-500 text-sm mt-1">{(actionData.errors as Record<string, string>).compareAtPrice}</p>
-              )}
-              {formPrice && formCompareAtPrice && parseFloat(formCompareAtPrice) > parseFloat(formPrice) && (
-                <p className="text-emerald-600 text-xs mt-1">
-                  💰 {Math.round(((parseFloat(formCompareAtPrice) - parseFloat(formPrice)) / parseFloat(formCompareAtPrice)) * 100)}% {t('off', 'OFF')}
-                </p>
+              {actionData && 'errors' in actionData && (actionData.errors as Record<string, string>)?.stock && (
+                <p className="text-red-500 text-sm mt-1">{(actionData.errors as Record<string, string>).stock}</p>
               )}
             </div>
-          </div>
-
-          {/* P&L: Cost Price Field */}
-          <div className="border border-dashed border-emerald-200 bg-emerald-50/30 rounded-lg p-4 space-y-2">
-            <div className="flex items-center justify-between">
-              <label htmlFor="costPrice" className="block text-sm font-medium text-gray-700">
-                Cost Price (৳){' '}
-                <span className="text-gray-400 text-xs font-normal">(Optional — never shown to customers)</span>
-              </label>
-              {marginPct !== null && (
-                <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${marginPct < 0 ? 'bg-red-100 text-red-700' : marginPct < 20 ? 'bg-yellow-100 text-yellow-700' : 'bg-emerald-100 text-emerald-700'}`}>
-                  {marginPct < 0 ? '⚠️ Negative' : `${marginPct.toFixed(1)}% margin`}
-                </span>
-              )}
-            </div>
-            <input
-              type="number"
-              id="costPrice"
-              name="costPrice"
-              step="0.01"
-              min="0"
-              value={formCostPrice}
-              onChange={(e) => setFormCostPrice(e.target.value)}
-              placeholder="e.g., 280 (your purchase cost)"
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
-            />
-            {marginPct !== null && marginPct < 0 && (
-              <p className="text-red-600 text-xs">⚠️ Cost exceeds selling price — negative margin</p>
-            )}
-            {!formCostPrice && (
-              <p className="text-gray-400 text-xs">Set cost price to unlock profit tracking in reports</p>
-            )}
-          </div>
-
-          {/* Stock */}
-          <div>
-            <label htmlFor="stock" className="block text-sm font-medium text-gray-700 mb-1">
-              {t('stock')} <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="number"
-              id="stock"
-              name="stock"
-              min="0"
-              required
-              defaultValue="0"
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
-              placeholder="0"
-            />
-            {actionData && 'errors' in actionData && (actionData.errors as Record<string, string>)?.stock && (
-              <p className="text-red-500 text-sm mt-1">{(actionData.errors as Record<string, string>).stock}</p>
-            )}
           </div>
 
           {/* Category */}
@@ -588,76 +497,6 @@ export default function NewProductPage() {
           </div>
         </div>
 
-        {/* Product Details Tabs Content (MVP) */}
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-          <button
-            type="button"
-            onClick={() => setDetailsExpanded(!detailsExpanded)}
-            className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition"
-          >
-            <div className="text-left">
-              <h3 className="font-semibold text-gray-900">Product Details (MVP)</h3>
-              <p className="text-xs text-gray-500">
-                Specifications + Shipping & Returns tabs এর জন্য optional field
-              </p>
-            </div>
-            {detailsExpanded ? (
-              <ChevronUp className="w-5 h-5 text-gray-400" />
-            ) : (
-              <ChevronDown className="w-5 h-5 text-gray-400" />
-            )}
-          </button>
-
-          {detailsExpanded && (
-            <div className="p-4 pt-0 border-t border-gray-100 space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <input
-                  type="text"
-                  name="material"
-                  placeholder="Material (e.g. Cotton)"
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
-                />
-                <input
-                  type="text"
-                  name="weight"
-                  placeholder="Weight (e.g. 500g)"
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
-                />
-                <input
-                  type="text"
-                  name="dimensions"
-                  placeholder="Dimensions (e.g. 30 x 20 x 10 cm)"
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
-                />
-                <input
-                  type="text"
-                  name="origin"
-                  placeholder="Origin (e.g. Bangladesh)"
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
-                />
-              </div>
-              <input
-                type="text"
-                name="warranty"
-                placeholder="Warranty (e.g. 1 Year)"
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
-              />
-              <textarea
-                name="shippingInfo"
-                rows={3}
-                placeholder="Shipping information (optional)"
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition resize-none"
-              />
-              <textarea
-                name="returnPolicy"
-                rows={3}
-                placeholder="Return policy (optional)"
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition resize-none"
-              />
-            </div>
-          )}
-        </div>
-
         {/* SEO Settings (Collapsible) */}
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
           <button
@@ -684,15 +523,34 @@ export default function NewProductPage() {
           {seoExpanded && (
             <div className="p-4 pt-0 border-t border-gray-100 space-y-4">
               {/* Google Preview */}
-              <div className="bg-gray-50 rounded-lg p-4">
-                <p className="text-xs text-gray-500 mb-2">{t('googlePreview')}</p>
-                <p className="text-sm text-emerald-700 truncate">yourstore.ozzyl.com/products/...</p>
-                <h4 className="text-lg text-blue-800 hover:underline cursor-pointer truncate">
-                  {formSeoTitle || autoSeoTitle || t('productTitle')}
-                </h4>
-                <p className="text-sm text-gray-600 line-clamp-2">
-                  {formSeoDescription || autoSeoDescription || t('seoDescriptionPreview')}
-                </p>
+              <SeoPreview
+                title={formSeoTitle || autoSeoTitle || t('productTitle')}
+                description={formSeoDescription || autoSeoDescription || t('seoDescriptionPreview')}
+                slug={displaySlug}
+                urlPrefix="yourstore.ozzyl.com/"
+                previewLabel={t('googlePreview')}
+              />
+
+              {/* URL Slug */}
+              <div>
+                <label htmlFor="slug" className="block text-sm font-medium text-gray-700 mb-1">
+                  URL Slug
+                  <span className="text-xs text-gray-400 ml-2">({t('autoGenerateHint') || 'খালি থাকলে অটো-জেনারেট হবে'})</span>
+                </label>
+                <div className="flex rounded-lg shadow-sm">
+                  <span className="px-3 inline-flex items-center min-w-fit rounded-l-lg border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
+                    yourstore.ozzyl.com/products/
+                  </span>
+                  <input
+                    type="text"
+                    id="slug"
+                    name="slug"
+                    value={formSlug}
+                    onChange={(e) => setFormSlug(e.target.value)}
+                    placeholder={autoSlug}
+                    className="flex-1 block w-full px-4 py-2.5 border border-gray-300 rounded-none rounded-r-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                  />
+                </div>
               </div>
 
               {/* Meta Title */}

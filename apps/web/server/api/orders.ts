@@ -9,7 +9,8 @@ import { eq, and, desc } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
 import { orders, orderItems, products, type NewOrder, type NewOrderItem } from '@db/schema';
 import type { TenantEnv, TenantContext } from '../middleware/tenant';
-import { checkUsageLimit } from '../../app/utils/plans.server';
+import { parseShippingConfig, calculateShipping, type DivisionValue } from '../../app/utils/shipping';
+import { checkLowStockAfterOrder } from '../../app/services/inventory.server';
 
 type OrdersContext = {
   Bindings: TenantEnv;
@@ -109,24 +110,12 @@ ordersApi.post('/', async (c) => {
     customerName?: string;
     shippingAddress?: string;
     billingAddress?: string;
+    division?: DivisionValue | string;
     items: CartItem[];
     notes?: string;
   }
   
   const body = await c.req.json<OrderBody>();
-
-  const limitCheck = await checkUsageLimit(c.env.DB, storeId, 'order');
-  if (!limitCheck.allowed) {
-    return c.json(
-      {
-        error: limitCheck.error?.message ?? 'Monthly order limit reached. Upgrade to accept more orders.',
-        code: 'LIMIT_REACHED_ORDER',
-        limit: limitCheck.error?.limit,
-        current: limitCheck.error?.current,
-      },
-      402
-    );
-  }
   
   // Validate items exist and belong to this store
   const productIds = body.items.map(item => item.productId);
@@ -163,9 +152,14 @@ ordersApi.post('/', async (c) => {
     });
   }
   
-  // TODO: Calculate tax and shipping based on store settings
+  // Calculate tax and shipping based on store settings
+  const store = c.get('store');
+  const shippingConfig = parseShippingConfig(store?.shippingConfig);
+  const shippingCalculation = calculateShipping(shippingConfig, body.division || '', subtotal);
+  const shipping = shippingCalculation.cost;
+
+  // Tax logic is skipped since there's no native taxRate column on store
   const tax = 0;
-  const shipping = 0;
   const total = subtotal + tax + shipping;
   
   // Create order
@@ -201,37 +195,21 @@ ordersApi.post('/', async (c) => {
     )
     .returning();
 
-  // Dispatch Webhook Event
-  try {
-    if (c.env.WEBHOOK_QUEUE) {
-      await c.env.WEBHOOK_QUEUE.send({
-        topic: 'orders/create',
-        storeId,
-        payload: {
-          id: order.id,
-          order_number: order.orderNumber,
-          total: order.total,
-          currency: c.get('store')?.currency || 'BDT',
-          customer: {
-            name: order.customerName,
-            email: order.customerEmail,
-          },
-          items: items.map(i => ({
-            id: i.id,
-            product_id: i.productId,
-            quantity: i.quantity,
-            price: i.price
-          })),
-          created_at: order.createdAt
-        }
-      });
-      console.log(`[Webhook] Dispatched orders/create for Order #${order.id}`);
-    } else {
-      console.warn('[Webhook] WEBHOOK_QUEUE not bound');
+  // Deduct stock and check low stock threshold
+  for (const item of body.items) {
+    const product = productMap.get(item.productId);
+    if (product) {
+      const currentInventory = product.inventory || 0;
+      const newStockLevel = Math.max(0, currentInventory - item.quantity);
+
+      await db
+        .update(products)
+        .set({ inventory: newStockLevel, updatedAt: new Date() })
+        .where(eq(products.id, item.productId));
+
+      // Check low stock threshold
+      await checkLowStockAfterOrder(db, storeId, item.productId, newStockLevel);
     }
-  } catch (err) {
-    console.error('[Webhook] Failed to dispatch event:', err);
-    // Non-blocking error
   }
   
   return c.json({ order, items }, 201);

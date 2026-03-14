@@ -77,9 +77,6 @@ function parseDetails(details: string | null): Record<string, unknown> | null {
 
 export function OrderTimeline({ logs, orderId: _orderId, isSubmitting: _isSubmitting }: OrderTimelineProps) {
   const [expandedLogs, setExpandedLogs] = useState<Set<number>>(new Set());
-  const [note, setNote] = useState('');
-  const fetcher = useFetcher();
-  const isAddingNote = fetcher.state === 'submitting';
 
   const toggleExpand = (logId: number) => {
     const newExpanded = new Set(expandedLogs);
@@ -91,53 +88,12 @@ export function OrderTimeline({ logs, orderId: _orderId, isSubmitting: _isSubmit
     setExpandedLogs(newExpanded);
   };
 
-  const handleSubmitNote = () => {
-    if (!note.trim()) return;
-    fetcher.submit(
-      { intent: 'addNote', note: note.trim() },
-      { method: 'post' }
-    );
-    setNote('');
-  };
-
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-6">
       <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
         <Clock className="w-5 h-5 text-gray-500" />
         Order Timeline
       </h2>
-
-      {/* Add Note Form */}
-      <div className="mb-6 pb-6 border-b border-gray-100">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Add Internal Note
-        </label>
-        <textarea
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
-          placeholder="Add a private note about this order..."
-          rows={2}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none text-sm"
-        />
-        <button
-          type="button"
-          onClick={handleSubmitNote}
-          disabled={isAddingNote || !note.trim()}
-          className="mt-2 inline-flex items-center gap-2 px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition"
-        >
-          {isAddingNote ? (
-            <>
-              <RefreshCw className="w-4 h-4 animate-spin" />
-              Adding...
-            </>
-          ) : (
-            <>
-              <Send className="w-4 h-4" />
-              Add Note
-            </>
-          )}
-        </button>
-      </div>
 
       {/* Timeline */}
       {logs.length === 0 ? (

@@ -24,6 +24,13 @@ export interface OrderFormState {
   honeypot: string;
   selectedDistrictId: string;
   selectedUpazilaId: string;
+  couponCode: string;
+  couponDiscount: number;
+  couponError: string;
+  couponSuccess: string;
+  isApplyingCoupon: boolean;
+  appliedCouponCode: string | null;
+  couponRule: { type: string, value: number, maxDiscountAmount: number | null, minOrderAmount: number | null } | null;
 }
 
 export interface OrderFormActions {
@@ -39,6 +46,9 @@ export interface OrderFormActions {
   setHoneypot: (value: string) => void;
   setSelectedDistrictId: (id: string) => void;
   setSelectedUpazilaId: (id: string) => void;
+  setCouponCode: (value: string) => void;
+  applyCoupon: (storeId: number, currentSubtotal: number) => Promise<void>;
+  removeCoupon: () => void;
 }
 
 export interface OrderFormCalculations {
@@ -122,6 +132,13 @@ export function useOrderForm(
   const [honeypot, setHoneypot] = useState('');
   const [selectedDistrictId, setSelectedDistrictId] = useState('');
   const [selectedUpazilaId, setSelectedUpazilaId] = useState('');
+  const [couponCode, setCouponCode] = useState('');
+  const [couponDiscount, setCouponDiscount] = useState(0);
+  const [couponError, setCouponError] = useState('');
+  const [couponSuccess, setCouponSuccess] = useState('');
+  const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
+  const [appliedCouponCode, setAppliedCouponCode] = useState<string | null>(null);
+  const [couponRule, setCouponRule] = useState<{ type: string, value: number, maxDiscountAmount: number | null, minOrderAmount: number | null } | null>(null);
   
   // BD Phone validation
   const validateBDPhone = useCallback((value: string): boolean => {
@@ -197,18 +214,93 @@ export function useOrderForm(
     }
   }, [fetcher.data, navigate, thankYouRedirectUrl]);
   
+  const applyCoupon = useCallback(async (storeId: number, currentSubtotal: number) => {
+    if (!couponCode.trim()) return;
+
+    setIsApplyingCoupon(true);
+    setCouponError('');
+    setCouponSuccess('');
+
+    try {
+      const response = await fetch('/api/validate-coupon', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code: couponCode,
+          storeId,
+          orderAmount: currentSubtotal
+        })
+      });
+
+      const data = await response.json() as any;
+
+      if (data.valid) {
+        setCouponDiscount(data.discount);
+        setAppliedCouponCode(data.code || couponCode.toUpperCase());
+        setCouponRule({
+          type: data.type,
+          value: data.value,
+          maxDiscountAmount: data.maxDiscountAmount,
+          minOrderAmount: data.minOrderAmount
+        });
+        setCouponSuccess(data.message || 'Coupon applied!');
+        setCouponError('');
+      } else {
+        setCouponDiscount(0);
+        setAppliedCouponCode(null);
+        setCouponRule(null);
+        setCouponError(data.message || 'Invalid coupon');
+        setCouponSuccess('');
+      }
+    } catch (err) {
+      setCouponError('কুপন যাচাই করতে সমস্যা হয়েছে (Failed to validate coupon)');
+    } finally {
+      setIsApplyingCoupon(false);
+    }
+  }, [couponCode]);
+
+  const removeCoupon = useCallback(() => {
+    setCouponCode('');
+    setAppliedCouponCode(null);
+    setCouponRule(null);
+    setCouponDiscount(0);
+    setCouponError('');
+    setCouponSuccess('');
+  }, []);
+
   // Calculate prices
   const basePrice = selectedVariant?.price || actualPrice;
   const subtotal = basePrice * quantity;
   const deliveryCharge = calculatedShippingZone === 'dhaka' ? insideDhakaCharge : outsideDhakaCharge;
-  const total = subtotal + deliveryCharge;
+
+  // Dynamically recalculate coupon discount based on the rule and current subtotal
+  // NOTE: If combo is used, the OrderFormFields passes comboSummary.discountedSubtotal here instead of subtotal.
+  // Wait, useOrderForm calculates its own subtotal. OrderFormFields uses comboSummary?.discountedSubtotal.
+  // To avoid circular dependency, we will just provide couponRule in state so OrderFormFields can calculate the final discount correctly.
+
+  // Apply coupon discount (cap it to subtotal just in case - basic fallback)
+  let actualCouponDiscount = couponDiscount;
+  if (couponRule) {
+    if (couponRule.minOrderAmount && subtotal < couponRule.minOrderAmount) {
+      actualCouponDiscount = 0; // Order amount is too low now
+    } else if (couponRule.type === 'percentage') {
+      actualCouponDiscount = subtotal * (couponRule.value / 100);
+      if (couponRule.maxDiscountAmount && actualCouponDiscount > couponRule.maxDiscountAmount) {
+        actualCouponDiscount = couponRule.maxDiscountAmount;
+      }
+    } else {
+      actualCouponDiscount = couponRule.value;
+    }
+  }
+  actualCouponDiscount = Math.min(actualCouponDiscount, subtotal);
+
+  const total = subtotal - actualCouponDiscount + deliveryCharge;
   
   // Format price using central utility
   // Note: Landing page configs store prices in taka (not cents), so no fromCents conversion
-  // TODO: Pass store currency from props when multi-currency is implemented
   const formatPrice = useCallback(
-    (price: number, currencyCode: string = 'BDT') => formatCurrency(price, currencyCode),
-    []
+    (price: number, currencyCode: string = (typedProps.currency as string) || 'BDT') => formatCurrency(price, currencyCode),
+    [typedProps.currency]
   );
   
   const state: OrderFormState = {
@@ -226,6 +318,13 @@ export function useOrderForm(
     honeypot,
     selectedDistrictId,
     selectedUpazilaId,
+    couponCode,
+    couponDiscount,
+    couponError,
+    couponSuccess,
+    isApplyingCoupon,
+    appliedCouponCode,
+    couponRule,
   };
   
   const actions: OrderFormActions = {
@@ -241,6 +340,9 @@ export function useOrderForm(
     setHoneypot,
     setSelectedDistrictId,
     setSelectedUpazilaId,
+    setCouponCode,
+    applyCoupon,
+    removeCoupon,
   };
   
   const calculations: OrderFormCalculations = {

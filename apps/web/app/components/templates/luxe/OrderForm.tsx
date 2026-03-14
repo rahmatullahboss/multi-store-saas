@@ -4,6 +4,7 @@ import { CheckCircle2, ArrowRight } from 'lucide-react';
 import { calculateShipping, DEFAULT_SHIPPING_CONFIG, type DivisionValue } from '~/utils/shipping';
 import { sanitizeHtml } from '~/utils/sanitize';
 import type { SectionProps } from '../_core/types';
+import { sanitizeHtml } from "~/utils/sanitize";
 
 export function LuxeOrderForm({
   config,

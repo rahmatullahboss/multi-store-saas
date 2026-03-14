@@ -1,43 +1,26 @@
 /**
  * Order Creation API Route
- *
+ * 
  * POST /api/create-order
- *
+ * 
  * Handles order submissions from Landing Pages and Store checkout.
  * This route is NOT cached - always dynamic.
- *
+ * 
  * SECURITY: Server-side price calculation - NEVER trust frontend prices
- *
+ * 
  * Input: store_id, product_id, customer_name, phone, address, quantity
  * Output: { success: true, orderId: "...", orderNumber: "..." }
  */
 
 import { json, type ActionFunctionArgs } from '@remix-run/cloudflare';
 import { z } from 'zod';
-import {
-  orders,
-  orderItems,
-  products,
-  productVariants,
-  stores,
-  abandonedCarts,
-  orderBumps,
-  upsellOffers,
-  upsellTokens,
-  pushSubscriptions,
-  customers,
-  templateAnalytics,
-  savedLandingConfigs,
-  checkoutSessions,
-  activityLogs,
-} from '@db/schema';
-import { eq, and, or, inArray, sql, gte, isNull } from 'drizzle-orm';
+import { orders, orderItems, products, productVariants, stores, users, abandonedCarts, orderBumps, upsellOffers, upsellTokens, pushSubscriptions, customers, templateAnalytics, savedLandingConfigs, checkoutSessions } from '@db/schema';
+import { eq, and, or, inArray, sql, gte } from 'drizzle-orm';
 import { createEmailService } from '~/services/email.server';
-import { getOrderConfirmationHtml, getNewOrderAlertHtml } from '~/services/email-templates.server';
 import { sendPushNotification } from '~/services/push.server';
 import { dispatchWebhook } from '~/services/webhook.server';
-import { checkUsageLimit, getPlanLimitsSafe } from '~/utils/plans.server';
-import { calculateShipping, BD_DIVISIONS } from '~/utils/shipping';
+import { checkUsageLimit } from '~/utils/plans.server';
+import { parseShippingConfig, calculateShipping, BD_DIVISIONS } from '~/utils/shipping';
 import { sendPurchaseEvent } from '~/services/facebook-capi.server';
 import { createDb } from '~/lib/db.server';
 import { sendSmartNotification } from '~/services/messaging.server';
@@ -45,32 +28,8 @@ import { addLoyaltyPoints } from '~/services/loyalty.server';
 import { triggerAutomation } from '~/services/automation.server';
 import { parseLandingConfig } from '@db/types';
 import { generateCheckoutIdempotencyKey } from '~/services/webhook-utils.server';
-import {
-  validateDiscount,
-  incrementDiscountUsage,
-  decrementDiscountUsage,
-} from '~/../server/services/discount.service';
-import { getCustomerId } from '~/services/customer-auth.server';
-import {
-  parseFraudSettings,
-  checkCODByDeliveryRate,
-  DEFAULT_FRAUD_SETTINGS,
-} from '~/services/fraud-engine.server';
-import { createCustomerAddress } from '~/services/customer-account.server';
-// DO Services for checkout lock and rate limiting
-import { acquireCheckoutLock, releaseCheckoutLock } from '~/services/checkout-do.server';
-import { checkRateLimit, getClientIP } from '~/services/rate-limiter-do.server';
-// Order Processor DO for background tasks (email, webhooks)
-import { enqueueOrderTasks } from '~/services/order-processor.server';
-import { calculatePlatformFee, isPaymentMethodAllowedForPlan } from '~/lib/payment-policy';
-import {
-  getUnifiedStorefrontSettings,
-  getShippingConfigFromUnified,
-} from '~/services/unified-storefront-settings.server';
-import { createSslCommerzService } from '~/services/sslcommerz.server';
-import { parseGatewayConfig, getEffectiveSslCommerzConfig, getEffectiveBkashGatewayConfig, getEffectiveNagadGatewayConfig } from '~/lib/gateway-config';
-import { createBkashGatewayService } from '~/services/bkash-gateway.server';
-import { createNagadGatewayService } from '~/services/nagad-gateway.server';
+import { notifyMerchantViaWhatsApp } from '~/services/whatsapp-notify.server';
+
 
 // ============================================================================
 // VALIDATION SCHEMA with BD Phone validation
@@ -78,7 +37,7 @@ import { createNagadGatewayService } from '~/services/nagad-gateway.server';
 const bdPhoneRegex = /^(\+880|880|0)?1[3-9]\d{8}$/;
 
 // Valid division values
-const validDivisions = BD_DIVISIONS.map((d) => d.value);
+const validDivisions = BD_DIVISIONS.map(d => d.value);
 
 export const OrderSchema = z.object({
   store_id: z.number().int().positive('Store ID is required'),
@@ -88,11 +47,10 @@ export const OrderSchema = z.object({
   combo_discount_2: z.preprocess((v) => Number(v), z.number().min(0).max(100)).optional(),
   combo_discount_3: z.preprocess((v) => Number(v), z.number().min(0).max(100)).optional(),
   customer_name: z.string().min(2, 'নাম কমপক্ষে ২ অক্ষর হতে হবে').max(100),
-  phone: z
-    .string()
+  phone: z.string()
     .min(10, 'মোবাইল নম্বর কমপক্ষে ১০ সংখ্যা হতে হবে')
     .max(20)
-    .refine((val) => bdPhoneRegex.test(val.replace(/[\s-]/g, '')), {
+    .refine(val => bdPhoneRegex.test(val.replace(/[\s-]/g, '')), {
       message: 'সঠিক বাংলাদেশী মোবাইল নম্বর দিন (01XXXXXXXXX)',
     }),
   address: z.string().min(5, 'ঠিকানা কমপক্ষে ৫ অক্ষর হতে হবে').max(500),
@@ -100,48 +58,32 @@ export const OrderSchema = z.object({
   // BD Address System - District & Upazila
   district: z.string().max(50).optional(), // District ID from bd-locations
   upazila: z.string().max(50).optional(), // Upazila ID from bd-locations
-  postal_code: z.string().max(10).optional(), // Optional postal/zip code — improves CAPI EMQ score
   quantity: z.number().int().min(1).max(99).default(1),
   notes: z.string().max(500).optional(),
   customer_email: z.string().email().optional(), // Optional email for confirmation
-  payment_method: z
-    .enum(['cod', 'bkash', 'nagad', 'rocket', 'stripe', 'sslcommerz', 'bkash_gateway', 'nagad_gateway'])
-    .default('cod'),
-  transaction_id: z
-    .string()
-    .trim()
-    .min(6, 'Transaction ID must be at least 6 characters')
-    .max(100)
-    .optional()
-    .or(z.literal(''))
-    .transform((val) => (val === '' ? undefined : val)),
+  payment_method: z.string().default('cod'), // 'cod', 'bkash', 'nagad'
+  transaction_id: z.string().optional(),
   variant_id: z.number().int().optional(), // Product variant ID
-  manual_payment_details: z
-    .object({
-      senderNumber: z.string().trim().optional(),
-      method: z.enum(['cod', 'bkash', 'nagad', 'rocket', 'stripe', 'sslcommerz', 'bkash_gateway', 'nagad_gateway']).optional(),
-    })
-    .optional(),
+  discount_code: z.string().optional(), // Coupon Code
+  manual_payment_details: z.object({
+    senderNumber: z.string().optional(),
+    method: z.string().optional(),
+  }).optional(),
   bump_ids: z.array(z.number().int().positive()).optional(), // Order bump product IDs
   landing_page_id: z.number().int().optional(), // Campaign Page ID for attribution
   // Attribution (UTM Parameters)
   utm_source: z.string().max(100).optional(),
   utm_medium: z.string().max(100).optional(),
   utm_campaign: z.string().max(100).optional(),
-  discount_code: z.string().max(50).optional(), // Coupon Code
 });
+
 
 // ============================================================================
 // GENERATE ORDER NUMBER
 // ============================================================================
 function generateOrderNumber(): string {
   const timestamp = Date.now().toString(36).toUpperCase();
-  // Security Enhancement: Use Web Crypto API for secure random generation instead of Math.random()
-  const array = new Uint32Array(1);
-  crypto.getRandomValues(array);
-  // Use the last 3 characters to avoid leading-digit bias, then pad to at least 3 chars if needed
-  const randomStr = array[0].toString(36).toUpperCase();
-  const random = randomStr.length >= 3 ? randomStr.slice(-3) : randomStr.padStart(3, '0');
+  const random = Math.random().toString(36).substring(2, 5).toUpperCase();
   return `ORD-${timestamp}-${random}`;
 }
 
@@ -155,29 +97,6 @@ export async function action({ request, context }: ActionFunctionArgs) {
   }
 
   const db = createDb(context.cloudflare.env.DB);
-  const env = context.cloudflare.env;
-
-  // E2E/local dev can run without Durable Object service bindings available.
-  // When bindings exist in env but the backing Worker/DO isn't running, fetch() can return
-  // non-JSON errors and cause flaky checkout behavior. Disable DO-based rate limit/locks in E2E.
-  const isE2E =
-    (env as unknown as Record<string, string>)?.E2E === '1' ||
-    (env as unknown as Record<string, string>)?.E2E_ENABLED === '1' ||
-    process.env.E2E === '1' ||
-    process.env.E2E_ENABLED === '1';
-
-  // Checkout lock variables (declared outside try for cleanup in catch)
-  let checkoutLockId = '';
-  let checkoutLockAcquired = false;
-  let reservedCouponUsage = false;
-  let reservedCouponStoreId: number | undefined;
-  let reservedCouponId: number | undefined;
-  const hasCheckoutLock = !isE2E && 'CHECKOUT_SERVICE' in env;
-  // Used for lock release in finally even on early-return paths
-  let orderNumberForLock = '';
-  let checkoutSessionId: string | null = null;
-  const orderCustomerId: number | null = null;
-  let loggedInCustomer: typeof customers.$inferSelect | null = null;
 
   try {
     // Parse request body - handle both JSON and FormData
@@ -201,7 +120,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
             }
           }
         } else if (['utm_source', 'utm_medium', 'utm_campaign'].includes(key)) {
-          body[key] = (value as string).trim();
+           body[key] = (value as string).trim();
         } else if (key === 'cart_items') {
           try {
             body[key] = JSON.parse(value as string);
@@ -219,28 +138,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         }
       }
     }
-
-    // Debug: Removed - was logging sensitive order metadata to production logs
-
-    // ========================================================================
-    // CHECK IF CUSTOMER IS LOGGED IN
-    // ========================================================================
-    const loggedInCustomerId = await getCustomerId(request, env);
-
-    if (loggedInCustomerId) {
-      const customerResult = await db
-        .select()
-        .from(customers)
-        .where(
-          and(eq(customers.id, loggedInCustomerId), eq(customers.storeId, body.store_id as number))
-        )
-        .limit(1);
-      loggedInCustomer = customerResult[0] || null;
-      if (loggedInCustomer) {
-        console.warn(`[Order Creation] Customer ${loggedInCustomerId} is logged in`);
-      }
-    }
-
+    
     // ========================================================================
     // ANTI-SPAM: HONEYPOT CHECK
     // ========================================================================
@@ -252,44 +150,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         { status: 400 }
       );
     }
-
-    // ========================================================================
-    // RATE LIMITING (via Durable Object)
-    // ========================================================================
-    const hasRateLimiter = !isE2E && 'RATE_LIMITER_SERVICE' in env;
-    const storeIdForRateLimit = (body.store_id as number) || 0;
-
-    if (hasRateLimiter && storeIdForRateLimit > 0) {
-      const clientIP = getClientIP(request);
-      const rateLimitResult = await checkRateLimit(
-        env as any,
-        storeIdForRateLimit,
-        clientIP,
-        'checkout', // 5 requests per minute for checkout
-        1,
-        { failOpen: false }
-      );
-
-      if (!rateLimitResult.allowed) {
-        console.warn(
-          `[RATE_LIMIT] Checkout blocked for store ${storeIdForRateLimit}, IP: ${clientIP}`
-        );
-        return json(
-          {
-            success: false,
-            error: 'অনেক বেশি অর্ডার চেষ্টা করা হয়েছে। অনুগ্রহ করে কিছুক্ষণ পর আবার চেষ্টা করুন।',
-            retryAfterSeconds: Math.ceil((rateLimitResult.retryAfterMs || 60000) / 1000),
-          },
-          {
-            status: 429,
-            headers: {
-              'Retry-After': String(Math.ceil((rateLimitResult.retryAfterMs || 60000) / 1000)),
-            },
-          }
-        );
-      }
-    }
-
+    
     // ========================================================================
     // PHONE NORMALIZATION
     // ========================================================================
@@ -305,13 +166,6 @@ export async function action({ request, context }: ActionFunctionArgs) {
       body.phone = phone;
     }
 
-    if (body.payment_method && typeof body.payment_method === 'string') {
-      body.payment_method = body.payment_method.trim().toLowerCase();
-    }
-    if (body.transaction_id && typeof body.transaction_id === 'string') {
-      body.transaction_id = body.transaction_id.trim().toUpperCase();
-    }
-
     // Extend Schema for Cart Items
     const CartItemSchema = z.object({
       product_id: z.number().int().positive(),
@@ -325,16 +179,13 @@ export async function action({ request, context }: ActionFunctionArgs) {
       quantity: z.number().int().min(1).max(99).default(1),
 
       cart_items: z.array(CartItemSchema).optional(),
-    }).refine(
-      (data) => {
-        // Either product_id (single) OR cart_items (multi) must be present
-        return data.product_id || (data.cart_items && data.cart_items.length > 0);
-      },
-      {
-        message: 'Either product_id or cart_items must be provided',
-        path: ['product_id'], // Attach error to product_id
-      }
-    );
+    }).refine(data => {
+      // Either product_id (single) OR cart_items (multi) must be present
+      return data.product_id || (data.cart_items && data.cart_items.length > 0);
+    }, {
+      message: "Either product_id or cart_items must be provided",
+      path: ["product_id"] // Attach error to product_id
+    });
 
     // Validate input
     const parseResult = ExtendedOrderSchema.safeParse(body);
@@ -346,51 +197,28 @@ export async function action({ request, context }: ActionFunctionArgs) {
         {
           success: false,
           error: 'ভ্যালিডেশন ব্যর্থ',
-          details: errors.fieldErrors,
+          details: errors.fieldErrors
         },
         { status: 400 }
       );
     }
 
     const input = parseResult.data;
-    if (input.discount_code) {
-      input.discount_code = input.discount_code.trim().toUpperCase();
-    }
-
-    const requestStoreId =
-      (context as { storeId?: number; store?: { id?: number } }).storeId ??
-      (context as { store?: { id?: number } }).store?.id;
-    if (requestStoreId && requestStoreId !== input.store_id) {
-      return json(
-        {
-          success: false,
-          error: 'Invalid store context for this domain',
-        },
-        { status: 403 }
-      );
-    }
-
+    
     // ========================================================================
     // ANTI-SPAM: RATE LIMITING (IP-based)
     // ========================================================================
-    const clientIP =
-      request.headers.get('CF-Connecting-IP') ||
-      request.headers.get('X-Forwarded-For')?.split(',')[0] ||
-      'unknown';
-
-    // ── Cloudflare Edge Signals (used for fraud scoring) ─────────────────────
-    const cfCountry = request.headers.get('CF-IPCountry') || undefined;
-    const cfDeviceType = request.headers.get('CF-Device-Type') || undefined;
-    const clientUserAgentHeader = request.headers.get('User-Agent') || undefined;
-
+    const clientIP = request.headers.get('CF-Connecting-IP') || 
+                     request.headers.get('X-Forwarded-For')?.split(',')[0] || 
+                     'unknown';
+    
     const RATE_LIMIT_MAX = 5; // Max orders per window
     const RATE_LIMIT_WINDOW_MINUTES = 10;
-
+    
     // Use D1 for rate limiting (per-phone or per-IP per-store)
     try {
       const phoneOrIp = (body.phone && String(body.phone).trim()) || clientIP;
-      const recentOrderCountResult = await db
-        .select({ count: sql<number>`count(*)` })
+      const recentOrderCountResult = await db.select({ count: sql<number>`count(*)` })
         .from(orders)
         .where(
           and(
@@ -415,8 +243,54 @@ export async function action({ request, context }: ActionFunctionArgs) {
       // Don't block on rate limit check failure
       console.error('[Rate Limit] Check failed:', e);
     }
-
-    const primaryProductId = input.product_id || input.cart_items?.[0]?.product_id;
+    
+    // ========================================================================
+    // ANTI-SPAM: DUPLICATE ORDER DETECTION
+    // ========================================================================
+    // Check if same phone ordered same product within last 4 hours
+    const primaryProductId = input.product_id || (input.cart_items?.[0]?.product_id);
+    
+    if (primaryProductId) {
+      try {
+        const duplicateCheck = await db.select({ 
+          id: orders.id, 
+          orderNumber: orders.orderNumber,
+          createdAt: orders.createdAt 
+        })
+          .from(orders)
+          .where(
+            and(
+              eq(orders.storeId, input.store_id),
+              eq(orders.customerPhone, input.phone),
+              sql`${orders.createdAt} > datetime('now', '-4 hours')`
+            )
+          )
+          .limit(1);
+        
+        if (duplicateCheck.length > 0) {
+          const existingOrder = duplicateCheck[0];
+          // Duplicate order detected, log to console.warn instead of console.log
+          console.warn('[DUPLICATE] Potential duplicate order detected:', {
+            phone: input.phone,
+            existingOrderId: existingOrder.id,
+            existingOrderNumber: existingOrder.orderNumber
+          });
+          
+          return json(
+            { 
+              success: false, 
+              error: 'আপনি ইতোমধ্যে একটি অর্ডার করেছেন। সমস্যা হলে আমাদের কল করুন।',
+              code: 'DUPLICATE_ORDER',
+              existingOrderNumber: existingOrder.orderNumber
+            },
+            { status: 429 } // Too Many Requests
+          );
+        }
+      } catch (e) {
+        // Don't block on duplicate check failure
+        console.error('[Duplicate Check] Failed:', e);
+      }
+    }
 
     // ========================================================================
     // IDEMPOTENT ORDER CREATION via checkout_sessions
@@ -442,42 +316,31 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
       if (existingSession.length > 0) {
         const session = existingSession[0];
-
+        
         // If already completed, return existing order
         if (session.status === 'completed' && session.orderId) {
           const existingOrder = await db
             .select({ orderNumber: orders.orderNumber, id: orders.id, total: orders.total })
             .from(orders)
-            .where(and(eq(orders.id, session.orderId), eq(orders.storeId, input.store_id)))
+            .where(eq(orders.id, session.orderId))
             .limit(1);
 
           if (existingOrder.length > 0) {
             console.warn('[IDEMPOTENT] Returning existing order:', existingOrder[0].orderNumber);
-            return json(
-              {
-                success: true,
-                orderId: existingOrder[0].id,
-                orderNumber: existingOrder[0].orderNumber,
-                total: existingOrder[0].total,
-                message: 'Order already exists',
-                isIdempotent: true,
-              },
-              {
-                headers: {
-                  'x-order-number': existingOrder[0].orderNumber,
-                },
-              }
-            );
+            return json({
+              success: true,
+              orderId: existingOrder[0].id,
+              orderNumber: existingOrder[0].orderNumber,
+              total: existingOrder[0].total,
+              message: 'Order already exists',
+              isIdempotent: true,
+            });
           }
         }
         // If pending/processing, wait or return busy
         if (session.status === 'pending' || session.status === 'processing') {
           return json(
-            {
-              success: false,
-              error: 'অর্ডার প্রক্রিয়াকরণ হচ্ছে, অনুগ্রহ করে অপেক্ষা করুন।',
-              code: 'PROCESSING',
-            },
+            { success: false, error: 'অর্ডার প্রক্রিয়াকরণ হচ্ছে, অনুগ্রহ করে অপেক্ষা করুন।', code: 'PROCESSING' },
             { status: 409 }
           );
         }
@@ -486,191 +349,38 @@ export async function action({ request, context }: ActionFunctionArgs) {
       console.error('[Idempotency Check] Failed:', e);
     }
 
-    // ========================================================================
-    // ANTI-SPAM: DUPLICATE ORDER DETECTION (fallback only)
-    // ========================================================================
-    // NOTE:
-    // - For production ecommerce, legitimate repeat orders must be allowed.
-    // - We rely on Durable Object checkout lock + checkout_sessions idempotency for double-submit.
-    // - This duplicate check is only a fallback when checkout lock is unavailable.
-    if (!hasCheckoutLock && primaryProductId) {
-      try {
-        const duplicateCheck = await db
-          .select({
-            id: orders.id,
-            orderNumber: orders.orderNumber,
-            createdAt: orders.createdAt,
-          })
-          .from(orders)
-          .where(
-            and(
-              eq(orders.storeId, input.store_id),
-              eq(orders.customerPhone, input.phone),
-              sql`${orders.createdAt} > datetime('now', '-10 minutes')`
-            )
-          )
-          .limit(1);
-
-        if (duplicateCheck.length > 0) {
-          const existingOrder = duplicateCheck[0];
-          console.warn('[DUPLICATE] Potential rapid duplicate (fallback mode):', {
-            phone: input.phone,
-            existingOrderId: existingOrder.id,
-            existingOrderNumber: existingOrder.orderNumber,
-          });
-
-          return json(
-            {
-              success: false,
-              error: 'আপনার আগের অর্ডার প্রক্রিয়াধীন আছে। অনুগ্রহ করে কিছুক্ষণ অপেক্ষা করুন।',
-              code: 'PROCESSING',
-              existingOrderNumber: existingOrder.orderNumber,
-            },
-            { status: 409 }
-          );
-        }
-      } catch (e) {
-        // Don't block on duplicate check failure
-        console.error('[Duplicate Check] Failed:', e);
-      }
-    }
-
     // Normalize input to a list of items
     let orderItemsData: { productId: number; quantity: number; variantId?: number }[] = [];
 
     if (input.cart_items && input.cart_items.length > 0) {
-      orderItemsData = input.cart_items.map((item) => ({
+      orderItemsData = input.cart_items.map(item => ({
         productId: item.product_id,
         quantity: item.quantity,
-        variantId: item.variant_id,
+        variantId: item.variant_id
       }));
     } else if (input.product_id) {
-      orderItemsData = [
-        {
-          productId: input.product_id,
-          quantity: input.quantity,
-          variantId: input.variant_id,
-        },
-      ];
+      orderItemsData = [{
+        productId: input.product_id,
+        quantity: input.quantity,
+        variantId: input.variant_id
+      }];
     }
 
-    // Verify store exists and is active (exclude soft-deleted stores)
+    // Verify store exists and is active
     const storeResult = await db
       .select()
       .from(stores)
-      .where(
-        and(eq(stores.id, input.store_id), eq(stores.isActive, true), isNull(stores.deletedAt))
-      )
+      .where(and(eq(stores.id, input.store_id), eq(stores.isActive, true)))
       .limit(1);
 
     if (storeResult.length === 0) {
-      return json({ success: false, error: 'স্টোর পাওয়া যায়নি' }, { status: 404 });
+      return json(
+        { success: false, error: 'স্টোর পাওয়া যায়নি' },
+        { status: 404 }
+      );
     }
 
     const storeData = storeResult[0];
-    const planLimits = getPlanLimitsSafe(storeData.planType || 'free');
-    const platformFeeRate = planLimits.fee_rate ?? 0;
-
-    // Get unified shipping config (single source of truth)
-    const unifiedSettings = await getUnifiedStorefrontSettings(db, input.store_id, { env });
-    const unifiedShippingConfig = getShippingConfigFromUnified(unifiedSettings);
-
-    // ============================================================================
-    // PAYMENT METHOD GUARDRAILS
-    // ============================================================================
-    if (!isPaymentMethodAllowedForPlan(storeData.planType || 'free', input.payment_method)) {
-      return json(
-        {
-          success: false,
-          error:
-            'This payment method is not available on your current plan. Upgrade to unlock more gateways.',
-          code: 'PAYMENT_METHOD_BLOCKED_BY_PLAN',
-        },
-        { status: 403 }
-      );
-    }
-
-    if (input.payment_method === 'stripe') {
-      return json(
-        {
-          success: false,
-          error: 'Stripe checkout is not enabled for this store yet.',
-          code: 'PAYMENT_METHOD_UNAVAILABLE',
-        },
-        { status: 400 }
-      );
-    }
-
-    if (!['cod', 'sslcommerz', 'bkash_gateway', 'nagad_gateway'].includes(input.payment_method)) {
-      const senderNumber = input.manual_payment_details?.senderNumber?.replace(/[\s-]/g, '') || '';
-      const methodInDetails = input.manual_payment_details?.method;
-
-      if (!input.transaction_id || !senderNumber) {
-        return json(
-          {
-            success: false,
-            error: 'Transaction ID and sender number are required for online payment.',
-            code: 'PAYMENT_DETAILS_REQUIRED',
-          },
-          { status: 400 }
-        );
-      }
-
-      if (!bdPhoneRegex.test(senderNumber)) {
-        return json(
-          {
-            success: false,
-            error: 'Invalid sender phone number format.',
-            code: 'INVALID_SENDER_NUMBER',
-          },
-          { status: 400 }
-        );
-      }
-
-      if (methodInDetails && methodInDetails !== input.payment_method) {
-        return json(
-          {
-            success: false,
-            error: 'Payment method mismatch in request.',
-            code: 'PAYMENT_METHOD_MISMATCH',
-          },
-          { status: 400 }
-        );
-      }
-    }
-
-    // Enforce that selected manual payment method is configured at store level
-    let manualPaymentConfig: Record<string, string | null | undefined> = {};
-    if (storeData.manualPaymentConfig) {
-      try {
-        manualPaymentConfig = JSON.parse(storeData.manualPaymentConfig as string) as Record<
-          string,
-          string | null | undefined
-        >;
-      } catch {
-        manualPaymentConfig = {};
-      }
-    }
-
-    const enabledManualMethods = {
-      bkash: Boolean(manualPaymentConfig.bkashPersonal || manualPaymentConfig.bkashMerchant),
-      nagad: Boolean(manualPaymentConfig.nagadPersonal || manualPaymentConfig.nagadMerchant),
-      rocket: Boolean(manualPaymentConfig.rocketPersonal || manualPaymentConfig.rocketMerchant),
-    };
-
-    if (
-      (['bkash', 'nagad', 'rocket'] as string[]).includes(input.payment_method) &&
-      !enabledManualMethods[input.payment_method as 'bkash' | 'nagad' | 'rocket']
-    ) {
-      return json(
-        {
-          success: false,
-          error: 'Selected payment method is not available for this store.',
-          code: 'PAYMENT_METHOD_NOT_CONFIGURED',
-        },
-        { status: 400 }
-      );
-    }
 
     // ========================================================================
     // PLAN LIMIT CHECK - Block orders if monthly limit reached
@@ -681,9 +391,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       return json(
         {
           success: false,
-          error:
-            limitCheck.error?.message ||
-            'Monthly order limit reached. Upgrade to accept more orders.',
+          error: limitCheck.error?.message || 'Monthly order limit reached. Upgrade to accept more orders.',
           code: 'LIMIT_REACHED',
           limit: limitCheck.error?.limit,
           current: limitCheck.error?.current,
@@ -693,181 +401,17 @@ export async function action({ request, context }: ActionFunctionArgs) {
     }
 
     // ========================================================================
-    // CHECKOUT LOCK (via Durable Object) - MUST happen BEFORE any stock mutation
-    // ========================================================================
-    // Create unique lock ID based on phone + store (prevents same customer double-ordering)
-    checkoutLockId = `${input.store_id}-${input.phone.replace(/\D/g, '')}`;
-
-    // Generate order number early so lock metadata can reference it.
-    orderNumberForLock = generateOrderNumber();
-
-    if (hasCheckoutLock) {
-      const lockResult = await acquireCheckoutLock(env as any, checkoutLockId, {
-        orderId: orderNumberForLock, // lock identifier (not DB id)
-        lockedBy: input.phone,
-        ttlMs: 5 * 60 * 1000, // 5 minutes
-      });
-
-      if (!lockResult.success) {
-        console.warn(`[CHECKOUT_LOCK] Order blocked - lock already held for ${checkoutLockId}`);
-        return json(
-          {
-            success: false,
-            error: 'আপনার আগের অর্ডার প্রক্রিয়াধীন আছে। অনুগ্রহ করে কিছুক্ষণ অপেক্ষা করুন।',
-            existingOrderId: lockResult.existingOrderId,
-          },
-          { status: 409 }
-        );
-      }
-      checkoutLockAcquired = true;
-    }
-
-    // ========================================================================
-    // CREATE CHECKOUT SESSION (processing) - Enforced by unique idempotency_key
-    // This prevents duplicate orders even if the client retries quickly.
-    // ========================================================================
-    // Minimal snapshot now; we update pricingJson + orderId later.
-    checkoutSessionId = crypto.randomUUID();
-    const checkoutSessionExpiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15m
-    const initialCartJson = JSON.stringify(
-      input.cart_items && input.cart_items.length > 0
-        ? input.cart_items
-        : [
-            {
-              product_id: input.product_id,
-              quantity: input.quantity,
-              variant_id: input.variant_id,
-            },
-          ]
-    );
-
-    try {
-      await db.insert(checkoutSessions).values({
-        id: checkoutSessionId,
-        storeId: input.store_id,
-        cartJson: initialCartJson,
-        customerId: null,
-        email: input.customer_email || null,
-        phone: input.phone,
-        customerName: input.customer_name,
-        shippingAddressJson: JSON.stringify({
-          address: input.address,
-          division: input.division,
-          district: input.district,
-          upazila: input.upazila,
-          postalCode: input.postal_code || null,
-        }),
-        billingAddressJson: null,
-        pricingJson: null,
-        discountCode: input.discount_code || null,
-        paymentMethod: input.payment_method as
-          | 'cod'
-          | 'bkash'
-          | 'nagad'
-          | 'rocket'
-          | 'stripe'
-          | 'sslcommerz'
-          | 'bkash_gateway'
-          | 'nagad_gateway',
-        status: 'processing',
-        idempotencyKey,
-        orderId: null,
-        expiresAt: checkoutSessionExpiresAt,
-        landingPageId: input.landing_page_id || null,
-        utmSource: input.utm_source || null,
-        utmMedium: input.utm_medium || null,
-        utmCampaign: input.utm_campaign || null,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      });
-    } catch (e) {
-      // Likely a unique constraint race; re-check the existing session and respond safely.
-      console.error('[Checkout Session] Insert failed:', e);
-      const existingSession = await db
-        .select({
-          id: checkoutSessions.id,
-          status: checkoutSessions.status,
-          orderId: checkoutSessions.orderId,
-        })
-        .from(checkoutSessions)
-        .where(eq(checkoutSessions.idempotencyKey, idempotencyKey))
-        .limit(1);
-
-      if (existingSession.length > 0) {
-        const session = existingSession[0];
-        if (session.status === 'completed' && session.orderId) {
-          const existingOrder = await db
-            .select({ orderNumber: orders.orderNumber, id: orders.id, total: orders.total })
-            .from(orders)
-            .where(and(eq(orders.id, session.orderId), eq(orders.storeId, input.store_id)))
-            .limit(1);
-          if (existingOrder.length > 0) {
-            return json(
-              {
-                success: true,
-                orderId: existingOrder[0].id,
-                orderNumber: existingOrder[0].orderNumber,
-                total: existingOrder[0].total,
-                message: 'Order already exists',
-                isIdempotent: true,
-              },
-              {
-                headers: {
-                  'x-order-number': existingOrder[0].orderNumber,
-                },
-              }
-            );
-          }
-        }
-        // In-flight checkout: tell client to wait.
-        return json(
-          {
-            success: false,
-            error: 'অর্ডার প্রক্রিয়াকরণ হচ্ছে, অনুগ্রহ করে অপেক্ষা করুন।',
-            code: 'PROCESSING',
-          },
-          { status: 409 }
-        );
-      }
-
-      // If we can't create a session and none exists, fail safe to avoid duplicates.
-      return json(
-        {
-          success: false,
-          error: 'অর্ডার প্রক্রিয়াকরণে সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।',
-        },
-        { status: 500 }
-      );
-    }
-
-    const abandonCheckoutSession = async () => {
-      if (!checkoutSessionId) return;
-      try {
-        await db
-          .update(checkoutSessions)
-          .set({ status: 'abandoned', updatedAt: new Date() })
-          .where(eq(checkoutSessions.id, checkoutSessionId));
-      } catch {
-        // Ignore errors during abandon cleanup
-      }
-    };
-
-    // ========================================================================
     // PROCESS ITEMS (Fetch Prices & Check Inventory)
     // ========================================================================
-    const productIds = orderItemsData.map((i) => i.productId);
-    const dbProducts = await db
-      .select()
-      .from(products)
+    const productIds = orderItemsData.map(i => i.productId);
+    const dbProducts = await db.select().from(products)
       .where(and(eq(products.storeId, input.store_id), inArray(products.id, productIds)));
 
     // Fetch variants if involved
-    const variantIds = orderItemsData.map((i) => i.variantId).filter(Boolean) as number[];
-    let dbVariants: (typeof productVariants.$inferSelect)[] = [];
+    const variantIds = orderItemsData.map(i => i.variantId).filter(Boolean) as number[];
+    let dbVariants: any[] = [];
     if (variantIds.length > 0) {
-      dbVariants = await db
-        .select()
-        .from(productVariants)
+      dbVariants = await db.select().from(productVariants)
         .where(inArray(productVariants.id, variantIds));
     }
 
@@ -875,13 +419,9 @@ export async function action({ request, context }: ActionFunctionArgs) {
     const finalOrderItems = [];
 
     for (const item of orderItemsData) {
-      const product = dbProducts.find((p) => p.id === item.productId);
+      const product = dbProducts.find(p => p.id === item.productId);
       if (!product || !product.isPublished) {
-        await abandonCheckoutSession();
-        return json(
-          { success: false, error: `Product ID ${item.productId} not found or unavailable` },
-          { status: 400 }
-        );
+        return json({ success: false, error: `Product ID ${item.productId} not found or unavailable` }, { status: 400 });
       }
 
       let unitPrice = product.price;
@@ -891,38 +431,20 @@ export async function action({ request, context }: ActionFunctionArgs) {
       let variantIdToUpdate = null;
 
       if (item.variantId) {
-        const variant = dbVariants.find((v) => v.id === item.variantId);
-        if (!variant || variant.productId !== item.productId) {
-          await abandonCheckoutSession();
-          return json(
-            { success: false, error: `Invalid variant for product ID ${item.productId}` },
-            { status: 400 }
-          );
+        const variant = dbVariants.find(v => v.id === item.variantId);
+        if (variant) {
+          unitPrice = variant.price || unitPrice;
+          currentStock = variant.inventory || 0;
+          variantInfo = [variant.option1Value, variant.option2Value].filter(Boolean).join(' - ');
+          variantIdToUpdate = variant.id;
+          isVariantStock = true;
         }
-
-        unitPrice = variant.price || unitPrice;
-        currentStock = variant.inventory || 0;
-        variantInfo = [variant.option1Value, variant.option2Value].filter(Boolean).join(' - ');
-        variantIdToUpdate = variant.id;
-        isVariantStock = true;
       }
 
       // Check Stock
       if (currentStock < item.quantity) {
-        await abandonCheckoutSession();
-        return json(
-          { success: false, error: `Stock unavailable for ${product.title}` },
-          { status: 400 }
-        );
+        return json({ success: false, error: `Stock unavailable for ${product.title}` }, { status: 400 });
       }
-
-      // === P&L: Resolve cost price snapshot (write-once at order time) ===
-      // Priority: variant.costPrice ?? product.costPrice ?? null
-      // NULL = no cost data set → excluded from COGS in P&L reports
-      const variantCost = item.variantId
-        ? (dbVariants.find((v) => v.id === item.variantId)?.costPrice ?? null)
-        : null;
-      const costPriceSnapshot = variantCost ?? product.costPrice ?? null;
 
       // Add to list for atomic update later (or do optimistic check here)
       finalOrderItems.push({
@@ -933,8 +455,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         total: unitPrice * item.quantity,
         isVariantStock,
         variantIdToUpdate,
-        costPriceSnapshot, // P&L: immutable cost snapshot
-        product, // keep ref
+        product // keep ref
       });
 
       subtotal += unitPrice * item.quantity;
@@ -972,18 +493,15 @@ export async function action({ request, context }: ActionFunctionArgs) {
         );
 
       if (activeBumps.length > 0) {
-        const bumpProductIds = activeBumps.map((b) => b.bumpProductId);
-        const bumpProducts = await db
-          .select({ id: products.id, title: products.title, price: products.price })
-          .from(products)
-          .where(and(eq(products.storeId, input.store_id), inArray(products.id, bumpProductIds)));
+        const bumpProductIds = activeBumps.map(b => b.bumpProductId);
+        const bumpProducts = await db.select({ id: products.id, title: products.title, price: products.price })
+          .from(products).where(and(eq(products.storeId, input.store_id), inArray(products.id, bumpProductIds)));
 
         for (const bump of activeBumps) {
-          const bumpProduct = bumpProducts.find((p) => p.id === bump.bumpProductId);
+          const bumpProduct = bumpProducts.find(p => p.id === bump.bumpProductId);
           if (bumpProduct) {
             const discountValue = bump.discount ?? 0;
-            const discountedPrice =
-              discountValue > 0 ? bumpProduct.price * (1 - discountValue / 100) : bumpProduct.price;
+            const discountedPrice = discountValue > 0 ? bumpProduct.price * (1 - discountValue / 100) : bumpProduct.price;
 
             bumpItems.push({
               bumpId: bump.id,
@@ -998,31 +516,26 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
         // Update stats
         context.cloudflare.ctx.waitUntil(
-          Promise.all(
-            input.bump_ids!.map((bumpId) =>
-              context.cloudflare.env.DB.prepare(
-                'UPDATE order_bumps SET conversions = conversions + 1 WHERE id = ?'
-              )
-                .bind(bumpId)
-                .run()
-            )
-          ).catch((e) => console.error('Failed to update bump conversions:', e))
+          Promise.all(input.bump_ids!.map(bumpId =>
+            context.cloudflare.env.DB.prepare('UPDATE order_bumps SET conversions = conversions + 1 WHERE id = ?').bind(bumpId).run()
+          )).catch(e => console.error('Failed to update bump conversions:', e))
         );
       }
     }
 
-    // Calculate shipping using unified settings (single source of truth)
-    const shippingResult = calculateShipping(unifiedShippingConfig, input.division, subtotal);
+    // Calculate shipping
+    const shippingConfig = parseShippingConfig(storeData.shippingConfig as string | null);
+    const shippingResult = calculateShipping(shippingConfig, input.division, subtotal);
     const shipping = shippingResult.cost;
     const tax = 0;
-
+    
     // ============================================================================
     // COMBO/BUNDLE DISCOUNT - Apply discount for multiple unique products
     // ============================================================================
     // Count unique products in order
-    const uniqueProductIds = new Set(orderItemsData.map((item) => item.productId));
+    const uniqueProductIds = new Set(orderItemsData.map(item => item.productId));
     const uniqueProductCount = uniqueProductIds.size;
-
+    
     // Combo discount rates (server-authoritative)
     let comboDiscountRate = 0;
     let comboDiscountAmount = 0;
@@ -1037,12 +550,10 @@ export async function action({ request, context }: ActionFunctionArgs) {
       const landingConfigRow = await db
         .select({ landingConfig: savedLandingConfigs.landingConfig })
         .from(savedLandingConfigs)
-        .where(
-          and(
-            eq(savedLandingConfigs.id, input.landing_page_id),
-            eq(savedLandingConfigs.storeId, input.store_id)
-          )
-        )
+        .where(and(
+          eq(savedLandingConfigs.id, input.landing_page_id),
+          eq(savedLandingConfigs.storeId, input.store_id)
+        ))
         .limit(1);
 
       if (landingConfigRow.length > 0) {
@@ -1068,7 +579,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     // Cap to safe max (50%) to prevent abuse
     comboDiscount2 = Math.min(Math.max(comboDiscount2, 0), 50);
     comboDiscount3 = Math.min(Math.max(comboDiscount3, 0), 50);
-
+    
     if (comboDiscountEnabled) {
       if (uniqueProductCount >= 3) {
         comboDiscountRate = comboDiscount3 / 100;
@@ -1076,58 +587,58 @@ export async function action({ request, context }: ActionFunctionArgs) {
         comboDiscountRate = comboDiscount2 / 100;
       }
     }
-
+    
     if (comboDiscountRate > 0) {
       comboDiscountAmount = Math.round(subtotal * comboDiscountRate);
     }
-
+    
     // Apply combo discount to subtotal
-    const discountedSubtotalBeforeCoupon = subtotal - comboDiscountAmount;
+    let discountedSubtotal = subtotal - comboDiscountAmount;
 
     // ============================================================================
-    // COUPON DISCOUNT - Apply manual discount code
+    // COUPON DISCOUNT VALIDATION & CALCULATION
     // ============================================================================
     let couponDiscountAmount = 0;
+    let appliedDiscountId: number | undefined;
+
     if (input.discount_code) {
-      const discountResult = await validateDiscount(
-        db,
-        input.store_id,
-        input.discount_code,
-        discountedSubtotalBeforeCoupon,
-        input.customer_email || input.phone
-      );
+      // TODO: Fetch from `discounts` table when available
+      /*
+      const discountResult = await db.select().from(discounts).where(...).limit(1);
+      ...
+      */
 
-      if (discountResult.isValid && discountResult.discount) {
-        couponDiscountAmount = discountResult.discount.amount;
-        reservedCouponId = discountResult.discount.id;
-        reservedCouponStoreId = input.store_id;
+      // MOCK VALIDATION LOGIC matching `api.validate-coupon.ts`
+      let discount = null;
+      const normalizedCode = input.discount_code.toUpperCase().trim();
+      if (normalizedCode === 'SAVE20') {
+        discount = { id: 1, type: 'percentage', value: 20, minOrderAmount: 1000, maxDiscountAmount: 500 };
+      } else if (normalizedCode === 'FLAT100') {
+        discount = { id: 2, type: 'fixed', value: 100, minOrderAmount: 500, maxDiscountAmount: null };
+      }
 
-        const reserved = await incrementDiscountUsage(
-          db,
-          input.store_id,
-          discountResult.discount.id
-        );
-        if (!reserved) {
-          await abandonCheckoutSession();
-          return json({ success: false, error: 'Discount usage limit reached' }, { status: 400 });
+      if (discount && (!discount.minOrderAmount || discountedSubtotal >= discount.minOrderAmount)) {
+        appliedDiscountId = discount.id;
+        if (discount.type === 'percentage') {
+          couponDiscountAmount = discountedSubtotal * (discount.value / 100);
+          if (discount.maxDiscountAmount && couponDiscountAmount > discount.maxDiscountAmount) {
+            couponDiscountAmount = discount.maxDiscountAmount;
+          }
+        } else {
+          couponDiscountAmount = discount.value;
         }
-        reservedCouponUsage = true;
-      } else {
-        // Return 400 if code provided but invalid (Strict mode)
-        await abandonCheckoutSession();
-        return json(
-          { success: false, error: discountResult.error || 'Invalid Discount Code' },
-          { status: 400 }
-        );
+
+        if (couponDiscountAmount > discountedSubtotal) {
+          couponDiscountAmount = discountedSubtotal;
+        }
       }
     }
 
-    const finalSubtotal = Math.max(0, discountedSubtotalBeforeCoupon - couponDiscountAmount);
-    const total = finalSubtotal + tax + shipping;
-    const { platformFeeAmount, merchantNetAmount } = calculatePlatformFee(total, platformFeeRate);
+    discountedSubtotal = discountedSubtotal - Math.round(couponDiscountAmount);
+    const total = discountedSubtotal + tax + shipping;
 
-    // Use the pre-generated number if we have it (for lock metadata consistency)
-    const orderNumber = orderNumberForLock || generateOrderNumber();
+    // Generate order number
+    const orderNumber = generateOrderNumber();
     const now = new Date();
 
     // ========================================================================
@@ -1138,36 +649,23 @@ export async function action({ request, context }: ActionFunctionArgs) {
     // Since D1 doesn't have full ACID transactions across multiple calls easily without batch,
     // we will optimistic-update and rollback if needed.
 
-    const inventoryRollbacks: { type: 'product' | 'variant'; id: number; qty: number }[] = [];
+    const inventoryRollbacks: { type: 'product' | 'variant', id: number, qty: number }[] = [];
 
     try {
       for (const item of finalOrderItems) {
         let res;
         if (item.isVariantStock && item.variantIdToUpdate) {
-          res = await db
-            .update(productVariants)
+          res = await db.update(productVariants)
             .set({ inventory: sql`${productVariants.inventory} - ${item.quantity}` })
-            .where(
-              and(
-                eq(productVariants.id, item.variantIdToUpdate),
-                gte(productVariants.inventory, item.quantity)
-              )
-            )
+            .where(and(eq(productVariants.id, item.variantIdToUpdate), gte(productVariants.inventory, item.quantity)))
             .returning({ id: productVariants.id });
-          if (res.length > 0)
-            inventoryRollbacks.push({
-              type: 'variant',
-              id: item.variantIdToUpdate,
-              qty: item.quantity,
-            });
+          if (res.length > 0) inventoryRollbacks.push({ type: 'variant', id: item.variantIdToUpdate, qty: item.quantity });
         } else {
-          res = await db
-            .update(products)
+          res = await db.update(products)
             .set({ inventory: sql`${products.inventory} - ${item.quantity}` })
             .where(and(eq(products.id, item.product.id), gte(products.inventory, item.quantity)))
             .returning({ id: products.id });
-          if (res.length > 0)
-            inventoryRollbacks.push({ type: 'product', id: item.product.id, qty: item.quantity });
+          if (res.length > 0) inventoryRollbacks.push({ type: 'product', id: item.product.id, qty: item.quantity });
         }
 
         if (res.length === 0) {
@@ -1179,152 +677,176 @@ export async function action({ request, context }: ActionFunctionArgs) {
       console.error('Stock deduction failed, rolling back:', stockError);
       for (const rb of inventoryRollbacks) {
         if (rb.type === 'variant') {
-          await db
-            .update(productVariants)
-            .set({ inventory: sql`${productVariants.inventory} + ${rb.qty}` })
-            .where(eq(productVariants.id, rb.id));
+          await db.update(productVariants).set({ inventory: sql`${productVariants.inventory} + ${rb.qty}` }).where(eq(productVariants.id, rb.id));
         } else {
-          await db
-            .update(products)
-            .set({ inventory: sql`${products.inventory} + ${rb.qty}` })
-            .where(eq(products.id, rb.id));
+          await db.update(products).set({ inventory: sql`${products.inventory} + ${rb.qty}` }).where(eq(products.id, rb.id));
         }
       }
-      await abandonCheckoutSession();
-      if (reservedCouponUsage && reservedCouponId) {
-        await decrementDiscountUsage(db, input.store_id, reservedCouponId);
-        reservedCouponUsage = false;
-      }
-      return json(
-        {
-          success: false,
-          error: stockError instanceof Error ? stockError.message : 'Inventory Error',
-        },
-        { status: 400 }
-      );
+      return json({ success: false, error: stockError instanceof Error ? stockError.message : 'Inventory Error' }, { status: 400 });
     }
 
-    // Check if this is the first order (logic removed/commented out)
-    // const existingOrderCheck = ...
+    // Check if this is the first order (for celebration email)
+    const existingOrderCheck = await db.select({ id: orders.id }).from(orders).where(eq(orders.storeId, input.store_id)).limit(1);
+    const isFirstOrder = existingOrderCheck.length === 0;
 
     // 2. CREATE ORDER
     let orderId: number | undefined;
-    let orderStatus = 'pending';
-    // Fraud settings are loaded once and reused for both rate-check and auto-dispatch
-    let fraudSettings = DEFAULT_FRAUD_SETTINGS;
+    try {
+      const orderResult = await db.insert(orders).values({
+        storeId: input.store_id,
+        orderNumber,
+        status: 'pending',
+        paymentStatus: 'pending',
+        paymentMethod: input.payment_method as any,
+        transactionId: input.transaction_id || null,
+        manualPaymentDetails: input.manual_payment_details ? JSON.stringify(input.manual_payment_details) : null,
+        customerName: input.customer_name,
+        customerPhone: input.phone,
+        customerEmail: input.customer_email || '',
+        shippingAddress: input.address,
+        billingAddress: null,
+        subtotal: discountedSubtotal, // After combo discount
+        tax,
+        shipping,
+        total,
+        // Store combo discount info in pricingJson
+        pricingJson: JSON.stringify({
+          originalSubtotal: subtotal,
+          comboDiscount: comboDiscountAmount,
+          comboDiscountRate: comboDiscountRate,
+          uniqueProductCount: uniqueProductCount,
+          couponDiscount: Math.round(couponDiscountAmount),
+          couponCode: appliedDiscountId ? input.discount_code?.toUpperCase() : undefined,
+          discountedSubtotal: discountedSubtotal,
+          shipping,
+          tax,
+          total,
+          isFreeShipping: shippingResult.isFree || false,
+          clientIP,
+        }),
+        notes: input.notes || null,
+        landingPageId: input.landing_page_id || null, // ATTRIBUTION
+        utmSource: input.utm_source || null,
+        utmMedium: input.utm_medium || null,
+        utmCampaign: input.utm_campaign || null,
+        createdAt: now,
+        updatedAt: now,
+      }).returning({ id: orders.id });
 
-    // ── COD Fraud Rate Control ────────────────────────────────────────────────
-    // Non-COD orders (bKash, Nagad, Rocket, SSLCommerz, Stripe) pass freely —
-    // payment is already collected so no fraud risk.
-    //
-    // For COD orders we run a delivery-rate check via the Fraud Checker System.
-    // All thresholds are configured by the merchant in Settings → Fraud Detection.
-    if (input.payment_method === 'cod') {
-      try {
-        // Load this store's fraud settings (stored as JSON in stores.fraudSettings)
-        const storeRow = await db
-          .select({ fraudSettings: stores.fraudSettings })
-          .from(stores)
-          .where(eq(stores.id, input.store_id))
-          .get();
+      orderId = orderResult[0].id;
 
-        fraudSettings = parseFraudSettings(storeRow?.fraudSettings);
+      // 3. INSERT ITEMS
+      await db.insert(orderItems).values([
+        ...finalOrderItems.map(item => ({
+          orderId: orderId!,
+          productId: item.productId,
+          variantId: item.variantId || null,
+          title: item.title,
+          variantTitle: item.variantTitle || null,
+          quantity: item.quantity,
+          price: item.unitPrice,
+          total: item.total
+        })),
+        ...bumpItems.map(bump => ({
+          orderId: orderId!,
+          productId: bump.productId,
+          title: `[Bump] ${bump.title}`,
+          quantity: 1,
+          price: bump.discountedPrice,
+          total: bump.discountedPrice
+        }))
+      ]);
 
-        // ── Phase 1A: Run full fraud score check (additive — CF signals) ──────
-        // This runs BEFORE the COD rate control check.
-        // It logs the IP event and auto-promotes to global blacklist if needed.
-        // NEVER throws — fail open always.
-        if (fraudSettings.enabled) {
-          try {
-            const { performFraudCheck } = await import('~/services/fraud-engine.server');
-            context.cloudflare.ctx.waitUntil(
-              performFraudCheck({
-                phone: input.phone,
-                storeId: input.store_id,
-                orderTotal: 0, // Not yet calculated — use 0 for pre-check
-                paymentMethod: input.payment_method,
-                db,
-                skipExternalCheck: true, // COD rate control below does the external check
-                ipAddress: clientIP !== 'unknown' ? clientIP : undefined,
-                cfCountry,
-                cfDeviceType,
-                userAgent: clientUserAgentHeader,
-                settings: fraudSettings,
-              }).catch((err) => {
-                console.warn('[FRAUD] Pre-check signal logging failed (non-blocking):', err);
-              })
-            );
-          } catch {
-            // Ignore — never block order due to fraud logging failure
-          }
-        }
+      // ========== WEBHOOK: ORDER CREATED ==========
+      context.cloudflare.ctx.waitUntil(
+        dispatchWebhook(context.cloudflare.env, input.store_id, 'order.created', {
+          event: 'order.created',
+          order_id: orderId,
+          order_number: orderNumber,
+          customer_name: input.customer_name,
+          customer_phone: input.phone,
+          customer_email: input.customer_email || null,
+          shipping_address: input.address,
+          division: input.division,
+          subtotal,
+          shipping,
+          tax,
+          total,
+          payment_method: input.payment_method,
+          item_count: finalOrderItems.reduce((acc, i) => acc + i.quantity, 0),
+          items: finalOrderItems.map(i => ({
+            product_id: i.productId,
+            title: i.title,
+            quantity: i.quantity,
+            price: i.unitPrice,
+          })),
+          created_at: now.toISOString(),
+        }).catch(e => console.error('[Webhook] order.created failed:', e))
+      );
 
-        const rateDecision = await checkCODByDeliveryRate(
-          input.phone,
-          fraudSettings,
-          context.cloudflare.env.STORE_CACHE ?? null,
-          input.store_id
+      // 4. Update Discount usage if applied
+      if (appliedDiscountId) {
+        // TODO: Update usage count when `discounts` table is available
+        /*
+        context.cloudflare.ctx.waitUntil(
+          db.update(discounts).set({ usedCount: sql`${discounts.usedCount} + 1` }).where(eq(discounts.id, appliedDiscountId))
         );
-
-        switch (rateDecision.action) {
-          case 'block':
-            // Hard block — reject the order immediately
-            console.warn(
-              `[COD RATE CONTROL] Blocked — phone ${input.phone}, ` +
-              `delivery rate ${rateDecision.deliveryRate.toFixed(1)}% (threshold: ${fraudSettings.codBlockBelowRate}%)`
-            );
-            return json(
-              {
-                success: false,
-                error:
-                  'আপনার অর্ডার হিস্টরি খারাপ হওয়ার কারণে ক্যাশ অন ডেলিভারি (COD) অর্ডার ব্লক করা হয়েছে। ' +
-                  'দয়া করে আমাদের সাথে যোগাযোগ করুন।',
-                code: 'COD_BLOCKED_LOW_DELIVERY_RATE',
-                deliveryRate: rateDecision.deliveryRate,
-              },
-              { status: 403 }
-            );
-
-          case 'auto_confirm':
-            // Excellent history — auto-confirm without merchant intervention
-            orderStatus = 'confirmed';
-            console.log(
-              `[COD RATE CONTROL] Auto-confirmed — phone ${input.phone}, ` +
-              `delivery rate ${rateDecision.deliveryRate.toFixed(1)}% (threshold: ${fraudSettings.codAutoConfirmAboveRate}%)`
-            );
-            break;
-
-          case 'pending':
-            // Middle ground — leave as pending for merchant to call & confirm
-            orderStatus = 'pending';
-            console.log(
-              `[COD RATE CONTROL] Pending — phone ${input.phone}, ` +
-              `delivery rate ${rateDecision.deliveryRate.toFixed(1)}% (between thresholds)`
-            );
-            break;
-
-          case 'skip':
-          default:
-            // No data / feature off — leave as pending (safe default)
-            orderStatus = 'pending';
-            console.log(`[COD RATE CONTROL] Skipped — ${rateDecision.reason}`);
-            break;
-        }
-      } catch (error) {
-        // Never fail an order because of a fraud-check error — fail open
-        console.error('[COD RATE CONTROL] Check failed during checkout (fail open):', error);
-        orderStatus = 'pending';
+        */
+        console.log(`MOCK UPDATE: Incremented usage count for discount ID ${appliedDiscountId}`);
       }
+
+      // ========== CHECKOUT SESSION: MARK COMPLETED ==========
+      // Create checkout session for idempotency tracking
+      context.cloudflare.ctx.waitUntil(
+        db.insert(checkoutSessions).values({
+          id: crypto.randomUUID(),
+          storeId: input.store_id,
+          cartJson: JSON.stringify(orderItemsData),
+          phone: input.phone,
+          customerName: input.customer_name,
+          email: input.customer_email || null,
+          shippingAddressJson: JSON.stringify({
+            address: input.address,
+            division: input.division,
+            district: input.district,
+            upazila: input.upazila,
+          }),
+          pricingJson: JSON.stringify({ subtotal, shipping, tax, total }),
+          paymentMethod: input.payment_method as 'cod' | 'bkash' | 'nagad' | 'stripe',
+          status: 'completed',
+          idempotencyKey,
+          orderId,
+          landingPageId: input.landing_page_id,
+          createdAt: now,
+          updatedAt: now,
+        }).catch(e => console.error('[Checkout Session] Creation failed:', e))
+      );
+
+    } catch (orderError) {
+      console.error('Order creation failed, rolling back inventory:', orderError);
+      // Rollback Order
+      if (orderId) await db.delete(orders).where(eq(orders.id, orderId));
+
+      // Rollback Inventory
+      for (const rb of inventoryRollbacks) {
+        if (rb.type === 'variant') {
+          await db.update(productVariants).set({ inventory: sql`${productVariants.inventory} + ${rb.qty}` }).where(eq(productVariants.id, rb.id));
+        } else {
+          await db.update(products).set({ inventory: sql`${products.inventory} + ${rb.qty}` }).where(eq(products.id, rb.id));
+        }
+      }
+      throw orderError;
     }
 
-    try {
-      // Determine customerId for the order
-      let orderCustomerId: number | null = loggedInCustomer?.id || null;
-
-      // If not logged in, try to find existing customer by phone or email
-      if (!orderCustomerId) {
-        const existingCustomer = await db
-          .select({ id: customers.id })
+    // ============================================================================
+    // CUSTOMER CREATION/UPDATE (For Segmentation & Marketing)
+    // ============================================================================
+    // let finalCustomerId: number | undefined;
+    
+    context.cloudflare.ctx.waitUntil((async () => {
+      try {
+        // Check if customer exists (by phone or email)
+        const existingCustomer = await db.select({ id: customers.id, totalOrders: customers.totalOrders, totalSpent: customers.totalSpent })
           .from(customers)
           .where(
             and(
@@ -1338,668 +860,218 @@ export async function action({ request, context }: ActionFunctionArgs) {
           .limit(1);
 
         if (existingCustomer.length > 0) {
-          orderCustomerId = existingCustomer[0].id;
-        }
-      }
+          // UPDATE existing customer stats
+          const customer = existingCustomer[0];
+          // finalCustomerId = customer.id;
+          const newTotalOrders = (customer.totalOrders || 0) + 1;
+          const newTotalSpent = (customer.totalSpent || 0) + total;
 
-      const orderResult = await db
-        .insert(orders)
-        .values({
-          storeId: input.store_id,
-          customerId: orderCustomerId,
-          orderNumber,
-          status: orderStatus as
-            | 'pending'
-            | 'confirmed'
-            | 'processing'
-            | 'shipped'
-            | 'delivered'
-            | 'cancelled'
-            | 'returned',
-          paymentStatus: 'pending',
-          paymentMethod: input.payment_method as
-            | 'cod'
-            | 'bkash'
-            | 'nagad'
-            | 'rocket'
-            | 'sslcommerz'
-            | 'bkash_gateway'
-            | 'nagad_gateway',
-          transactionId:
-            input.payment_method === 'sslcommerz' ? orderNumber : input.transaction_id || null,
-          manualPaymentDetails:
-            input.payment_method === 'sslcommerz'
-              ? null
-              : input.manual_payment_details
-                ? JSON.stringify(input.manual_payment_details)
-                : null,
-          customerName: input.customer_name,
-          customerPhone: input.phone,
-          customerEmail: input.customer_email || '',
-          shippingAddress: JSON.stringify({
-            address: input.address,
-            city: input.district || '',
-            district: input.district || '',
-            upazila: input.upazila || '',
-            postalCode: input.postal_code || null,
-          }),
-          billingAddress: null,
-          subtotal: finalSubtotal, // After combo AND coupon
-          tax,
-          shipping,
-          total,
-          // Store combo discount info in pricingJson
-          pricingJson: JSON.stringify({
-            originalSubtotal: subtotal,
-            comboDiscount: comboDiscountAmount,
-            comboDiscountRate: comboDiscountRate,
-            uniqueProductCount: uniqueProductCount,
-            discountedSubtotal: finalSubtotal,
-            shipping,
-            tax,
-            total,
-            platformFeeRate,
-            platformFeeAmount,
-            merchantNetAmount,
-            isFreeShipping: shippingResult.isFree || false,
-            clientIP,
-            couponCode: input.discount_code,
-            couponDiscount: couponDiscountAmount,
-          }),
-          notes: input.notes || null,
-          landingPageId: input.landing_page_id || null, // ATTRIBUTION
-          utmSource: input.utm_source || null,
-          utmMedium: input.utm_medium || null,
-          utmCampaign: input.utm_campaign || null,
-          createdAt: now,
-          updatedAt: now,
-        })
-        .returning({ id: orders.id });
-
-      orderId = orderResult[0].id;
-
-      // 3. INSERT ITEMS
-      await db.insert(orderItems).values([
-        ...finalOrderItems.map((item) => ({
-          orderId: orderId!,
-          productId: item.productId,
-          variantId: item.variantId || null,
-          title: item.title,
-          variantTitle: item.variantTitle || null,
-          quantity: item.quantity,
-          price: item.unitPrice,
-          total: item.total,
-          costPriceSnapshot: item.costPriceSnapshot ?? null, // P&L: write-once, never updated
-        })),
-        ...bumpItems.map((bump) => ({
-          orderId: orderId!,
-          productId: bump.productId,
-          title: `[Bump] ${bump.title}`,
-          quantity: 1,
-          price: bump.discountedPrice,
-          total: bump.discountedPrice,
-        })),
-      ]);
-
-      // 4. LOG ACTIVITY FOR AUTO-CONFIRM + OPTIONAL AUTO-DISPATCH TO COURIER
-      if (orderStatus === 'confirmed') {
-        await db.insert(activityLogs).values({
-          storeId: input.store_id,
-          userId: null, // System automated
-          action: 'order_status_update',
-          entityType: 'order',
-          entityId: orderId!,
-          details: JSON.stringify({
-            from: 'pending',
-            to: 'confirmed',
-            reason: 'Auto-Confirmed by Fraud Check System',
-            orderNumber: orderNumber,
-          }),
-          createdAt: now,
-        });
-
-        // AUTO-DISPATCH: If merchant has enabled auto courier booking,
-        // book the order with the configured courier immediately after confirm.
-        // This is opt-in — OFF by default in fraud settings.
-        if (fraudSettings.autoDispatchCourier && input.payment_method === 'cod') {
-          try {
-            const { bookCourierForOrder } = await import('~/services/courier-dispatch.server');
-            const dispatchResult = await bookCourierForOrder(
-              context.cloudflare.env.DB,
-              context.cloudflare.env,
-              input.store_id,
-              orderId!
-            );
-
-            if (dispatchResult.success) {
-              console.log(
-                `[AUTO-DISPATCH] Order #${orderNumber} booked with ${dispatchResult.provider} — consignment: ${dispatchResult.consignmentId}`
-              );
-              // Log the courier booking activity
-              await db.insert(activityLogs).values({
-                storeId: input.store_id,
-                userId: null,
-                action: 'courier_booked',
-                entityType: 'order',
-                entityId: orderId!,
-                details: JSON.stringify({
-                  provider: dispatchResult.provider,
-                  consignmentId: dispatchResult.consignmentId,
-                  reason: 'Auto-dispatched by Fraud Check System',
-                  orderNumber: orderNumber,
-                }),
-                createdAt: new Date(),
-              });
-            } else {
-              // Courier booking failed — log but do NOT fail the order
-              console.warn(
-                `[AUTO-DISPATCH] Courier booking failed for order #${orderNumber}: ${dispatchResult.reason}`
-              );
-            }
-          } catch (dispatchError) {
-            // Never fail the order because of courier dispatch — fail open
-            console.error('[AUTO-DISPATCH] Unexpected error during courier dispatch:', dispatchError);
+          // Determine new segment
+          let newSegment: 'vip' | 'regular' = 'regular';
+          if (newTotalOrders >= 3 || newTotalSpent >= 10000) {
+            newSegment = 'vip';
           }
-        }
-      }
 
-      // Note: Webhook dispatch is now handled by OrderProcessor DO for reliability
-      // See NOTIFICATIONS & TRACKING section below
+          await db.update(customers)
+            .set({
+              totalOrders: newTotalOrders,
+              totalSpent: newTotalSpent,
+              lastOrderAt: now,
+              segment: newSegment,
+              name: input.customer_name,
+              address: input.address,
+              updatedAt: now,
+            })
+            .where(eq(customers.id, customer.id));
 
-      // ========== CHECKOUT SESSION: MARK COMPLETED ==========
-      // Update existing processing checkout session to completed (sync)
-      if (checkoutSessionId) {
-        await db
-          .update(checkoutSessions)
-          .set({
-            cartJson: JSON.stringify(orderItemsData),
-            pricingJson: JSON.stringify({
-              originalSubtotal: subtotal,
-              discountedSubtotal: finalSubtotal,
-              shipping,
-              tax,
-              total,
-              platformFeeRate,
-              platformFeeAmount,
-              merchantNetAmount,
-            }),
-            status: 'completed',
-            orderId,
-            updatedAt: now,
-          })
-          .where(eq(checkoutSessions.id, checkoutSessionId));
-      }
+          // Link customer to order
+          await db.update(orders)
+            .set({ customerId: customer.id })
+            .where(eq(orders.id, orderId!));
 
-      // Coupon usage already reserved atomically before inventory mutation.
-      reservedCouponUsage = false;
-    } catch (orderError) {
-      console.error('Order creation failed, rolling back inventory:', orderError);
-      // Rollback Order
-      if (orderId) {
-        await db
-          .delete(orders)
-          .where(and(eq(orders.id, orderId), eq(orders.storeId, input.store_id)));
-      }
+          // ========== LOYALTY POINTS INTEGRATION ==========
+          await addLoyaltyPoints(db, customer.id, input.store_id, total, `Order ${orderNumber}`, context.cloudflare.env);
 
-      // Rollback Inventory
-      for (const rb of inventoryRollbacks) {
-        if (rb.type === 'variant') {
-          await db
-            .update(productVariants)
-            .set({ inventory: sql`${productVariants.inventory} + ${rb.qty}` })
-            .where(eq(productVariants.id, rb.id));
         } else {
-          await db
-            .update(products)
-            .set({ inventory: sql`${products.inventory} + ${rb.qty}` })
-            .where(and(eq(products.id, rb.id), eq(products.storeId, input.store_id)));
+          // CREATE new customer
+          const [newCustomer] = await db.insert(customers).values({
+            storeId: input.store_id,
+            email: input.customer_email || null, // Email is optional for BD market
+            name: input.customer_name,
+            phone: input.phone,
+            address: input.address,
+            totalOrders: 1,
+            totalSpent: total,
+            lastOrderAt: now,
+            segment: 'regular', // First order = regular
+          }).returning({ id: customers.id });
+          
+          // finalCustomerId = newCustomer.id;
+
+          // Link customer to order
+          await db.update(orders)
+            .set({ customerId: newCustomer.id })
+            .where(eq(orders.id, orderId!));
+
+          // ========== LOYALTY POINTS FOR NEW CUSTOMER ==========
+          await addLoyaltyPoints(db, newCustomer.id, input.store_id, total, `First Order ${orderNumber}`, context.cloudflare.env);
+
+          // ========== WEBHOOK: NEW CUSTOMER CREATED ==========
+          dispatchWebhook(context.cloudflare.env, input.store_id, 'customer.created', {
+            customerId: newCustomer.id,
+            email: input.customer_email || null,
+            phone: input.phone,
+            name: input.customer_name,
+            firstOrderNumber: orderNumber,
+          }).catch(e => console.error('[Webhook] customer.created failed:', e));
         }
+
+        // ========== FIRE AUTOMATION TRIGGERS ==========
+        if (input.customer_email && !input.customer_email.includes('@phone.local')) {
+          await triggerAutomation(
+            context.cloudflare.env.DB,
+            'order_placed',
+            {
+              storeId: input.store_id,
+              customerEmail: input.customer_email,
+              customerName: input.customer_name,
+              metadata: {
+                orderNumber,
+                total,
+                currency: storeData.currency || 'BDT',
+                itemCount: finalOrderItems.reduce((acc, i) => acc + i.quantity, 0),
+              }
+            },
+            context.cloudflare.env.RESEND_API_KEY
+          );
+        }
+
+      } catch (customerError) {
+        console.error('Customer creation/update failed:', customerError);
+        // Non-blocking - order already created
       }
-      throw orderError;
-    }
-
-    // ============================================================================
-    // CUSTOMER CREATION/UPDATE & ADDRESS SAVING
-    // ============================================================================
-
-    context.cloudflare.ctx.waitUntil(
-      (async () => {
-        try {
-          // let _finalCustomerId: number | null = orderCustomerId;
-
-          // If customer is logged in, update their info
-          if (loggedInCustomer) {
-            const newTotalOrders = (loggedInCustomer.totalOrders || 0) + 1;
-            const newTotalSpent = (loggedInCustomer.totalSpent || 0) + total;
-
-            // Determine new segment
-            let newSegment: 'vip' | 'regular' = 'regular';
-            if (newTotalOrders >= 3 || newTotalSpent >= 10000) {
-              newSegment = 'vip';
-            }
-
-            // Update customer info - also set phone if not already set
-            await db
-              .update(customers)
-              .set({
-                totalOrders: newTotalOrders,
-                totalSpent: newTotalSpent,
-                lastOrderAt: now,
-                segment: newSegment,
-                name: input.customer_name,
-                phone: loggedInCustomer.phone || input.phone, // Set phone if not already set
-                updatedAt: now,
-              })
-              .where(
-                and(eq(customers.id, loggedInCustomer.id), eq(customers.storeId, input.store_id))
-              );
-
-            // finalCustomerId tracked via orderCustomerId
-
-            // Save address to customer address book
-            try {
-              // Get district and upazila names from IDs
-              const { DISTRICTS, UPAZILAS } = await import('~/data/bd-locations');
-              const districtObj = DISTRICTS.find((d) => d.id === input.district);
-              const upazilaObj = UPAZILAS.find((u) => u.id === input.upazila);
-
-              await createCustomerAddress(
-                loggedInCustomer.id,
-                {
-                  type: 'shipping',
-                  firstName: input.customer_name.split(' ')[0] || input.customer_name,
-                  lastName: input.customer_name.split(' ').slice(1).join(' ') || '',
-                  address1: input.address,
-                  city: districtObj?.nameEn || input.district || '',
-                  province: upazilaObj?.nameEn || input.upazila || '',
-                  phone: input.phone,
-                  isDefault: true,
-                },
-                db
-              );
-              console.warn(`[Order Creation] Address saved for customer ${loggedInCustomer.id}`);
-            } catch (addrError) {
-              console.error('[Order Creation] Failed to save address:', addrError);
-              // Non-blocking - order already created
-            }
-
-            // ========== LOYALTY POINTS INTEGRATION ==========
-            await addLoyaltyPoints(
-              db,
-              loggedInCustomer.id,
-              input.store_id,
-              total,
-              `Order ${orderNumber}`
-            );
-          } else {
-            // Check if customer exists (by phone or email) for non-logged-in users
-            const existingCustomer = await db
-              .select({
-                id: customers.id,
-                totalOrders: customers.totalOrders,
-                totalSpent: customers.totalSpent,
-              })
-              .from(customers)
-              .where(
-                and(
-                  eq(customers.storeId, input.store_id),
-                  or(
-                    eq(customers.phone, input.phone),
-                    input.customer_email ? eq(customers.email, input.customer_email) : undefined
-                  )
-                )
-              )
-              .limit(1);
-
-            if (existingCustomer.length > 0) {
-              // UPDATE existing customer stats
-              const customer = existingCustomer[0];
-              // finalCustomerId tracked via orderCustomerId
-              const newTotalOrders = (customer.totalOrders || 0) + 1;
-              const newTotalSpent = (customer.totalSpent || 0) + total;
-
-              // Determine new segment
-              let newSegment: 'vip' | 'regular' = 'regular';
-              if (newTotalOrders >= 3 || newTotalSpent >= 10000) {
-                newSegment = 'vip';
-              }
-
-              await db
-                .update(customers)
-                .set({
-                  totalOrders: newTotalOrders,
-                  totalSpent: newTotalSpent,
-                  lastOrderAt: now,
-                  segment: newSegment,
-                  name: input.customer_name,
-                  address: input.address,
-                  updatedAt: now,
-                })
-                .where(and(eq(customers.id, customer.id), eq(customers.storeId, input.store_id)));
-
-              // Ensure order is linked to customer
-              if (!orderCustomerId) {
-                await db
-                  .update(orders)
-                  .set({ customerId: customer.id })
-                  .where(and(eq(orders.id, orderId!), eq(orders.storeId, input.store_id)));
-              }
-
-              // ========== LOYALTY POINTS INTEGRATION ==========
-              await addLoyaltyPoints(
-                db,
-                customer.id,
-                input.store_id,
-                total,
-                `Order ${orderNumber}`
-              );
-            } else {
-              // CREATE new customer
-              const [newCustomer] = await db
-                .insert(customers)
-                .values({
-                  storeId: input.store_id,
-                  email: input.customer_email || null,
-                  name: input.customer_name,
-                  phone: input.phone,
-                  address: input.address,
-                  totalOrders: 1,
-                  totalSpent: total,
-                  lastOrderAt: now,
-                  segment: 'regular',
-                })
-                .returning({ id: customers.id });
-
-              // _finalCustomerId = newCustomer.id;
-
-              // Ensure order is linked to customer
-              if (!orderCustomerId) {
-                await db
-                  .update(orders)
-                  .set({ customerId: newCustomer.id })
-                  .where(and(eq(orders.id, orderId!), eq(orders.storeId, input.store_id)));
-              }
-
-              // ========== LOYALTY POINTS FOR NEW CUSTOMER ==========
-              await addLoyaltyPoints(
-                db,
-                newCustomer.id,
-                input.store_id,
-                total,
-                `First Order ${orderNumber}`
-              );
-
-              // ========== WEBHOOK: NEW CUSTOMER CREATED ==========
-              dispatchWebhook(context.cloudflare.env, input.store_id, 'customer.created', {
-                customerId: newCustomer.id,
-                email: input.customer_email || null,
-                phone: input.phone,
-                name: input.customer_name,
-                firstOrderNumber: orderNumber,
-              }).catch((e) => console.error('[Webhook] customer.created failed:', e));
-            }
-          }
-
-          // ========== FIRE AUTOMATION TRIGGERS ==========
-          if (input.customer_email && !input.customer_email.includes('@phone.local')) {
-            await triggerAutomation(
-              context.cloudflare.env.DB,
-              'order_placed',
-              {
-                storeId: input.store_id,
-                customerEmail: input.customer_email,
-                customerName: input.customer_name,
-                metadata: {
-                  orderNumber,
-                  total,
-                  currency: storeData.currency || 'BDT',
-                  itemCount: finalOrderItems.reduce((acc, i) => acc + i.quantity, 0),
-                },
-              },
-              context.cloudflare.env.RESEND_API_KEY
-            );
-          }
-        } catch (customerError) {
-          console.error('Customer creation/update failed:', customerError);
-          // Non-blocking - order already created
-        }
-      })()
-    );
+    })());
 
     // ============================================================================
     // NOTIFICATIONS & TRACKING (Non-blocking)
     // ============================================================================
-
-    // Build OrderProcessor tasks array
-    const orderTasks: Array<{
-      type: 'email' | 'webhook' | 'notification';
-      payload: Record<string, unknown>;
-    }> = [];
-
-    // Customer Confirmation Email Task
-    if (input.customer_email && context.cloudflare.env.RESEND_API_KEY) {
-      const emailHtml = getOrderConfirmationHtml({
-        customerName: input.customer_name,
-        orderNumber,
-        paymentMethod:
-          input.payment_method === 'cod' ? 'Cash on Delivery' : input.payment_method.toUpperCase(),
-        items: finalOrderItems.map((i) => ({
-          title: i.title,
-          quantity: i.quantity,
-          price: i.unitPrice,
-        })),
-        currency: storeData.currency || 'BDT',
-        total,
-        shippingAddress: input.address,
-        storeName: storeData.name,
-        storeLogo: storeData.logo || undefined,
-        primaryColor: unifiedSettings.theme.primary,
-      });
-
-      orderTasks.push({
-        type: 'email',
-        payload: {
-          to: input.customer_email,
-          subject: `অর্ডার নিশ্চিত - ${orderNumber}`,
-          html: emailHtml,
-        },
-      });
-    }
-
-    // Merchant Alert Email Task (will get merchant email from OrderProcessor DO)
-    const merchantAlertHtml = getNewOrderAlertHtml({
-      storeName: storeData.name,
-      orderNumber,
-      customerName: input.customer_name,
-      itemCount: finalOrderItems.reduce((acc, i) => acc + i.quantity, 0),
-      currency: storeData.currency || 'BDT',
-      total,
-    });
-
-    orderTasks.push({
-      type: 'email',
-      payload: {
-        to: 'contact@ozzyl.com',
-        subject: `নতুন অর্ডার! #${orderNumber}`,
-        html: merchantAlertHtml,
-      },
-    });
-
-    // Order Created Webhook Task
-    orderTasks.push({
-      type: 'webhook',
-      payload: {
-        event: 'order.created',
-        orderId,
-        storeId: input.store_id,
-        data: {
-          order_number: orderNumber,
-          customer_name: input.customer_name,
-          customer_phone: input.phone,
-          customer_email: input.customer_email || null,
-          shipping_address: input.address,
-          division: input.division,
-          subtotal,
-          shipping,
-          tax,
-          total,
-          payment_method: input.payment_method,
-          item_count: finalOrderItems.reduce((acc, i) => acc + i.quantity, 0),
-          items: finalOrderItems.map((i) => ({
-            product_id: i.productId,
-            title: i.title,
-            quantity: i.quantity,
-            price: i.unitPrice,
-          })),
-          created_at: now.toISOString(),
-        },
-      },
-    });
-
-    // Send all tasks to OrderProcessor DO for reliable background processing
-    if (orderTasks.length > 0) {
-      context.cloudflare.ctx.waitUntil(
-        enqueueOrderTasks(context.cloudflare.env, orderId!, input.store_id, orderTasks)
-          .then((result) => {
-            if (!result.success) {
-              console.error('[OrderProcessor] Failed to enqueue tasks:', result.error);
-            } else {
-              // Task enqueue success
-            }
-          })
-          .catch((error) => {
-            console.error('[OrderProcessor] Error enqueuing tasks:', error);
-          })
-      );
-    }
-
-    // Keep direct email fallback for critical paths if DO fails
     const resendApiKey = context.cloudflare.env.RESEND_API_KEY;
-    if (resendApiKey && !context.cloudflare.env.ORDER_PROCESSOR_SERVICE) {
-      // Fallback: Direct email if OrderProcessor not available
+    if (resendApiKey) {
       const emailService = createEmailService(resendApiKey);
       if (input.customer_email) {
+        let contactPhone = '';
+        if (storeData.businessInfo) {
+          try {
+            const parsedInfo = JSON.parse(storeData.businessInfo as string);
+            if (parsedInfo.phone) contactPhone = parsedInfo.phone;
+          } catch (e) {
+            // Ignore parse errors
+          }
+        }
+
         context.cloudflare.ctx.waitUntil(
-          emailService
-            .sendOrderConfirmation({
-              orderNumber,
-              customerName: input.customer_name,
-              customerEmail: input.customer_email,
-              total,
-              currency: storeData.currency || 'BDT',
-              items: finalOrderItems.map((i) => ({
-                title: i.title,
-                quantity: i.quantity,
-                price: i.unitPrice,
-              })),
-              shippingAddress: input.address,
-              paymentMethod:
-                input.payment_method === 'cod'
-                  ? 'Cash on Delivery'
-                  : input.payment_method.toUpperCase(),
+          emailService.sendOrderConfirmation({
+            orderNumber,
+            customerName: input.customer_name,
+            customerEmail: input.customer_email,
+            subtotal: discountedSubtotal,
+            shipping,
+            total,
+            currency: storeData.currency || 'BDT',
+            items: finalOrderItems.map(i => ({ title: i.title, quantity: i.quantity, price: i.unitPrice })),
+            shippingAddress: input.address,
+            paymentMethod: input.payment_method === 'cod' ? 'Cash on Delivery' : input.payment_method.toUpperCase(),
+            storeName: storeData.name,
+            storeLogo: storeData.logo || undefined,
+            primaryColor: (storeData.themeConfig && JSON.parse(storeData.themeConfig as string)?.primaryColor) || undefined,
+            contactPhone
+          })
+        );
+      }
+
+      // Merchant Alert
+      const merchantUser = await db.select({ email: users.email, name: users.name, phone: users.phone }).from(users).where(eq(users.storeId, input.store_id)).limit(1);
+      if (merchantUser.length > 0 && merchantUser[0].email) {
+        context.cloudflare.ctx.waitUntil(
+          emailService.sendNewOrderAlert({
+            merchantEmail: merchantUser[0].email,
+            storeName: storeData.name,
+            orderNumber,
+            customerName: input.customer_name,
+            total,
+            currency: storeData.currency || 'BDT',
+            itemCount: finalOrderItems.reduce((acc, i) => acc + i.quantity, 0),
+          })
+        );
+
+        // Fire Celebration Email if it's the First Sale!
+        if (isFirstOrder) {
+          context.cloudflare.ctx.waitUntil(
+            emailService.sendFirstSaleCelebration({
+              merchantEmail: merchantUser[0].email,
+              merchantName: merchantUser[0].name || 'Merchant',
               storeName: storeData.name,
-              storeLogo: storeData.logo || undefined,
-              primaryColor: unifiedSettings.theme.primary || undefined,
+              orderNumber,
+              amount: `${storeData.currency || 'BDT'} ${total}`
             })
-            .catch((e) => console.error('[Email] Confirmation failed:', e))
+          );
+        }
+      }
+
+      // WhatsApp Notification to Merchant
+      if (merchantUser.length > 0 && merchantUser[0].phone) {
+        context.cloudflare.ctx.waitUntil(
+          notifyMerchantViaWhatsApp(merchantUser[0].phone, {
+            orderNumber,
+            customerName: input.customer_name,
+            customerPhone: input.phone,
+            total,
+            currency: storeData.currency || 'BDT',
+            itemCount: finalOrderItems.reduce((acc, i) => acc + i.quantity, 0),
+            address: input.address,
+          }).catch(e => console.error('[WhatsApp Notify] Error in waitUntil:', e))
         );
       }
     }
 
     // Smart Notification (WhatsApp / SMS) - Marketing Research Feature
     context.cloudflare.ctx.waitUntil(
-      sendSmartNotification(
-        db,
-        context.cloudflare.env,
-        orderId!,
-        input.store_id,
-        'ORDER_CONFIRMATION',
-        {
-          phone: input.phone,
-          customerName: input.customer_name,
-          amount: total,
-          currency: storeData.currency || 'BDT',
-          orderNumber: orderNumber,
-          itemCount: finalOrderItems.reduce((acc, i) => acc + i.quantity, 0),
-        }
-      ).catch((e) => console.error('[Messaging] Notification failed:', e))
+      sendSmartNotification(db, context.cloudflare.env, orderId!, input.store_id, 'ORDER_CONFIRMATION', {
+        phone: input.phone,
+        customerName: input.customer_name,
+        amount: total,
+        currency: storeData.currency || 'BDT',
+        orderNumber: orderNumber,
+        itemCount: finalOrderItems.reduce((acc, i) => acc + i.quantity, 0)
+      }).catch(e => console.error('[Messaging] Notification failed:', e))
     );
 
     // Push Notifications
-    context.cloudflare.ctx.waitUntil(
-      (async () => {
-        try {
-          const subscriptions = await db
-            .select()
-            .from(pushSubscriptions)
-            .where(eq(pushSubscriptions.storeId, input.store_id));
-          if (subscriptions.length > 0) {
-            const payload = {
-              title: `New Order: ${orderNumber}`,
-              body: `${input.customer_name} - ${storeData.currency} ${total}`,
-              url: `/admin/orders/${orderNumber}`,
-            };
-            await Promise.all(
-              subscriptions.map((sub) =>
-                sendPushNotification(
-                  { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
-                  payload,
-                  context.cloudflare.env
-                )
-              )
-            );
-          }
-        } catch (e) {
-          console.error('Push failed', e);
+    context.cloudflare.ctx.waitUntil((async () => {
+      try {
+        const subscriptions = await db.select().from(pushSubscriptions).where(eq(pushSubscriptions.storeId, input.store_id));
+        if (subscriptions.length > 0) {
+          const payload = {
+            title: `New Order: ${orderNumber}`,
+            body: `${input.customer_name} - ${storeData.currency} ${total}`,
+            url: `/admin/orders/${orderNumber}`,
+          };
+          await Promise.all(subscriptions.map(sub => sendPushNotification({ endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } }, payload, context.cloudflare.env)));
         }
-      })()
-    );
+      } catch (e) { console.error('Push failed', e); }
+    })());
 
     // Recover Abandoned Carts
-    context.cloudflare.ctx.waitUntil(
-      (async () => {
-        try {
-          await db
-            .update(abandonedCarts)
-            .set({ status: 'recovered', recoveredAt: now })
-            .where(
-              and(
-                eq(abandonedCarts.storeId, input.store_id),
-                eq(abandonedCarts.status, 'abandoned'),
-                or(
-                  eq(abandonedCarts.customerPhone, input.phone),
-                  input.customer_email
-                    ? eq(abandonedCarts.customerEmail, input.customer_email)
-                    : undefined
-                )
-              )
-            );
-        } catch (e) {
-          console.error('Abandon update failed', e);
-        }
-      })()
-    );
+    context.cloudflare.ctx.waitUntil((async () => {
+      try {
+        await db.update(abandonedCarts).set({ status: 'recovered', recoveredAt: now })
+          .where(and(eq(abandonedCarts.storeId, input.store_id), eq(abandonedCarts.status, 'abandoned'),
+            or(eq(abandonedCarts.customerPhone, input.phone), input.customer_email ? eq(abandonedCarts.customerEmail, input.customer_email) : undefined)));
+      } catch (e) { console.error('Abandon update failed', e); }
+    })());
 
     // FB CAPI
     if (storeData.facebookPixelId && storeData.facebookAccessToken) {
-      // Extract Facebook cookies for improved match rate
-      const cookieHeader = request.headers.get('Cookie') || '';
-      const fbpMatch = cookieHeader.match(/_fbp=([^;]+)/);
-      const fbcMatch = cookieHeader.match(/_fbc=([^;]+)/);
-      const fbp = fbpMatch ? fbpMatch[1] : undefined;
-      const fbc = fbcMatch ? fbcMatch[1] : undefined;
-
-      // Build event_source_url from Referer (required for action_source: 'website')
-      const referer = request.headers.get('Referer') || undefined;
-
-      // Use stable eventId matching client-side Pixel for deduplication
-      const eventId = `purchase_${orderNumber}`;
-
-      // Resolve district name for CAPI city field (improves EMQ score)
-      const { DISTRICTS: BD_DISTRICTS } = await import('~/data/bd-locations');
-      const districtObj = BD_DISTRICTS.find((d: { id: string; nameEn: string }) => d.id === input.district);
-      const districtName = districtObj?.nameEn || input.district || undefined;
-
       context.cloudflare.ctx.waitUntil(
         sendPurchaseEvent({
           pixelId: storeData.facebookPixelId,
@@ -2011,286 +1083,76 @@ export async function action({ request, context }: ActionFunctionArgs) {
           customerEmail: input.customer_email,
           customerPhone: input.phone,
           customerName: input.customer_name,
-          // EMQ boosters: customer ID, location fields
-          customerId: orderCustomerId ?? undefined,
-          city: districtName,
-          state: input.division || undefined,
-          zip: input.postal_code || undefined,
-          items: finalOrderItems.map((i) => ({
-            productId: i.productId,
-            title: i.title,
-            quantity: i.quantity,
-            price: i.unitPrice,
-          })),
-          eventId,
-          fbp,
-          fbc,
-          eventSourceUrl: referer,
-          clientIpAddress: clientIP,
-          clientUserAgent: request.headers.get('User-Agent') || undefined,
-        }).catch((e) => console.error('[FB CAPI] Purchase event failed:', e))
+          items: finalOrderItems.map(i => ({ productId: i.productId, title: i.title, quantity: i.quantity, price: i.unitPrice })),
+        }).catch(e => console.error('[FB CAPI] Purchase event failed:', e))
       );
     }
 
     // ========== TEMPLATE ANALYTICS TRACKING ==========
     // Track which template generated this order for conversion analytics
-    context.cloudflare.ctx.waitUntil(
-      (async () => {
-        try {
-          const landingConfig = parseLandingConfig(storeData.landingConfig as string | null);
-          const templateId = landingConfig?.templateId || 'unknown';
+    context.cloudflare.ctx.waitUntil((async () => {
+      try {
+        const landingConfig = parseLandingConfig(storeData.landingConfig as string | null);
+        const templateId = landingConfig?.templateId || 'unknown';
 
-          // Try to update existing analytics record, or insert new one
-          const existing = await db
-            .select({
-              id: templateAnalytics.id,
-              ordersGenerated: templateAnalytics.ordersGenerated,
-              revenueGenerated: templateAnalytics.revenueGenerated,
-            })
-            .from(templateAnalytics)
-            .where(
-              and(
-                eq(templateAnalytics.storeId, input.store_id),
-                eq(templateAnalytics.templateId, templateId)
-              )
-            )
-            .limit(1);
+        // Try to update existing analytics record, or insert new one
+        const existing = await db.select({ id: templateAnalytics.id, ordersGenerated: templateAnalytics.ordersGenerated, revenueGenerated: templateAnalytics.revenueGenerated })
+          .from(templateAnalytics)
+          .where(and(eq(templateAnalytics.storeId, input.store_id), eq(templateAnalytics.templateId, templateId)))
+          .limit(1);
 
-          if (existing.length > 0) {
-            await db
-              .update(templateAnalytics)
-              .set({
-                ordersGenerated: (existing[0].ordersGenerated || 0) + 1,
-                revenueGenerated: (existing[0].revenueGenerated || 0) + total,
-                updatedAt: new Date(),
-              })
-              .where(eq(templateAnalytics.id, existing[0].id));
-          } else {
-            await db.insert(templateAnalytics).values({
-              storeId: input.store_id,
-              templateId,
-              ordersGenerated: 1,
-              revenueGenerated: total,
-              createdAt: new Date(),
+        if (existing.length > 0) {
+          await db.update(templateAnalytics)
+            .set({
+              ordersGenerated: (existing[0].ordersGenerated || 0) + 1,
+              revenueGenerated: (existing[0].revenueGenerated || 0) + total,
               updatedAt: new Date(),
-            });
-          }
-        } catch (e) {
-          console.error('[Template Analytics] Tracking failed:', e);
-        }
-
-        // CAMPAIGN PAGE ANALYTICS
-        if (input.landing_page_id) {
-          try {
-            await db
-              .update(savedLandingConfigs)
-              .set({
-                orders: sql`orders + 1`,
-                revenue: sql`revenue + ${total}`,
-              })
-              .where(eq(savedLandingConfigs.id, input.landing_page_id));
-          } catch (e) {
-            console.error('[Campaign Analytics] Tracking failed:', e);
-          }
-        }
-      })()
-    );
-
-    if (input.payment_method === 'sslcommerz') {
-      try {
-        const origin = new URL(request.url).origin;
-        // Per-store credentials with platform fallback
-        const storeGatewayConfig = parseGatewayConfig(storeData.gatewayConfig as string | null);
-        const effectiveSsl = getEffectiveSslCommerzConfig(
-          storeGatewayConfig,
-          context.cloudflare.env as unknown as Record<string, string | undefined>
-        );
-        if (!effectiveSsl) {
-          return json({ success: false, error: 'SSLCommerz gateway is not configured.' }, { status: 503 });
-        }
-        const ssl = createSslCommerzService({
-          SSLCOMMERZ_STORE_ID: effectiveSsl.storeId,
-          SSLCOMMERZ_STORE_PASSWORD: effectiveSsl.storePassword,
-          SSLCOMMERZ_LIVE: effectiveSsl.isLive ? '1' : '0',
-        } as unknown as Parameters<typeof createSslCommerzService>[0]);
-
-        const session = await ssl.createSession({
-          totalAmount: total,
-          currency: (storeData.currency || 'BDT').toUpperCase(),
-          tranId: orderNumber,
-          successUrl: `${origin}/checkout/success?orderId=${orderId}`,
-          failUrl: `${origin}/checkout/failed?orderId=${orderId}&error=payment_failed`,
-          cancelUrl: `${origin}/checkout/cancelled?orderId=${orderId}`,
-          ipnUrl: `${origin}/api/webhook/sslcommerz`,
-          productName:
-            finalOrderItems.length === 1
-              ? finalOrderItems[0].title
-              : `${finalOrderItems.length} items`,
-          customerName: input.customer_name,
-          customerEmail: input.customer_email || `${input.phone.replace(/\D/g, '')}@noemail.local`,
-          customerAddress: input.address,
-          customerPhone: input.phone,
-        });
-
-        return json(
-          {
-            success: true,
-            orderId,
-            orderNumber,
-            total,
-            paymentRedirectUrl: session.GatewayPageURL,
-            message: 'Redirecting to secure payment gateway...',
-          },
-          {
-            headers: {
-              'x-order-number': orderNumber,
-            },
-          }
-        );
-      } catch (gatewayError) {
-        await db
-          .update(orders)
-          .set({
-            paymentStatus: 'failed',
+            })
+            .where(eq(templateAnalytics.id, existing[0].id));
+        } else {
+          await db.insert(templateAnalytics).values({
+            storeId: input.store_id,
+            templateId,
+            ordersGenerated: 1,
+            revenueGenerated: total,
+            createdAt: new Date(),
             updatedAt: new Date(),
-          })
-          .where(and(eq(orders.id, orderId!), eq(orders.storeId, input.store_id)));
-
-        return json(
-          {
-            success: false,
-            error:
-              gatewayError instanceof Error
-                ? gatewayError.message
-                : 'Could not initialize secure payment gateway.',
-          },
-          { status: 502 }
-        );
-      }
-    }
-
-    // ── bKash Gateway Checkout ─────────────────────────────────────────────────
-    if ((input.payment_method as string) === 'bkash_gateway') {
-      try {
-        const origin = new URL(request.url).origin;
-        const storeGatewayConfig = parseGatewayConfig(storeData.gatewayConfig as string | null);
-        const bkashCreds = getEffectiveBkashGatewayConfig(storeGatewayConfig);
-        if (!bkashCreds) {
-          return json({ success: false, error: 'bKash Gateway is not configured for this store.' }, { status: 503 });
+          });
         }
-
-        const bkash = createBkashGatewayService(bkashCreds);
-        const payment = await bkash.createPayment({
-          amount: total.toFixed(2),
-          currency: 'BDT',
-          merchantInvoiceNumber: orderNumber,
-          callbackURL: `${origin}/api/bkash-callback?orderId=${orderId}&storeId=${input.store_id}`,
-          payerReference: input.phone,
-        });
-
-        return json(
-          {
-            success: true,
-            orderId,
-            orderNumber,
-            total,
-            paymentRedirectUrl: payment.bkashURL,
-            message: 'Redirecting to bKash payment...',
-          },
-          { headers: { 'x-order-number': orderNumber } }
-        );
-      } catch (bkashError) {
-        await db
-          .update(orders)
-          .set({ paymentStatus: 'failed', updatedAt: new Date() })
-          .where(and(eq(orders.id, orderId!), eq(orders.storeId, input.store_id)));
-        return json(
-          {
-            success: false,
-            error: bkashError instanceof Error ? bkashError.message : 'bKash payment initialization failed.',
-          },
-          { status: 502 }
-        );
+      } catch (e) {
+        console.error('[Template Analytics] Tracking failed:', e);
       }
-    }
 
-    // ── Nagad Gateway Checkout ─────────────────────────────────────────────────
-    if ((input.payment_method as string) === 'nagad_gateway') {
-      try {
-        const origin = new URL(request.url).origin;
-        const storeGatewayConfig = parseGatewayConfig(storeData.gatewayConfig as string | null);
-        const nagadCreds = getEffectiveNagadGatewayConfig(storeGatewayConfig);
-        if (!nagadCreds) {
-          return json({ success: false, error: 'Nagad Gateway is not configured for this store.' }, { status: 503 });
+
+      // CAMPAIGN PAGE ANALYTICS
+      if (input.landing_page_id) {
+        try {
+          await db.update(savedLandingConfigs)
+            .set({
+              orders: sql`orders + 1`,
+              revenue: sql`revenue + ${total}`
+            })
+            .where(eq(savedLandingConfigs.id, input.landing_page_id));
+        } catch (e) {
+          console.error('[Campaign Analytics] Tracking failed:', e);
         }
-
-        const nagad = createNagadGatewayService(nagadCreds);
-        const clientIp = request.headers.get('CF-Connecting-IP') ||
-          request.headers.get('X-Forwarded-For')?.split(',')[0]?.trim() ||
-          '127.0.0.1';
-        const payment = await nagad.createPayment({
-          orderId: orderNumber,
-          amount: total.toFixed(2),
-          clientIp,
-          callbackURL: `${origin}/api/nagad-callback?orderId=${orderId}&storeId=${input.store_id}`,
-          productDetails: { orderId: String(orderId), storeId: String(input.store_id) },
-        });
-
-        return json(
-          {
-            success: true,
-            orderId,
-            orderNumber,
-            total,
-            paymentRedirectUrl: payment.callBackUrl,
-            paymentReferenceId: payment.paymentReferenceId,
-            message: 'Redirecting to Nagad payment...',
-          },
-          { headers: { 'x-order-number': orderNumber } }
-        );
-      } catch (nagadError) {
-        await db
-          .update(orders)
-          .set({ paymentStatus: 'failed', updatedAt: new Date() })
-          .where(and(eq(orders.id, orderId!), eq(orders.storeId, input.store_id)));
-        return json(
-          {
-            success: false,
-            error: nagadError instanceof Error ? nagadError.message : 'Nagad payment initialization failed.',
-          },
-          { status: 502 }
-        );
       }
-    }
+    })());
 
     // Check Upsell
     let upsellUrl;
-    // ... Upsell logic can be complicated for multi-item (which product triggers it?).
+    // ... Upsell logic can be complicated for multi-item (which product triggers it?). 
     // Simplified: Check upsell for the FIRST product in loop.
     if (finalOrderItems.length > 0) {
       try {
         const firstItem = finalOrderItems[0];
-        const upsellOffer = await db
-          .select({ id: upsellOffers.id })
-          .from(upsellOffers)
-          .where(
-            and(
-              eq(upsellOffers.storeId, input.store_id),
-              eq(upsellOffers.productId, firstItem.productId),
-              eq(upsellOffers.isActive, true)
-            )
-          )
-          .orderBy(upsellOffers.displayOrder)
-          .limit(1);
+        const upsellOffer = await db.select({ id: upsellOffers.id }).from(upsellOffers)
+          .where(and(eq(upsellOffers.storeId, input.store_id), eq(upsellOffers.productId, firstItem.productId), eq(upsellOffers.isActive, true)))
+          .orderBy(upsellOffers.displayOrder).limit(1);
 
         if (upsellOffer.length > 0) {
           const token = crypto.randomUUID();
-          await db.insert(upsellTokens).values({
-            orderId: orderId!,
-            token,
-            offerId: upsellOffer[0].id,
-            expiresAt: new Date(Date.now() + 15 * 60 * 1000),
-          });
+          await db.insert(upsellTokens).values({ orderId: orderId!, token, offerId: upsellOffer[0].id, expiresAt: new Date(Date.now() + 15 * 60 * 1000) });
           upsellUrl = `/upsell/${token}`;
         }
       } catch (e) {
@@ -2298,79 +1160,41 @@ export async function action({ request, context }: ActionFunctionArgs) {
       }
     }
 
-    // ========================================================================
-    return json(
-      {
-        success: true,
-        orderId,
-        orderNumber,
-        total,
-        upsellUrl,
-        message: 'অর্ডার সফলভাবে সম্পন্ন হয়েছে!',
-      },
-      {
-        headers: {
-          'x-order-number': orderNumber,
-        },
-      }
-    );
+    return json({
+      success: true,
+      orderId,
+      orderNumber,
+      total,
+      upsellUrl,
+      message: 'অর্ডার সফলভাবে সম্পন্ন হয়েছে!',
+    });
+
   } catch (error) {
-    const errorDetails = {
-      message: error instanceof Error ? error.message : 'Unknown error',
-      timestamp: new Date().toISOString(),
-    };
+    const errorDetails = { message: error instanceof Error ? error.message : 'Unknown error', timestamp: new Date().toISOString() };
     console.error('Order creation error:', JSON.stringify(errorDetails, null, 2));
 
-    if (reservedCouponUsage && reservedCouponId && reservedCouponStoreId) {
-      try {
-        await decrementDiscountUsage(db, reservedCouponStoreId, reservedCouponId);
-      } catch (couponRollbackError) {
-        console.error('Failed to rollback reserved discount usage:', couponRollbackError);
-      }
-    }
-
-    // Best-effort: mark checkout session abandoned on failure to avoid "stuck processing"
-    if (checkoutSessionId) {
-      try {
-        await db
-          .update(checkoutSessions)
-          .set({ status: 'abandoned', updatedAt: new Date() })
-          .where(eq(checkoutSessions.id, checkoutSessionId));
-      } catch {
-        // Ignore errors
-      }
-    }
-
-    return json(
-      {
-        success: false,
-        error: 'অর্ডার প্রক্রিয়াকরণে সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।',
-        debug: errorDetails.message,
-      },
-      { status: 500 }
-    );
-  } finally {
-    // Always release checkout lock (covers early-return paths after acquiring)
-    if (checkoutLockAcquired && hasCheckoutLock && checkoutLockId) {
-      context.cloudflare.ctx.waitUntil(
-        releaseCheckoutLock(env as any, checkoutLockId, orderNumberForLock || undefined).catch(
-          (err) => {
-            console.error('[CHECKOUT_LOCK] Failed to release lock (finally):', err);
-          }
-        )
-      );
-    }
+    return json({ success: false, error: 'অর্ডার প্রক্রিয়াকরণে সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।', debug: errorDetails.message }, { status: 500 });
   }
 }
 
 // ============================================================================
-// LOADER (GET requests are not allowed on write-only endpoint)
+// LOADER (GET requests return method info)
 // ============================================================================
 export async function loader() {
-  return json(
-    { success: false, error: 'Method not allowed' },
-    { status: 405, headers: { Allow: 'POST' } }
-  );
+  return json({
+    method: 'POST',
+    description: 'Create a new order (single or multi-item)',
+    payload_options: {
+      single_item: {
+        required_fields: ['store_id', 'product_id', 'customer_name', 'phone', 'address'],
+        optional_fields: ['quantity (default: 1)', 'variant_id', 'notes', 'customer_email', 'payment_method', 'division', 'bump_ids'],
+      },
+      multi_item: {
+        required_fields: ['store_id', 'cart_items', 'customer_name', 'phone', 'address'],
+        cart_item_structure: '{ product_id: number, quantity: number, variant_id?: number }[]',
+        optional_fields: ['notes', 'customer_email', 'payment_method', 'division', 'bump_ids'],
+      },
+    },
+    note: 'Either product_id (single item) OR cart_items (multi-item) must be provided, not both.',
+  });
 }
-
-export default function () {}

@@ -1,49 +1,99 @@
 /**
- * Simple isomorphic HTML sanitizer using a whitelist approach.
- *
- * This provides protection against XSS by:
- * 1. Completely removing dangerous tags (script, iframe, etc.) and their content.
- * 2. Only allowing a safe whitelist of tags (span, b, i, etc.).
- * 3. Only allowing safe attributes (class, id).
- *
- * Note: While a robust library like DOMPurify is generally preferred,
- * this implementation provides essential security in environments where
- * external dependencies are restricted.
+ * A simple whitelist-based HTML sanitizer to prevent XSS.
+ * Allows only specific safe tags and attributes.
+ * 
+ * NOTE: This should NOT be used on intentional raw injection fields like
+ * customHeadCode, customBodyCode, customCSS — those are merchant-controlled
+ * script/style injections that need to remain executable.
  */
-export function sanitizeHtml(html: string): string {
-  if (!html) return '';
 
-  let clean = html;
+const ALLOWED_TAGS = new Set([
+  'span', 'b', 'i', 'strong', 'em', 'br', 'u', 'p', 'div',
+  'a', 'img', 'ul', 'ol', 'li', 'table', 'tr', 'td', 'th', 'thead', 'tbody',
+  'svg', 'rect', 'path', 'g', 'circle', 'line', 'polyline', 'polygon',
+  'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'small', 'button', 'label',
+]);
 
-  // 1. Remove dangerous tags and their content
-  const tagsToFullStrip = ['script', 'style', 'iframe', 'object', 'embed', 'noscript'];
-  tagsToFullStrip.forEach(tag => {
-    const regex = new RegExp(`<${tag}\\b[^<]*(?:(?!<\\/${tag}>)<[^<]*)*<\\/${tag}>`, 'gi');
-    clean = clean.replace(regex, '');
-    const selfClosingRegex = new RegExp(`<${tag}\\b[^>]*\\/>`, 'gi');
-    clean = clean.replace(selfClosingRegex, '');
-  });
+const ALLOWED_ATTRIBUTES = new Set([
+  'class', 'id', 'style', 'href', 'src', 'alt', 'target', 'rel',
+  'width', 'height', 'viewbox', 'fill', 'stroke', 'stroke-width',
+  'stroke-linecap', 'stroke-linejoin', 'd', 'x', 'y', 'rx', 'ry',
+  'xmlns', 'type', 'role', 'aria-label', 'aria-hidden',
+]);
 
-  // 2. Filter remaining tags and their attributes
-  const ALLOWED_TAGS = ['span', 'b', 'i', 'strong', 'em', 'br', 'u', 'p', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'small', 'big'];
-  const ALLOWED_ATTRS = ['class', 'className', 'id'];
+/**
+ * Decode HTML entities so encoded schemes like javascript&#x3a; are caught.
+ */
+function decodeHtmlEntities(str: string): string {
+  return str
+    .replace(/&#x([0-9a-f]+);/gi, (_, hex) => String.fromCharCode(parseInt(hex, 16)))
+    .replace(/&#(\d+);/g, (_, dec) => String.fromCharCode(parseInt(dec, 10)))
+    .replace(/&amp;/gi, '&')
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#039;/gi, "'");
+}
 
-  return clean.replace(/<(\/?)(\w+)([^>]*)>/gi, (match, closingSlash, tagName, attributes) => {
-    const tag = tagName.toLowerCase();
-    if (!ALLOWED_TAGS.includes(tag)) {
+/**
+ * Check if a URI value is dangerous (javascript:, vbscript:, data:).
+ * Decodes HTML entities and strips whitespace/control chars first.
+ */
+function isDangerousUri(value: string): boolean {
+  const decoded = decodeHtmlEntities(value)
+    .replace(/[\u0000-\u001f\u007f\s]+/g, '') // strip control chars & whitespace
+    .trim();
+  return /^(?:javascript|vbscript|data):/i.test(decoded);
+}
+
+export function sanitizeHtml(html: string | null | undefined): string {
+  if (typeof html !== 'string') return '';
+
+  // Remove dangerous tags and their contents
+  let sanitized = html.replace(/<(script|style|iframe|object|embed|applet)[^>]*>[\s\S]*?<\/\1>/gi, '');
+
+  // Remove HTML comments
+  sanitized = sanitized.replace(/<!--[\s\S]*?-->/g, '');
+
+  // Strip or sanitize all other tags
+  sanitized = sanitized.replace(/<\/?([a-z][a-z0-9]*)\b([^>]*)>/gi, (match, tag, attrsStr) => {
+    const lowerTag = tag.toLowerCase();
+
+    // If tag is not allowed, strip it completely
+    if (!ALLOWED_TAGS.has(lowerTag)) {
       return '';
     }
 
-    let cleanAttributes = '';
-    const attrRegex = /\s+([a-zA-Z-]+)\s*=\s*("[^"]*"|'[^']*'|[^"\s>]+)/gi;
-    let m;
-    while ((m = attrRegex.exec(attributes)) !== null) {
-      const attrName = m[1].toLowerCase();
-      if (ALLOWED_ATTRS.includes(attrName)) {
-        cleanAttributes += m[0];
+    // If it's a closing tag, ensure it's properly formatted
+    if (match.startsWith('</')) {
+      return `</${lowerTag}>`;
+    }
+
+    // For opening tags, filter attributes
+    let attributesStr = '';
+    const attrRegex = /([a-z0-9_-]+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+)))?/gi;
+    let attrMatch;
+
+    while ((attrMatch = attrRegex.exec(attrsStr)) !== null) {
+      const attrName = attrMatch[1].toLowerCase();
+      const isAllowed = ALLOWED_ATTRIBUTES.has(attrName) || attrName.startsWith('data-');
+
+      if (isAllowed) {
+        const attrValue = attrMatch[2] || attrMatch[3] || attrMatch[4] || '';
+
+        // Block dangerous URIs in href and src (decode entities first)
+        if ((attrName === 'href' || attrName === 'src') && isDangerousUri(attrValue)) {
+          continue;
+        }
+
+        const escapedValue = attrValue.replace(/"/g, '&quot;');
+        attributesStr += ` ${attrName}="${escapedValue}"`;
       }
     }
 
-    return `<${closingSlash}${tagName}${cleanAttributes}>`;
+    const isSelfClosing = match.endsWith('/>');
+    return `<${lowerTag}${attributesStr}${isSelfClosing ? ' />' : '>'}`;
   });
+
+  return sanitized;
 }

@@ -9,6 +9,7 @@ import { PremiumBDSectionRenderer } from './SectionRenderer';
 import { PREMIUM_BD_THEME } from './theme';
 import { applyCustomColors } from '../_core/types';
 import { StickyBuyButton } from '../_core/StickyBuyButton';
+import { sanitizeHtml } from "~/utils/sanitize";
 
 export function PremiumBDTemplate({
   storeName,
@@ -62,7 +63,7 @@ export function PremiumBDTemplate({
           
           <div className="text-gray-600 text-xs font-black uppercase tracking-[0.3em] mb-12" suppressHydrationWarning>
             {config.orderFormText?.footerCopyright ? (
-              <span dangerouslySetInnerHTML={{ __html: config.orderFormText.footerCopyright }} />
+              <span dangerouslySetInnerHTML={{ __html: sanitizeHtml(config.orderFormText.footerCopyright) }} />
             ) : (
               <>© {new Date().getFullYear()} • {storeName} • Trusted e-Commerce BD</>
             )}

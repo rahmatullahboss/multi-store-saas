@@ -225,6 +225,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     if (exitReason) {
       console.warn(`[EXIT_SURVEY] Store ${storeId}: reason=${exitReason}, feedback=${feedback}`);
       // TODO: Store in exitSurveys table for Super Admin analysis
+      // [SKIPPED] Complex: requires database schema change for exitSurveys table
     }
 
     // Get store subdomain and custom domain for cache invalidation

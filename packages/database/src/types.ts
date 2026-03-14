@@ -385,8 +385,12 @@ export interface ThemeConfig {
     imageUrl?: string;
   }[];
   announcement?: {
+    enabled?: boolean;
     text: string;
     link?: string;
+    bgColor?: string;
+    textColor?: string;
+    dismissible?: boolean;
   };
   footerLinks?: {
     title: string;

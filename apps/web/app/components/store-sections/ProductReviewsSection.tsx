@@ -62,13 +62,13 @@ function StarRatingInput({ value, onChange }: { value: number; onChange: (rating
           onClick={() => onChange(star)}
           className="p-1 transition-transform hover:scale-110"
         >
-          <Star
-            className={`w-8 h-8 transition-colors ${
+          <span
+            className={`text-4xl transition-colors ${
               star <= (hoverValue || value)
-                ? 'text-amber-400 fill-amber-400' 
+                ? 'text-amber-400'
                 : 'text-gray-300 hover:text-amber-200'
             }`}
-          />
+          >★</span>
         </button>
       ))}
     </div>

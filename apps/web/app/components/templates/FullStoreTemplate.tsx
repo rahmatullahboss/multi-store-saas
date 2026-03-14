@@ -10,12 +10,7 @@ import { useState } from 'react';
 import { Menu, X } from 'lucide-react';
 import type { ThemeConfig } from '@db/types';
 import { AddToCartButton } from '~/components/AddToCartButton';
-import {
-  buildProxyImageUrl,
-  generateProxySrcset,
-  generateSrcset,
-  optimizeUnsplashUrl,
-} from '~/utils/imageOptimization';
+import { AnnouncementBar } from '../store-sections/AnnouncementBar';
 
 // Serialized product type (JSON converts Date to string)
 interface SerializedProduct {
@@ -66,14 +61,6 @@ export function FullStoreTemplate({
 
   const primaryColor = config?.primaryColor || '#6366f1';
   const accentColor = config?.accentColor || '#f59e0b';
-  const bannerUrl = config?.bannerUrl || '';
-  const isUnsplashBanner = bannerUrl.includes('unsplash.com');
-  const heroSrc = isUnsplashBanner
-    ? optimizeUnsplashUrl(bannerUrl, { width: 1600, height: 900, quality: 80, format: 'webp' })
-    : buildProxyImageUrl(bannerUrl, { width: 1600, height: 900, quality: 78 });
-  const heroSrcSet = isUnsplashBanner
-    ? generateSrcset(bannerUrl, [640, 960, 1280, 1600])
-    : generateProxySrcset(bannerUrl, [640, 960, 1280, 1600], 78);
 
   // Get featured/new products
   const featuredProducts = products.slice(0, 4);
@@ -83,18 +70,15 @@ export function FullStoreTemplate({
     <div className="min-h-screen bg-white">
       {/* Announcement Bar */}
       {config?.announcement && (
-        <div 
-          className="text-white text-center py-2.5 text-sm font-medium"
-          style={{ backgroundColor: primaryColor }}
-        >
-          {config.announcement.link ? (
-            <Link to={config.announcement.link} className="hover:underline">
-              {config.announcement.text}
-            </Link>
-          ) : (
-            config.announcement.text
-          )}
-        </div>
+        <AnnouncementBar
+          enabled={config.announcement.enabled ?? true}
+          text={config.announcement.text}
+          link={config.announcement.link}
+          bgColor={config.announcement.bgColor}
+          textColor={config.announcement.textColor}
+          dismissible={config.announcement.dismissible}
+          storeAccentColor={primaryColor}
+        />
       )}
 
       {/* Header */}
@@ -177,25 +161,18 @@ export function FullStoreTemplate({
       </header>
 
       {/* Hero Banner */}
-      {bannerUrl ? (
+      {config?.bannerUrl ? (
         <section className="relative h-[400px] md:h-[600px]">
           <img
-            src={heroSrc}
+            src={config.bannerUrl}
             alt="Banner"
             className="w-full h-full object-cover"
-            srcSet={heroSrcSet}
-            sizes="100vw"
-            loading="eager"
-            {...({ fetchpriority: 'high' } as Record<string, unknown>)}
-            decoding="async"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-black/30 flex items-center">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 w-full">
               <div className="max-w-xl">
-                {config?.bannerText && (
-                  <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight">
-                    {config.bannerText}
-                  </h1>
+                {config.bannerText && (
+                  <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight">{config.bannerText}</h1>
                 )}
                 <p className="text-xl text-white/90 mb-8">Discover our latest collection with premium quality and style.</p>
                 <div className="flex flex-col sm:flex-row gap-4">
@@ -319,13 +296,10 @@ export function FullStoreTemplate({
                   <Link to={`/products/${product.id}`} className="block aspect-square overflow-hidden">
                     {product.imageUrl ? (
                       <img
-                        src={buildProxyImageUrl(product.imageUrl, { width: 640, quality: 75 })}
+                        src={product.imageUrl}
                         alt={product.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                         loading="lazy"
-                        srcSet={generateProxySrcset(product.imageUrl, [320, 480, 640], 75)}
-                        sizes="(max-width: 768px) 50vw, (max-width: 1280px) 33vw, 25vw"
-                        decoding="async"
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center bg-gray-100">
@@ -430,13 +404,10 @@ export function FullStoreTemplate({
                   <Link to={`/products/${product.id}`} className="block aspect-square overflow-hidden">
                     {product.imageUrl ? (
                       <img
-                        src={buildProxyImageUrl(product.imageUrl, { width: 640, quality: 75 })}
+                        src={product.imageUrl}
                         alt={product.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                         loading="lazy"
-                        srcSet={generateProxySrcset(product.imageUrl, [320, 480, 640], 75)}
-                        sizes="(max-width: 768px) 50vw, (max-width: 1280px) 33vw, 25vw"
-                        decoding="async"
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center bg-gray-100">

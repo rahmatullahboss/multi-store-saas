@@ -9,6 +9,7 @@ import { OrganicSectionRenderer } from './SectionRenderer';
 import { ORGANIC_THEME } from './theme';
 import { applyCustomColors } from '../_core/types';
 import { StickyBuyButton } from '../_core/StickyBuyButton';
+import { sanitizeHtml } from "~/utils/sanitize";
 
 export function OrganicTemplate({
   storeName,
@@ -51,7 +52,7 @@ export function OrganicTemplate({
           <div className="flex items-center gap-2 text-sm text-gray-400 font-medium" suppressHydrationWarning>
             <span className="w-1 h-1 rounded-full bg-emerald-500/50"></span>
             {config.orderFormText?.footerCopyright ? (
-              <span dangerouslySetInnerHTML={{ __html: config.orderFormText.footerCopyright }} />
+              <span dangerouslySetInnerHTML={{ __html: sanitizeHtml(config.orderFormText.footerCopyright) }} />
             ) : (
               <>© {new Date().getFullYear()} {storeName}. All rights reserved.</>
             )}

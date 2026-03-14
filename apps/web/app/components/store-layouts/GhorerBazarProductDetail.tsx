@@ -1,6 +1,6 @@
 /**
  * GhorerBazar Product Detail Page Component
- *
+ * 
  * Product detail page styled to match ghorerbazar.com design.
  * Features:
  * - Main image with discount badge overlay
@@ -14,22 +14,21 @@
 
 import { Link } from '@remix-run/react';
 import { useState } from 'react';
-import {
-  Minus,
-  Plus,
-  ShoppingCart,
-  ChevronDown,
+import { 
+  Minus, 
+  Plus, 
+  ShoppingCart, 
+  ChevronDown, 
   ChevronUp,
   MessageCircle,
   Truck,
   Shield,
-  RefreshCw,
+  RefreshCw
 } from 'lucide-react';
 import { AddToCartButton } from '~/components/AddToCartButton';
 import { GhorerBazarPageWrapper, GHORER_BAZAR_THEME } from './GhorerBazarPageWrapper';
 import type { SocialLinks } from '@db/types';
-import { formatPrice } from '~/lib/formatting';
-import { sanitizeHtml } from '~/utils/sanitize';
+import { sanitizeHtml } from "~/utils/sanitize";
 
 interface Product {
   id: number;
@@ -69,13 +68,16 @@ export function GhorerBazarProductDetail({
 
   const { primaryColor, redDiscount, cyanBadge } = GHORER_BAZAR_THEME;
 
-  const discountAmount =
-    product.compareAtPrice && product.compareAtPrice > product.price
-      ? product.compareAtPrice - product.price
-      : 0;
+  const formatPrice = (priceInCents: number) => {
+    return `৳${(priceInCents / 100).toLocaleString('en-BD')}`;
+  };
+
+  const discountAmount = product.compareAtPrice && product.compareAtPrice > product.price
+    ? product.compareAtPrice - product.price
+    : 0;
 
   const handleQuantityChange = (delta: number) => {
-    setQuantity((prev) => Math.max(1, prev + delta));
+    setQuantity(prev => Math.max(1, prev + delta));
   };
 
   return (
@@ -91,16 +93,11 @@ export function GhorerBazarProductDetail({
       <div className="max-w-7xl mx-auto px-4 py-6">
         {/* Breadcrumb */}
         <nav className="flex items-center gap-2 text-sm text-gray-500 mb-6">
-          <Link to="/" className="hover:text-gray-900">
-            Home
-          </Link>
+          <Link to="/" className="hover:text-gray-900">Home</Link>
           <span>›</span>
           {product.category && (
             <>
-              <Link
-                to={`/?category=${encodeURIComponent(product.category)}`}
-                className="hover:text-gray-900"
-              >
+              <Link to={`/?category=${encodeURIComponent(product.category)}`} className="hover:text-gray-900">
                 {product.category}
               </Link>
               <span>›</span>
@@ -136,11 +133,11 @@ export function GhorerBazarProductDetail({
 
             {/* Discount Badge */}
             {discountAmount > 0 && (
-              <div
+              <div 
                 className="absolute top-4 right-4 w-16 h-16 rounded-full flex flex-col items-center justify-center text-white font-bold"
                 style={{ backgroundColor: redDiscount }}
               >
-                <span className="text-sm">{formatPrice(discountAmount)}</span>
+                <span className="text-sm">৳{discountAmount}</span>
                 <span className="text-xs">ছাড়</span>
               </div>
             )}
@@ -149,21 +146,25 @@ export function GhorerBazarProductDetail({
           {/* Product Info */}
           <div className="space-y-6">
             {/* Title */}
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">{product.title}</h1>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+              {product.title}
+            </h1>
 
             {/* Price Section */}
             <div className="flex items-center gap-4">
-              <span className="text-3xl font-bold text-gray-900">{formatPrice(product.price)}</span>
+              <span className="text-3xl font-bold text-gray-900">
+                {formatPrice(product.price)}
+              </span>
               {product.compareAtPrice && product.compareAtPrice > product.price && (
                 <>
                   <span className="text-xl text-gray-400 line-through">
                     {formatPrice(product.compareAtPrice)}
                   </span>
-                  <span
+                  <span 
                     className="px-3 py-1 rounded text-sm font-bold text-white"
                     style={{ backgroundColor: primaryColor }}
                   >
-                    SAVE {formatPrice(discountAmount)}
+                    SAVE ৳{discountAmount}
                   </span>
                 </>
               )}
@@ -180,7 +181,9 @@ export function GhorerBazarProductDetail({
                 >
                   <Minus className="h-4 w-4" />
                 </button>
-                <span className="px-6 py-3 text-center font-medium min-w-[60px]">{quantity}</span>
+                <span className="px-6 py-3 text-center font-medium min-w-[60px]">
+                  {quantity}
+                </span>
                 <button
                   onClick={() => handleQuantityChange(1)}
                   className="p-3 hover:bg-gray-100 transition"
@@ -233,7 +236,7 @@ export function GhorerBazarProductDetail({
             {/* Trust Badges */}
             <div className="grid grid-cols-3 gap-4 pt-4 border-t border-gray-200">
               <div className="text-center">
-                <div
+                <div 
                   className="w-12 h-12 mx-auto mb-2 rounded-full flex items-center justify-center"
                   style={{ backgroundColor: `${primaryColor}20` }}
                 >
@@ -242,7 +245,7 @@ export function GhorerBazarProductDetail({
                 <p className="text-xs text-gray-600">দ্রুত ডেলিভারি</p>
               </div>
               <div className="text-center">
-                <div
+                <div 
                   className="w-12 h-12 mx-auto mb-2 rounded-full flex items-center justify-center"
                   style={{ backgroundColor: `${primaryColor}20` }}
                 >
@@ -251,7 +254,7 @@ export function GhorerBazarProductDetail({
                 <p className="text-xs text-gray-600">১০০% অরিজিনাল</p>
               </div>
               <div className="text-center">
-                <div
+                <div 
                   className="w-12 h-12 mx-auto mb-2 rounded-full flex items-center justify-center"
                   style={{ backgroundColor: `${primaryColor}20` }}
                 >
@@ -279,9 +282,9 @@ export function GhorerBazarProductDetail({
             </button>
             {showDescription && (
               <div className="px-6 pb-6">
-                <div
+                <div 
                   className="prose prose-sm max-w-none text-gray-600"
-                  dangerouslySetInnerHTML={{ __html: sanitizeHtml(product.description || '') }}
+                  dangerouslySetInnerHTML={{ __html: sanitizeHtml(product.description) }}
                 />
               </div>
             )}
@@ -294,11 +297,9 @@ export function GhorerBazarProductDetail({
             <h2 className="text-2xl font-bold mb-6">You Might Also Like</h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
               {relatedProducts.slice(0, 5).map((relatedProduct) => {
-                const discount =
-                  relatedProduct.compareAtPrice &&
-                  relatedProduct.compareAtPrice > relatedProduct.price
-                    ? relatedProduct.compareAtPrice - relatedProduct.price
-                    : 0;
+                const discount = relatedProduct.compareAtPrice && relatedProduct.compareAtPrice > relatedProduct.price
+                  ? relatedProduct.compareAtPrice - relatedProduct.price
+                  : 0;
 
                 return (
                   <Link
@@ -320,7 +321,7 @@ export function GhorerBazarProductDetail({
                         </div>
                       )}
                       {discount > 0 && (
-                        <div
+                        <div 
                           className="absolute top-2 right-2 px-2 py-0.5 rounded text-xs font-bold text-white"
                           style={{ backgroundColor: cyanBadge }}
                         >
@@ -336,16 +337,15 @@ export function GhorerBazarProductDetail({
                         <span className="font-bold text-gray-900">
                           {formatPrice(relatedProduct.price)}
                         </span>
-                        {relatedProduct.compareAtPrice &&
-                          relatedProduct.compareAtPrice > relatedProduct.price && (
-                            <span className="text-xs text-gray-400 line-through">
-                              {formatPrice(relatedProduct.compareAtPrice)}
-                            </span>
-                          )}
+                        {relatedProduct.compareAtPrice && relatedProduct.compareAtPrice > relatedProduct.price && (
+                          <span className="text-xs text-gray-400 line-through">
+                            {formatPrice(relatedProduct.compareAtPrice)}
+                          </span>
+                        )}
                       </div>
                     </div>
                     <div className="px-3 pb-3">
-                      <div
+                      <div 
                         className="w-full py-2 rounded text-center text-sm font-bold text-white"
                         style={{ backgroundColor: primaryColor }}
                       >
