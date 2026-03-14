@@ -1,218 +1,16 @@
 #:schema node_modules/wrangler/config-schema.json
 
-# NOTE: This script name is already bound to production routes (e.g. "*.ozzyl.com/*").
-# Keep it stable to avoid route conflicts during deploy.
 name = "multi-store-saas"
-compatibility_date = "2025-04-14"
+compatibility_date = "2024-11-18"
 compatibility_flags = ["nodejs_compat"]
-main = "server/index.ts"
 
 # ============================================================================
-# STAGING ENVIRONMENT (recommended)
+# CLOUDFLARE PAGES CONFIGURATION
 # ============================================================================
-# This project should use a separate Worker + separate D1 database for staging
-# so we can test migrations/features safely before production.
-#
-# IMPORTANT:
-# - Do NOT add production routes under staging.
-# - Replace the staging D1 `database_id` after creating the DB.
-#
-# Deploy staging:
-#   wrangler deploy --env staging
-# ============================================================================
-[env.staging]
-name = "multi-store-saas-staging"
-workers_dev = true
+# For Pages deployment - Pages uses the functions directory automatically
+# Deploy with: npx wrangler pages deploy ./build/client --project-name=multi-store-saas
 
-# Observability for staging
-[env.staging.observability]
-enabled = true
-
-[env.staging.observability.logs]
-enabled = true
-invocation_logs = true
-
-[env.staging.observability.traces]
-enabled = true
-
-# Staging bindings (same binding names in code, different resources)
-[[env.staging.d1_databases]]
-binding = "DB"
-database_name = "multi-store-saas-db-staging"
-database_id = "635f8125-8d10-4522-aad6-301a01027a37"
-migrations_dir = "../../packages/database/src/migrations"
-
-[env.staging.vars]
-# Keep defaults same as production unless you deliberately want different behavior.
-ENVIRONMENT = "staging"
-SAAS_DOMAIN = "ozzyl.com"
-# SESSION_SECRET - SET VIA: wrangler secret put SESSION_SECRET --env staging
-R2_PUBLIC_URL = "https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev"
-SUPER_ADMIN_EMAIL = "rahmatullahzisan@gmail.com"
-CLOUDFLARE_ZONE_ID = "41147efa7d197cfddda0af7fcbf6d641"
-AI_MODEL = "arcee-ai/trinity-large-preview:free"
-AI_BASE_URL = "https://openrouter.ai/api/v1"
-PAGE_BUILDER_URL = "https://builder.ozzyl.com"
-VAPID_PUBLIC_KEY = "BDUvy4YEADMYrwmybG-tSOE7iEc_4ouSWUDhxlgszleXlFcJhqUi_be2T9WObp5S9bcuh-0pDQZTLyBNDQk41mY"
-SENTRY_DSN = "https://49f43a7c79f0476ad9a12671b579d42c@o4509758332141568.ingest.de.sentry.io/4510691126214736"
-MASTER_FACEBOOK_PIXEL_ID = ""
-GOOGLE_CLIENT_ID = "477759293578-24qqc1l4mg7dtm2f44vtqbrme6p9cqa3.apps.googleusercontent.com"
-SSLCOMMERZ_LIVE = "false"
-
-[[env.staging.r2_buckets]]
-binding = "R2"
-bucket_name = "multi-store-saas-media"
-
-[[env.staging.kv_namespaces]]
-binding = "AI_RATE_LIMIT"
-id = "4697fe943f0a4e8b9535f739374c56cb"
-
-[[env.staging.kv_namespaces]]
-binding = "STORE_CACHE"
-id = "7aea490529e049bcb2ebf98964012f71"
-
-[[env.staging.vectorize]]
-binding = "VECTORIZE"
-index_name = "multi-store-saas-vectors"
-
-[env.staging.ai]
-binding = "AI"
-
-[[env.staging.services]]
-binding = "ORDER_PROCESSOR_SERVICE"
-service = "order-processor"
-
-[[env.staging.services]]
-binding = "CART_SERVICE"
-service = "cart-processor"
-
-[[env.staging.services]]
-binding = "CHECKOUT_SERVICE"
-service = "checkout-lock"
-
-[[env.staging.services]]
-binding = "RATE_LIMITER_SERVICE"
-service = "rate-limiter"
-
-[[env.staging.services]]
-binding = "STORE_CONFIG_SERVICE"
-service = "store-config"
-
-[[env.staging.services]]
-binding = "EDITOR_STATE_SERVICE"
-service = "editor-state"
-
-[[env.staging.services]]
-binding = "PDF_SERVICE"
-service = "pdf-generator"
-
-# ============================================================================
-# PRODUCTION ROUTING
-# ============================================================================
-# IMPORTANT:
-# - DO NOT keep routes at top-level, otherwise `wrangler deploy --env staging`
-#   can accidentally re-bind production domains to the staging script.
-# - Put production routes under `env.production` only.
-#
-# Note: "ozzyl.com" (Landing Page) is on Vercel, so we DO NOT route it here.
-
-[env.production]
-name = "multi-store-saas"
-
-# Production vars/bindings must be explicit (top-level values are not inherited by env blocks).
-[env.production.vars]
-ENVIRONMENT = "production"
-SAAS_DOMAIN = "ozzyl.com"
-# SESSION_SECRET is already set in Cloudflare Dashboard as a secret
-R2_PUBLIC_URL = "https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev"
-SUPER_ADMIN_EMAIL = "rahmatullahzisan@gmail.com"
-CLOUDFLARE_ZONE_ID = "41147efa7d197cfddda0af7fcbf6d641"
-AI_MODEL = "arcee-ai/trinity-large-preview:free"
-AI_BASE_URL = "https://openrouter.ai/api/v1"
-PAGE_BUILDER_URL = "https://builder.ozzyl.com"
-VAPID_PUBLIC_KEY = "BDUvy4YEADMYrwmybG-tSOE7iEc_4ouSWUDhxlgszleXlFcJhqUi_be2T9WObp5S9bcuh-0pDQZTLyBNDQk41mY"
-SENTRY_DSN = "https://49f43a7c79f0476ad9a12671b579d42c@o4509758332141568.ingest.de.sentry.io/4510691126214736"
-MASTER_FACEBOOK_PIXEL_ID = ""
-GOOGLE_CLIENT_ID = "477759293578-24qqc1l4mg7dtm2f44vtqbrme6p9cqa3.apps.googleusercontent.com"
-SSLCOMMERZ_LIVE = "false"
-
-[[env.production.d1_databases]]
-binding = "DB"
-database_name = "multi-store-saas-db"
-database_id = "bf882d16-d67a-4007-b503-33646bd693af"
-migrations_dir = "../../packages/database/src/migrations"
-
-[[env.production.r2_buckets]]
-binding = "R2"
-bucket_name = "multi-store-saas-media"
-
-[[env.production.kv_namespaces]]
-binding = "AI_RATE_LIMIT"
-id = "65513509a7a146d1b348548fb98a93cf"
-
-[[env.production.kv_namespaces]]
-binding = "STORE_CACHE"
-id = "026696313f02475c846dc70197a3c98f"
-
-[[env.production.vectorize]]
-binding = "VECTORIZE"
-index_name = "multi-store-saas-vectors"
-
-[env.production.ai]
-binding = "AI"
-
-[[env.production.services]]
-binding = "ORDER_PROCESSOR_SERVICE"
-service = "order-processor"
-
-[[env.production.services]]
-binding = "CART_SERVICE"
-service = "cart-processor"
-
-[[env.production.services]]
-binding = "CHECKOUT_SERVICE"
-service = "checkout-lock"
-
-[[env.production.services]]
-binding = "RATE_LIMITER_SERVICE"
-service = "rate-limiter"
-
-[[env.production.services]]
-binding = "STORE_CONFIG_SERVICE"
-service = "store-config"
-
-[[env.production.services]]
-binding = "EDITOR_STATE_SERVICE"
-service = "editor-state"
-
-[[env.production.services]]
-binding = "PDF_SERVICE"
-service = "pdf-generator"
-
-# 1) Main App (Admin/Dashboard)
-[[env.production.routes]]
-pattern = "app.ozzyl.com"
-custom_domain = true
-
-# 2) Store Subdomains (Wildcard)
-# Wildcards must be standard Routes, not "Custom Domains" in Wrangler config
-[[env.production.routes]]
-pattern = "*.ozzyl.com/*"
-zone_name = "ozzyl.com"
-
-# ============================================================================
-# CLOUDFLARE WORKER ASSETS (Replaces Pages)
-# ============================================================================
-# Serves static assets from the build directory directly
-# No need for R2 or separate Pages project
-# CRITICAL: Worker runs first so API/SSR routing is always handled in `server/index.ts`,
-# then static assets are served via explicit `ASSETS.fetch(...)` fallback.
-# Reference: https://github.com/cloudflare/workers-sdk/issues/8879
-[assets]
-directory = "build/client"
-binding = "ASSETS"
-not_found_handling = "none"
-run_worker_first = false
+pages_build_output_dir = "build/client"
 
 # ============================================================================
 # BINDINGS - Work in Pages Functions
@@ -223,9 +21,6 @@ run_worker_first = false
 binding = "DB"
 database_name = "multi-store-saas-db"
 database_id = "bf882d16-d67a-4007-b503-33646bd693af"
-# Use a single monorepo-wide migrations directory.
-# This must include *all* production migrations (not just a small subset),
-# so we point to `packages/database/src/migrations`.
 migrations_dir = "../../packages/database/src/migrations"
 
 # R2 Storage binding
@@ -260,26 +55,24 @@ binding = "AI"
 # ENVIRONMENT VARIABLES
 # ============================================================================
 [vars]
-ENVIRONMENT = "production"
-SAAS_DOMAIN = "ozzyl.com"  # Main SaaS domain - stores get subdomain.ozzyl.com, admin at app.ozzyl.com
+SAAS_DOMAIN = "ozzyl.com"  # Custom domain for the SaaS
 R2_PUBLIC_URL = "https://pub-bec31ee88a08441a8824ab94bb973c04.r2.dev"  # R2 bucket public URL
 SUPER_ADMIN_EMAIL = "rahmatullahzisan@gmail.com"  # Only this email can impersonate users
 CLOUDFLARE_ZONE_ID = "41147efa7d197cfddda0af7fcbf6d641"  # Zone ID from Cloudflare Dashboard (ozzyl.com)
 # CLOUDFLARE_API_TOKEN = "your_cloudflare_api_token_here"  # Commented to use OAuth login
 
 # AI CONFIGURATION (Xiaomi Mimo or any OpenAI-compatible provider)
-AI_MODEL = "arcee-ai/trinity-large-preview:free"  # Free model for production
-AI_BASE_URL = "https://openrouter.ai/api/v1"  # OpenRouter API Endpoint
+AI_MODEL = "mimo-v2-flash"  # Model ID for AI features
+AI_BASE_URL = "https://api.xiaomimimo.com/v1"  # OpenAI-compatible API endpoint
 PAGE_BUILDER_URL = "https://builder.ozzyl.com"  # Separate worker for GrapesJS editor
 
 # IMPORTANT: Sensitive API keys must be set in Cloudflare Dashboard for security
 # OPENROUTER_API_KEY - AI API key (Xiaomi Mimo or OpenRouter) - SET IN DASHBOARD (secret, not here)
 # RESEND_API_KEY - Email service - SET IN DASHBOARD (secret)
 # CLOUDFLARE_API_TOKEN - SSL certificates - SET IN DASHBOARD (secret)
-# AXION_TOKEN - Axiom logging service - SET IN DASHBOARD (secret, for persistent logs dashboard)
 
 # PUSH NOTIFICATIONS (VAPID)
-VAPID_PUBLIC_KEY = "BDUvy4YEADMYrwmybG-tSOE7iEc_4ouSWUDhxlgszleXlFcJhqUi_be2T9WObp5S9bcuh-0pDQZTLyBNDQk41mY"
+VAPID_PUBLIC_KEY = "BDl0oSQqYgSjUMZxblMeN1nhfndIyhlAKDujKvNfQyo4gMGVlvKs2aInkK9-PiflVUSDxmPPyienIPQlHMZPwJU"
 
 # Sentry DSN
 SENTRY_DSN = "https://49f43a7c79f0476ad9a12671b579d42c@o4509758332141568.ingest.de.sentry.io/4510691126214736"
@@ -288,46 +81,18 @@ SENTRY_DSN = "https://49f43a7c79f0476ad9a12671b579d42c@o4509758332141568.ingest.
 # Set your own Facebook Pixel ID here to collect data from all stores
 MASTER_FACEBOOK_PIXEL_ID = ""  # Example: "123456789012345"
 
-# Default Steadfast Agent Session for Fallback Fraud Checking
-# SET IN DASHBOARD (secrets, not here)
-# STEADFAST_ADMIN_SESSION = "..."
-# STEADFAST_ADMIN_XSRF = "..."
-
 # Google OAuth Configuration
 GOOGLE_CLIENT_ID = "477759293578-24qqc1l4mg7dtm2f44vtqbrme6p9cqa3.apps.googleusercontent.com"
 # GOOGLE_CLIENT_SECRET - SET IN CLOUDFLARE DASHBOARD (secret, not here)
 
 # ============================================================================
-# OBSERVABILITY - Permanent Logs Storage
+# SERVICE BINDINGS — Cross-project routing
 # ============================================================================
-# Enable Worker Logs to persist logs in Cloudflare dashboard
-# Access via: Workers & Pages > Observability
-[observability]
-enabled = true
 
-[observability.logs]
-enabled = true
-invocation_logs = true
-
-[observability.traces]
-enabled = true
-
-# ============================================================================
-# THIRD-PARTY LOGGING (Axiom)
-# ============================================================================
-# Axiom provides beautiful dashboard for logs with 500GB/month free tier
-# 1. Sign up: https://app.axiom.co
-# 2. Create dataset named "cloudflare-logs"
-# 3. Get API token from Settings > API Tokens
-# 4. Set AXION_TOKEN in Cloudflare Dashboard > Settings > Variables (secret)
-# 5. View logs at: https://app.axiom.co/{your-org}/cloudflare-logs
-#
-# Features:
-# - Search and filter logs
-# - Real-time streaming
-# - 30 days retention (free tier)
-# - Beautiful charts and analytics
-# ============================================================================
+# HMS SaaS Worker — handles hms.ozzyl.com & hms-*.ozzyl.com
+[[services]]
+binding = "HMS_WORKER"
+service = "hms-saas-production"
 
 # ============================================================================
 # DEVELOPMENT SETTINGS
@@ -335,65 +100,3 @@ enabled = true
 [dev]
 port = 8787
 local_protocol = "http"
-
-# ============================================================================
-# SERVICE BINDINGS (External Workers with Durable Objects)
-# ============================================================================
-# Deploy workers first: cd workers/{worker-name} && wrangler deploy
-
-# Order Processor Worker (FREE plan - SQLite backend)
-[[services]]
-binding = "ORDER_PROCESSOR_SERVICE"
-service = "order-processor"
-
-# Cart Processor Worker - Race-condition free cart management
-[[services]]
-binding = "CART_SERVICE"
-service = "cart-processor"
-
-# Checkout Lock Worker - Atomic checkout locking
-[[services]]
-binding = "CHECKOUT_SERVICE"
-service = "checkout-lock"
-
-# Rate Limiter Worker - Per-store/IP rate limiting
-[[services]]
-binding = "RATE_LIMITER_SERVICE"
-service = "rate-limiter"
-
-# Store Config Cache Worker - Fast config caching
-[[services]]
-binding = "STORE_CONFIG_SERVICE"
-service = "store-config"
-
-# Editor State Worker - Live page builder state
-[[services]]
-binding = "EDITOR_STATE_SERVICE"
-service = "editor-state"
-
-# PDF Generator Worker - Heavy jsPDF library offloaded
-[[services]]
-binding = "PDF_SERVICE"
-service = "pdf-generator"
-
-# ============================================================================
-# QUEUES (Disabled - using Durable Objects instead for FREE plan)
-# ============================================================================
-# Uncomment below if you have Workers Paid plan and want to use Queues
-# [[queues.producers]]
-#   queue = "webhook-queue"
-#   binding = "WEBHOOK_QUEUE"
-
-#   binding = "WEBHOOK_QUEUE"
-
-# ============================================================================
-# CRON TRIGGERS - Scheduled Background Tasks
-# ============================================================================
-# Runs the scheduled handler in server/index.ts every 30 minutes.
-# Tasks: courier status sync, abandoned cart recovery, win-back campaigns, review requests.
-#
-# To trigger manually during testing:
-#   wrangler dev --local  (and POST to /__scheduled?cron=* in another terminal)
-#
-[triggers]
-crons = ["*/30 * * * *"]
