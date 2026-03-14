@@ -84,8 +84,13 @@ export const OrderSchema = z.object({
 // ============================================================================
 function generateOrderNumber(): string {
   const timestamp = Date.now().toString(36).toUpperCase();
-  const random = Math.random().toString(36).substring(2, 5).toUpperCase();
-  return `ORD-${timestamp}-${random}`;
+  // Security Enhancement: Use Web Crypto API for secure random generation instead of Math.random()
+  const randomArray = new Uint32Array(1);
+  crypto.getRandomValues(randomArray);
+  const random = randomArray[0].toString(36).slice(-3).toUpperCase();
+  // Pad with zeros if the random string is shorter than 3 characters
+  const paddedRandom = random.padStart(3, '0');
+  return `ORD-${timestamp}-${paddedRandom}`;
 }
 
 // ============================================================================
