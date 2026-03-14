@@ -182,16 +182,16 @@ export default function AIMarketingCampaigns() {
   };
   
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+            <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
               <Sparkles className="w-6 h-6 text-purple-500" />
               {isBengali ? 'AI মার্কেটিং ক্যাম্পেইন' : 'AI Marketing Campaigns'}
             </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-1">
+            <p className="text-gray-600 mt-1">
               {isBengali 
                 ? 'স্মার্ট সেগমেন্টেশন দিয়ে কাস্টমারদের টার্গেট করুন'
                 : 'Target customers with smart segmentation'}
@@ -209,15 +209,15 @@ export default function AIMarketingCampaigns() {
         </div>
         
         {/* Total Customers */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 mb-6">
+        <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <p className="text-sm text-gray-500">
                 {isBengali ? 'মোট গ্রাহক' : 'Total Customers'}
               </p>
-              <p className="text-3xl font-bold text-gray-900 dark:text-white">{totalCustomers}</p>
+              <p className="text-3xl font-bold text-gray-900">{totalCustomers}</p>
             </div>
-            <Users className="w-12 h-12 text-gray-300 dark:text-gray-600" />
+            <Users className="w-12 h-12 text-gray-300" />
           </div>
         </div>
         
@@ -230,10 +230,10 @@ export default function AIMarketingCampaigns() {
             return (
               <div
                 key={segment.id}
-                className={`bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border-2 transition-all cursor-pointer hover:shadow-md ${
+                className={`bg-white rounded-xl shadow-sm p-6 border-2 transition-all cursor-pointer hover:shadow-md ${
                   selectedSegment === segment.id 
                     ? 'border-purple-500' 
-                    : 'border-transparent hover:border-gray-200 dark:hover:border-gray-700'
+                    : 'border-transparent hover:border-gray-200'
                 }`}
                 onClick={() => setSelectedSegment(segment.id)}
               >
@@ -241,12 +241,12 @@ export default function AIMarketingCampaigns() {
                   <div className={`p-3 rounded-lg ${segment.bgColor}`}>
                     <Icon className={`w-6 h-6 ${segment.color}`} />
                   </div>
-                  <span className="text-3xl font-bold text-gray-900 dark:text-white">{count}</span>
+                  <span className="text-3xl font-bold text-gray-900">{count}</span>
                 </div>
-                <h3 className="font-semibold text-gray-900 dark:text-white">
+                <h3 className="font-semibold text-gray-900">
                   {isBengali ? segment.labelBn : segment.label}
                 </h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
+                <p className="text-sm text-gray-500">
                   {isBengali ? segment.descriptionBn : segment.description}
                 </p>
                 
@@ -257,7 +257,7 @@ export default function AIMarketingCampaigns() {
                         e.stopPropagation();
                         handleGenerateMessage(segment.id, 'email');
                       }}
-                      className="flex-1 flex items-center justify-center gap-1 px-3 py-2 text-sm bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
+                      className="flex-1 flex items-center justify-center gap-1 px-3 py-2 text-sm bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors"
                     >
                       <Mail className="w-4 h-4" />
                       Email
@@ -267,7 +267,7 @@ export default function AIMarketingCampaigns() {
                         e.stopPropagation();
                         handleGenerateMessage(segment.id, 'sms');
                       }}
-                      className="flex-1 flex items-center justify-center gap-1 px-3 py-2 text-sm bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors"
+                      className="flex-1 flex items-center justify-center gap-1 px-3 py-2 text-sm bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-colors"
                     >
                       <MessageSquare className="w-4 h-4" />
                       SMS
@@ -280,8 +280,8 @@ export default function AIMarketingCampaigns() {
         </div>
         
         {/* Discount Code Input */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 mb-6">
-          <h2 className="font-semibold text-gray-900 dark:text-white mb-4">
+        <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
+          <h2 className="font-semibold text-gray-900 mb-4">
             {isBengali ? 'ডিসকাউন্ট কোড (ঐচ্ছিক)' : 'Discount Code (Optional)'}
           </h2>
           <div className="flex gap-4">
@@ -290,7 +290,7 @@ export default function AIMarketingCampaigns() {
               placeholder={isBengali ? 'কোড লিখুন যেমন SAVE10' : 'Enter code e.g. SAVE10'}
               value={discountCode}
               onChange={(e) => setDiscountCode(e.target.value.toUpperCase())}
-              className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900"
             />
             <input
               type="number"
@@ -299,15 +299,15 @@ export default function AIMarketingCampaigns() {
               onChange={(e) => setDiscountPercent(parseInt(e.target.value) || 10)}
               min={1}
               max={100}
-              className="w-20 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-center"
+              className="w-20 px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 text-center"
             />
           </div>
         </div>
         
         {/* Generated Message Preview */}
         {(generatedMessage || isGenerating) && (
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
-            <h2 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+          <div className="bg-white rounded-xl shadow-sm p-6">
+            <h2 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-purple-500" />
               {isBengali ? 'AI জেনারেটেড মেসেজ' : 'AI Generated Message'}
             </h2>
@@ -315,20 +315,20 @@ export default function AIMarketingCampaigns() {
             {isGenerating ? (
               <div className="flex items-center justify-center py-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
-                <span className="ml-3 text-gray-600 dark:text-gray-400">
+                <span className="ml-3 text-gray-600">
                   {isBengali ? 'মেসেজ তৈরি হচ্ছে...' : 'Generating message...'}
                 </span>
               </div>
             ) : (
               <>
-                <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 whitespace-pre-wrap text-gray-800 dark:text-gray-200">
+                <div className="bg-gray-50 rounded-lg p-4 whitespace-pre-wrap text-gray-800">
                   {generatedMessage}
                 </div>
                 
                 <div className="flex gap-3 mt-4">
                   <button
                     onClick={() => handleGenerateMessage(selectedSegment!, 'email')}
-                    className="flex items-center gap-2 px-4 py-2 text-gray-600 dark:text-gray-400 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
+                    className="flex items-center gap-2 px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
                   >
                     <RefreshCw className="w-4 h-4" />
                     {isBengali ? 'রিজেনারেট' : 'Regenerate'}

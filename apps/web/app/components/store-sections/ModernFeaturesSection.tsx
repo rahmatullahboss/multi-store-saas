@@ -18,7 +18,7 @@ export default function ModernFeaturesSection({ settings, theme }: ModernFeature
 
   return (
     <section
-      className={`relative z-10 py-16 ${useLightTheme ? 'bg-white' : 'bg-white dark:bg-gray-900'}`}
+      className={`relative z-10 py-16 ${useLightTheme ? 'bg-white' : 'bg-white'}`}
       style={{ backgroundColor: settings.backgroundColor }}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
@@ -27,7 +27,7 @@ export default function ModernFeaturesSection({ settings, theme }: ModernFeature
             <h2 className="text-3xl md:text-4xl font-bold mb-4">{settings.heading}</h2>
           )}
           {settings.subheading && (
-            <p className={`text-lg ${useLightTheme ? 'text-gray-600' : 'text-gray-600 dark:text-gray-400'}`}>
+            <p className={`text-lg ${useLightTheme ? 'text-gray-600' : 'text-gray-600'}`}>
               {settings.subheading}
             </p>
           )}
@@ -36,7 +36,7 @@ export default function ModernFeaturesSection({ settings, theme }: ModernFeature
           {features.map((feature: any, index: number) => (
             <div
               key={index}
-              className={`text-center p-8 rounded-2xl ${useLightTheme ? 'bg-gray-50' : 'bg-gray-50 dark:bg-gray-800'}`}
+              className={`text-center p-8 rounded-2xl ${useLightTheme ? 'bg-gray-50' : 'bg-gray-50'}`}
             >
               <div 
                 className="w-16 h-16 mx-auto mb-6 rounded-2xl flex items-center justify-center text-3xl"
@@ -45,7 +45,7 @@ export default function ModernFeaturesSection({ settings, theme }: ModernFeature
                 {feature.icon}
               </div>
               <h3 className="text-xl font-bold mb-3">{feature.title}</h3>
-              <p className={useLightTheme ? 'text-gray-600' : 'text-gray-600 dark:text-gray-400'}>
+              <p className={useLightTheme ? 'text-gray-600' : 'text-gray-600'}>
                 {feature.description}
               </p>
             </div>

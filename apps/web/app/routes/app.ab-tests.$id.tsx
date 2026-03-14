@@ -171,7 +171,7 @@ export default function ABTestDetailPage() {
       <div className="mb-6">
         <Link
           to="/app/ab-tests"
-          className="inline-flex items-center gap-1 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mb-4"
+          className="inline-flex items-center gap-1 text-gray-600 hover:text-gray-900 mb-4"
         >
           <ArrowLeft size={18} />
           সব টেস্ট
@@ -180,19 +180,19 @@ export default function ABTestDetailPage() {
         <div className="flex items-start justify-between">
           <div>
             <div className="flex items-center gap-3 mb-2">
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{test.name}</h1>
+              <h1 className="text-2xl font-bold text-gray-900">{test.name}</h1>
               {test.status === 'active' && (
-                <span className="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-sm font-medium rounded-full">
+                <span className="px-2 py-1 bg-green-100 text-green-700 text-sm font-medium rounded-full">
                   চলমান
                 </span>
               )}
               {test.status === 'paused' && (
-                <span className="px-2 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 text-sm font-medium rounded-full">
+                <span className="px-2 py-1 bg-yellow-100 text-yellow-700 text-sm font-medium rounded-full">
                   বিরতি
                 </span>
               )}
               {test.status === 'concluded' && (
-                <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-sm font-medium rounded-full">
+                <span className="px-2 py-1 bg-blue-100 text-blue-700 text-sm font-medium rounded-full">
                   সম্পন্ন
                 </span>
               )}
@@ -231,33 +231,33 @@ export default function ABTestDetailPage() {
 
       {/* Stats Overview */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <div className="p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-          <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 text-sm mb-1">
+        <div className="p-4 bg-white rounded-xl border border-gray-200">
+          <div className="flex items-center gap-2 text-gray-500 text-sm mb-1">
             <Users size={16} /> মোট ভিজিটর
           </div>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white">{totalVisitors}</p>
+          <p className="text-2xl font-bold text-gray-900">{totalVisitors}</p>
         </div>
-        <div className="p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-          <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 text-sm mb-1">
+        <div className="p-4 bg-white rounded-xl border border-gray-200">
+          <div className="flex items-center gap-2 text-gray-500 text-sm mb-1">
             <CheckCircle size={16} /> কনভার্সন
           </div>
-          <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+          <p className="text-2xl font-bold text-green-600">
             {totalConversions}
           </p>
         </div>
-        <div className="p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-          <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 text-sm mb-1">
+        <div className="p-4 bg-white rounded-xl border border-gray-200">
+          <div className="flex items-center gap-2 text-gray-500 text-sm mb-1">
             <TrendingUp size={16} /> CR
           </div>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white">
+          <p className="text-2xl font-bold text-gray-900">
             {totalVisitors ? ((totalConversions / totalVisitors) * 100).toFixed(1) : 0}%
           </p>
         </div>
-        <div className="p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-          <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 text-sm mb-1">
+        <div className="p-4 bg-white rounded-xl border border-gray-200">
+          <div className="flex items-center gap-2 text-gray-500 text-sm mb-1">
             <DollarSign size={16} /> রেভিনিউ
           </div>
-          <p className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">
+          <p className="text-2xl font-bold text-indigo-600">
             {formatPrice(totalRevenue)}
           </p>
         </div>
@@ -265,13 +265,13 @@ export default function ABTestDetailPage() {
 
       {/* Significance Alert */}
       {significance.significant && (
-        <div className="mb-6 p-4 bg-green-100 dark:bg-green-900/30 border border-green-300 dark:border-green-700 rounded-xl flex items-center gap-3">
-          <CheckCircle className="text-green-600 dark:text-green-400" size={24} />
+        <div className="mb-6 p-4 bg-green-100 border border-green-300 rounded-xl flex items-center gap-3">
+          <CheckCircle className="text-green-600" size={24} />
           <div>
-            <p className="font-semibold text-green-800 dark:text-green-300">
+            <p className="font-semibold text-green-800">
               পরিসংখ্যানগতভাবে উল্লেখযোগ্য ফলাফল!
             </p>
-            <p className="text-sm text-green-700 dark:text-green-400">
+            <p className="text-sm text-green-700">
               {significance.confidence}% কনফিডেন্স - Winner ঘোষণা করতে পারেন
             </p>
           </div>
@@ -279,67 +279,67 @@ export default function ABTestDetailPage() {
       )}
 
       {/* Variants Comparison */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden mb-8">
-        <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden mb-8">
+        <div className="p-4 border-b border-gray-200">
+          <h2 className="text-lg font-semibold text-gray-900">
             ভ্যারিয়েন্ট তুলনা
           </h2>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50 dark:bg-gray-700/50">
+            <thead className="bg-gray-50">
               <tr>
-                <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 dark:text-gray-300">
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">
                   ভ্যারিয়েন্ট
                 </th>
-                <th className="px-4 py-3 text-center text-sm font-medium text-gray-600 dark:text-gray-300">
+                <th className="px-4 py-3 text-center text-sm font-medium text-gray-600">
                   ভিজিটর
                 </th>
-                <th className="px-4 py-3 text-center text-sm font-medium text-gray-600 dark:text-gray-300">
+                <th className="px-4 py-3 text-center text-sm font-medium text-gray-600">
                   কনভার্সন
                 </th>
-                <th className="px-4 py-3 text-center text-sm font-medium text-gray-600 dark:text-gray-300">
+                <th className="px-4 py-3 text-center text-sm font-medium text-gray-600">
                   CR
                 </th>
-                <th className="px-4 py-3 text-center text-sm font-medium text-gray-600 dark:text-gray-300">
+                <th className="px-4 py-3 text-center text-sm font-medium text-gray-600">
                   রেভিনিউ
                 </th>
-                <th className="px-4 py-3 text-center text-sm font-medium text-gray-600 dark:text-gray-300">
+                <th className="px-4 py-3 text-center text-sm font-medium text-gray-600">
                   Action
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+            <tbody className="divide-y divide-gray-200">
               {variants.map((v) => {
                 const isBest = v.id === bestVariantId;
                 return (
-                  <tr key={v.id} className={isBest ? 'bg-green-50 dark:bg-green-900/10' : ''}>
+                  <tr key={v.id} className={isBest ? 'bg-green-50' : ''}>
                     <td className="px-4 py-4">
                       <div className="flex items-center gap-2">
-                        <span className="font-medium text-gray-900 dark:text-white">{v.name}</span>
+                        <span className="font-medium text-gray-900">{v.name}</span>
                         {isBest && (
-                          <span className="flex items-center gap-1 px-2 py-0.5 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 text-xs rounded-full">
+                          <span className="flex items-center gap-1 px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs rounded-full">
                             <Trophy size={12} /> Best
                           </span>
                         )}
                       </div>
-                      <span className="text-sm text-gray-500 dark:text-gray-400">
+                      <span className="text-sm text-gray-500">
                         {v.trafficWeight}% ট্রাফিক
                       </span>
                     </td>
-                    <td className="px-4 py-4 text-center text-gray-900 dark:text-white">
+                    <td className="px-4 py-4 text-center text-gray-900">
                       {v.visitors || 0}
                     </td>
-                    <td className="px-4 py-4 text-center text-green-600 dark:text-green-400 font-medium">
+                    <td className="px-4 py-4 text-center text-green-600 font-medium">
                       {v.conversions || 0}
                     </td>
                     <td className="px-4 py-4 text-center">
-                      <span className="font-bold text-gray-900 dark:text-white">
+                      <span className="font-bold text-gray-900">
                         {v.conversionRate}%
                       </span>
                     </td>
-                    <td className="px-4 py-4 text-center text-indigo-600 dark:text-indigo-400">
+                    <td className="px-4 py-4 text-center text-indigo-600">
                       {formatPrice(v.revenue || 0)}
                     </td>
                     <td className="px-4 py-4 text-center">
@@ -350,7 +350,7 @@ export default function ABTestDetailPage() {
                           <button
                             type="submit"
                             disabled={isSubmitting}
-                            className="flex items-center gap-1 px-3 py-1 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 text-sm rounded hover:bg-indigo-200"
+                            className="flex items-center gap-1 px-3 py-1 bg-indigo-100 text-indigo-700 text-sm rounded hover:bg-indigo-200"
                           >
                             <Copy size={14} /> লাইভ করুন
                           </button>
@@ -367,8 +367,8 @@ export default function ABTestDetailPage() {
 
       {/* Declare Winner */}
       {test.status !== 'concluded' && test.status !== 'paused' && significance.significant && (
-        <div className="p-6 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+        <div className="p-6 bg-white rounded-xl border border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
             🏆 Winner ঘোষণা করুন
           </h3>
           <Form method="post" className="flex items-center gap-4">
@@ -376,7 +376,7 @@ export default function ABTestDetailPage() {
             <select
               name="winningVariantId"
               required
-              className="flex-1 px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600"
+              className="flex-1 px-3 py-2 border rounded-lg bg-white text-gray-900 border-gray-300"
             >
               {variants.map((v) => (
                 <option key={v.id} value={v.id}>
@@ -396,8 +396,8 @@ export default function ABTestDetailPage() {
       )}
 
       {/* Test Info */}
-      <div className="mt-8 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
-        <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
+      <div className="mt-8 p-4 bg-gray-50 rounded-xl">
+        <div className="flex items-center gap-4 text-sm text-gray-500">
           <span className="flex items-center gap-1">
             <Clock size={14} />
             শুরু:{' '}

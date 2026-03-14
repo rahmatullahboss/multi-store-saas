@@ -326,7 +326,7 @@ function TimelineItem({
             </span>
             {/* Security alert chevron */}
             {isSecurityAlert && (
-              <button className="text-emerald-600 dark:text-emerald-400">
+              <button className="text-emerald-600">
                 <span className="material-symbols-outlined text-xl leading-none">chevron_right</span>
               </button>
             )}

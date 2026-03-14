@@ -6,7 +6,7 @@ export function DashboardSkeleton() {
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       {/* Welcome Section Skeleton */}
-      <div className="relative overflow-hidden rounded-3xl bg-gray-100 dark:bg-gray-800/50 p-8 shadow-sm border border-gray-200 dark:border-gray-800">
+      <div className="relative overflow-hidden rounded-3xl bg-gray-100 p-8 shadow-sm border border-gray-200">
         <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           <div className="space-y-4">
             <Skeleton className="h-6 w-32 rounded-full" />
@@ -105,7 +105,7 @@ export function DashboardSkeleton() {
       {/* Quick Actions Skeleton */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[1, 2, 3, 4].map((i) => (
-          <div key={i} className="flex flex-col items-center gap-3 p-6 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700">
+          <div key={i} className="flex flex-col items-center gap-3 p-6 bg-white rounded-2xl border border-gray-100">
             <Skeleton className="w-14 h-14 rounded-2xl" />
             <Skeleton className="h-4 w-20" />
           </div>

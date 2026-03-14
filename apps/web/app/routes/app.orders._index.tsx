@@ -1892,9 +1892,9 @@ function MobileFraudCheckButton({ orderId, currentStatus }: { orderId: number; c
 
   if (isChecking) {
     return (
-      <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-700 animate-pulse">
-        <div className="h-3 w-3 rounded-full bg-slate-300 dark:bg-slate-500" />
-        <div className="h-2.5 w-12 bg-slate-300 dark:bg-slate-500 rounded" />
+      <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 animate-pulse">
+        <div className="h-3 w-3 rounded-full bg-slate-300" />
+        <div className="h-2.5 w-12 bg-slate-300 rounded" />
       </div>
     );
   }
@@ -1936,7 +1936,7 @@ function MobileFraudCheckButton({ orderId, currentStatus }: { orderId: number; c
       onClick={handleCheck}
       disabled={isChecking}
       className="inline-flex items-center gap-1 px-2.5 py-1 text-[10px] font-semibold rounded-lg border transition-all duration-200
-        text-orange-600 border-orange-200 bg-white dark:bg-slate-800 dark:border-orange-700 dark:text-orange-400
+        text-orange-600 border-orange-200 bg-white
         "
     >
       <Shield className="w-3 h-3" />

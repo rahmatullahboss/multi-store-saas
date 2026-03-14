@@ -21,10 +21,10 @@ export { LazyBarChart } from './LazyBarChart';
 export function ChartSkeleton({ height = 300 }: { height?: number }) {
   return (
     <div 
-      className="animate-pulse bg-gray-100 dark:bg-slate-800 rounded-lg flex items-center justify-center"
+      className="animate-pulse bg-gray-100 rounded-lg flex items-center justify-center"
       style={{ height }}
     >
-      <div className="text-gray-400 dark:text-slate-500 text-sm">Loading chart...</div>
+      <div className="text-gray-400 text-sm">Loading chart...</div>
     </div>
   );
 }

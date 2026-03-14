@@ -152,7 +152,7 @@ function MobileDashboard() {
              <div className="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 border-2 border-slate-200 shadow-sm">
                 <User className="w-8 h-8" />
              </div>
-            <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-background-light dark:border-background-dark rounded-full"></div>
+            <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-background-light rounded-full"></div>
           </div>
           <div>
             <p className="text-slate-500 text-sm font-medium">{t('goodMorning') || 'Good Morning,'}</p>

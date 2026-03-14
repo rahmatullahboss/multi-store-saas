@@ -212,7 +212,7 @@ export default function OrderDetails() {
           )}
           
           {order.status === 'cancelled' && (
-            <div className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900 rounded-xl p-6 text-red-700 dark:text-red-400">
+            <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-red-700">
                <div className="flex items-center gap-3 mb-2">
                  <XCircle className="h-5 w-5" />
                  <h3 className="font-semibold">{t('orderCancelled') || 'Order Cancelled'}</h3>

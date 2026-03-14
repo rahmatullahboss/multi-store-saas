@@ -16,7 +16,7 @@ function ChartSkeleton({ height = 300 }: { height?: number }) {
   return (
     <ComponentSkeleton 
       height={`${height}px`} 
-      className="flex items-center justify-center bg-gray-100 dark:bg-slate-800"
+      className="flex items-center justify-center bg-gray-100"
     />
   );
 }

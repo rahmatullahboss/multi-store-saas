@@ -29,7 +29,7 @@ export function StickyBuyButton({
   if (isPreview) return null;
 
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 p-4 pb-safe bg-white/80 backdrop-blur-md border-t border-gray-100 dark:bg-black/80 dark:border-white/5">
+    <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 p-4 pb-safe bg-white/80 backdrop-blur-md border-t border-gray-100">
       <a
         href="#order-form"
         style={{

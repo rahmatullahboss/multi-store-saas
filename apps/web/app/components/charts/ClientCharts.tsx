@@ -76,10 +76,10 @@ export function ClientChart({ children, fallback, height = 300 }: ClientChartPro
   if (!isClient) {
     return (
       <div 
-        className="animate-pulse bg-slate-800/50 dark:bg-slate-800/50 bg-gray-100 rounded flex items-center justify-center"
+        className="animate-pulse bg-slate-800/50 bg-gray-100 rounded flex items-center justify-center"
         style={{ height }}
       >
-        <span className="text-slate-500 dark:text-slate-500 text-gray-400 text-sm">Loading chart...</span>
+        <span className="text-slate-500 text-gray-400 text-sm">Loading chart...</span>
       </div>
     );
   }
@@ -95,10 +95,10 @@ export function ClientChart({ children, fallback, height = 300 }: ClientChartPro
       <>
         {fallback || (
           <div 
-            className="animate-pulse bg-slate-800/50 dark:bg-slate-800/50 bg-gray-100 rounded flex items-center justify-center"
+            className="animate-pulse bg-slate-800/50 bg-gray-100 rounded flex items-center justify-center"
             style={{ height }}
           >
-            <span className="text-slate-500 dark:text-slate-500 text-gray-400 text-sm">Loading chart...</span>
+            <span className="text-slate-500 text-gray-400 text-sm">Loading chart...</span>
           </div>
         )}
       </>

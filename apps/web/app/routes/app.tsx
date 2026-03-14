@@ -52,7 +52,7 @@ import {
   Bell
 } from 'lucide-react';
 import { LanguageSelector } from '~/components/LanguageSelector';
-import { ThemeToggle } from '~/components/ThemeToggle';
+
 import { NotificationBell } from '~/components/NotificationBell';
 import { useTranslation } from '~/contexts/LanguageContext';
 import DashboardChatWidget from '~/components/dashboard/DashboardChatWidget';
@@ -404,7 +404,7 @@ export default function AppLayout() {
     location.pathname.startsWith('/app/landing-builder');
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 transition-colors">
+    <div className="min-h-screen bg-gray-100 transition-colors">
       {/* SHADOW MODE BANNER */}
       {isImpersonating && (
         <div className="bg-red-600 text-white px-4 py-2 flex items-center justify-between sticky top-0 z-[60] w-full shrink-0">
@@ -432,7 +432,7 @@ export default function AppLayout() {
       {/* Sidebar - hide on builder routes */}
       {!isBuilderRoute && <aside
         className={`
-          fixed top-0 left-0 z-50 h-full w-64 bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl border-r border-white/20 dark:border-gray-800
+          fixed top-0 left-0 z-50 h-full w-64 bg-white/90 backdrop-blur-xl border-r border-white/20
           transform transition-transform duration-200 ease-in-out
           lg:translate-x-0
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
@@ -448,15 +448,15 @@ export default function AppLayout() {
                   <img src="/brand/icon.png" alt="Ozzyl" className="w-6 h-6" />
                 </div>
                 <div>
-                  <h2 className="font-semibold text-gray-900 dark:text-white truncate max-w-[140px]">
+                  <h2 className="font-semibold text-gray-900 truncate max-w-[140px]">
                     {store.name}
                   </h2>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">{store.subdomain}</p>
+                  <p className="text-xs text-gray-500">{store.subdomain}</p>
                 </div>
               </div>
               <button
                 onClick={() => setSidebarOpen(false)}
-                className="lg:hidden p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                className="lg:hidden p-1 text-gray-500 hover:text-gray-700"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -532,8 +532,8 @@ export default function AppLayout() {
                             className={`
                               flex items-center gap-3 px-3 py-2 rounded-lg font-medium text-sm transition
                               ${active
-                                ? 'bg-gradient-to-r from-emerald-50 to-teal-50/50 dark:from-emerald-900/50 dark:to-teal-900/50 text-emerald-700 dark:text-emerald-400 shadow-sm border border-emerald-100/50 dark:border-emerald-800/50'
-                                : 'text-gray-600 hover:bg-gray-50/80 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white'
+                                ? 'bg-gradient-to-r from-emerald-50 to-teal-50/50 text-emerald-700 shadow-sm border border-emerald-100/50'
+                                : 'text-gray-600 hover:bg-gray-50/80 hover:text-gray-900'
                               }
                             `}
                           >
@@ -566,8 +566,8 @@ export default function AppLayout() {
                       className={`
                         flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium transition
                         ${active
-                          ? 'bg-purple-50 text-purple-700 dark:bg-purple-900/50 dark:text-purple-400'
-                          : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white'
+                          ? 'bg-purple-50 text-purple-700'
+                          : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                         }
                       `}
                     >
@@ -581,23 +581,23 @@ export default function AppLayout() {
           </nav>
 
           {/* User Info & Logout */}
-          <div className="p-4 border-t border-white/10 dark:border-gray-800 bg-white/30 dark:bg-gray-900/30 backdrop-blur-sm">
+          <div className="p-4 border-t border-white/10 bg-white/30 backdrop-blur-sm">
             {/* Language Selector - Temporarily disabled - Bengali is default */}
             {/* <div className="mb-3">
               <LanguageToggle />
             </div> */}
 
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-9 h-9 bg-white/50 dark:bg-gray-800/50 backdrop-blur rounded-full flex items-center justify-center border border-white/20 dark:border-gray-700">
-                <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+              <div className="w-9 h-9 bg-white/50 backdrop-blur rounded-full flex items-center justify-center border border-white/20">
+                <span className="text-sm font-medium text-gray-600">
                   {user.name?.charAt(0).toUpperCase() || user.email.charAt(0).toUpperCase()}
                 </span>
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                <p className="text-sm font-medium text-gray-900 truncate">
                   {user.name || 'Merchant'}
                 </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user.email}</p>
+                <p className="text-xs text-gray-500 truncate">{user.email}</p>
               </div>
             </div>
             <Form action="/auth/logout" method="post">
@@ -617,18 +617,18 @@ export default function AppLayout() {
       <div className={`flex-1 overflow-y-auto ${isBuilderRoute ? '' : ''}`}>
         {/* Mobile Header - hide on builder routes */}
         {!isBuilderRoute && (
-          <header className="lg:hidden sticky top-0 z-30 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-white/20 dark:border-gray-800 px-4 py-3">
+          <header className="lg:hidden sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-white/20 px-4 py-3">
             <div className="flex items-center justify-between">
               <button
                 onClick={() => setSidebarOpen(true)}
-                className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800 rounded-lg"
+                className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg"
               >
                 <Menu className="w-5 h-5" />
               </button>
-              <h1 className="font-semibold text-gray-900 dark:text-white truncate flex-1 px-4 text-center">{store.name}</h1>
+              <h1 className="font-semibold text-gray-900 truncate flex-1 px-4 text-center">{store.name}</h1>
               <div className="flex items-center gap-2">
                 <NotificationBell storeId={store.id} />
-                <ThemeToggle />
+
                 <LanguageSelector variant="toggle" size="sm" />
               </div>
             </div>
@@ -637,10 +637,10 @@ export default function AppLayout() {
 
         {/* Desktop Header with Language Toggle - hide on builder routes */}
         {!isBuilderRoute && (
-          <header className="hidden lg:block sticky top-0 z-30 bg-white/60 dark:bg-gray-900/60 backdrop-blur-xl border-b border-white/20 dark:border-gray-800 px-8 py-3">
+          <header className="hidden lg:block sticky top-0 z-30 bg-white/60 backdrop-blur-xl border-b border-white/20 px-8 py-3">
             <div className="flex items-center justify-end gap-3">
               <NotificationBell storeId={store.id} />
-              <ThemeToggle />
+
               <LanguageSelector variant="pills" size="sm" />
             </div>
           </header>

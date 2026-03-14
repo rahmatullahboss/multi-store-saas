@@ -86,7 +86,7 @@ export default function AccountWishlist() {
 
       {wishlistItems.length === 0 ? (
         <div className="text-center py-16 bg-gradient-to-br from-muted/30 to-muted/10 rounded-2xl border border-dashed flex flex-col items-center">
-            <div className="w-20 h-20 mb-6 rounded-full bg-pink-100 dark:bg-pink-900/20 flex items-center justify-center">
+            <div className="w-20 h-20 mb-6 rounded-full bg-pink-100 flex items-center justify-center">
                 <Heart className="h-10 w-10 text-pink-500" />
             </div>
             <h3 className="text-lg font-semibold mb-2">{t('wishlistEmpty')}</h3>

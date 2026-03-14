@@ -141,26 +141,26 @@ export default function NewAutomationPage() {
       <div className="mb-6">
         <Link
           to="/app/automations"
-          className="inline-flex items-center gap-1 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mb-4"
+          className="inline-flex items-center gap-1 text-gray-600 hover:text-gray-900 mb-4"
         >
           <ArrowLeft size={18} />
           ফিরে যান
         </Link>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+        <h1 className="text-2xl font-bold text-gray-900">
           📧 নতুন ইমেইল অটোমেশন
         </h1>
-        <p className="text-gray-600 dark:text-gray-400 mt-1">
+        <p className="text-gray-600 mt-1">
           অটোমেটিক ইমেইল সিকোয়েন্স সেটআপ করুন
         </p>
       </div>
 
       <Form method="post" className="space-y-6">
         {/* Basic Info */}
-        <div className="p-6 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">অটোমেশন তথ্য</h2>
+        <div className="p-6 bg-white rounded-xl border border-gray-200">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">অটোমেশন তথ্য</h2>
           
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
               অটোমেশন নাম *
             </label>
             <input
@@ -168,12 +168,12 @@ export default function NewAutomationPage() {
               name="name"
               required
               placeholder="যেমন: অর্ডার কনফার্মেশন সিরিজ"
-              className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600"
+              className="w-full px-3 py-2 border rounded-lg bg-white text-gray-900 border-gray-300"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               ট্রিগার সিলেক্ট করুন *
             </label>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -182,8 +182,8 @@ export default function NewAutomationPage() {
                   key={t.value}
                   className={`flex items-start gap-3 p-3 border rounded-lg cursor-pointer transition ${
                     selectedTrigger === t.value
-                      ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20'
-                      : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
+                      ? 'border-indigo-500 bg-indigo-50'
+                      : 'border-gray-200 hover:border-gray-300'
                   }`}
                 >
                   <input
@@ -195,11 +195,11 @@ export default function NewAutomationPage() {
                     className="mt-1"
                   />
                   <div>
-                    <div className="flex items-center gap-2 font-medium text-gray-900 dark:text-white">
+                    <div className="flex items-center gap-2 font-medium text-gray-900">
                       {t.icon}
                       {t.label}
                     </div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">{t.description}</p>
+                    <p className="text-sm text-gray-500">{t.description}</p>
                   </div>
                 </label>
               ))}
@@ -208,13 +208,13 @@ export default function NewAutomationPage() {
         </div>
 
         {/* Email Steps */}
-        <div className="p-6 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
+        <div className="p-6 bg-white rounded-xl border border-gray-200">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">ইমেইল স্টেপ</h2>
+            <h2 className="text-lg font-semibold text-gray-900">ইমেইল স্টেপ</h2>
             <button
               type="button"
               onClick={addStep}
-              className="flex items-center gap-1 px-3 py-1.5 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-200"
+              className="flex items-center gap-1 px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200"
             >
               <Plus size={16} /> স্টেপ যোগ করুন
             </button>
@@ -222,13 +222,13 @@ export default function NewAutomationPage() {
 
           <div className="space-y-4">
             {steps.map((step, index) => (
-              <div key={index} className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600">
+              <div key={index} className="p-4 bg-gray-50 rounded-lg border border-gray-200">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
-                    <span className="w-6 h-6 flex items-center justify-center bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 text-sm font-bold rounded-full">
+                    <span className="w-6 h-6 flex items-center justify-center bg-indigo-100 text-indigo-600 text-sm font-bold rounded-full">
                       {index + 1}
                     </span>
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <span className="text-sm font-medium text-gray-700">
                       স্টেপ {index + 1}
                     </span>
                   </div>
@@ -236,7 +236,7 @@ export default function NewAutomationPage() {
                     <button
                       type="button"
                       onClick={() => applyTemplate(index)}
-                      className="flex items-center gap-1 px-2 py-1 text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 rounded hover:bg-purple-200"
+                      className="flex items-center gap-1 px-2 py-1 text-xs bg-purple-100 text-purple-700 rounded hover:bg-purple-200"
                     >
                       <Wand2 size={12} /> টেমপ্লেট
                     </button>
@@ -244,7 +244,7 @@ export default function NewAutomationPage() {
                       <button
                         type="button"
                         onClick={() => removeStep(index)}
-                        className="p-1 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/30 rounded"
+                        className="p-1 text-red-600 hover:bg-red-100 rounded"
                       >
                         <Trash2 size={16} />
                       </button>
@@ -254,14 +254,14 @@ export default function NewAutomationPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div>
-                    <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">
+                    <label className="block text-sm text-gray-600 mb-1">
                       <Clock size={14} className="inline mr-1" /> বিলম্ব
                     </label>
                     <select
                       name="delay"
                       value={step.delay}
                       onChange={(e) => updateStep(index, 'delay', Number(e.target.value))}
-                      className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600 text-sm"
+                      className="w-full px-3 py-2 border rounded-lg bg-white text-gray-900 border-gray-300 text-sm"
                     >
                       <option value={0}>তাৎক্ষণিক</option>
                       <option value={30}>৩০ মিনিট পর</option>
@@ -276,7 +276,7 @@ export default function NewAutomationPage() {
                   </div>
 
                   <div className="md:col-span-3">
-                    <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">
+                    <label className="block text-sm text-gray-600 mb-1">
                       <Mail size={14} className="inline mr-1" /> সাবজেক্ট
                     </label>
                     <input
@@ -286,13 +286,13 @@ export default function NewAutomationPage() {
                       onChange={(e) => updateStep(index, 'subject', e.target.value)}
                       required
                       placeholder="ইমেইল সাবজেক্ট লাইন"
-                      className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600 text-sm"
+                      className="w-full px-3 py-2 border rounded-lg bg-white text-gray-900 border-gray-300 text-sm"
                     />
                   </div>
                 </div>
 
                 <div className="mt-3">
-                  <label className="block text-sm text-gray-600 dark:text-gray-400 mb-1">
+                  <label className="block text-sm text-gray-600 mb-1">
                     কন্টেন্ট (HTML)
                   </label>
                   <textarea
@@ -301,9 +301,9 @@ export default function NewAutomationPage() {
                     onChange={(e) => updateStep(index, 'content', e.target.value)}
                     rows={5}
                     placeholder="ইমেইল বডি HTML..."
-                    className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600 text-sm font-mono"
+                    className="w-full px-3 py-2 border rounded-lg bg-white text-gray-900 border-gray-300 text-sm font-mono"
                   />
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  <p className="text-xs text-gray-500 mt-1">
                     ভ্যারিয়েবল: {"{{customer_name}}, {{order_number}}, {{total}}"}
                   </p>
                 </div>
@@ -323,7 +323,7 @@ export default function NewAutomationPage() {
           </button>
           <Link
             to="/app/automations"
-            className="px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-300"
+            className="px-6 py-3 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300"
           >
             বাতিল
           </Link>

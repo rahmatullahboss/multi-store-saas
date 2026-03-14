@@ -47,7 +47,7 @@ interface SectionErrorBoundaryState {
 export function SectionLoadingFallback({ className }: { className?: string }) {
   return (
     <div
-      className={`animate-pulse bg-gray-100 dark:bg-gray-800 h-32 rounded-lg ${className || ''}`}
+      className={`animate-pulse bg-gray-100 h-32 rounded-lg ${className || ''}`}
       role="status"
       aria-label="Loading section..."
     >

@@ -146,27 +146,27 @@ export default function NewABTestPage() {
       <div className="mb-6">
         <Link
           to="/app/ab-tests"
-          className="inline-flex items-center gap-1 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mb-4"
+          className="inline-flex items-center gap-1 text-gray-600 hover:text-gray-900 mb-4"
         >
           <ArrowLeft size={18} />
           ফিরে যান
         </Link>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+        <h1 className="text-2xl font-bold text-gray-900">
           🧪 নতুন A/B টেস্ট তৈরি করুন
         </h1>
-        <p className="text-gray-600 dark:text-gray-400 mt-1">
+        <p className="text-gray-600 mt-1">
           বিভিন্ন ল্যান্ডিং পেজ ভ্যারিয়েন্ট তুলনা করুন
         </p>
       </div>
 
       <Form method="post" className="space-y-6">
         {/* Basic Info */}
-        <div className="p-6 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">টেস্ট তথ্য</h2>
+        <div className="p-6 bg-white rounded-xl border border-gray-200">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">টেস্ট তথ্য</h2>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
                 টেস্ট নাম *
               </label>
               <input
@@ -174,16 +174,16 @@ export default function NewABTestPage() {
                 name="name"
                 required
                 placeholder="যেমন: হেডলাইন টেস্ট ১"
-                className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600"
+                className="w-full px-3 py-2 border rounded-lg bg-white text-gray-900 border-gray-300"
               />
             </div>
           </div>
         </div>
 
         {/* Variants */}
-        <div className="p-6 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
+        <div className="p-6 bg-white rounded-xl border border-gray-200">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">ভ্যারিয়েন্ট</h2>
+            <h2 className="text-lg font-semibold text-gray-900">ভ্যারিয়েন্ট</h2>
             <div className="flex items-center gap-3">
               <span className={`text-sm ${totalWeight === 100 ? 'text-green-600' : 'text-red-600'}`}>
                 <Percent size={14} className="inline" /> মোট: {totalWeight}%
@@ -191,7 +191,7 @@ export default function NewABTestPage() {
               <button
                 type="button"
                 onClick={addVariant}
-                className="flex items-center gap-1 px-3 py-1.5 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-200"
+                className="flex items-center gap-1 px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200"
               >
                 <Plus size={16} /> ভ্যারিয়েন্ট যোগ
               </button>
@@ -200,10 +200,10 @@ export default function NewABTestPage() {
 
           <div className="space-y-4">
             {variants.map((variant, index) => (
-              <div key={index} className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600">
+              <div key={index} className="p-4 bg-gray-50 rounded-lg border border-gray-200">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
                       নাম
                     </label>
                     <input
@@ -211,12 +211,12 @@ export default function NewABTestPage() {
                       name="variantName"
                       value={variant.name}
                       onChange={(e) => updateVariant(index, 'name', e.target.value)}
-                      className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600"
+                      className="w-full px-3 py-2 border rounded-lg bg-white text-gray-900 border-gray-300"
                     />
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
                       ট্রাফিক (%)
                     </label>
                     <input
@@ -226,7 +226,7 @@ export default function NewABTestPage() {
                       max="100"
                       value={variant.weight}
                       onChange={(e) => updateVariant(index, 'weight', Number(e.target.value))}
-                      className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600"
+                      className="w-full px-3 py-2 border rounded-lg bg-white text-gray-900 border-gray-300"
                     />
                   </div>
 
@@ -234,7 +234,7 @@ export default function NewABTestPage() {
                     <button
                       type="button"
                       onClick={() => copyCurrentConfig(index)}
-                      className="flex items-center gap-1 px-3 py-2 text-sm bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 rounded hover:bg-indigo-200"
+                      className="flex items-center gap-1 px-3 py-2 text-sm bg-indigo-100 text-indigo-700 rounded hover:bg-indigo-200"
                       title="বর্তমান ল্যান্ডিং কপি করুন"
                     >
                       <Copy size={16} /> লাইভ কপি
@@ -246,7 +246,7 @@ export default function NewABTestPage() {
                       <button
                         type="button"
                         onClick={() => removeVariant(index)}
-                        className="p-2 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/30 rounded"
+                        className="p-2 text-red-600 hover:bg-red-100 rounded"
                       >
                         <Trash2 size={18} />
                       </button>
@@ -262,7 +262,7 @@ export default function NewABTestPage() {
                 />
 
                 {variant.config && (
-                  <p className="mt-2 text-xs text-green-600 dark:text-green-400">
+                  <p className="mt-2 text-xs text-green-600">
                     ✓ ল্যান্ডিং কনফিগ সেট আছে
                   </p>
                 )}
@@ -282,7 +282,7 @@ export default function NewABTestPage() {
           </button>
           <Link
             to="/app/ab-tests"
-            className="px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-300"
+            className="px-6 py-3 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300"
           >
             বাতিল
           </Link>
@@ -296,9 +296,9 @@ export default function NewABTestPage() {
       </Form>
 
       {/* Tips */}
-      <div className="mt-8 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
-        <h4 className="font-semibold text-blue-800 dark:text-blue-300 mb-2">💡 টিপস</h4>
-        <ul className="text-sm text-blue-700 dark:text-blue-400 space-y-1">
+      <div className="mt-8 p-4 bg-blue-50 rounded-xl border border-blue-200">
+        <h4 className="font-semibold text-blue-800 mb-2">💡 টিপস</h4>
+        <ul className="text-sm text-blue-700 space-y-1">
           <li>• Control = বর্তমান ল্যান্ডিং পেজ</li>
           <li>• Variant = পরিবর্তিত সংস্করণ</li>
           <li>• ট্রাফিক 50/50 ভাগ করুন শুরুতে</li>

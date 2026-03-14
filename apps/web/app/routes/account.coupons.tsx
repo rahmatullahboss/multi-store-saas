@@ -98,7 +98,7 @@ function CouponCard({ coupon, currency, isExpired }: CouponCardProps) {
               </p>
             </div>
             {isExpired && (
-               <Badge variant="outline" className="border-red-200 text-red-700 bg-red-50 dark:text-red-400 dark:border-red-900/50 dark:bg-red-950/20">
+               <Badge variant="outline" className="border-red-200 text-red-700 bg-red-50">
                  {t('expired')}
                </Badge>
             )}

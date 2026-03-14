@@ -14,10 +14,10 @@ import { requireTenant } from '~/lib/tenant-guard.server';
 import { Plus, Mail, Trash2, Edit2, Play, Pause, Clock, ShoppingCart, UserPlus, Package, TrendingUp } from 'lucide-react';
 
 const TRIGGER_LABELS: Record<string, { label: string; icon: React.ReactNode; color: string }> = {
-  order_placed: { label: 'অর্ডার সম্পন্ন', icon: <ShoppingCart size={16} />, color: 'text-green-600 bg-green-100 dark:bg-green-900/30' },
-  cart_abandoned: { label: 'কার্ট পরিত্যক্ত', icon: <Clock size={16} />, color: 'text-orange-600 bg-orange-100 dark:bg-orange-900/30' },
-  signup: { label: 'সাইনআপ', icon: <UserPlus size={16} />, color: 'text-blue-600 bg-blue-100 dark:bg-blue-900/30' },
-  order_delivered: { label: 'ডেলিভারি সম্পন্ন', icon: <Package size={16} />, color: 'text-purple-600 bg-purple-100 dark:bg-purple-900/30' },
+  order_placed: { label: 'অর্ডার সম্পন্ন', icon: <ShoppingCart size={16} />, color: 'text-green-600 bg-green-100' },
+  cart_abandoned: { label: 'কার্ট পরিত্যক্ত', icon: <Clock size={16} />, color: 'text-orange-600 bg-orange-100' },
+  signup: { label: 'সাইনআপ', icon: <UserPlus size={16} />, color: 'text-blue-600 bg-blue-100' },
+  order_delivered: { label: 'ডেলিভারি সম্পন্ন', icon: <Package size={16} />, color: 'text-purple-600 bg-purple-100' },
 };
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
@@ -90,10 +90,10 @@ export default function AutomationsPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+          <h1 className="text-2xl font-bold text-gray-900">
             📧 ইমেইল অটোমেশন
           </h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">
+          <p className="text-gray-600 mt-1">
             অটোমেটিক ইমেইল সিকোয়েন্স সেটআপ করুন
           </p>
         </div>
@@ -109,25 +109,25 @@ export default function AutomationsPage() {
       {/* Stats */}
       {automations.length > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <div className="p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-            <p className="text-sm text-gray-500 dark:text-gray-400">মোট অটোমেশন</p>
-            <p className="text-2xl font-bold text-gray-900 dark:text-white">{automations.length}</p>
+          <div className="p-4 bg-white rounded-xl border border-gray-200">
+            <p className="text-sm text-gray-500">মোট অটোমেশন</p>
+            <p className="text-2xl font-bold text-gray-900">{automations.length}</p>
           </div>
-          <div className="p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-            <p className="text-sm text-gray-500 dark:text-gray-400">সক্রিয়</p>
-            <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+          <div className="p-4 bg-white rounded-xl border border-gray-200">
+            <p className="text-sm text-gray-500">সক্রিয়</p>
+            <p className="text-2xl font-bold text-green-600">
               {automations.filter(a => a.isActive).length}
             </p>
           </div>
-          <div className="p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-            <p className="text-sm text-gray-500 dark:text-gray-400">মোট ইমেইল পাঠানো</p>
-            <p className="text-2xl font-bold text-gray-900 dark:text-white">
+          <div className="p-4 bg-white rounded-xl border border-gray-200">
+            <p className="text-sm text-gray-500">মোট ইমেইল পাঠানো</p>
+            <p className="text-2xl font-bold text-gray-900">
               {automations.reduce((sum, a) => sum + (a.totalSent || 0), 0)}
             </p>
           </div>
-          <div className="p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-            <p className="text-sm text-gray-500 dark:text-gray-400">মোট ওপেন</p>
-            <p className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">
+          <div className="p-4 bg-white rounded-xl border border-gray-200">
+            <p className="text-sm text-gray-500">মোট ওপেন</p>
+            <p className="text-2xl font-bold text-indigo-600">
               {automations.reduce((sum, a) => sum + (a.totalOpened || 0), 0)}
             </p>
           </div>
@@ -136,12 +136,12 @@ export default function AutomationsPage() {
 
       {/* Automations List */}
       {automations.length === 0 ? (
-        <div className="text-center py-16 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
+        <div className="text-center py-16 bg-white rounded-xl border border-gray-200">
           <div className="text-6xl mb-4">📧</div>
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">
             এখনো কোন অটোমেশন নেই
           </h3>
-          <p className="text-gray-600 dark:text-gray-400 mb-4">
+          <p className="text-gray-600 mb-4">
             অটোমেটিক ইমেইল সেটআপ করে কাস্টমার এনগেজমেন্ট বাড়ান!
           </p>
           <Link
@@ -164,10 +164,10 @@ export default function AutomationsPage() {
             return (
               <div
                 key={automation.id}
-                className={`p-5 bg-white dark:bg-gray-800 rounded-xl border transition ${
+                className={`p-5 bg-white rounded-xl border transition ${
                   automation.isActive
-                    ? 'border-green-200 dark:border-green-800'
-                    : 'border-gray-200 dark:border-gray-700 opacity-60'
+                    ? 'border-green-200'
+                    : 'border-gray-200 opacity-60'
                 }`}
               >
                 <div className="flex items-start justify-between gap-4">
@@ -178,17 +178,17 @@ export default function AutomationsPage() {
                         {triggerInfo.label}
                       </span>
                       {!automation.isActive && (
-                        <span className="px-2 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 text-xs rounded">
+                        <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded">
                           নিষ্ক্রিয়
                         </span>
                       )}
                     </div>
                     
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    <h3 className="text-lg font-semibold text-gray-900">
                       {automation.name}
                     </h3>
                     
-                    <div className="flex items-center gap-4 mt-2 text-sm text-gray-500 dark:text-gray-400">
+                    <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
                       <span>{automation.stepCount} স্টেপ</span>
                       <span>•</span>
                       <span>{automation.totalSent || 0} ইমেইল পাঠানো</span>
@@ -209,7 +209,7 @@ export default function AutomationsPage() {
                         {automation.steps.slice(0, 3).map((step, idx) => (
                           <span
                             key={step.id}
-                            className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 dark:bg-gray-700 text-xs rounded"
+                            className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 text-xs rounded"
                           >
                             <Clock size={12} />
                             {step.delayMinutes === 0 ? 'তাৎক্ষণিক' : `${step.delayMinutes} মিনিট পর`}
@@ -233,8 +233,8 @@ export default function AutomationsPage() {
                         disabled={isSubmitting}
                         className={`flex items-center gap-1 px-3 py-1.5 rounded text-sm ${
                           automation.isActive
-                            ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400'
-                            : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+                            ? 'bg-yellow-100 text-yellow-700'
+                            : 'bg-green-100 text-green-700'
                         }`}
                       >
                         {automation.isActive ? <Pause size={14} /> : <Play size={14} />}
@@ -244,7 +244,7 @@ export default function AutomationsPage() {
 
                     <Link
                       to={`/app/automations/${automation.id}`}
-                      className="flex items-center gap-1 px-3 py-1.5 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 rounded text-sm"
+                      className="flex items-center gap-1 px-3 py-1.5 bg-indigo-100 text-indigo-700 rounded text-sm"
                     >
                       <Edit2 size={14} /> এডিট
                     </Link>
@@ -257,7 +257,7 @@ export default function AutomationsPage() {
                       <button
                         type="submit"
                         disabled={isSubmitting}
-                        className="p-1.5 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/30 rounded"
+                        className="p-1.5 text-red-600 hover:bg-red-100 rounded"
                       >
                         <Trash2 size={16} />
                       </button>
@@ -271,9 +271,9 @@ export default function AutomationsPage() {
       )}
 
       {/* Help */}
-      <div className="mt-8 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
-        <h4 className="font-semibold text-blue-800 dark:text-blue-300 mb-2">💡 ইমেইল অটোমেশন কিভাবে কাজ করে?</h4>
-        <ul className="text-sm text-blue-700 dark:text-blue-400 space-y-1">
+      <div className="mt-8 p-4 bg-blue-50 rounded-xl border border-blue-200">
+        <h4 className="font-semibold text-blue-800 mb-2">💡 ইমেইল অটোমেশন কিভাবে কাজ করে?</h4>
+        <ul className="text-sm text-blue-700 space-y-1">
           <li>• <strong>অর্ডার সম্পন্ন:</strong> অর্ডার প্লেস হলে অটোমেটিক ইমেইল</li>
           <li>• <strong>কার্ট পরিত্যক্ত:</strong> কার্টে পণ্য রেখে গেলে রিমাইন্ডার</li>
           <li>• <strong>সাইনআপ:</strong> নতুন ইউজার জয়েন করলে ওয়েলকাম ইমেইল</li>

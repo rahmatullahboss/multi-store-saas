@@ -429,18 +429,18 @@ export default function AICommandCenter() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       <div className="max-w-7xl mx-auto p-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
+            <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
               <div className="p-2 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl">
                 <Brain className="w-7 h-7 text-white" />
               </div>
               AI Command Center
             </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-1">
+            <p className="text-gray-600 mt-1">
               Real-time platform intelligence • Powered by AI
             </p>
           </div>
@@ -456,7 +456,7 @@ export default function AICommandCenter() {
             <div className="flex items-center gap-3">
               <Bell className="w-5 h-5 text-red-500" />
               <div className="flex-1">
-                <p className="font-medium text-red-700 dark:text-red-400">
+                <p className="font-medium text-red-700">
                   {inactiveStores.length > 0 &&
                     `${inactiveStores.length} stores inactive for 30+ days`}
                   {inactiveStores.length > 0 && churnRiskCount > 50 && ' • '}
@@ -505,14 +505,14 @@ export default function AICommandCenter() {
         </div>
 
         {/* Global Conversion Funnel */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6 mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+        <div className="bg-white rounded-2xl shadow-sm p-6 mb-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-6 flex items-center gap-2">
             <TrendingUp className="w-5 h-5 text-green-500" />
             Global Conversion Funnel (Industry Benchmark)
           </h2>
           <div className="grid grid-cols-4 gap-4 relative">
             {/* Visual connector line */}
-            <div className="absolute top-1/2 left-0 w-full h-1 bg-gray-100 dark:bg-gray-700 -z-10 -translate-y-1/2 rounded-full" />
+            <div className="absolute top-1/2 left-0 w-full h-1 bg-gray-100 -z-10 -translate-y-1/2 rounded-full" />
 
             <FunnelStep
               label="Visitors"
@@ -544,10 +544,10 @@ export default function AICommandCenter() {
         {/* Main Content Grid */}
         <div className="grid lg:grid-cols-3 gap-6 mb-6">
           {/* AI Chat Interface */}
-          <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6">
+          <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm p-6">
             <div className="flex items-center gap-2 mb-4">
               <Sparkles className="w-5 h-5 text-purple-500" />
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+              <h2 className="text-lg font-semibold text-gray-900">
                 AI Platform Analyst
               </h2>
             </div>
@@ -565,7 +565,7 @@ export default function AICommandCenter() {
                       { method: 'POST' }
                     );
                   }}
-                  className="px-3 py-1.5 text-sm bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400 rounded-full hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors"
+                  className="px-3 py-1.5 text-sm bg-purple-50 text-purple-700 rounded-full hover:bg-purple-100 transition-colors"
                 >
                   {insight.label}
                 </button>
@@ -580,7 +580,7 @@ export default function AICommandCenter() {
                 onChange={(e) => setAiQuery(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleAIQuery()}
                 placeholder="প্ল্যাটফর্ম সম্পর্কে যেকোনো প্রশ্ন করুন..."
-                className="flex-1 px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-500"
+                className="flex-1 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-500"
               />
               <button
                 onClick={handleAIQuery}
@@ -597,13 +597,13 @@ export default function AICommandCenter() {
 
             {/* AI Response */}
             {(aiResponse || isAnalyzing) && (
-              <div className="bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 rounded-xl p-4">
+              <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl p-4">
                 {isAnalyzing ? (
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
                       <Brain className="w-4 h-4 text-white animate-pulse" />
                     </div>
-                    <p className="text-gray-600 dark:text-gray-400">Analyzing platform data...</p>
+                    <p className="text-gray-600">Analyzing platform data...</p>
                   </div>
                 ) : (
                   <div className="flex gap-3">
@@ -620,8 +620,8 @@ export default function AICommandCenter() {
           </div>
 
           {/* Segment Distribution */}
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+          <div className="bg-white rounded-2xl shadow-sm p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
               <PieChart className="w-5 h-5 text-indigo-500" />
               Customer Segments
             </h2>
@@ -668,8 +668,8 @@ export default function AICommandCenter() {
         {/* Merchant Health & Top Products */}
         <div className="grid lg:grid-cols-2 gap-6">
           {/* Merchant Health Scores */}
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+          <div className="bg-white rounded-2xl shadow-sm p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
               <BarChart3 className="w-5 h-5 text-green-500" />
               Merchant Health Scores
             </h2>
@@ -703,22 +703,22 @@ export default function AICommandCenter() {
                 return (
                   <div
                     key={store.storeId}
-                    className="flex items-center gap-4 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl"
+                    className="flex items-center gap-4 p-3 bg-gray-50 rounded-xl"
                   >
                     <div className="flex-shrink-0 w-8 text-center font-bold text-gray-400">
                       {i + 1}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex justify-between items-center mb-1">
-                        <p className="font-medium text-gray-900 dark:text-white truncate">
+                        <p className="font-medium text-gray-900 truncate">
                           {store.storeName}
                         </p>
-                        <span className="text-xs font-mono bg-white dark:bg-gray-800 px-1.5 py-0.5 rounded border border-gray-200 dark:border-gray-600">
+                        <span className="text-xs font-mono bg-white px-1.5 py-0.5 rounded border border-gray-200">
                           CR: {conversionRate.toFixed(1)}%
                         </span>
                       </div>
                       <div className="flex items-center gap-2 mt-1">
-                        <div className="flex-1 h-2 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden">
+                        <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
                           <div
                             className={`h-full ${healthColor} rounded-full`}
                             style={{ width: `${healthScore}%` }}
@@ -732,7 +732,7 @@ export default function AICommandCenter() {
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="font-bold text-gray-900 dark:text-white">
+                      <p className="font-bold text-gray-900">
                         {formatPrice(Number(store.revenue))}
                       </p>
                       <p className="text-xs text-gray-500">{store.orderCount} orders</p>
@@ -744,8 +744,8 @@ export default function AICommandCenter() {
           </div>
 
           {/* Top Trending Products */}
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm p-6">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+          <div className="bg-white rounded-2xl shadow-sm p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
               <Zap className="w-5 h-5 text-orange-500" />
               Trending Products
             </h2>
@@ -753,7 +753,7 @@ export default function AICommandCenter() {
               {topProducts.map((product, i) => (
                 <div
                   key={i}
-                  className="flex items-center gap-4 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl"
+                  className="flex items-center gap-4 p-3 bg-gray-50 rounded-xl"
                 >
                   <div
                     className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-white ${
@@ -769,13 +769,13 @@ export default function AICommandCenter() {
                     {i + 1}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-gray-900 dark:text-white truncate">
+                    <p className="font-medium text-gray-900 truncate">
                       {product.productName || 'Unknown Product'}
                     </p>
                     <p className="text-xs text-gray-500 truncate">{product.storeName}</p>
                   </div>
                   <div className="text-right">
-                    <p className="font-bold text-gray-900 dark:text-white">
+                    <p className="font-bold text-gray-900">
                       {product.soldCount} sold
                     </p>
                     <p className="text-xs text-green-500">
@@ -855,12 +855,12 @@ function SegmentBar({
       </div>
       <div className="flex-1">
         <div className="flex justify-between text-sm mb-1">
-          <span className="text-gray-700 dark:text-gray-300">{label}</span>
-          <span className="font-medium text-gray-900 dark:text-white">
+          <span className="text-gray-700">{label}</span>
+          <span className="font-medium text-gray-900">
             {count.toLocaleString()}
           </span>
         </div>
-        <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+        <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
           <div
             className={`h-full ${color} rounded-full transition-all`}
             style={{ width: `${percentage}%` }}
@@ -884,13 +884,13 @@ function FunnelStep({
   color: string;
 }) {
   return (
-    <div className="relative bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-100 dark:border-gray-700 text-center z-0 transition-transform hover:scale-105 duration-200">
+    <div className="relative bg-white p-4 rounded-xl border border-gray-100 text-center z-0 transition-transform hover:scale-105 duration-200">
       <div
         className={`w-12 h-12 mx-auto rounded-full ${color.replace('bg-', 'bg-opacity-10 text-')} flex items-center justify-center mb-3`}
       >
         <div className={`w-3 h-3 rounded-full ${color} animate-pulse`} />
       </div>
-      <p className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
+      <p className="text-2xl font-bold text-gray-900 mb-1">
         {value >= 1000 ? (value / 1000).toFixed(1) + 'k' : value.toLocaleString()}
       </p>
       <p className="text-xs text-gray-500 uppercase tracking-wide font-medium mb-2">{label}</p>

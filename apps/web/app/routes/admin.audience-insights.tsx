@@ -292,15 +292,15 @@ export default function AudienceInsights() {
   const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
+    <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
             <Globe className="w-6 h-6 text-purple-500" />
             Platform Data Insights
           </h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">
+          <p className="text-gray-600 mt-1">
             Real-time analytics across all stores • Cross-store customer intelligence
           </p>
         </div>
@@ -348,17 +348,17 @@ export default function AudienceInsights() {
 
         {/* Cross-Store Super VIPs */}
         <div className="grid lg:grid-cols-2 gap-6 mb-6">
-          <div className="bg-gradient-to-br from-yellow-500/10 to-orange-500/10 dark:from-yellow-900/20 dark:to-orange-900/20 rounded-xl shadow-sm p-6 border border-yellow-500/20">
+          <div className="bg-gradient-to-br from-yellow-500/10 to-orange-500/10 rounded-xl shadow-sm p-6 border border-yellow-500/20">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+              <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                 <Star className="w-5 h-5 text-yellow-500" />
                 Cross-Store Super VIPs
               </h2>
-              <span className="px-3 py-1 bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 rounded-full text-sm font-medium">
+              <span className="px-3 py-1 bg-yellow-500/20 text-yellow-700 rounded-full text-sm font-medium">
                 {crossStoreCount} found
               </span>
             </div>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+            <p className="text-sm text-gray-600 mb-4">
               Customers who shop at multiple stores on your platform
             </p>
             {crossStoreCustomers.length > 0 ? (
@@ -366,14 +366,14 @@ export default function AudienceInsights() {
                 {crossStoreCustomers.slice(0, 5).map((customer, i) => (
                   <div
                     key={i}
-                    className="flex items-center justify-between p-3 bg-white/50 dark:bg-gray-800/50 rounded-lg"
+                    className="flex items-center justify-between p-3 bg-white/50 rounded-lg"
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-full bg-yellow-500/20 flex items-center justify-center">
                         <Crown className="w-4 h-4 text-yellow-500" />
                       </div>
                       <div>
-                        <p className="font-medium text-gray-900 dark:text-white">
+                        <p className="font-medium text-gray-900">
                           {customer.phone?.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2') || 'Unknown'}
                         </p>
                         <p className="text-xs text-gray-500">
@@ -381,7 +381,7 @@ export default function AudienceInsights() {
                         </p>
                       </div>
                     </div>
-                    <span className="font-bold text-yellow-600 dark:text-yellow-400">
+                    <span className="font-bold text-yellow-600">
                       {formatPrice(Number(customer.totalSpent))}
                     </span>
                   </div>
@@ -393,8 +393,8 @@ export default function AudienceInsights() {
           </div>
 
           {/* Top Trending Products */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2 mb-4">
+          <div className="bg-white rounded-xl shadow-sm p-6">
+            <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2 mb-4">
               <Zap className="w-5 h-5 text-orange-500" />
               Top Trending Products
             </h2>
@@ -406,13 +406,13 @@ export default function AudienceInsights() {
                       {i + 1}
                     </span>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-gray-900 dark:text-white truncate">
+                      <p className="font-medium text-gray-900 truncate">
                         {product.productName || 'Unknown Product'}
                       </p>
                       <p className="text-xs text-gray-500 truncate">{product.storeName}</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-bold text-gray-900 dark:text-white">
+                      <p className="font-bold text-gray-900">
                         {product.soldCount} sold
                       </p>
                       <p className="text-xs text-green-500">
@@ -429,8 +429,8 @@ export default function AudienceInsights() {
         </div>
 
         {/* Segment Distribution */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">
+        <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-6">
             Customer Segments Distribution
           </h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
@@ -445,11 +445,11 @@ export default function AudienceInsights() {
                   <div className={`inline-flex p-4 rounded-xl ${segment.bgColor} mb-3`}>
                     <Icon className={`w-8 h-8 ${segment.color}`} />
                   </div>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                  <p className="text-2xl font-bold text-gray-900">
                     {segmentCount.toLocaleString()}
                   </p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">{segment.label}</p>
-                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{percentage}%</p>
+                  <p className="text-sm text-gray-500">{segment.label}</p>
+                  <p className="text-xs text-gray-400 mt-1">{percentage}%</p>
                 </div>
               );
             })}
@@ -459,15 +459,15 @@ export default function AudienceInsights() {
         {/* Merchant Performance & Categories */}
         <div className="grid lg:grid-cols-3 gap-6 mb-6">
           {/* Merchant Leaderboard */}
-          <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2 mb-4">
+          <div className="lg:col-span-2 bg-white rounded-xl shadow-sm p-6">
+            <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2 mb-4">
               <Award className="w-5 h-5 text-purple-500" />
               Merchant Performance Leaderboard
             </h2>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-left text-gray-500 dark:text-gray-400 border-b dark:border-gray-700">
+                  <tr className="text-left text-gray-500 border-b">
                     <th className="pb-3 font-medium">#</th>
                     <th className="pb-3 font-medium">Store</th>
                     <th className="pb-3 font-medium text-right">Revenue</th>
@@ -475,7 +475,7 @@ export default function AudienceInsights() {
                     <th className="pb-3 font-medium text-right">VIPs</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y dark:divide-gray-700">
+                <tbody className="divide-y">
                   {merchantPerformance.slice(0, 8).map((store, i) => {
                     const storeAvgOrderValue =
                       Number(store.orderCount) > 0
@@ -484,7 +484,7 @@ export default function AudienceInsights() {
                     const aboveAvg = storeAvgOrderValue > industryAverages.avgOrderValue;
 
                     return (
-                      <tr key={store.storeId} className="text-gray-900 dark:text-white">
+                      <tr key={store.storeId} className="text-gray-900">
                         <td className="py-3 font-bold text-gray-400">{i + 1}</td>
                         <td className="py-3">
                           <div>
@@ -513,27 +513,27 @@ export default function AudienceInsights() {
           </div>
 
           {/* Industry Benchmarks */}
-          <div className="bg-gradient-to-br from-purple-500/10 to-indigo-500/10 dark:from-purple-900/20 dark:to-indigo-900/20 rounded-xl shadow-sm p-6 border border-purple-500/20">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2 mb-4">
+          <div className="bg-gradient-to-br from-purple-500/10 to-indigo-500/10 rounded-xl shadow-sm p-6 border border-purple-500/20">
+            <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2 mb-4">
               <Target className="w-5 h-5 text-purple-500" />
               Platform Benchmarks
             </h2>
             <div className="space-y-4">
-              <div className="p-4 bg-white/50 dark:bg-gray-800/50 rounded-lg">
-                <p className="text-sm text-gray-500 dark:text-gray-400">Avg Order Value</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+              <div className="p-4 bg-white/50 rounded-lg">
+                <p className="text-sm text-gray-500">Avg Order Value</p>
+                <p className="text-2xl font-bold text-gray-900">
                   ৳{industryAverages.avgOrderValue.toFixed(0)}
                 </p>
               </div>
-              <div className="p-4 bg-white/50 dark:bg-gray-800/50 rounded-lg">
-                <p className="text-sm text-gray-500 dark:text-gray-400">Avg Orders/Store</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+              <div className="p-4 bg-white/50 rounded-lg">
+                <p className="text-sm text-gray-500">Avg Orders/Store</p>
+                <p className="text-2xl font-bold text-gray-900">
                   {industryAverages.avgOrdersPerStore.toFixed(0)}
                 </p>
               </div>
-              <div className="p-4 bg-white/50 dark:bg-gray-800/50 rounded-lg">
-                <p className="text-sm text-gray-500 dark:text-gray-400">VIP Conversion</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+              <div className="p-4 bg-white/50 rounded-lg">
+                <p className="text-sm text-gray-500">VIP Conversion</p>
+                <p className="text-2xl font-bold text-gray-900">
                   {totalCustomers > 0
                     ? (((segmentCounts.vip || 0) / totalCustomers) * 100).toFixed(1)
                     : 0}
@@ -545,14 +545,14 @@ export default function AudienceInsights() {
         </div>
 
         {/* Top Categories */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+        <div className="bg-white rounded-xl shadow-sm p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">
             Top Product Categories
           </h2>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {topCategories.map((cat, i) => (
-              <div key={i} className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg text-center">
-                <p className="font-medium text-gray-900 dark:text-white truncate">
+              <div key={i} className="p-4 bg-gray-50 rounded-lg text-center">
+                <p className="font-medium text-gray-900 truncate">
                   {cat.category || 'Uncategorized'}
                 </p>
                 <p className="text-sm text-gray-500 mt-1">{cat.productCount} products</p>
@@ -581,11 +581,11 @@ function MetricCard({
   iconColor: string;
 }) {
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4">
+    <div className="bg-white rounded-xl shadow-sm p-4">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-xs text-gray-500 dark:text-gray-400">{label}</p>
-          <p className="text-xl font-bold text-gray-900 dark:text-white mt-1">{value}</p>
+          <p className="text-xs text-gray-500">{label}</p>
+          <p className="text-xl font-bold text-gray-900 mt-1">{value}</p>
           {subtext && <p className="text-xs text-gray-400 mt-1">{subtext}</p>}
         </div>
         <Icon className={`w-8 h-8 ${iconColor}`} />
