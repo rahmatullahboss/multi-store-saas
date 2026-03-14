@@ -13,6 +13,7 @@ import {
 import { FRESHNESS_THEME } from '../theme';
 import type { SerializedProduct } from '~/templates/store-registry';
 import { PreviewSafeLink } from '~/components/PreviewSafeLink';
+import { sanitizeHtml } from '~/utils/sanitize';
 import { AddToCartButton } from '~/components/AddToCartButton';
 import { formatPrice } from '~/lib/formatting';
 
@@ -126,7 +127,7 @@ export function FreshnessProductPage({
 
               <div 
                 className="text-gray-600 mb-8 leading-relaxed prose prose-sm max-w-none"
-                dangerouslySetInnerHTML={{ __html: product.description || 'Experience the freshness of nature with our premium quality products. Sourced directly from trusted farms to your table.' }}
+                dangerouslySetInnerHTML={{ __html: sanitizeHtml(product.description || 'Experience the freshness of nature with our premium quality products. Sourced directly from trusted farms to your table.') }}
               />
 
               {/* Quantity */}

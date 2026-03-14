@@ -68,7 +68,7 @@ export function SearchInput({
           type="button"
           onClick={handleClear}
           aria-label="Clear search"
-          className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition"
+          className="absolute inset-y-0 right-3 my-auto h-6 w-6 flex items-center justify-center rounded-md text-gray-400 hover:text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-1 transition"
         >
           <X className="w-4 h-4" />
         </button>
