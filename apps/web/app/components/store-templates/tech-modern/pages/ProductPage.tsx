@@ -5,6 +5,7 @@ import type { SerializedProduct } from '~/templates/store-registry';
 import { AddToCartButton } from '~/components/AddToCartButton';
 import { PreviewSafeLink } from '~/components/PreviewSafeLink';
 import { formatPrice } from '~/lib/formatting';
+import { sanitizeHtml } from '~/utils/sanitize';
 
 interface TechProductProps {
   product: SerializedProduct & {
@@ -256,7 +257,7 @@ export function TechModernProductPage({
             {activeTab === 'description' && (
               <div className="prose max-w-none text-gray-600">
                 {product.description ? (
-                  <div dangerouslySetInnerHTML={{ __html: product.description }} />
+                  <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(product.description || "") }} />
                 ) : (
                   <p>No description available for this product.</p>
                 )}

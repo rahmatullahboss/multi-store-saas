@@ -1,0 +1,4 @@
+## 2024-05-18 - Unsanitized Product Description XSS
+**Vulnerability:** Several store template components were rendering `product.description` using React's `dangerouslySetInnerHTML` without proper sanitization. This allowed potential Cross-Site Scripting (XSS) if a malicious merchant or compromised account injected script tags into the product description.
+**Learning:** Found that while a custom `sanitizeHtml` utility exists at `apps/web/app/utils/sanitize.ts`, its usage was inconsistent. Many newer or duplicated templates omitted it when implementing `dangerouslySetInnerHTML`.
+**Prevention:** Ensure all usages of `dangerouslySetInnerHTML` in the codebase are systematically audited. Enforce the usage of `sanitizeHtml` (or a stronger library like DOMPurify) for any user-controlled input rendered as HTML.

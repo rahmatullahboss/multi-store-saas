@@ -25,6 +25,7 @@ import { DARAZ_THEME } from '../theme';
 import type { Product } from '@db/schema';
 import { formatPrice } from '~/lib/formatting';
 import { AddToCartButton } from '~/components/AddToCartButton';
+import { sanitizeHtml } from '~/utils/sanitize';
 
 interface ProductPageProps {
   product: Product;
@@ -315,7 +316,7 @@ export function DarazProductPage({
             <div
               className="prose prose-sm max-w-none"
               style={{ color: DARAZ_THEME.textSecondary }}
-              dangerouslySetInnerHTML={{ __html: product.description }}
+              dangerouslySetInnerHTML={{ __html: sanitizeHtml(product.description || "") }}
             />
           </div>
         )}

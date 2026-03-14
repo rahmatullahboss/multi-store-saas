@@ -6,6 +6,7 @@ import { RovoFooter } from '~/components/store/rovo/RovoFooter';
 import { AddToCartButton } from '~/components/AddToCartButton';
 import type { SocialLinks } from '@db/types';
 import { formatPrice } from '~/lib/formatting';
+import { sanitizeHtml } from '~/utils/sanitize';
 
 interface Product {
   id: number;
@@ -237,7 +238,7 @@ export function RovoProductDetail({
           </h2>
           <div
             className="prose max-w-4xl mx-auto"
-            dangerouslySetInnerHTML={{ __html: product.description || '' }}
+            dangerouslySetInnerHTML={{ __html: sanitizeHtml(product.description || '') }}
           />
         </div>
 
