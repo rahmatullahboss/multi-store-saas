@@ -75,10 +75,12 @@ id = "7aea490529e049bcb2ebf98964012f71"
 binding = "VECTORIZE"
 index_name = "multi-store-saas-vectors"
 
-# Analytics Engine for usage tracking (free — avoids KV fallback which costs 6 ops/request)
-[[env.staging.analytics_engine_datasets]]
-binding = "ANALYTICS"
-dataset = "ozzyl_api_usage"
+# NOTE: Analytics Engine binding commented out — enable AE in Cloudflare Dashboard first:
+# https://dash.cloudflare.com/474078d5f990169d7dadf4e1df83214a/workers/analytics-engine
+# Then uncomment:
+# [[env.staging.analytics_engine_datasets]]
+# binding = "ANALYTICS"
+# dataset = "ozzyl_api_usage"
 
 [env.staging.ai]
 binding = "AI"
@@ -163,10 +165,12 @@ id = "026696313f02475c846dc70197a3c98f"
 binding = "VECTORIZE"
 index_name = "multi-store-saas-vectors"
 
-# Analytics Engine for usage tracking (free — avoids KV fallback which costs 6 ops/request)
-[[env.production.analytics_engine_datasets]]
-binding = "ANALYTICS"
-dataset = "ozzyl_api_usage"
+# NOTE: Analytics Engine binding commented out — enable AE in Cloudflare Dashboard first:
+# https://dash.cloudflare.com/474078d5f990169d7dadf4e1df83214a/workers/analytics-engine
+# Then uncomment:
+# [[env.production.analytics_engine_datasets]]
+# binding = "ANALYTICS"
+# dataset = "ozzyl_api_usage"
 
 [env.production.ai]
 binding = "AI"
@@ -262,10 +266,12 @@ id = "026696313f02475c846dc70197a3c98f"
 binding = "VECTORIZE"
 index_name = "multi-store-saas-vectors"
 
-# Analytics Engine for usage tracking (free — avoids KV fallback which costs 6 ops/request)
-[[analytics_engine_datasets]]
-binding = "ANALYTICS"
-dataset = "ozzyl_api_usage"
+# NOTE: Analytics Engine binding commented out — enable AE in Cloudflare Dashboard first:
+# https://dash.cloudflare.com/474078d5f990169d7dadf4e1df83214a/workers/analytics-engine
+# Then uncomment:
+# [[analytics_engine_datasets]]
+# binding = "ANALYTICS"
+# dataset = "ozzyl_api_usage"
 
 # Cloudflare Workers AI Binding
 [ai]
