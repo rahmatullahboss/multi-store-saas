@@ -33,7 +33,7 @@ import { requestTracker } from './lib/debug/request-tracker';
 import { productsApi } from './api/products';
 import { ordersApi } from './api/orders';
 import { storesApi } from './api/stores';
-import { graphqlApi } from './api/graphql';
+// import { graphqlApi } from './api/graphql'; // TODO: Re-enable when upgraded to paid Workers plan (>3MiB bundle)
 import { oauthApi } from './api/oauth';
 import customersApi from './api/routes/customers';
 import { v1Router } from './api/v1';
@@ -455,7 +455,7 @@ app.get('/api/store', (c) => {
 app.route('/api/products', productsApi);
 app.route('/api/orders', ordersApi);
 app.route('/api/stores', storesApi);
-app.route('/api/graphql', graphqlApi);
+// app.route('/api/graphql', graphqlApi); // TODO: Re-enable when upgraded to paid Workers plan
 app.route('/api/oauth', oauthApi);
 app.route('/api/customers', customersApi);
 
