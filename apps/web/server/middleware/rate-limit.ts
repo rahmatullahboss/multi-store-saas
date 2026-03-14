@@ -152,7 +152,7 @@ export function rateLimitMiddleware(): MiddlewareHandler {
     }
     const windowKey = `rl:${rateLimitKey}:${currentMinuteWindow()}`;
 
-    const raw = await kv.get(windowKey);
+    const raw = await kv.get(windowKey).catch(() => null);
     const count = raw ? parseInt(raw, 10) : 0;
 
     if (count >= limits.requestsPerMinute) {
@@ -160,7 +160,13 @@ export function rateLimitMiddleware(): MiddlewareHandler {
     }
 
     // Increment (approximate — not atomic in KV)
-    await kv.put(windowKey, String(count + 1), { expirationTtl: 120 });
+    // Wrapped in try-catch: if KV write limit is exhausted, allow request through
+    try {
+      await kv.put(windowKey, String(count + 1), { expirationTtl: 120 });
+    } catch (err) {
+      // KV put() limit exceeded — degrade gracefully, don't crash the request
+      console.warn('[RateLimit] KV put failed (likely daily limit exceeded), allowing request through:', err instanceof Error ? err.message : err);
+    }
 
     // Set rate limit headers
     c.res.headers.set('X-RateLimit-Limit', String(limits.requestsPerMinute));
@@ -233,7 +239,7 @@ function createSimpleRateLimit(limitPerMinute: number, label: string): () => Mid
     const ip = c.req.header('cf-connecting-ip') ?? c.req.header('x-forwarded-for') ?? 'unknown';
     const windowKey = `rl:${label}:${ip}:${currentMinuteWindow()}`;
 
-    const raw = await kv.get(windowKey);
+    const raw = await kv.get(windowKey).catch(() => null);
     const count = raw ? parseInt(raw, 10) : 0;
 
     if (count >= limitPerMinute) {
@@ -248,7 +254,12 @@ function createSimpleRateLimit(limitPerMinute: number, label: string): () => Mid
       );
     }
 
-    await kv.put(windowKey, String(count + 1), { expirationTtl: 120 });
+    // Wrapped in try-catch: if KV write limit is exhausted, allow request through
+    try {
+      await kv.put(windowKey, String(count + 1), { expirationTtl: 120 });
+    } catch (err) {
+      console.warn(`[RateLimit:${label}] KV put failed, allowing through:`, err instanceof Error ? err.message : err);
+    }
     await next();
   };
 }
