@@ -4,7 +4,10 @@ import type { TenantContext, TenantEnv } from './tenant';
 type WorkerTelemetryCategory = 'document' | 'api' | 'manifest' | 'asset' | 'other';
 
 const TELEMETRY_PREFIX = 'telemetry:worker:v1';
-const SAMPLE_RATE = 0.05; // 5% sampling to stay within KV free-tier write limits (1000/day)
+// DISABLED: Set to 0 to stay within KV free-tier limits (1000 reads + 1000 writes/day).
+// Each sampled hit does 2 KV reads + 2 KV writes via incrementCounter().
+// Re-enable (e.g. 0.05 = 5%) after upgrading to $5/mo Workers paid plan.
+const SAMPLE_RATE = 0;
 const TTL_SECONDS = 60 * 60 * 24 * 3; // Keep 3 days of hourly buckets
 const MAX_PATH_LENGTH = 120;
 

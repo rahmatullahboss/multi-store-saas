@@ -75,6 +75,11 @@ id = "7aea490529e049bcb2ebf98964012f71"
 binding = "VECTORIZE"
 index_name = "multi-store-saas-vectors"
 
+# Analytics Engine for usage tracking (free — avoids KV fallback which costs 6 ops/request)
+[[env.staging.analytics_engine_datasets]]
+binding = "ANALYTICS"
+dataset = "ozzyl_api_usage"
+
 [env.staging.ai]
 binding = "AI"
 
@@ -157,6 +162,11 @@ id = "026696313f02475c846dc70197a3c98f"
 [[env.production.vectorize]]
 binding = "VECTORIZE"
 index_name = "multi-store-saas-vectors"
+
+# Analytics Engine for usage tracking (free — avoids KV fallback which costs 6 ops/request)
+[[env.production.analytics_engine_datasets]]
+binding = "ANALYTICS"
+dataset = "ozzyl_api_usage"
 
 [env.production.ai]
 binding = "AI"
@@ -251,6 +261,11 @@ id = "026696313f02475c846dc70197a3c98f"
 [[vectorize]]
 binding = "VECTORIZE"
 index_name = "multi-store-saas-vectors"
+
+# Analytics Engine for usage tracking (free — avoids KV fallback which costs 6 ops/request)
+[[analytics_engine_datasets]]
+binding = "ANALYTICS"
+dataset = "ozzyl_api_usage"
 
 # Cloudflare Workers AI Binding
 [ai]

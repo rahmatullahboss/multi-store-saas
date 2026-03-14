@@ -105,6 +105,9 @@ declare global {
     // ─── API Platform (Phase 1-3) ─────────────────────────────────────────────
     API_KEY_SECRET?: string;
     RATE_LIMIT_KV?: KVNamespace;
+
+    // Analytics Engine for usage tracking (avoids KV fallback)
+    ANALYTICS?: AnalyticsEngineDataset;
   }
 }
 
