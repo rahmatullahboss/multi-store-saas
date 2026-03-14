@@ -9,9 +9,9 @@
  * 4. Update store info (announcement, contact)
  */
 
-import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
-import { json } from '@remix-run/cloudflare';
-import { Form, Link, useLoaderData, useNavigation, useActionData } from '@remix-run/react';
+import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { Form, Link, useLoaderData, useNavigation, useActionData } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
 import { stores } from '@db/schema';

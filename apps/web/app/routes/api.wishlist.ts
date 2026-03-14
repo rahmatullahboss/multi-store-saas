@@ -9,8 +9,8 @@
  * - Rate limiting considerations
  */
 
-import type { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/cloudflare';
-import { json } from '@remix-run/cloudflare';
+import type { ActionFunctionArgs, LoaderFunctionArgs } from 'react-router';
+import { json } from '~/lib/rr7-compat';
 import { eq, and, isNull } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
 import { z } from 'zod';

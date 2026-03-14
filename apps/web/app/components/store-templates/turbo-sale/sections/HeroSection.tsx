@@ -1,5 +1,5 @@
 
-import { Link } from '@remix-run/react';
+import { Link } from 'react-router';
 import { Play, ArrowRight, ShoppingCart } from 'lucide-react';
 import type { SectionSettings } from '~/components/store-sections/registry';
 import { withAISchema } from '~/utils/ai-editable';

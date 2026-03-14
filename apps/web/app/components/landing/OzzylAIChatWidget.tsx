@@ -14,7 +14,7 @@
  */
 
 import { useState, useRef, useEffect } from 'react';
-import { useFetcher } from '@remix-run/react';
+import { useFetcher } from 'react-router';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Send, X, User, Loader2, ArrowRight, Phone } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';

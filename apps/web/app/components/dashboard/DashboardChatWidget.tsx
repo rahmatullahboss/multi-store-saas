@@ -1,6 +1,6 @@
 
 import { useState, useEffect, useRef } from 'react';
-import { useFetcher, useLocation } from '@remix-run/react';
+import { useFetcher, useLocation } from 'react-router';
 import { Send, Sparkles, Loader2, User, ChevronDown } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { ASSETS } from '~/config/assets';

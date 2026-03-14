@@ -10,13 +10,9 @@
  * - Submits to /api/create-order
  */
 
-import {
-  json,
-  type LoaderFunctionArgs,
-  type ActionFunctionArgs,
-  type MetaFunction,
-} from '@remix-run/cloudflare';
-import { useLoaderData, useFetcher, useNavigate, Link, useSearchParams, useRouteError, isRouteErrorResponse } from '@remix-run/react';
+import { type LoaderFunctionArgs, type ActionFunctionArgs, type MetaFunction } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { useLoaderData, useFetcher, useNavigate, Link, useSearchParams, useRouteError, isRouteErrorResponse } from 'react-router';
 import { eq, and, inArray, desc } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
 import { abandonedCarts, products, orderBumps, productVariants } from '@db/schema';

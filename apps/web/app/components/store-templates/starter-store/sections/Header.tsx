@@ -7,7 +7,7 @@
  * - Live: Real navigation, real cart count from API
  */
 
-import { Link, useParams } from '@remix-run/react';
+import { Link, useParams } from 'react-router';
 import { useState } from 'react';
 import { ShoppingCart, Search, Menu, X, User, Heart } from 'lucide-react';
 import { useCartCount } from '~/hooks/useCartCount';

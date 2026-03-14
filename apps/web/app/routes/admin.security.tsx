@@ -1,6 +1,7 @@
 
-import { json, type LoaderFunctionArgs, type MetaFunction } from '@remix-run/cloudflare';
-import { useLoaderData, useRevalidator } from '@remix-run/react';
+import { type LoaderFunctionArgs, type MetaFunction } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { useLoaderData, useRevalidator } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
 import { desc, eq, sql, and, like, gte } from 'drizzle-orm';
 import { systemLogs } from '@db/schema';

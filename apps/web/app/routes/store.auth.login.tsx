@@ -7,12 +7,8 @@
  * or Google OAuth (if enabled).
  */
 
-import {
-  json,
-  redirect,
-  type LoaderFunctionArgs,
-  type ActionFunctionArgs,
-} from '@remix-run/cloudflare';
+import { redirect, type LoaderFunctionArgs, type ActionFunctionArgs } from 'react-router';
+import { json } from '~/lib/rr7-compat';
 import {
   useLoaderData,
   useActionData,
@@ -20,7 +16,7 @@ import {
   Link,
   useNavigation,
   useSearchParams,
-} from '@remix-run/react';
+} from 'react-router';
 import { createDb } from '~/lib/db.server';
 import { D1Cache } from '~/services/cache-layer.server';
 import { products as productsTable } from '@db/schema';

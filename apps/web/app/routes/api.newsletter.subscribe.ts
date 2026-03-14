@@ -1,5 +1,6 @@
 
-import { json, type ActionFunctionArgs } from '@remix-run/cloudflare';
+import { type ActionFunctionArgs } from 'react-router';
+import { json } from '~/lib/rr7-compat';
 import { createCampaignService } from '~/services/campaign.server';
 
 export async function action({ request, context }: ActionFunctionArgs) {

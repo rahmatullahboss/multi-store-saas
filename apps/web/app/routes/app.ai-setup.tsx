@@ -5,8 +5,9 @@
  * and AI generates store name, SEO keywords, and initial product.
  */
 
-import { json, redirect, type LoaderFunctionArgs, type ActionFunctionArgs } from '@remix-run/cloudflare';
-import { Form, useActionData, useNavigation, useLoaderData } from '@remix-run/react';
+import { redirect, type LoaderFunctionArgs, type ActionFunctionArgs } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { Form, useActionData, useNavigation, useLoaderData } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
 import { stores, products, users } from '@db/schema';

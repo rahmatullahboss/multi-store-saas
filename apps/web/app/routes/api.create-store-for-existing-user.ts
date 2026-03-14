@@ -7,8 +7,8 @@
  * POST /api/create-store-for-existing-user
  */
 
-import type { ActionFunctionArgs } from '@remix-run/cloudflare';
-import { json } from '@remix-run/cloudflare';
+import type { ActionFunctionArgs } from 'react-router';
+import { json } from '~/lib/rr7-compat';
 import { z } from 'zod';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';

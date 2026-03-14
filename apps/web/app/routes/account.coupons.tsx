@@ -1,5 +1,6 @@
-import { json, type LoaderFunctionArgs, type SerializeFrom } from '@remix-run/cloudflare';
-import { useLoaderData, Link } from '@remix-run/react';
+import { type LoaderFunctionArgs, type SerializeFrom } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { useLoaderData, Link } from 'react-router';
 import { resolveStore } from '~/lib/store.server';
 import { getAvailableCoupons } from '~/services/customer-account.server';
 import {

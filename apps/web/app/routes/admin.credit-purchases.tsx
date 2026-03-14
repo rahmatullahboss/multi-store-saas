@@ -9,9 +9,9 @@
  * - Reject requests with notes
  */
 
-import type { LoaderFunctionArgs, ActionFunctionArgs } from '@remix-run/cloudflare';
-import { json } from '@remix-run/cloudflare';
-import { useLoaderData, useFetcher } from '@remix-run/react';
+import type { LoaderFunctionArgs, ActionFunctionArgs } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { useLoaderData, useFetcher } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, desc } from 'drizzle-orm';
 import { creditPurchases, stores } from '@db/schema';

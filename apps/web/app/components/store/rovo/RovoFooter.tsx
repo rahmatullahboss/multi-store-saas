@@ -1,4 +1,4 @@
-import { Link } from '@remix-run/react';
+import { Link } from 'react-router';
 import { Facebook, Instagram, Twitter } from 'lucide-react';
 import type { SocialLinks } from '@db/types';
 

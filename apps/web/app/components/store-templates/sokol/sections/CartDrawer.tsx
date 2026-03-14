@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from '@remix-run/react';
+import { Link } from 'react-router';
 import { formatPrice } from '~/lib/formatting';
 import { X, Plus, Minus, ShoppingBag, Trash2 } from 'lucide-react';
 

@@ -2,7 +2,7 @@ import { useRef } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { Shirt, Utensils, Laptop, ShoppingBag, ArrowRight, Check } from 'lucide-react';
-import { Link } from '@remix-run/react';
+import { Link } from 'react-router';
 
 export function UseCaseScenariosSection() {
   const { lang } = useTranslation();

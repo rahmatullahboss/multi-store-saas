@@ -6,14 +6,15 @@
  * Supports category filtering via URL params.
  */
 
-import { json, type LoaderFunctionArgs, type MetaFunction } from '@remix-run/cloudflare';
+import { type LoaderFunctionArgs, type MetaFunction } from 'react-router';
+import { json } from '~/lib/rr7-compat';
 import {
   useLoaderData,
   Link,
   useSearchParams,
   useRouteError,
   isRouteErrorResponse,
-} from '@remix-run/react';
+} from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { eq, and, desc, asc, gte, lte, sql } from 'drizzle-orm';
 import { resolveStore } from '~/lib/store.server';

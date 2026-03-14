@@ -5,8 +5,9 @@
  * Route: /app/settings/metafields
  */
 
-import { json, type LoaderFunction, type ActionFunction } from '@remix-run/cloudflare';
-import { useLoaderData, useFetcher, Link } from '@remix-run/react';
+import { type LoaderFunction, type ActionFunction } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { useLoaderData, useFetcher, Link } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
 import { and, eq } from 'drizzle-orm';
 import { useState, useEffect } from 'react';

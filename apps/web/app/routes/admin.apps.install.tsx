@@ -1,5 +1,6 @@
-import { json, redirect, type LoaderFunctionArgs, type ActionFunctionArgs } from "@remix-run/cloudflare";
-import { useLoaderData, Form, useActionData, useNavigation } from "@remix-run/react";
+import { redirect, type LoaderFunctionArgs, type ActionFunctionArgs } from "react-router";
+import { json } from "~/lib/rr7-compat";
+import { useLoaderData, Form, useActionData, useNavigation } from "react-router";
 import { ShieldCheck, AlertCircle, Check } from "lucide-react";
 import { requireSuperAdmin } from "~/services/auth.server";
 

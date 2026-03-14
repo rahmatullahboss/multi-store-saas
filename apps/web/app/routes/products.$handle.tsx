@@ -9,18 +9,14 @@
  * 3. If NaN -> Treat as Slug -> Render Collection Page
  */
 
-import {
-  json,
-  type LoaderFunctionArgs,
-  type MetaFunction,
-  type MetaDescriptor,
-} from '@remix-run/cloudflare';
+import { type LoaderFunctionArgs, type MetaFunction, type MetaDescriptor } from 'react-router';
+import { json } from '~/lib/rr7-compat';
 import {
   useLoaderData,
   useRouteError,
   isRouteErrorResponse,
   useSearchParams,
-} from '@remix-run/react';
+} from 'react-router';
 import { eq, and, desc, ne, sql, like, asc, gte, lte, type SQL } from 'drizzle-orm';
 import { resolveStore } from '~/lib/store.server';
 import { createDb } from '~/lib/db.server';

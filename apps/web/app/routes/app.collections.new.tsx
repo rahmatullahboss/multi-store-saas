@@ -3,9 +3,10 @@
  * Route: /app/collections/new
  */
 
-import type { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/cloudflare';
-import { json, redirect } from '@remix-run/cloudflare';
-import { Form, useActionData, useNavigation, useFetcher, useLoaderData, Link } from '@remix-run/react';
+import type { ActionFunctionArgs, LoaderFunctionArgs } from 'react-router';
+import { redirect } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { Form, useActionData, useNavigation, useFetcher, useLoaderData, Link } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, desc, like, and } from 'drizzle-orm';
 import { collections, productCollections, products } from '@db/schema';

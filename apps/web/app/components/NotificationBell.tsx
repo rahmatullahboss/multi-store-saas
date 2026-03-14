@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { useFetcher } from '@remix-run/react';
+import { useFetcher } from 'react-router';
 import { Bell, BellRing, Check, ShoppingCart, AlertTriangle, Star, DollarSign, X } from 'lucide-react';
 import { cn } from '~/utils/cn';
 import { useTranslation } from '~/contexts/LanguageContext';

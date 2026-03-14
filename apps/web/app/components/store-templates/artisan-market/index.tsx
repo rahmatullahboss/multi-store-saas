@@ -5,7 +5,7 @@
  * Features: Brown + Amber accents, rustic typography, textured backgrounds.
  */
 
-import { Link } from '@remix-run/react';
+import { Link } from 'react-router';
 import {
   ShoppingBasket,
   Search,

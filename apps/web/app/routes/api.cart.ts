@@ -14,7 +14,8 @@
  * Falls back to D1 for persistence when customer is authenticated.
  */
 
-import { json, type ActionFunctionArgs, type LoaderFunctionArgs } from '@remix-run/cloudflare';
+import { type ActionFunctionArgs, type LoaderFunctionArgs } from 'react-router';
+import { json } from '~/lib/rr7-compat';
 import { z } from 'zod';
 import { generateUUID } from '~/lib/uuid';
 import {

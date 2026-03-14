@@ -5,8 +5,9 @@
  * Route: /app/settings/upsells
  */
 
-import { json, type ActionFunctionArgs, type LoaderFunctionArgs } from '@remix-run/cloudflare';
-import { useLoaderData, Form, useActionData, useNavigation, Link } from '@remix-run/react';
+import { type ActionFunctionArgs, type LoaderFunctionArgs } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { useLoaderData, Form, useActionData, useNavigation, Link } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
 import { upsellOffers, products, stores } from '@db/schema';
 import { eq, desc, and } from 'drizzle-orm';

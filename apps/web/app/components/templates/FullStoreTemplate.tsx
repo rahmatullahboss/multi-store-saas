@@ -5,7 +5,7 @@
  * Rich design with multiple sections for conversion.
  */
 
-import { Link } from '@remix-run/react';
+import { Link } from 'react-router';
 import { useState } from 'react';
 import { Menu, X } from 'lucide-react';
 import type { ThemeConfig } from '@db/types';

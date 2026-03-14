@@ -10,9 +10,9 @@
  * - Stores approaching limits
  */
 
-import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
-import { json } from '@remix-run/cloudflare';
-import { useLoaderData, Link } from '@remix-run/react';
+import type { LoaderFunctionArgs, MetaFunction } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { useLoaderData, Link } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, desc, sql, count, sum, gte, and } from 'drizzle-orm';
 import { stores, orders, products, pageViews, users, carts, checkoutSessions } from '@db/schema';

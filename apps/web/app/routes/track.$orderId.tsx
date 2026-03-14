@@ -1,5 +1,5 @@
-import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
-import { useLoaderData } from '@remix-run/react';
+import type { LoaderFunctionArgs, MetaFunction } from 'react-router';
+import { useLoaderData } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, or, desc } from 'drizzle-orm';
 import { orders, stores, orderItems, products } from '@db/schema';

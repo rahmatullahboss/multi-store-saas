@@ -8,7 +8,8 @@
  * SECURITY: Strict storeId filtering - Store A can NEVER access Store B's data
  */
 
-import { json, type ActionFunctionArgs } from '@remix-run/cloudflare';
+import { type ActionFunctionArgs } from 'react-router';
+import { json } from '~/lib/rr7-compat';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and, desc } from 'drizzle-orm';
 import { stores, aiConversations, messages, agents } from '@db/schema';

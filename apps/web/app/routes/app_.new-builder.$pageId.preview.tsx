@@ -18,8 +18,9 @@
  * - Scroll-into-view: scrolls the selected section into view on SECTION_SELECTED
  */
 
-import { json, type LoaderFunctionArgs, type MetaFunction } from '@remix-run/cloudflare';
-import { useLoaderData } from '@remix-run/react';
+import { type LoaderFunctionArgs, type MetaFunction } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { useLoaderData } from 'react-router';
 import { useState, useEffect, useCallback } from 'react';
 import { requireAuth } from '~/lib/auth.server';
 import { drizzle } from 'drizzle-orm/d1';

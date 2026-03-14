@@ -10,9 +10,9 @@
  * - Confirmation emails on approval
  */
 
-import type { LoaderFunctionArgs, ActionFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
-import { json } from '@remix-run/cloudflare';
-import { useLoaderData, useFetcher, useSearchParams } from '@remix-run/react';
+import type { LoaderFunctionArgs, ActionFunctionArgs, MetaFunction } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { useLoaderData, useFetcher, useSearchParams } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, desc, ne, sql, or } from 'drizzle-orm';
 import { stores, users, activityLogs, payments } from '@db/schema';

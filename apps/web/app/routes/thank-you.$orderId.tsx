@@ -7,8 +7,9 @@
  * Includes Purchase tracking for FB Pixel and GA4.
  */
 
-import { json, type LoaderFunctionArgs, type MetaFunction } from '@remix-run/cloudflare';
-import { useLoaderData, Link } from '@remix-run/react';
+import { type LoaderFunctionArgs, type MetaFunction } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { useLoaderData, Link } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
 import { orders, orderItems, stores } from '@db/schema';
 import { eq, and } from 'drizzle-orm';

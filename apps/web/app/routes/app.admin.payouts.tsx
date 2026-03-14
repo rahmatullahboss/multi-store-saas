@@ -7,9 +7,9 @@
  * Shows weekly earnings per store, allows marking as paid, CSV export.
  */
 
-import type { LoaderFunctionArgs, ActionFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
-import { json } from '@remix-run/cloudflare';
-import { useLoaderData, Form, useNavigation } from '@remix-run/react';
+import type { LoaderFunctionArgs, ActionFunctionArgs, MetaFunction } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { useLoaderData, Form, useNavigation } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, sql, desc, and, gte, lte } from 'drizzle-orm';
 import { stores, orders, payouts } from '@db/schema';

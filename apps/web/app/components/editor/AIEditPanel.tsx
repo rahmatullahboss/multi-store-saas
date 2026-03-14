@@ -10,7 +10,7 @@
  */
 
 import { useState, useRef, useEffect } from 'react';
-import { useFetcher } from '@remix-run/react';
+import { useFetcher } from 'react-router';
 import { X, Sparkles, Wand2, Check } from 'lucide-react';
 
 interface AIEditPanelProps {

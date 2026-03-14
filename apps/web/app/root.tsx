@@ -6,9 +6,9 @@ import {
   ScrollRestoration,
   useLoaderData,
   useRouteError,
-} from '@remix-run/react';
-import type { LinksFunction, LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
-import { json } from '@remix-run/cloudflare';
+} from 'react-router';
+import type { LinksFunction, LoaderFunctionArgs, MetaFunction } from 'react-router';
+import { json } from '~/lib/rr7-compat';
 import { useTranslation } from 'react-i18next';
 import { Toaster } from 'sonner';
 

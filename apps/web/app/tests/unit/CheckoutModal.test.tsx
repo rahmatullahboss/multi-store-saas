@@ -3,7 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { CheckoutModal } from '~/components/checkout/CheckoutModal';
 
 // Mock useFetcher from Remix
-vi.mock('@remix-run/react', () => ({
+vi.mock('react-router', () => ({
   useFetcher: () => ({
     submit: vi.fn(),
     state: 'idle',

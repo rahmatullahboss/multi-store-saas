@@ -7,8 +7,8 @@
  * POST: Delete image by URL or key
  */
 
-import type { ActionFunctionArgs } from '@remix-run/cloudflare';
-import { json } from '@remix-run/cloudflare';
+import type { ActionFunctionArgs } from 'react-router';
+import { json } from '~/lib/rr7-compat';
 import { getStoreId } from '~/services/auth.server';
 
 export async function action({ request, context }: ActionFunctionArgs) {

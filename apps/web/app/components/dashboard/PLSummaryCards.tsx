@@ -8,7 +8,7 @@
  */
 
 import type { PLSummary } from '~/services/pl-report.server';
-import { Link } from '@remix-run/react';
+import { Link } from 'react-router';
 import { TrendingUp, TrendingDown, Minus, AlertTriangle, ExternalLink } from 'lucide-react';
 
 // Custom type to handle Remix date-to-string serialization

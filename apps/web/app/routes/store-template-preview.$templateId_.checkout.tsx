@@ -4,8 +4,9 @@
  * Route: /store-template-preview/:templateId/checkout
  */
 
-import { json, type LoaderFunctionArgs } from '@remix-run/cloudflare';
-import { useLoaderData, Link } from '@remix-run/react';
+import { type LoaderFunctionArgs } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { useLoaderData, Link } from 'react-router';
 import { Suspense, useState } from 'react';
 import { ArrowLeft, Eye, X, Lock } from 'lucide-react';
 import { getStoreTemplate, STORE_TEMPLATE_THEMES } from '~/templates/store-registry';

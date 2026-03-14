@@ -7,7 +7,8 @@
  * Called every 15 minutes via Cloudflare Cron Trigger.
  */
 
-import { json, type LoaderFunctionArgs } from '@remix-run/cloudflare';
+import { type LoaderFunctionArgs } from 'react-router';
+import { json } from '~/lib/rr7-compat';
 import { createDb } from '~/lib/db.server';
 import { checkoutSessions, carts } from '@db/schema';
 import { eq, lt, and } from 'drizzle-orm';

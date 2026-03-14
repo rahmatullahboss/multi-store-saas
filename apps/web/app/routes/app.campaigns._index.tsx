@@ -10,9 +10,9 @@
  * - Delete campaigns
  */
 
-import type { LoaderFunctionArgs, ActionFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
-import { json } from '@remix-run/cloudflare';
-import { Form, Link, useLoaderData, useNavigation, useSearchParams } from '@remix-run/react';
+import type { LoaderFunctionArgs, ActionFunctionArgs, MetaFunction } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { Form, Link, useLoaderData, useNavigation, useSearchParams } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
 import { desc, eq, and, count } from 'drizzle-orm';
 import { requireTenant } from '~/lib/tenant-guard.server';

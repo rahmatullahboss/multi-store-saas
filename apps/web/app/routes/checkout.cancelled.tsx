@@ -6,8 +6,8 @@
  * Displayed when user cancels payment
  */
 
-import type { MetaFunction } from '@remix-run/cloudflare';
-import { Link } from '@remix-run/react';
+import type { MetaFunction } from 'react-router';
+import { Link } from 'react-router';
 import { Ban, ShoppingCart, ArrowLeft } from 'lucide-react';
 
 export const meta: MetaFunction = () => {

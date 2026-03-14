@@ -10,7 +10,7 @@
  */
 
 import { useState } from 'react';
-import { useFetcher } from '@remix-run/react';
+import { useFetcher } from 'react-router';
 import type { ProductMarginRow } from '~/services/pl-report.server';
 import { ArrowUpDown, ArrowUp, ArrowDown, Download, ChevronLeft, ChevronRight } from 'lucide-react';
 

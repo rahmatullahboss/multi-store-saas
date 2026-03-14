@@ -10,8 +10,8 @@
  *   { "success": true, "migrated": 10, "failed": 0, "skipped": 5 }
  */
 
-import type { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/cloudflare';
-import { json } from '@remix-run/cloudflare';
+import type { ActionFunctionArgs, LoaderFunctionArgs } from 'react-router';
+import { json } from '~/lib/rr7-compat';
 import { drizzle } from 'drizzle-orm/d1';
 import { migrateAllStoresToUnifiedSettings } from '~/services/unified-storefront-settings.server';
 import { requireSuperAdmin } from '~/services/auth.server';

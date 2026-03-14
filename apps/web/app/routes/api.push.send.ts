@@ -5,7 +5,8 @@
  * Body: { title, body, url? }
  */
 
-import { json, type ActionFunctionArgs } from '@remix-run/cloudflare';
+import { type ActionFunctionArgs } from 'react-router';
+import { json } from '~/lib/rr7-compat';
 import { getStoreId } from '~/services/auth.server';
 import { sendPushToStore } from '~/services/push.server';
 import { z } from 'zod';

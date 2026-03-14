@@ -8,7 +8,7 @@
  * and establishes a session on the custom domain.
  */
 
-import { LoaderFunctionArgs, redirect } from '@remix-run/cloudflare';
+import { LoaderFunctionArgs, redirect } from 'react-router';
 import { createCustomerSession, validateTransferToken } from '~/services/customer-auth.server';
 import { resolveStore } from '~/lib/store.server';
 

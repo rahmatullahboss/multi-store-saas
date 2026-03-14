@@ -7,9 +7,9 @@
  * These coupons discount the subscription plan fees, not product prices.
  */
 
-import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
-import { json } from '@remix-run/cloudflare';
-import { useLoaderData, useFetcher } from '@remix-run/react';
+import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { useLoaderData, useFetcher } from 'react-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { 

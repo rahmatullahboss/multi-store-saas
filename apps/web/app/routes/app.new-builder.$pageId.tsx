@@ -8,8 +8,9 @@
  * - All section mutations (add, toggle, update, delete, reorder)
  */
 
-import { json, type LoaderFunctionArgs, type ActionFunctionArgs } from '@remix-run/cloudflare';
-import { useLoaderData, useFetcher, useNavigate } from '@remix-run/react';
+import { type LoaderFunctionArgs, type ActionFunctionArgs } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { useLoaderData, useFetcher, useNavigate } from 'react-router';
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { requireTenant } from '~/lib/tenant-guard.server';
 import { createDb } from '~/lib/db.server';

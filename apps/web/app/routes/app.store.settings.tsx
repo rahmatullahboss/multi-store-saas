@@ -5,7 +5,8 @@
  * Backend: stores.storefront_settings (unified JSON)
  */
 
-import { json, type LoaderFunctionArgs, type ActionFunctionArgs } from '@remix-run/cloudflare';
+import { type LoaderFunctionArgs, type ActionFunctionArgs } from 'react-router';
+import { json } from '~/lib/rr7-compat';
 import {
   useLoaderData,
   useActionData,
@@ -13,7 +14,7 @@ import {
   useSearchParams,
   useNavigation,
   useFetcher,
-} from '@remix-run/react';
+} from 'react-router';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { eq } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';

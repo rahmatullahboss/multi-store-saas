@@ -8,9 +8,9 @@
  * @see AGENTS.md - MVP Simple Theme System section
  */
 
-import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
-import { json } from '@remix-run/cloudflare';
-import { useLoaderData, useRouteError, isRouteErrorResponse } from '@remix-run/react';
+import type { LoaderFunctionArgs, MetaFunction } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { useLoaderData, useRouteError, isRouteErrorResponse } from 'react-router';
 import { resolveStore } from '~/lib/store.server';
 import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';
 import {

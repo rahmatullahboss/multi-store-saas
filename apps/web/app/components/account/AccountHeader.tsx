@@ -5,7 +5,7 @@
  * This replaces the generic top header in account layout with a theme-aware version.
  */
 
-import { Link } from '@remix-run/react';
+import { Link } from 'react-router';
 import { Bell, User, Home, Menu } from 'lucide-react';
 import { Button } from '~/components/ui/button';
 import { useTranslation } from '~/contexts/LanguageContext';

@@ -9,9 +9,9 @@
  * - Merchant health scoring
  */
 
-import type { LoaderFunctionArgs, ActionFunctionArgs } from '@remix-run/cloudflare';
-import { json } from '@remix-run/cloudflare';
-import { useLoaderData, useFetcher } from '@remix-run/react';
+import type { LoaderFunctionArgs, ActionFunctionArgs } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { useLoaderData, useFetcher } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
 import { sql, count, sum, avg, desc, eq, and, gte, lte } from 'drizzle-orm';
 import { customers, stores, orders, products, orderItems, pageViews, carts, checkoutSessions } from '@db/schema';

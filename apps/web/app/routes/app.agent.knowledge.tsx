@@ -1,6 +1,7 @@
 
-import { json, LoaderFunctionArgs, ActionFunctionArgs, unstable_composeUploadHandlers, unstable_createMemoryUploadHandler, unstable_parseMultipartFormData } from '@remix-run/cloudflare';
-import { useLoaderData, useActionData, useNavigation, Form, useSubmit } from '@remix-run/react';
+import { LoaderFunctionArgs, ActionFunctionArgs } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { useLoaderData, useActionData, useNavigation, Form, useSubmit } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, desc } from 'drizzle-orm';
 import * as schema from '../../db/schema';
@@ -62,10 +63,8 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
   const contentType = request.headers.get('Content-Type') || '';
   
   if (contentType.includes('multipart/form-data')) {
-    const uploadHandler = unstable_composeUploadHandlers(
-      unstable_createMemoryUploadHandler({ maxPartSize: 5_000_000 }), // 5MB max
-    );
-    const formData = await unstable_parseMultipartFormData(request, uploadHandler);
+    // In RR7, use standard Web API for multipart form data (Workers supports it natively)
+    const formData = await request.formData();
     const intent = formData.get('intent');
 
     if (intent === 'upload_file') {

@@ -1,4 +1,4 @@
-import { Link } from '@remix-run/react';
+import { Link } from 'react-router';
 import React, { useState } from 'react';
 import { Search, Menu, User, Heart, ShoppingCart, ChevronDown, Phone, Percent, X } from 'lucide-react';
 import { FRESHNESS_THEME } from '../theme';

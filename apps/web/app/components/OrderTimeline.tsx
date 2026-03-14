@@ -10,7 +10,7 @@ import {
   ChevronDown, ChevronUp, Package, CreditCard, Send
 } from 'lucide-react';
 import { useState } from 'react';
-import { useFetcher } from '@remix-run/react';
+import { useFetcher } from 'react-router';
 import { getActionLabel, getActionColor } from '~/lib/activity';
 
 interface ActivityLog {

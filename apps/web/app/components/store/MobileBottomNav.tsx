@@ -1,4 +1,4 @@
-import { Link, useLocation } from '@remix-run/react';
+import { Link, useLocation } from 'react-router';
 import { Home, ShoppingBag, User, ShoppingCart, Heart } from 'lucide-react';
 import { useCartCount } from '~/hooks/useCartCount';
 import { useWishlist } from '~/hooks/useWishlist';

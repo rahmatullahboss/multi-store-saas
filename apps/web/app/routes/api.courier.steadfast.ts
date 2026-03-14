@@ -11,8 +11,8 @@
  * - SYNC_STATUS: Bulk sync shipment statuses for cron job
  */
 
-import type { ActionFunctionArgs } from '@remix-run/cloudflare';
-import { json } from '@remix-run/cloudflare';
+import type { ActionFunctionArgs } from 'react-router';
+import { json } from '~/lib/rr7-compat';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and, inArray } from 'drizzle-orm';
 import { orders, customers, stores, shipments } from '@db/schema';

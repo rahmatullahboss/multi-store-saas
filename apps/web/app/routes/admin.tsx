@@ -9,9 +9,9 @@
  * - Navigation for super admin functions
  */
 
-import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
-import { json } from '@remix-run/cloudflare';
-import { Form, Link, Outlet, useLoaderData, useLocation } from '@remix-run/react';
+import type { LoaderFunctionArgs, MetaFunction } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { Form, Link, Outlet, useLoaderData, useLocation } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, desc, sql } from 'drizzle-orm';
 import { users, stores } from '@db/schema';

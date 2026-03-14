@@ -1,5 +1,6 @@
-import { json, type LoaderFunctionArgs, type ActionFunctionArgs } from '@remix-run/cloudflare';
-import { useLoaderData, useActionData, Form, useNavigation, Link } from '@remix-run/react';
+import { type LoaderFunctionArgs, type ActionFunctionArgs } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { useLoaderData, useActionData, Form, useNavigation, Link } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, desc, and } from 'drizzle-orm';
 import { apiKeys, webhooks } from '@db/schema';

@@ -1,5 +1,5 @@
-import { json } from '@remix-run/cloudflare';
-import type { LoaderFunctionArgs } from '@remix-run/cloudflare';
+import { json } from '~/lib/rr7-compat';
+import type { LoaderFunctionArgs } from 'react-router';
 import { products } from '@db/schema';
 import { and, eq, like, or } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';

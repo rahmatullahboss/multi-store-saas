@@ -10,8 +10,8 @@
  * - CANCEL_ORDER: Cancel a RedX parcel (only if not picked up)
  */
 
-import type { ActionFunctionArgs } from '@remix-run/cloudflare';
-import { json } from '@remix-run/cloudflare';
+import type { ActionFunctionArgs } from 'react-router';
+import { json } from '~/lib/rr7-compat';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and, inArray } from 'drizzle-orm';
 import { orders, orderItems, shipments } from '@db/schema';

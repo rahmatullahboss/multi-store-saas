@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Menu, X, Search, Heart, ShoppingBag, User } from 'lucide-react';
-import { Link } from '@remix-run/react';
+import { Link } from 'react-router';
 import { LUXE_BOUTIQUE_THEME } from '../theme';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { useCartCount } from '~/hooks/useCartCount';

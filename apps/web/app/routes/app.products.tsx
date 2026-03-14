@@ -7,7 +7,7 @@
  * It simply renders the <Outlet /> to allow child routes to render.
  */
 
-import { Outlet, useRouteError, isRouteErrorResponse } from '@remix-run/react';
+import { Outlet, useRouteError, isRouteErrorResponse } from 'react-router';
 
 export default function ProductsLayout() {
   return <Outlet />;

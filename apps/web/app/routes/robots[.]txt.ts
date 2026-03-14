@@ -1,4 +1,4 @@
-import type { LoaderFunctionArgs } from '@remix-run/cloudflare';
+import type { LoaderFunctionArgs } from 'react-router';
 
 export async function loader({ context }: LoaderFunctionArgs) {
   const saasDomain = context.cloudflare.env.SAAS_DOMAIN || 'ozzyl.com';

@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useLocation } from '@remix-run/react';
+import { useLocation } from 'react-router';
 import { generateUUID } from '~/lib/uuid';
 
 const STORAGE_KEY = 'store_visitor_id';

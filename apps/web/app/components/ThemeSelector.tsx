@@ -6,7 +6,7 @@
  */
 
 import { useState } from 'react';
-import { Form } from '@remix-run/react';
+import { Form } from 'react-router';
 
 // Available themes matching the store-registry.ts (18 themes)
 const AVAILABLE_THEMES = [

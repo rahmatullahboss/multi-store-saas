@@ -5,7 +5,7 @@
  * Used in merchant dashboard
  */
 
-import { Link } from '@remix-run/react';
+import { Link } from 'react-router';
 import { AlertTriangle, ArrowUpRight, X } from 'lucide-react';
 import { useState } from 'react';
 

@@ -8,7 +8,7 @@
  * Supports custom domains via state parameter.
  */
 
-import { LoaderFunctionArgs, redirect } from '@remix-run/cloudflare';
+import { LoaderFunctionArgs, redirect } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
 import { stores } from '@db/schema';

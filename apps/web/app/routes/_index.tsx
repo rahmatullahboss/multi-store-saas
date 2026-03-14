@@ -9,13 +9,8 @@
  * @see AGENTS.md - MVP Simple Theme System section
  */
 
-import {
-  json,
-  type LoaderFunctionArgs,
-  type MetaFunction,
-  type HeadersFunction,
-  redirect,
-} from '@remix-run/cloudflare';
+import { type LoaderFunctionArgs, type MetaFunction, type HeadersFunction, redirect } from 'react-router';
+import { json } from '~/lib/rr7-compat';
 
 export async function action() {
   // Gracefully handle accidental POST requests to root by refreshing
@@ -28,7 +23,7 @@ import {
   useRouteError,
   isRouteErrorResponse,
   useSearchParams,
-} from '@remix-run/react';
+} from 'react-router';
 import { useState, useEffect, Suspense, lazy, type ComponentType } from 'react';
 import { eq, and, sql } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';

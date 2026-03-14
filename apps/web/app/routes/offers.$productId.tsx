@@ -17,8 +17,9 @@
  * - Cash on Delivery order form included
  */
 
-import { json, type LoaderFunctionArgs, type MetaFunction, type HeadersFunction } from '@remix-run/cloudflare';
-import { useLoaderData } from '@remix-run/react';
+import { type LoaderFunctionArgs, type MetaFunction, type HeadersFunction } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { useLoaderData } from 'react-router';
 import { eq, and, sql } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
 import { stores, products, productVariants, orderBumps, templateAnalytics, type Product, type Store } from '@db/schema';

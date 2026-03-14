@@ -6,12 +6,13 @@
  * Allows merchants to create new custom storefront pages.
  */
 
-import type { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/cloudflare';
-import { json, redirect } from '@remix-run/cloudflare';
-import { Form, useActionData, useNavigation } from '@remix-run/react';
+import type { ActionFunctionArgs, LoaderFunctionArgs } from 'react-router';
+import { redirect } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { Form, useActionData, useNavigation } from 'react-router';
 import { requireTenant } from '~/lib/tenant-guard.server';
 import { ArrowLeft, Loader2, Plus } from 'lucide-react';
-import { Link } from '@remix-run/react';
+import { Link } from 'react-router';
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const { storeId } = await requireTenant(request, context, {

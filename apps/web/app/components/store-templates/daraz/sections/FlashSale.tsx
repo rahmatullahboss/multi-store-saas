@@ -9,7 +9,7 @@
  * - Discount badges and countdown timers (optional)
  */
 
-import { Link } from '@remix-run/react';
+import { Link } from 'react-router';
 import { ChevronLeft, ChevronRight, Zap, Clock } from 'lucide-react';
 import { useRef, useState, useEffect } from 'react';
 import { DARAZ_THEME } from '../theme';

@@ -12,7 +12,7 @@
  */
 
 import { useEffect, useCallback, useState } from 'react';
-import { useBlocker } from '@remix-run/react';
+import { useBlocker } from 'react-router';
 import { AlertTriangle } from 'lucide-react';
 
 interface UseUnsavedChangesOptions {

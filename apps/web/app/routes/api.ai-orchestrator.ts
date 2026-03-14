@@ -1,5 +1,5 @@
-import type { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/cloudflare';
-import { json } from '@remix-run/cloudflare';
+import type { ActionFunctionArgs, LoaderFunctionArgs } from 'react-router';
+import { json } from '~/lib/rr7-compat';
 import { handleChatAction } from '~/services/merchant-chat.server';
 import { handleAiChatAction, handleAiChatLoader } from '~/services/ai-chat.server';
 import { handleVisitorChatAction } from '~/services/visitor-chat.server';

@@ -8,7 +8,7 @@
  * All new pages use builder_pages + builder_sections via app.new-builder.$pageId.
  */
 
-import { redirect, type LoaderFunctionArgs } from '@remix-run/cloudflare';
+import { redirect, type LoaderFunctionArgs } from 'react-router';
 
 // ============================================================================
 // LOADER - Redirect to appropriate builder

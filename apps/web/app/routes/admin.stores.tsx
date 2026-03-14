@@ -9,9 +9,9 @@
  * - Impersonate (Login as) store owners
  */
 
-import type { LoaderFunctionArgs, ActionFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
-import { json } from '@remix-run/cloudflare';
-import { useLoaderData, useFetcher, Form, useSearchParams } from '@remix-run/react';
+import type { LoaderFunctionArgs, ActionFunctionArgs, MetaFunction } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { useLoaderData, useFetcher, Form, useSearchParams } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, desc, inArray } from 'drizzle-orm';
 import { stores, users, activityLogs, storeTags } from '@db/schema';

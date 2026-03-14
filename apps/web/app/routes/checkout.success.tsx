@@ -6,11 +6,11 @@
  * Displayed after successful payment
  */
 
-import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
+import type { LoaderFunctionArgs, MetaFunction } from 'react-router';
 import { formatPrice } from '~/lib/formatting';
-import { json } from '@remix-run/cloudflare';
+import { json } from '~/lib/rr7-compat';
 
-import { useLoaderData, Link } from '@remix-run/react';
+import { useLoaderData, Link } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
 import { and, eq } from 'drizzle-orm';
 import { orders, stores } from '@db/schema';

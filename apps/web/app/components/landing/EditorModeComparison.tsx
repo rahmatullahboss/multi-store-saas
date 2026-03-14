@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { Zap, Palette, ArrowRight, CheckCircle2, LayoutTemplate, MousePointer2 } from 'lucide-react';
-import { Link } from '@remix-run/react';
+import { Link } from 'react-router';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { useIsMobile } from '~/hooks/useIsMobile';
 

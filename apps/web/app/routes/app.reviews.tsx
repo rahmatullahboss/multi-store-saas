@@ -11,9 +11,10 @@
  * RESTRICTION: Paid plans only - Free users redirect to /app/upgrade
  */
 
-import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
-import { json, redirect } from '@remix-run/cloudflare';
-import { useLoaderData, useFetcher, useSearchParams } from '@remix-run/react';
+import type { LoaderFunctionArgs, MetaFunction } from 'react-router';
+import { redirect } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { useLoaderData, useFetcher, useSearchParams } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, desc } from 'drizzle-orm';
 import { reviews, products, stores } from '@db/schema';

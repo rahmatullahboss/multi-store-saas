@@ -5,8 +5,8 @@
  * Redirect all marketing traffic to ozzyl.com
  */
 
-import { redirect } from '@remix-run/cloudflare';
-import type { LoaderFunctionArgs } from '@remix-run/cloudflare';
+import { redirect } from 'react-router';
+import type { LoaderFunctionArgs } from 'react-router';
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url);

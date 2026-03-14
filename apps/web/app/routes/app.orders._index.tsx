@@ -10,13 +10,9 @@
  * - Responsive table design with quick actions
  */
 
-import {
-  json,
-  type LoaderFunctionArgs,
-  type ActionFunctionArgs,
-  type MetaFunction,
-} from '@remix-run/cloudflare';
-import { useLoaderData, Link, useSearchParams, useFetcher, useRevalidator, useRouteError, isRouteErrorResponse } from '@remix-run/react';
+import { type LoaderFunctionArgs, type ActionFunctionArgs, type MetaFunction } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { useLoaderData, Link, useSearchParams, useFetcher, useRevalidator, useRouteError, isRouteErrorResponse } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
 import { orders, orderItems, stores, products } from '@db/schema';
 import { eq, desc, and, inArray } from 'drizzle-orm';

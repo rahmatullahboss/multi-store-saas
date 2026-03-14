@@ -5,7 +5,7 @@
  * across all store pages.
  */
 
-import { Link } from '@remix-run/react';
+import { Link } from 'react-router';
 import type { StoreTemplateTheme } from '~/templates/store-registry';
 import type { SocialLinks } from '@db/types';
 

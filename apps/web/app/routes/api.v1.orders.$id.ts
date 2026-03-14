@@ -7,7 +7,8 @@
  * Get a single order with its items.
  */
 
-import { json, type LoaderFunctionArgs } from '@remix-run/cloudflare';
+import { type LoaderFunctionArgs } from 'react-router';
+import { json } from '~/lib/rr7-compat';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and } from 'drizzle-orm';
 import { orders, orderItems } from '@db/schema';

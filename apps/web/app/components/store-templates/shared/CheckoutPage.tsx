@@ -19,7 +19,7 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Link, useParams, useFetcher } from '@remix-run/react';
+import { Link, useParams, useFetcher } from 'react-router';
 import {
   Shield,
   Truck,

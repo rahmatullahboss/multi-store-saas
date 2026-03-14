@@ -1,4 +1,4 @@
-import { Link } from '@remix-run/react';
+import { Link } from 'react-router';
 import { ChevronRight } from 'lucide-react';
 import type { SectionSettings } from './registry';
 

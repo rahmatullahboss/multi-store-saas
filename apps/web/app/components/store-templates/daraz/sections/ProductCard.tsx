@@ -10,7 +10,7 @@
  * - Hover elevation effect
  */
 
-import { Link, useFetcher } from '@remix-run/react';
+import { Link, useFetcher } from 'react-router';
 import { Star, Heart, ShoppingCart } from 'lucide-react';
 import { DARAZ_THEME } from '../theme';
 import type { SerializedProduct } from '~/templates/store-registry';

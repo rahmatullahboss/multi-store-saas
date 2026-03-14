@@ -5,7 +5,7 @@
  * Features clean cart layout with product cards and order summary.
  */
 
-import { Link } from '@remix-run/react';
+import { Link } from 'react-router';
 import { ShoppingCart, Trash2, Plus, Minus, ArrowRight } from 'lucide-react';
 import { resolveDCStoreTheme } from '../theme';
 import type { ThemeConfig } from '@db/types';

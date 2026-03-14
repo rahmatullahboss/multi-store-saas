@@ -1,4 +1,4 @@
-import { Link } from '@remix-run/react';
+import { Link } from 'react-router';
 import { ShoppingBag, Search, Menu, X, User } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import type { StoreHeaderProps } from '~/templates/store-registry';

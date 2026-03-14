@@ -3,15 +3,16 @@
  * View and manage individual lead details
  */
 
-import type { LoaderFunctionArgs, ActionFunctionArgs } from '@remix-run/cloudflare';
-import { json, redirect } from '@remix-run/cloudflare';
-import { useLoaderData, Form, useNavigation } from '@remix-run/react';
+import type { LoaderFunctionArgs, ActionFunctionArgs } from 'react-router';
+import { redirect } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { useLoaderData, Form, useNavigation } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
 import { leadSubmissions, customers, studentDocuments } from '@db/schema';
 import { eq, and, desc, SQL, or } from 'drizzle-orm';
 import { requireTenant } from '~/lib/tenant-guard.server';
 import { ArrowLeft, Mail, Phone, Building2, Calendar, Globe, Tag, Brain, Save, Loader2 } from 'lucide-react';
-import { Link } from '@remix-run/react';
+import { Link } from 'react-router';
 import { UserPlus } from 'lucide-react';
 
 export async function loader({ request, params, context }: LoaderFunctionArgs) {

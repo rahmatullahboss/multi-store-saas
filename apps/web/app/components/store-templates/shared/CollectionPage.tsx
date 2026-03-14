@@ -18,7 +18,7 @@
  */
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Link, useParams, useSearchParams } from '@remix-run/react';
+import { Link, useParams, useSearchParams } from 'react-router';
 import { formatPrice } from '~/lib/formatting';
 import {
   Filter,

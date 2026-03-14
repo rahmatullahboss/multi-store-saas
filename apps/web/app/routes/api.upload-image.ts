@@ -7,8 +7,8 @@
  * POST: Upload image file and return R2 public URL
  */
 
-import type { ActionFunctionArgs } from '@remix-run/cloudflare';
-import { json } from '@remix-run/cloudflare';
+import type { ActionFunctionArgs } from 'react-router';
+import { json } from '~/lib/rr7-compat';
 import { getStoreIdWithRecovery } from '~/services/auth.server';
 
 export async function action({ request, context }: ActionFunctionArgs) {

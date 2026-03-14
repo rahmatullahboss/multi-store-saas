@@ -9,9 +9,9 @@
  * 2. Select what to show on homepage (store catalog or a landing page)
  */
 
-import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
-import { json } from '@remix-run/cloudflare';
-import { Form, useLoaderData, useActionData, useNavigation, Link } from '@remix-run/react';
+import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { Form, useLoaderData, useActionData, useNavigation, Link } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and } from 'drizzle-orm';
 import { stores, landingPages } from '@db/schema';

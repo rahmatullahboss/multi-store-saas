@@ -3,15 +3,16 @@
  * Form for merchants to submit support requests
  */
 
-import type { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/cloudflare';
-import { json, redirect } from '@remix-run/cloudflare';
-import { Form, useLoaderData, useActionData, useNavigation } from '@remix-run/react';
+import type { ActionFunctionArgs, LoaderFunctionArgs } from 'react-router';
+import { redirect } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { Form, useLoaderData, useActionData, useNavigation } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
 import { supportTickets, stores } from '@db/schema';
 import { eq, and } from 'drizzle-orm';
 import { requireTenant } from '~/lib/tenant-guard.server';
 import { Ticket, ArrowLeft, Send, AlertCircle } from 'lucide-react';
-import { Link } from '@remix-run/react';
+import { Link } from 'react-router';
 import { z } from 'zod';
 
 export async function loader({ request, context }: LoaderFunctionArgs) {

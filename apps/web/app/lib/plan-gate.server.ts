@@ -20,7 +20,7 @@
  *   await assertWithinLimit(db, storeId, planType, 'product');   // product count gate
  */
 
-import { redirect } from '@remix-run/cloudflare';
+import { redirect } from 'react-router';
 import type { DrizzleD1Database } from 'drizzle-orm/d1';
 import {
   PLAN_LIMITS,

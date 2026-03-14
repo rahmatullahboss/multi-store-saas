@@ -5,8 +5,8 @@
  * Integrates remix-i18next for server-side translations.
  * Includes Sentry error tracking for production environments only.
  */
-import { type EntryContext } from '@remix-run/cloudflare';
-import { RemixServer } from '@remix-run/react';
+import { type EntryContext } from 'react-router';
+import { ServerRouter } from 'react-router';
 import { isbot } from 'isbot';
 import { renderToReadableStream } from 'react-dom/server';
 import { createInstance } from 'i18next';
@@ -164,7 +164,7 @@ export default async function handleRequest(
   try {
     const body = await renderToReadableStream(
       <I18nextProvider i18n={instance}>
-        <RemixServer context={remixContext} url={request.url} />
+        <ServerRouter context={remixContext} url={request.url} />
       </I18nextProvider>,
       {
         signal: request.signal,

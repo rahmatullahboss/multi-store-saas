@@ -8,10 +8,10 @@
  * Listens for postMessage updates for real-time editing.
  */
 
-import { json } from '@remix-run/cloudflare';
-import { useLoaderData } from '@remix-run/react';
+import { json } from '~/lib/rr7-compat';
+import { useLoaderData } from 'react-router';
 import { useEffect, useState, useMemo } from 'react';
-import type { LoaderFunctionArgs } from '@remix-run/cloudflare';
+import type { LoaderFunctionArgs } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and, asc } from 'drizzle-orm';
 import { 

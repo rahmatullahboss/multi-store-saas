@@ -7,8 +7,9 @@
  * This allows users to preview "Genie Builder" templates before creating a page.
  */
 
-import { json, type LoaderFunctionArgs } from '@remix-run/cloudflare';
-import { useLoaderData } from '@remix-run/react';
+import { type LoaderFunctionArgs } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { useLoaderData } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';

@@ -4,7 +4,7 @@
  * Shows list of published versions with restore functionality.
  */
 
-import { useFetcher } from '@remix-run/react';
+import { useFetcher } from 'react-router';
 import { History, RotateCcw, Clock, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 

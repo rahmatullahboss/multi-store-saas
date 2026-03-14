@@ -6,9 +6,9 @@
  * View all admin actions for accountability and security.
  */
 
-import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
-import { json } from '@remix-run/cloudflare';
-import { useLoaderData, useSearchParams } from '@remix-run/react';
+import type { LoaderFunctionArgs, MetaFunction } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { useLoaderData, useSearchParams } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
 import { desc, eq, sql } from 'drizzle-orm';
 import { adminAuditLogs, users } from '@db/schema';

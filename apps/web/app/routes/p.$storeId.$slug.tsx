@@ -16,12 +16,9 @@
  * cross-store data can leak because we only read a KV key scoped to that storeId.
  */
 
-import {
-  json,
-  type LoaderFunctionArgs,
-  type MetaFunction,
-} from '@remix-run/cloudflare';
-import { useLoaderData, isRouteErrorResponse, useRouteError } from '@remix-run/react';
+import { type LoaderFunctionArgs, type MetaFunction } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { useLoaderData, isRouteErrorResponse, useRouteError } from 'react-router';
 import { z } from 'zod';
 import { readPublishedPage, type PublishedPageSnapshot } from '~/services/builder-publisher.server';
 import { SectionRenderer } from '~/components/page-builder/SectionRenderer';

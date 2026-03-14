@@ -8,7 +8,7 @@
  * - Social media links
  */
 
-import { Link } from '@remix-run/react';
+import { Link } from 'react-router';
 import { Phone, Mail, MapPin, Facebook, Twitter, Instagram } from 'lucide-react';
 import { DARAZ_THEME } from '../theme';
 import { OzzylBranding } from '../../shared/OzzylBranding';

@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Link } from '@remix-run/react';
+import { Link } from 'react-router';
 import { Bot, Send, ArrowRight, Zap, CheckCircle2, MessageSquare, Phone, Mail } from 'lucide-react';
 import { useTranslation } from '~/contexts/LanguageContext';
 

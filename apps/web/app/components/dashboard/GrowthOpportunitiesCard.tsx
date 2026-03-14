@@ -1,4 +1,4 @@
-import { Link } from "@remix-run/react";
+import { Link } from "react-router";
 import { TrendingUp, Users, ShoppingBag, ArrowRight } from "lucide-react";
 import { useTranslation } from "~/contexts/LanguageContext";
 

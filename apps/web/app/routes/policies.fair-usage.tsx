@@ -6,8 +6,8 @@
  * Explains the platform's fair usage limits in Bengali
  */
 
-import type { MetaFunction } from '@remix-run/cloudflare';
-import { Link } from '@remix-run/react';
+import type { MetaFunction } from 'react-router';
+import { Link } from 'react-router';
 import { Store, ArrowLeft, Shield, AlertTriangle, Check, HelpCircle } from 'lucide-react';
 
 export const meta: MetaFunction = () => {

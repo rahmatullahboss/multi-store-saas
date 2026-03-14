@@ -8,7 +8,7 @@
  * - Single column focus
  */
 
-import { useFetcher } from '@remix-run/react';
+import { useFetcher } from 'react-router';
 import { useState, useEffect } from 'react';
 import { Check, ArrowRight } from 'lucide-react';
 import { calculateShipping, DEFAULT_SHIPPING_CONFIG, type DivisionValue } from '~/utils/shipping';

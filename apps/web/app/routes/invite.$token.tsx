@@ -7,9 +7,10 @@
  * Creates a new user account and links it to the store.
  */
 
-import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
-import { json, redirect } from '@remix-run/cloudflare';
-import { Form, useLoaderData, useActionData, useNavigation, Link } from '@remix-run/react';
+import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from 'react-router';
+import { redirect } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { Form, useLoaderData, useActionData, useNavigation, Link } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and } from 'drizzle-orm';
 import { users, stores, staffInvites } from '@db/schema';

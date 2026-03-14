@@ -8,7 +8,7 @@
  * - Green/White clean look
  */
 
-import { useFetcher } from '@remix-run/react';
+import { useFetcher } from 'react-router';
 import { useState, useEffect } from 'react';
 import { CheckCircle2, Star, ShieldCheck, Truck, Award, Users } from 'lucide-react';
 import { calculateShipping, DEFAULT_SHIPPING_CONFIG, type DivisionValue } from '~/utils/shipping';

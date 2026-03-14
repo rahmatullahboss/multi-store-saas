@@ -9,9 +9,9 @@
  * - Total orders processed
  */
 
-import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
-import { json } from '@remix-run/cloudflare';
-import { useLoaderData } from '@remix-run/react';
+import type { LoaderFunctionArgs, MetaFunction } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { useLoaderData } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, count, sum, gte, sql } from 'drizzle-orm';
 import { stores, orders, users } from '@db/schema';

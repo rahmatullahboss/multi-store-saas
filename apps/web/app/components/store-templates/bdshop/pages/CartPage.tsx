@@ -9,7 +9,7 @@
  * - Clean, professional design with blue accents
  */
 
-import { Link, useFetcher } from '@remix-run/react';
+import { Link, useFetcher } from 'react-router';
 import { useState } from 'react';
 import {
   Trash2,

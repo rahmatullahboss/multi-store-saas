@@ -1,5 +1,5 @@
-import { json } from '@remix-run/cloudflare';
-import type { LoaderFunctionArgs } from '@remix-run/cloudflare';
+import { json } from '~/lib/rr7-compat';
+import type { LoaderFunctionArgs } from 'react-router';
 import { resolveStore } from '~/lib/store.server';
 import { getUnifiedStorefrontSettings } from '~/services/unified-storefront-settings.server';
 

@@ -1,5 +1,5 @@
 import { ShoppingBag, Search, Menu, X, Sparkles, User } from 'lucide-react';
-import { Link } from '@remix-run/react';
+import { Link } from 'react-router';
 import { PreviewSafeLink } from '~/components/PreviewSafeLink';
 import { useState, useEffect } from 'react';
 import { useCartCount } from '~/hooks/useCartCount';

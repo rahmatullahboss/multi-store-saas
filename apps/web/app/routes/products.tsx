@@ -5,7 +5,7 @@
  * Currently just passes through to child routes.
  */
 
-import { Outlet } from '@remix-run/react';
+import { Outlet } from 'react-router';
 
 export default function ProductsLayout() {
   return <Outlet />;

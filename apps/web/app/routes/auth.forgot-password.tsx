@@ -1,6 +1,6 @@
-import type { ActionFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
-import { json } from '@remix-run/cloudflare';
-import { Form, Link, useActionData, useNavigation } from '@remix-run/react';
+import type { ActionFunctionArgs, MetaFunction } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { Form, Link, useActionData, useNavigation } from 'react-router';
 import { Mail, ArrowLeft, CheckCircle } from 'lucide-react';
 import { requestPasswordReset } from '~/services/auth.server';
 import { useTranslation } from '~/contexts/LanguageContext';

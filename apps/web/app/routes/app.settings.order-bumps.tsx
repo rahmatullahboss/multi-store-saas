@@ -7,9 +7,9 @@
  * that appear during checkout to increase Average Order Value (AOV).
  */
 
-import type { LoaderFunctionArgs, ActionFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
-import { json } from '@remix-run/cloudflare';
-import { useLoaderData, Form, useNavigation, Link } from '@remix-run/react';
+import type { LoaderFunctionArgs, ActionFunctionArgs, MetaFunction } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { useLoaderData, Form, useNavigation, Link } from 'react-router';
 import { useState } from 'react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and, desc } from 'drizzle-orm';

@@ -28,8 +28,8 @@
  * manipulated session cookie cannot escalate to another tenant's data.
  */
 
-import { redirect } from '@remix-run/cloudflare';
-import type { AppLoadContext } from '@remix-run/cloudflare';
+import { redirect } from 'react-router';
+import type { AppLoadContext } from 'react-router';
 import { eq, and, isNull } from 'drizzle-orm';
 import { users, stores } from '@db/schema';
 import { createDb } from '~/lib/db.server';

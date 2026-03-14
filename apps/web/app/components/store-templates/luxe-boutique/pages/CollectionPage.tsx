@@ -1,4 +1,4 @@
-import { Link, useParams, useSearchParams } from '@remix-run/react';
+import { Link, useParams, useSearchParams } from 'react-router';
 import { useState } from 'react';
 import { Filter, ChevronDown } from 'lucide-react';
 import type { SerializedProduct } from '~/templates/store-registry';

@@ -11,11 +11,12 @@
  */
 
 import { useState, useEffect, useRef } from 'react';
-import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
-import { useLoaderData } from '@remix-run/react';
+import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from 'react-router';
+import { useLoaderData } from 'react-router';
 import { formatPrice } from '~/lib/formatting';
-import { json, redirect } from '@remix-run/cloudflare';
-import { useFetcher } from '@remix-run/react';
+import { redirect } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { useFetcher } from 'react-router';
 import {
   ArrowRight,
   ArrowLeft,

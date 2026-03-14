@@ -10,7 +10,7 @@
 
 import { useState, useEffect } from 'react';
 import { formatPrice } from '~/lib/formatting';
-import { useFetcher } from '@remix-run/react';
+import { useFetcher } from 'react-router';
 import {
   X,
   ShoppingBag,

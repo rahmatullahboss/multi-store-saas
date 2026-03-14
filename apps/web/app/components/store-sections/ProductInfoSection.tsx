@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Link } from '@remix-run/react';
+import { Link } from 'react-router';
 import { SectionSettings } from './registry';
 import { Star } from 'lucide-react';
 import { AddToCartButton } from '~/components/AddToCartButton';

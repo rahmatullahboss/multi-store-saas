@@ -7,9 +7,10 @@
  */
 
 import { useState, useEffect } from 'react';
-import { json, redirect } from '@remix-run/cloudflare';
-import { useLoaderData, useNavigate, useFetcher, Link } from '@remix-run/react';
-import type { LoaderFunctionArgs, ActionFunctionArgs } from '@remix-run/cloudflare';
+import { redirect } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { useLoaderData, useNavigate, useFetcher, Link } from 'react-router';
+import type { LoaderFunctionArgs, ActionFunctionArgs } from 'react-router';
 import { Plus, Edit, Trash2, Eye, FileText, ExternalLink, X, Sparkles, LayoutTemplate } from 'lucide-react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';

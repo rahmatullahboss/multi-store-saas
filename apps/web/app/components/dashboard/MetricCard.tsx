@@ -3,7 +3,7 @@
  * Shopify-inspired design with comparison to previous period
  */
 
-import { Link } from '@remix-run/react';
+import { Link } from 'react-router';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 
 interface MetricCardProps {

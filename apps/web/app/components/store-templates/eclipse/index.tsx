@@ -18,7 +18,7 @@ import {
   useEffect,
   useRef,
 } from 'react';
-import { Link, useSearchParams } from '@remix-run/react';
+import { Link, useSearchParams } from 'react-router';
 import {
   Menu,
   X,

@@ -9,8 +9,8 @@
  * - SYNC_STATUS: Bulk sync shipment statuses
  */
 
-import type { ActionFunctionArgs } from '@remix-run/cloudflare';
-import { json } from '@remix-run/cloudflare';
+import type { ActionFunctionArgs } from 'react-router';
+import { json } from '~/lib/rr7-compat';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and, inArray } from 'drizzle-orm';
 import { orders, orderItems, stores, shipments } from '@db/schema';

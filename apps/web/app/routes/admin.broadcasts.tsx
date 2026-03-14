@@ -9,9 +9,9 @@
  * - Delete old broadcasts
  */
 
-import type { LoaderFunctionArgs, ActionFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
-import { json } from '@remix-run/cloudflare';
-import { useLoaderData, useFetcher, Form } from '@remix-run/react';
+import type { LoaderFunctionArgs, ActionFunctionArgs, MetaFunction } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { useLoaderData, useFetcher, Form } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, desc } from 'drizzle-orm';
 import { systemNotifications, users } from '@db/schema';

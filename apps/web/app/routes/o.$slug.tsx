@@ -5,9 +5,9 @@
  * Uses KV cache for maximum performance.
  */
 
-import { json } from '@remix-run/cloudflare';
-import { useLoaderData } from '@remix-run/react';
-import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
+import { json } from '~/lib/rr7-compat';
+import { useLoaderData } from 'react-router';
+import type { LoaderFunctionArgs, MetaFunction } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and } from 'drizzle-orm';
 import { products, productVariants } from '@db/schema';

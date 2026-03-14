@@ -1,5 +1,5 @@
 
-import { Link } from '@remix-run/react';
+import { Link } from 'react-router';
 import { ChevronLeft, ChevronRight, Zap, ShoppingBag, Heart } from 'lucide-react';
 import { useRef, useState, useEffect } from 'react';
 import type { SectionSettings } from './registry';

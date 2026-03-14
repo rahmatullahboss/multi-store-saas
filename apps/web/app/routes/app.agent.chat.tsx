@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
-import { useLoaderData } from '@remix-run/react';
-import { LoaderFunctionArgs, json } from '@remix-run/cloudflare';
+import { useLoaderData } from 'react-router';
+import { LoaderFunctionArgs } from 'react-router';
+import { json } from '~/lib/rr7-compat';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
 import * as schema from '../../db/schema';

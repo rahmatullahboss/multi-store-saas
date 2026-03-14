@@ -13,9 +13,9 @@
  * - Custom domain
  */
 
-import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
-import { json } from '@remix-run/cloudflare';
-import { Form, useLoaderData, useActionData, useNavigation, useFetcher, useSearchParams } from '@remix-run/react';
+import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { Form, useLoaderData, useActionData, useNavigation, useFetcher, useSearchParams } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
 import type { DrizzleD1Database } from 'drizzle-orm/d1';
 import { eq, count, sum } from 'drizzle-orm';

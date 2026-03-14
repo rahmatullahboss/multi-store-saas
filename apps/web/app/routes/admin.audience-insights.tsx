@@ -9,9 +9,9 @@
  * - GMV and revenue analytics
  */
 
-import type { LoaderFunctionArgs } from '@remix-run/cloudflare';
-import { json } from '@remix-run/cloudflare';
-import { useLoaderData } from '@remix-run/react';
+import type { LoaderFunctionArgs } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { useLoaderData } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
 import { sql, count, sum, avg, desc, eq } from 'drizzle-orm';
 import { customers, stores, orders, products, orderItems } from '@db/schema';

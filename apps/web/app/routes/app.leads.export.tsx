@@ -1,4 +1,4 @@
-import type { LoaderFunctionArgs } from '@remix-run/cloudflare';
+import type { LoaderFunctionArgs } from 'react-router';
 import { requireTenant } from '~/lib/tenant-guard.server';
 import { drizzle } from 'drizzle-orm/d1';
 import { leadSubmissions } from '@db/schema';

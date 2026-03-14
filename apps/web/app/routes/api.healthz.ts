@@ -13,7 +13,8 @@
  *   curl -H "x-health-token: <HEALTH_CHECK_TOKEN>" https://app.ozzyl.com/api/healthz
  */
 
-import { json, type LoaderFunctionArgs } from '@remix-run/cloudflare';
+import { type LoaderFunctionArgs } from 'react-router';
+import { json } from '~/lib/rr7-compat';
 import { drizzle } from 'drizzle-orm/d1';
 import { sql } from 'drizzle-orm';
 

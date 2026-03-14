@@ -9,7 +9,7 @@
  */
 
 import { useState, useCallback, createContext, useContext, useMemo } from 'react';
-import { Link } from '@remix-run/react';
+import { Link } from 'react-router';
 import { ClientOnly } from 'remix-utils/client-only';
 import { SkeletonLoader } from '~/components/SkeletonLoader';
 import { StoreConfigProvider } from '~/contexts/StoreConfigContext';

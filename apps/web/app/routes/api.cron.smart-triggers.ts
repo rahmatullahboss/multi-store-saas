@@ -1,5 +1,5 @@
-import { json } from "@remix-run/cloudflare";
-import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
+import { json } from "~/lib/rr7-compat";
+import type { LoaderFunctionArgs } from "react-router";
 // import { drizzle } from "drizzle-orm/d1"; // REMOVED
 import { createDb } from "~/lib/db.server";
 import * as schema from "@db/schema";

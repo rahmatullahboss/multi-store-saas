@@ -7,8 +7,8 @@
  * Can be triggered manually or via cron job.
  */
 
-import type { LoaderFunctionArgs } from '@remix-run/cloudflare';
-import { json } from '@remix-run/cloudflare';
+import type { LoaderFunctionArgs } from 'react-router';
+import { json } from '~/lib/rr7-compat';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and, lte } from 'drizzle-orm';
 import { products, stores, users } from '@db/schema';

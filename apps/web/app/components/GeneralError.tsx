@@ -7,7 +7,7 @@
  * - Generic: Unknown errors
  */
 
-import { isRouteErrorResponse } from '@remix-run/react';
+import { isRouteErrorResponse } from 'react-router';
 import { AlertTriangle, Home, RefreshCw, Store, Search, LogIn, UserPlus, LogOut } from 'lucide-react';
 
 interface GeneralErrorProps {

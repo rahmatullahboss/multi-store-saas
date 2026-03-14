@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { SectionSettings } from './registry';
-import { useFetcher } from '@remix-run/react';
+import { useFetcher } from 'react-router';
 import { Star, Send, CheckCircle } from 'lucide-react';
 
 interface ProductReviewsSectionProps {

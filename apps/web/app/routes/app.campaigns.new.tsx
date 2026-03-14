@@ -9,9 +9,10 @@
  * - Send now or schedule
  */
 
-import type { LoaderFunctionArgs, ActionFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
-import { json, redirect } from '@remix-run/cloudflare';
-import { Form, Link, useActionData, useLoaderData, useNavigation } from '@remix-run/react';
+import type { LoaderFunctionArgs, ActionFunctionArgs, MetaFunction } from 'react-router';
+import { redirect } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { Form, Link, useActionData, useLoaderData, useNavigation } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and, count } from 'drizzle-orm';
 import { requireTenant } from '~/lib/tenant-guard.server';

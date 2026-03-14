@@ -4,9 +4,9 @@
  * Platform admin page to view all custom domains and their Cloudflare status
  */
 
-import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
-import { json } from '@remix-run/cloudflare';
-import { Form, useLoaderData, useNavigation, useRevalidator } from '@remix-run/react';
+import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { Form, useLoaderData, useNavigation, useRevalidator } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, isNotNull, or } from 'drizzle-orm';
 import { stores, users } from '@db/schema';

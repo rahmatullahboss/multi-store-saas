@@ -15,8 +15,8 @@
  * POST: Upload file and return R2 public URL
  */
 
-import type { ActionFunctionArgs } from '@remix-run/cloudflare';
-import { json } from '@remix-run/cloudflare';
+import type { ActionFunctionArgs } from 'react-router';
+import { json } from '~/lib/rr7-compat';
 import { stores } from '@db/schema';
 import { eq, or } from 'drizzle-orm';
 import { createDb } from '~/lib/db.server';

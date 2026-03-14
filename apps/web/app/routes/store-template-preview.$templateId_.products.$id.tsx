@@ -7,8 +7,9 @@
  * with demo products for preview purposes.
  */
 
-import { json, type LoaderFunctionArgs, type MetaFunction } from '@remix-run/cloudflare';
-import { useLoaderData, Link } from '@remix-run/react';
+import { type LoaderFunctionArgs, type MetaFunction } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { useLoaderData, Link } from 'react-router';
 import { Suspense } from 'react';
 import { ArrowLeft, Eye, X } from 'lucide-react';
 import { useState } from 'react';

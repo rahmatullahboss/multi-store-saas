@@ -6,7 +6,7 @@
  * Exports all store products as a downloadable CSV file
  */
 
-import type { LoaderFunctionArgs } from '@remix-run/cloudflare';
+import type { LoaderFunctionArgs } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, desc } from 'drizzle-orm';
 import { products, stores } from '@db/schema';

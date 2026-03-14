@@ -10,8 +10,9 @@
  * 4. Preview & confirm template
  */
 
-import { json, redirect, type LoaderFunctionArgs, type ActionFunctionArgs } from '@remix-run/cloudflare';
-import { useLoaderData, useFetcher, useNavigate } from '@remix-run/react';
+import { redirect, type LoaderFunctionArgs, type ActionFunctionArgs } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { useLoaderData, useFetcher, useNavigate } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and } from 'drizzle-orm';
 import { stores, products } from '@db/schema';
@@ -20,7 +21,7 @@ import { requireTenant } from '~/lib/tenant-guard.server';
 import { IntentWizard } from '~/components/landing-builder/IntentWizard';
 import { createLandingConfigFromIntent, type Intent, type QuickProduct } from '~/utils/landing-builder/intentEngine';
 import { ArrowLeft, Sparkles } from 'lucide-react';
-import { Link } from '@remix-run/react';
+import { Link } from 'react-router';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { z } from 'zod';

@@ -1,4 +1,4 @@
-import { Link } from '@remix-run/react';
+import { Link } from 'react-router';
 import { Trash2, Plus, Minus, ShoppingBag, ArrowLeft, ArrowRight, Heart, Tag } from 'lucide-react';
 import { useWishlist } from '~/hooks/useWishlist';
 import type { StoreTemplateProps } from '~/templates/store-registry';

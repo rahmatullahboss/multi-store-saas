@@ -2,7 +2,8 @@
  * Marketing Lead API - Collect emails from homepage
  * POST /api/marketing-lead
  */
-import { ActionFunctionArgs, json } from '@remix-run/cloudflare';
+import { ActionFunctionArgs } from 'react-router';
+import { json } from '~/lib/rr7-compat';
 import { drizzle } from 'drizzle-orm/d1';
 import { marketingLeads } from '../../db/schema';
 

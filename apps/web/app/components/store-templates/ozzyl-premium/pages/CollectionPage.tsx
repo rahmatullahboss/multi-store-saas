@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useParams, useSearchParams } from '@remix-run/react';
+import { Link, useParams, useSearchParams } from 'react-router';
 import {
   Heart,
   ShoppingBag,

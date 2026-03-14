@@ -8,8 +8,8 @@
  * - Optional discount code
  */
 
-import type { ActionFunctionArgs } from '@remix-run/cloudflare';
-import { json } from '@remix-run/cloudflare';
+import type { ActionFunctionArgs } from 'react-router';
+import { json } from '~/lib/rr7-compat';
 import { getStoreId } from '~/services/auth.server';
 import { callAIWithSystemPrompt } from '~/services/ai.server';
 import { drizzle } from 'drizzle-orm/d1';

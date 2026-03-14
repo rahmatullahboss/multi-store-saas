@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useFetcher } from '@remix-run/react';
+import { useFetcher } from 'react-router';
 import { CheckCircle, Truck, ShoppingCart, Loader2, ShieldCheck, PhoneCall } from 'lucide-react';
 import type { SectionProps } from '../_core/types';
 import { calculateShipping, DEFAULT_SHIPPING_CONFIG, type DivisionValue } from '~/utils/shipping';

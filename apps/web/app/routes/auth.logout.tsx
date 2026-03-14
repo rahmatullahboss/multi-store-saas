@@ -5,8 +5,8 @@
  * GET: Destroy session, redirect to login (for direct navigation)
  */
 
-import type { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/cloudflare';
-import { redirect } from '@remix-run/cloudflare';
+import type { ActionFunctionArgs, LoaderFunctionArgs } from 'react-router';
+import { redirect } from 'react-router';
 import { logout, getSession, destroySession } from '~/services/auth.server';
 
 export async function action({ request, context }: ActionFunctionArgs) {

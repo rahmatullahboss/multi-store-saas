@@ -7,7 +7,7 @@
 
 import { X, Monitor, Smartphone, Check } from 'lucide-react';
 import { useState, Suspense } from 'react';
-import { Form } from '@remix-run/react';
+import { Form } from 'react-router';
 import { getStoreTemplate, type StoreTemplateProps } from '~/templates/store-registry';
 import type { ThemeConfig, SocialLinks, FooterConfig } from '@db/types';
 

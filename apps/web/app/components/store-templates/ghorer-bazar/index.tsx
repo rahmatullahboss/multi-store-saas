@@ -5,7 +5,7 @@
  * Style: Clean, Trust-focused, COD-first, WhatsApp-friendly
  */
 
-import { Link, useSearchParams } from '@remix-run/react';
+import { Link, useSearchParams } from 'react-router';
 import { useState, createContext, useContext, useCallback } from 'react';
 import {
   ShoppingCart,

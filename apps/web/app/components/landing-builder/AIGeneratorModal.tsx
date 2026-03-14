@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { Form } from '@remix-run/react';
+import { Form } from 'react-router';
 import { Sparkles, X } from 'lucide-react';
 
 interface AIGeneratorModalProps {

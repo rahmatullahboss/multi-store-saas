@@ -1,4 +1,4 @@
-import { Link } from '@remix-run/react';
+import { Link } from 'react-router';
 import { ShoppingBag, Menu, Search, User } from 'lucide-react';
 
 interface RovoHeaderProps {

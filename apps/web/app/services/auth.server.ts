@@ -7,7 +7,7 @@
  * Uses Web Crypto API for password hashing (Cloudflare Workers compatible)
  */
 
-import { createCookieSessionStorage, redirect, type Session } from '@remix-run/cloudflare';
+import { createCookieSessionStorage, redirect, type Session } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and, not } from 'drizzle-orm';
 import { users, stores, adminRoles, passwordResets } from '@db/schema';

@@ -12,7 +12,7 @@
  *  4. Redirect to appropriate page
  */
 
-import { LoaderFunctionArgs, redirect } from '@remix-run/cloudflare';
+import { LoaderFunctionArgs, redirect } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and } from 'drizzle-orm';
 import { orders, stores } from '@db/schema';

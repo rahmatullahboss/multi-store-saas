@@ -4,7 +4,8 @@
  * Client-side hydration and initialization.
  * Includes Sentry error tracking for production + staging (disabled in dev/test).
  */
-import { RemixBrowser, useLocation, useMatches } from '@remix-run/react';
+import { HydratedRouter } from 'react-router/dom';
+import { useLocation, useMatches } from 'react-router';
 import { startTransition, useEffect } from 'react';
 import { hydrateRoot } from 'react-dom/client';
 import i18next from 'i18next';
@@ -164,7 +165,7 @@ async function hydrate() {
     hydrateRoot(
       document,
       <I18nextProvider i18n={i18next}>
-        <RemixBrowser />
+        <HydratedRouter />
       </I18nextProvider>
     );
   });

@@ -5,9 +5,9 @@
  * World-class template selection experience with beautiful cards and preview modal.
  */
 
-import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
-import { json } from '@remix-run/cloudflare';
-import { Form, Link, useLoaderData, useNavigation, useFetcher } from '@remix-run/react';
+import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { Form, Link, useLoaderData, useNavigation, useFetcher } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
 import { stores } from '@db/schema';

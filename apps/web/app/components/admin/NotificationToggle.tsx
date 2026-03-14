@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Bell, BellOff, Loader2, Check } from 'lucide-react';
-import { useFetcher } from '@remix-run/react';
+import { useFetcher } from 'react-router';
 
 export function NotificationToggle() {
   const [permission, setPermission] = useState<NotificationPermission>('default');

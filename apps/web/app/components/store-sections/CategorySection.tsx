@@ -1,4 +1,4 @@
-import { Link, useSearchParams } from '@remix-run/react';
+import { Link, useSearchParams } from 'react-router';
 import type { SectionSettings } from './registry';
 import { Smartphone, Shirt, Watch, Laptop, Home as HomeIcon, Car, Baby, Dumbbell, Sparkles, ShoppingBag, Grid3X3, type LucideIcon } from 'lucide-react';
 import { buildProxyImageUrl } from '~/utils/imageOptimization';

@@ -11,8 +11,9 @@
  * Priority: Builder v2 -> Custom Pages -> Campaign Pages -> 404
  */
 
-import { json, type LoaderFunctionArgs, type MetaFunction } from '@remix-run/cloudflare';
-import { useLoaderData } from '@remix-run/react';
+import { type LoaderFunctionArgs, type MetaFunction } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { useLoaderData } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and, asc } from 'drizzle-orm';
 import { landingPages, stores, products, productVariants } from '@db/schema';

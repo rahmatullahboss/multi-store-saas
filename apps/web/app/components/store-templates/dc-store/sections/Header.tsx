@@ -5,7 +5,7 @@
  * Features clean modern layout with warm colors and smooth animations.
  */
 
-import { Link, useNavigate } from '@remix-run/react';
+import { Link, useNavigate } from 'react-router';
 import { useState } from 'react';
 import { ShoppingCart, Search, Menu, X, User, Heart } from 'lucide-react';
 import { useCartCount } from '~/hooks/useCartCount';

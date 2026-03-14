@@ -9,8 +9,9 @@
  * - Redirects to customer detail on success
  */
 
-import { json, redirect, type ActionFunctionArgs, type MetaFunction } from '@remix-run/cloudflare';
-import { useActionData, useNavigation, Form, Link } from '@remix-run/react';
+import { redirect, type ActionFunctionArgs, type MetaFunction } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { useActionData, useNavigation, Form, Link } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
 import { customers, customerAddresses } from '@db/schema';
 import { requireTenant } from '~/lib/tenant-guard.server';

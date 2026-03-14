@@ -9,7 +9,7 @@
  * - Product landing pages (offers)
  */
 
-import { type LoaderFunctionArgs } from '@remix-run/cloudflare';
+import { type LoaderFunctionArgs } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and } from 'drizzle-orm';
 import { stores, products, collections, landingPages } from '@db/schema';

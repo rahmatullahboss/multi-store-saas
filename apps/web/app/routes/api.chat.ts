@@ -1,4 +1,5 @@
-import { json, type ActionFunctionArgs, type LoaderFunctionArgs } from '@remix-run/cloudflare';
+import { type ActionFunctionArgs, type LoaderFunctionArgs } from 'react-router';
+import { json } from '~/lib/rr7-compat';
 
 // Required for Remix single-fetch compatibility
 export async function loader() {

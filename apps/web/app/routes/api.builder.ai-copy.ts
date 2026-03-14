@@ -10,8 +10,8 @@
  * - Auth: requireAuth() from ~/lib/auth.server
  */
 
-import { json } from '@remix-run/cloudflare';
-import type { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/cloudflare';
+import { json } from '~/lib/rr7-compat';
+import type { ActionFunctionArgs, LoaderFunctionArgs } from 'react-router';
 import { z } from 'zod';
 import { requireAuth } from '~/lib/auth.server';
 import {

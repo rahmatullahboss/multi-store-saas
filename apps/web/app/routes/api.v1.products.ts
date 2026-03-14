@@ -7,7 +7,8 @@
  * Allows merchants to programmatically access their products.
  */
 
-import { json, type LoaderFunctionArgs } from '@remix-run/cloudflare';
+import { type LoaderFunctionArgs } from 'react-router';
+import { json } from '~/lib/rr7-compat';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, desc, and, like } from 'drizzle-orm';
 import { products } from '@db/schema';

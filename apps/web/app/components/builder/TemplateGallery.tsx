@@ -12,7 +12,7 @@
  */
 
 import { useState } from 'react';
-import { useFetcher, Link } from '@remix-run/react';
+import { useFetcher, Link } from 'react-router';
 import { Eye, Sparkles, Star, ArrowRight, Layout, X, CheckCircle2 } from 'lucide-react';
 import type { BuilderTemplate, TemplateGoal } from '~/lib/page-builder/templates';
 

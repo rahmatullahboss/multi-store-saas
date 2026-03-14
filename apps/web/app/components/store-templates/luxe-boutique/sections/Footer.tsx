@@ -1,4 +1,4 @@
-import { Link } from '@remix-run/react';
+import { Link } from 'react-router';
 import { useState } from 'react';
 import { Mail, Phone, MapPin, Instagram, Facebook, Loader2 } from 'lucide-react';
 import { LUXE_BOUTIQUE_THEME } from '../theme';

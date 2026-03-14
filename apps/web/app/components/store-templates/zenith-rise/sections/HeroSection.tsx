@@ -1,5 +1,5 @@
 
-import { Link } from '@remix-run/react';
+import { Link } from 'react-router';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { ArrowRight, CheckCircle, Play } from 'lucide-react';
 import type { SectionSettings } from '~/components/store-sections/registry';

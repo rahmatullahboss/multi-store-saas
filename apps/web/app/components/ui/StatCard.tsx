@@ -3,7 +3,7 @@
  * Shopify-inspired design
  */
 
-import { Link } from '@remix-run/react';
+import { Link } from 'react-router';
 
 interface StatCardProps {
   label: string;

@@ -6,9 +6,9 @@
  * Allows merchants to send push notifications to their store subscribers.
  */
 
-import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
-import { json } from '@remix-run/cloudflare';
-import { Form, useActionData, useLoaderData, useNavigation, Link } from '@remix-run/react';
+import type { LoaderFunctionArgs, MetaFunction } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { Form, useActionData, useLoaderData, useNavigation, Link } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
 import { pushSubscriptions, stores } from '@db/schema';

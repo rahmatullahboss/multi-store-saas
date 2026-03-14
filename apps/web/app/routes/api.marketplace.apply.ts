@@ -4,8 +4,8 @@
  * Handles applying marketplace themes to a store.
  */
 
-import type { ActionFunctionArgs } from '@remix-run/cloudflare';
-import { json } from '@remix-run/cloudflare';
+import type { ActionFunctionArgs } from 'react-router';
+import { json } from '~/lib/rr7-compat';
 import { drizzle } from 'drizzle-orm/d1';
 import { marketplaceThemes, stores } from '@db/schema';
 import { getStoreId } from '~/services/auth.server';

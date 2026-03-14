@@ -6,7 +6,7 @@
  */
 
 import { useState, useCallback, useRef } from 'react';
-import { useFetcher } from '@remix-run/react';
+import { useFetcher } from 'react-router';
 import { Upload, X, Loader2 } from 'lucide-react';
 import { compressImage, getOptimalFormat } from '~/lib/imageCompression';
 

@@ -1,5 +1,5 @@
-import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
-import { redirect } from "@remix-run/cloudflare";
+import type { LoaderFunctionArgs } from "react-router";
+import { redirect } from "react-router";
 
 /**
  * Redirect from /product/:id to /products/:id

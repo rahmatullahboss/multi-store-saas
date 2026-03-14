@@ -12,7 +12,8 @@
  * Output: { success: true, orderId: "...", orderNumber: "..." }
  */
 
-import { json, type ActionFunctionArgs } from '@remix-run/cloudflare';
+import { type ActionFunctionArgs } from 'react-router';
+import { json } from '~/lib/rr7-compat';
 import { z } from 'zod';
 import { orders, orderItems, products, productVariants, stores, users, abandonedCarts, orderBumps, upsellOffers, upsellTokens, pushSubscriptions, customers, templateAnalytics, savedLandingConfigs, checkoutSessions } from '@db/schema';
 import { eq, and, or, inArray, sql, gte } from 'drizzle-orm';

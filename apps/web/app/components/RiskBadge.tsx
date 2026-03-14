@@ -11,7 +11,7 @@
  * - ⚫ Unknown:        no data yet (click to check)
  */
 
-import { useFetcher } from '@remix-run/react';
+import { useFetcher } from 'react-router';
 import { Shield, ShieldAlert, ShieldCheck, ShieldQuestion, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 

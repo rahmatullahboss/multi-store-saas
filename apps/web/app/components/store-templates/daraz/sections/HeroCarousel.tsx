@@ -9,7 +9,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { Link } from '@remix-run/react';
+import { Link } from 'react-router';
 import { ChevronLeft, ChevronRight, Smartphone } from 'lucide-react';
 import { DARAZ_THEME } from '../theme';
 import { generateSrcset, optimizeUnsplashUrl } from '~/utils/imageOptimization';

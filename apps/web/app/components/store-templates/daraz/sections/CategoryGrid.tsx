@@ -8,7 +8,7 @@
  * - Hover effects
  */
 
-import { Link } from '@remix-run/react';
+import { Link } from 'react-router';
 import { DARAZ_THEME } from '../theme';
 import type { StoreCategory } from '~/templates/store-registry';
 import { 

@@ -18,7 +18,7 @@ import { WishlistProvider } from '~/contexts/WishlistContext';
 import { SECTION_REGISTRY } from '~/components/store-sections/registry';
 
 import { useState, useCallback, createContext, useContext, useMemo, useEffect } from 'react';
-import { Link } from '@remix-run/react';
+import { Link } from 'react-router';
 import {
   ShoppingCart,
   Search,

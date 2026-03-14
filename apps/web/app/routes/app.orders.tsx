@@ -1,4 +1,4 @@
-import { Outlet, useRouteError, isRouteErrorResponse } from '@remix-run/react';
+import { Outlet, useRouteError, isRouteErrorResponse } from 'react-router';
 
 export default function OrdersLayout() {
   return <Outlet />;

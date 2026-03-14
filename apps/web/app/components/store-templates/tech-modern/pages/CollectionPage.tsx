@@ -1,4 +1,4 @@
-import { Link, useParams } from '@remix-run/react';
+import { Link, useParams } from 'react-router';
 import { Filter, Grid, List } from 'lucide-react';
 import type { SerializedProduct } from '~/templates/store-registry';
 import { PreviewSafeLink } from '~/components/PreviewSafeLink';

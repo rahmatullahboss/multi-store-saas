@@ -9,7 +9,7 @@
  */
 
 import { useState, useRef, useEffect } from 'react';
-import { useFetcher } from '@remix-run/react';
+import { useFetcher } from 'react-router';
 import { Send, X, Loader2, Bot, User, Phone, MessageCircle } from 'lucide-react';
 import { WhatsAppIcon } from '~/components/icons/WhatsAppIcon';
 

@@ -1,4 +1,4 @@
-import { Link } from '@remix-run/react';
+import { Link } from 'react-router';
 import { Zap, ShoppingBag, Menu, Search, X } from 'lucide-react';
 import { useCartCount } from '~/hooks/useCartCount';
 import { ECLIPSE_THEME } from '../theme';

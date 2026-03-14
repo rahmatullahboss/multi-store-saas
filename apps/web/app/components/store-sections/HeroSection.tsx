@@ -1,4 +1,4 @@
-import { Link, useSearchParams } from '@remix-run/react';
+import { Link, useSearchParams } from 'react-router';
 import { ChevronRight, Grid3X3 } from 'lucide-react';
 import type { SectionSettings } from './registry';
 import { useTranslation } from '~/contexts/LanguageContext';

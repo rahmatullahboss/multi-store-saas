@@ -1,4 +1,4 @@
-import { ActionFunctionArgs, redirect } from '@remix-run/cloudflare';
+import { ActionFunctionArgs, redirect } from 'react-router';
 import { getSession, commitSession } from '~/services/auth.server';
 
 export async function action({ request, context }: ActionFunctionArgs) {

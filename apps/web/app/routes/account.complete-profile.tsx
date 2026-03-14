@@ -7,13 +7,9 @@
  * Required for Bangladesh market where phone is essential for delivery.
  */
 
-import {
-  json,
-  type ActionFunctionArgs,
-  type LoaderFunctionArgs,
-  redirect,
-} from '@remix-run/cloudflare';
-import { useLoaderData, Form, useActionData, useNavigation } from '@remix-run/react';
+import { type ActionFunctionArgs, type LoaderFunctionArgs, redirect } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { useLoaderData, Form, useActionData, useNavigation } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and } from 'drizzle-orm';
 import { customers } from '@db/schema';

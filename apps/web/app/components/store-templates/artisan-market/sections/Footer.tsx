@@ -1,4 +1,4 @@
-import { Link } from '@remix-run/react';
+import { Link } from 'react-router';
 import { Mail, Phone, MapPin, Instagram, Facebook, Twitter } from 'lucide-react';
 import { ARTISAN_MARKET_THEME } from '../theme';
 import { OzzylBranding } from '../../shared/OzzylBranding';

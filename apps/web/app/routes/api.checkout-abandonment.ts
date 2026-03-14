@@ -4,8 +4,8 @@
  * Server-side endpoint for tracking checkout funnel and abandonment
  */
 
-import type { LoaderFunctionArgs, ActionFunctionArgs } from '@remix-run/cloudflare';
-import { json } from '@remix-run/cloudflare';
+import type { LoaderFunctionArgs, ActionFunctionArgs } from 'react-router';
+import { json } from '~/lib/rr7-compat';
 import { requireTenant } from '~/lib/tenant-guard.server';
 import { createDb } from '~/lib/db.server';
 import {

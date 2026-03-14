@@ -18,7 +18,7 @@
  */
 
 import { z } from 'zod';
-import type { AppLoadContext } from '@remix-run/cloudflare';
+import type { AppLoadContext } from 'react-router';
 
 // ============================================================================
 // ZOD SCHEMAS - Define environment variable requirements

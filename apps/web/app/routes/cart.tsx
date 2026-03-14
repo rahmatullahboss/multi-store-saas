@@ -10,13 +10,9 @@
  */
 
 import { useState, useEffect, Suspense } from 'react';
-import {
-  json,
-  type LoaderFunctionArgs,
-  type ActionFunctionArgs,
-  type MetaFunction,
-} from '@remix-run/cloudflare';
-import { useLoaderData, useFetcher, useRouteError, isRouteErrorResponse } from '@remix-run/react';
+import { type LoaderFunctionArgs, type ActionFunctionArgs, type MetaFunction } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { useLoaderData, useFetcher, useRouteError, isRouteErrorResponse } from 'react-router';
 import { eq, and, inArray } from 'drizzle-orm';
 import { products, productVariants } from '@db/schema';
 import { type ThemeConfig, type SocialLinks } from '@db/types';

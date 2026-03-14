@@ -8,7 +8,7 @@
  * - Direct CTA to upgrade
  */
 
-import { Link } from '@remix-run/react';
+import { Link } from 'react-router';
 import { X, Sparkles, Zap, Crown, Check } from 'lucide-react';
 
 interface AIUpgradeModalProps {

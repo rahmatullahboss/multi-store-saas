@@ -7,8 +7,8 @@
  * all features and settings of the platform.
  */
 
-import type { MetaFunction } from '@remix-run/cloudflare';
-import { Link } from '@remix-run/react';
+import type { MetaFunction } from 'react-router';
+import { Link } from 'react-router';
 import { useState } from 'react';
 import { 
   BookOpen, 

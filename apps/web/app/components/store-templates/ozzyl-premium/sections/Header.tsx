@@ -1,4 +1,4 @@
-import { Link } from '@remix-run/react';
+import { Link } from 'react-router';
 import { Search, ShoppingBag, Heart, Menu, X, User } from 'lucide-react';
 import { OZZYL_PREMIUM_THEME } from '../theme';
 

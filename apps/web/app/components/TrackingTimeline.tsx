@@ -7,7 +7,7 @@
  * Supports multiple courier providers: Steadfast, Pathao, RedX
  */
 
-import { useFetcher } from '@remix-run/react';
+import { useFetcher } from 'react-router';
 import {
   Package,
   Truck,

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useFetcher, useParams } from '@remix-run/react';
+import { Link, useFetcher, useParams } from 'react-router';
 import { formatPrice } from '~/lib/formatting';
 import {
   ChevronDown,

@@ -5,8 +5,9 @@
  * Route: /app/ab-tests/new
  */
 
-import { json, redirect, type LoaderFunctionArgs, type ActionFunctionArgs } from '@remix-run/cloudflare';
-import { useLoaderData, Form, Link, useNavigation } from '@remix-run/react';
+import { redirect, type LoaderFunctionArgs, type ActionFunctionArgs } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { useLoaderData, Form, Link, useNavigation } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
 import { abTests, abTestVariants, stores } from '@db/schema';
 import { eq } from 'drizzle-orm';

@@ -3,9 +3,9 @@
  * Route: /app/collections
  */
 
-import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
-import { json } from '@remix-run/cloudflare';
-import { useLoaderData, Link, Form, useNavigation } from '@remix-run/react';
+import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { useLoaderData, Link, Form, useNavigation } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, desc, sql, and } from 'drizzle-orm';
 import { collections, productCollections } from '@db/schema';

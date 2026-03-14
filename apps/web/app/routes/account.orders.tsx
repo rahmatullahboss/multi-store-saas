@@ -1,5 +1,6 @@
-import { json, LoaderFunctionArgs } from '@remix-run/cloudflare';
-import { useLoaderData, useSearchParams, Form, Link, useSubmit, useNavigation } from '@remix-run/react';
+import { LoaderFunctionArgs } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { useLoaderData, useSearchParams, Form, Link, useSubmit, useNavigation } from 'react-router';
 import { getCustomerOrdersWithItems } from '~/services/customer-account.server';
 import { getCustomerId } from '~/services/customer-auth.server';
 import { resolveStore } from '~/lib/store.server';
@@ -21,7 +22,7 @@ import {
 import { useTranslation } from '~/contexts/LanguageContext';
 import { cn } from '~/lib/utils';
 import { format } from 'date-fns';
-import { SerializeFrom } from '@remix-run/cloudflare';
+import { SerializeFrom } from 'react-router';
 
 
 export async function loader({ request, context }: LoaderFunctionArgs) {

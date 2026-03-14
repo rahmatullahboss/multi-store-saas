@@ -20,8 +20,8 @@ const REVIEW_MAX_LENGTH = 1000;
 const RATING_MIN = 1;
 const RATING_MAX = 5;
 
-import type { ActionFunctionArgs } from '@remix-run/cloudflare';
-import { json } from '@remix-run/cloudflare';
+import type { ActionFunctionArgs } from 'react-router';
+import { json } from '~/lib/rr7-compat';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and } from 'drizzle-orm';
 import { reviews, stores, products } from '@db/schema';

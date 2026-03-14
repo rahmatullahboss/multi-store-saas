@@ -7,9 +7,9 @@
  * with store branding.
  */
 
-import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
-import { json } from '@remix-run/cloudflare';
-import { useLoaderData, Link } from '@remix-run/react';
+import type { LoaderFunctionArgs, MetaFunction } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { useLoaderData, Link } from 'react-router';
 import { eq } from 'drizzle-orm';
 import { stores } from '@db/schema';
 import { getPolicyContent, type PolicyType } from '~/lib/policies';

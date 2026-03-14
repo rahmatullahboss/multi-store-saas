@@ -1,4 +1,4 @@
-import { Link } from '@remix-run/react';
+import { Link } from 'react-router';
 import React, { useState } from 'react';
 import { ShoppingBasket, Search, Menu, X, Heart, Leaf, ChevronRight } from 'lucide-react';
 import { ARTISAN_MARKET_THEME } from '../theme';

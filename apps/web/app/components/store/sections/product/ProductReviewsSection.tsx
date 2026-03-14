@@ -5,7 +5,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { useFetcher } from '@remix-run/react';
+import { useFetcher } from 'react-router';
 import { Star, ThumbsUp, User, Send, CheckCircle } from 'lucide-react';
 import type { ProductContext } from '~/lib/template-resolver.server';
 

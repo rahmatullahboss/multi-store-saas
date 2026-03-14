@@ -11,9 +11,9 @@
  * - Approve / Revoke / Change Plan / Block controls
  */
 
-import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
-import { json } from '@remix-run/cloudflare';
-import { useLoaderData, useFetcher, Link } from '@remix-run/react';
+import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { useLoaderData, useFetcher, Link } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, desc, sql, count, sum, gte, and, lt } from 'drizzle-orm';
 import { fdaasApiKeys, fdaasUsageLog } from '@db/schema';

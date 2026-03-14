@@ -3,7 +3,7 @@
  * Shows last 5 orders with quick actions
  */
 
-import { Link } from '@remix-run/react';
+import { Link } from 'react-router';
 import { ChevronRight, Clock, Package, Truck, CheckCircle, XCircle, ThumbsUp, RotateCcw } from 'lucide-react';
 
 interface RecentOrder {

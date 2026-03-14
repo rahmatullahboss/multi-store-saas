@@ -1,4 +1,4 @@
-import type { LoaderFunctionArgs } from '@remix-run/cloudflare';
+import type { LoaderFunctionArgs } from 'react-router';
 
 const DEFAULT_CACHE_TTL_SECONDS = 60 * 60 * 24 * 30; // 30 days at edge
 

@@ -10,16 +10,17 @@
  * - Creates product in database on submit
  */
 
-import type { ActionFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
-import { json, redirect } from '@remix-run/cloudflare';
-import { Form, useActionData, useNavigation, useFetcher } from '@remix-run/react';
+import type { ActionFunctionArgs, MetaFunction } from 'react-router';
+import { redirect } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { Form, useActionData, useNavigation, useFetcher } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and } from 'drizzle-orm';
 import { products, productVariants, stores } from '@db/schema';
 import { getStoreId } from '~/services/auth.server';
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Upload, X, Loader2, Image as ImageIcon, ArrowLeft, Search, ChevronDown, ChevronUp } from 'lucide-react';
-import { Link } from '@remix-run/react';
+import { Link } from 'react-router';
 import { VariantManager, type Variant } from '~/components/VariantManager';
 import { compressImage, getOptimalFormat } from '~/lib/imageCompression';
 import { useTranslation } from '~/contexts/LanguageContext';

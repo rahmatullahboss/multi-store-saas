@@ -11,9 +11,9 @@
  * - Responsive table/card design
  */
 
-import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
-import { json } from '@remix-run/cloudflare';
-import { useLoaderData, Link, Form, useNavigation, useSearchParams, useFetcher } from '@remix-run/react';
+import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { useLoaderData, Link, Form, useNavigation, useSearchParams, useFetcher } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, desc, inArray, sql, and, like, count, or } from 'drizzle-orm';
 import { products, stores, orderItems, savedLandingConfigs, publishedPages, productVariants, productCollections, reviews, orderBumps, upsellOffers, productRecommendations } from '@db/schema';

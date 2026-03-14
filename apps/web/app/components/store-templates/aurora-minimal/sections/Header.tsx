@@ -1,4 +1,4 @@
-import { Link } from '@remix-run/react';
+import { Link } from 'react-router';
 import React, { useState } from 'react';
 import { Search, Menu, X, Heart, ShoppingBag, Sparkles, ChevronRight, Instagram, Facebook } from 'lucide-react';
 import { AURORA_THEME } from '../theme';

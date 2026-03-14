@@ -10,9 +10,9 @@
  * - Tax report with date filter + CSV export
  */
 
-import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
-import { json } from '@remix-run/cloudflare';
-import { useLoaderData, useSearchParams, Link } from '@remix-run/react';
+import type { LoaderFunctionArgs, MetaFunction } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { useLoaderData, useSearchParams, Link } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and, gte, lte, desc, sql } from 'drizzle-orm';
 import { orders, products, customers, stores } from '@db/schema';

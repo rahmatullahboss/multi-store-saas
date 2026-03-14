@@ -6,9 +6,10 @@
  */
 
 import { useState, useRef, useEffect } from 'react';
-import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
-import { json, redirect } from '@remix-run/cloudflare';
-import { useFetcher, useLoaderData, Link } from '@remix-run/react';
+import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from 'react-router';
+import { redirect } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { useFetcher, useLoaderData, Link } from 'react-router';
 import { Store, Phone, Globe, ArrowRight } from 'lucide-react';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';

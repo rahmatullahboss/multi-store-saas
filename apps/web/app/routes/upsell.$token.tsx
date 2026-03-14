@@ -11,8 +11,9 @@
  * - Visual product display
  */
 
-import { json, redirect, type LoaderFunctionArgs, type MetaFunction } from '@remix-run/cloudflare';
-import { useLoaderData, useFetcher, useNavigate } from '@remix-run/react';
+import { redirect, type LoaderFunctionArgs, type MetaFunction } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { useLoaderData, useFetcher, useNavigate } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
 import { upsellTokens, upsellOffers, orders, products, stores } from '@db/schema';
 import { and, eq } from 'drizzle-orm';

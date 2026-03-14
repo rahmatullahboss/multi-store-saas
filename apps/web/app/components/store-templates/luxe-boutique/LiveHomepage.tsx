@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link } from '@remix-run/react';
+import { Link } from 'react-router';
 import {
   Home as HomeIcon,
   Grid3X3,

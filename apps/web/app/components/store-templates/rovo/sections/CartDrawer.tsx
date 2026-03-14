@@ -1,6 +1,6 @@
 import { Fragment, useState, useEffect } from 'react';
 import { X, Minus, Plus, ShoppingBag, ArrowRight } from 'lucide-react';
-import { Link } from '@remix-run/react';
+import { Link } from 'react-router';
 
 interface CartItem {
   productId: number;

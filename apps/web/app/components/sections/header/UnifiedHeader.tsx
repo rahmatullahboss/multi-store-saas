@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from '@remix-run/react';
+import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { ShoppingBag, ShoppingCart, Search, Menu, X, Sparkles, User, Headphones, Heart, Grid3X3, ChevronRight } from 'lucide-react';
 import { useCartCount } from '~/hooks/useCartCount';

@@ -1,4 +1,4 @@
-import { Link } from '@remix-run/react';
+import { Link } from 'react-router';
 import { Star, Heart, ShoppingCart } from 'lucide-react';
 import { formatPrice } from '~/lib/formatting';
 import type { SerializedProduct, StoreTemplateTheme } from '~/templates/store-registry';

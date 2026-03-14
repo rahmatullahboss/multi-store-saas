@@ -5,7 +5,7 @@
  * Only available for Premium/Business plan stores.
  */
 
-import { createCookieSessionStorage, redirect, Session } from '@remix-run/cloudflare';
+import { createCookieSessionStorage, redirect, Session } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and } from 'drizzle-orm';
 import { customers, stores } from '@db/schema';

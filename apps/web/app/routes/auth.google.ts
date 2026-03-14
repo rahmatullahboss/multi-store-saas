@@ -11,7 +11,7 @@
  * The intent is persisted in the session cookie for tamper-safe handling in callback.
  */
 
-import { LoaderFunctionArgs, ActionFunctionArgs, redirect } from '@remix-run/cloudflare';
+import { LoaderFunctionArgs, ActionFunctionArgs, redirect } from 'react-router';
 import { getAuthenticator, getSession, commitSession } from '~/services/auth.server';
 
 function mergeSessionCookie(existingCookieHeader: string | null, newSessionCookiePair: string): string {

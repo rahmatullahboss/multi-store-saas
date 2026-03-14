@@ -10,8 +10,9 @@
  * - Navigation to detail view
  */
 
-import { json, type LoaderFunctionArgs, type MetaFunction } from '@remix-run/cloudflare';
-import { useLoaderData, Link, useSearchParams } from '@remix-run/react';
+import { type LoaderFunctionArgs, type MetaFunction } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { useLoaderData, Link, useSearchParams } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
 import { customers, orders, stores } from '@db/schema';
 import { eq, desc, and, or, like, sql } from 'drizzle-orm';

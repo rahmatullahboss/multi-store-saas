@@ -6,7 +6,7 @@
  * Exports all stores data as CSV for Super Admin.
  */
 
-import type { LoaderFunctionArgs } from '@remix-run/cloudflare';
+import type { LoaderFunctionArgs } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
 import { desc, eq, sql } from 'drizzle-orm';
 import { stores, users, orders, products } from '@db/schema';

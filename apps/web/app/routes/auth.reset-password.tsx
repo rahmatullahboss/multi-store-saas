@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
-import { json, redirect } from '@remix-run/cloudflare';
-import { Form, Link, useActionData, useLoaderData, useNavigation, useSearchParams } from '@remix-run/react';
+import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from 'react-router';
+import { redirect } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { Form, Link, useActionData, useLoaderData, useNavigation, useSearchParams } from 'react-router';
 import { Lock, Eye, EyeOff, CheckCircle, ArrowRight } from 'lucide-react';
 import { resetPassword } from '~/services/auth.server';
 import { useTranslation } from '~/contexts/LanguageContext';

@@ -5,8 +5,9 @@
  * Route: Catches all unmatched routes
  */
 
-import { json, type LoaderFunctionArgs, type MetaFunction } from '@remix-run/cloudflare';
-import { useLoaderData } from '@remix-run/react';
+import { type LoaderFunctionArgs, type MetaFunction } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { useLoaderData } from 'react-router';
 import { resolveStore } from '~/lib/store.server';
 import { createDb } from '~/lib/db.server';
 import { stores, type Store } from '@db/schema';

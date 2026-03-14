@@ -8,9 +8,10 @@
  * Action  → creates a page from the selected template, redirects to editor
  */
 
-import { json, redirect } from '@remix-run/cloudflare';
-import { useLoaderData } from '@remix-run/react';
-import type { LoaderFunctionArgs, ActionFunctionArgs } from '@remix-run/cloudflare';
+import { redirect } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { useLoaderData } from 'react-router';
+import type { LoaderFunctionArgs, ActionFunctionArgs } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, count } from 'drizzle-orm';
 import { nanoid } from 'nanoid';

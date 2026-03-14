@@ -9,9 +9,10 @@
  * - Landing config editor (headline, video, testimonials, CTA)
  */
 
-import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
-import { json, redirect } from '@remix-run/cloudflare';
-import { Form, useLoaderData, useActionData, useNavigation } from '@remix-run/react';
+import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from 'react-router';
+import { redirect } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { Form, useLoaderData, useActionData, useNavigation } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and } from 'drizzle-orm';
 import { stores, products } from '@db/schema';
@@ -37,7 +38,7 @@ import {
 import { StyleWizard } from '~/components/landing-builder';
 import type { StyleWizardSettings } from '@db/types';
 import { useState, useEffect } from 'react';
-import { Link } from '@remix-run/react';
+import { Link } from 'react-router';
 import { useTranslation } from '~/contexts/LanguageContext';
 
 export const meta: MetaFunction = () => {

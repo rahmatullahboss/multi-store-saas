@@ -1,5 +1,5 @@
 
-import { Link } from '@remix-run/react';
+import { Link } from 'react-router';
 import { useTranslation, useFormatPrice } from '~/contexts/LanguageContext';
 import { trackingEvents } from '~/utils/tracking';
 import type { SectionSettings } from './registry';

@@ -13,7 +13,7 @@
  */
 
 import { useState, useEffect, useRef } from 'react';
-import { useFetcher } from '@remix-run/react';
+import { useFetcher } from 'react-router';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { MessageCircle, X, Send, Loader2, User, Bot } from 'lucide-react';
 import { AIResponseRenderer } from '~/components/ui/AIResponseRenderer';

@@ -1,4 +1,5 @@
-import { ActionFunctionArgs, json } from '@remix-run/cloudflare';
+import { ActionFunctionArgs } from 'react-router';
+import { json } from '~/lib/rr7-compat';
 import { handleAgentChatAction } from '~/services/agent-chat.server';
 
 export async function action(args: ActionFunctionArgs) {

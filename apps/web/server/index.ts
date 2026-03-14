@@ -40,9 +40,9 @@ import { v1Router } from './api/v1';
 import { shopifyAppRouter } from './api/shopify-app';
 import { builderPublishApi } from './api/builder-publish';
 
-// Forward all other requests to Remix (via Vite build output)
-import { ServerBuild, createRequestHandler } from '@remix-run/cloudflare';
-// IMPORTANT: Lazy-load the Remix build so unit tests can import this module
+// Forward all other requests to React Router (via Vite build output)
+import { type ServerBuild, createRequestHandler } from 'react-router';
+// IMPORTANT: Lazy-load the React Router build so unit tests can import this module
 // without executing the compiled server bundle (which can be heavy/fragile in Vitest).
 const getRemixBuild = () => import('../build/server/index.js') as unknown as Promise<ServerBuild>;
 

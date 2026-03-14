@@ -8,9 +8,9 @@
  * Multi-tenancy: ALL queries filtered by store_id.
  */
 
-import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
-import { json } from '@remix-run/cloudflare';
-import { useLoaderData, Link } from '@remix-run/react';
+import type { LoaderFunctionArgs, MetaFunction } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { useLoaderData, Link } from 'react-router';
 import { requireTenant } from '~/lib/tenant-guard.server';
 import { getPageAnalytics, getSectionHeatmap } from '~/lib/analytics/analytics.server';
 import { drizzle } from 'drizzle-orm/d1';

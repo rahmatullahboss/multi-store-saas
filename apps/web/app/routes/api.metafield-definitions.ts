@@ -9,7 +9,8 @@
  * DELETE /api/metafield-definitions?id=xxx
  */
 
-import { json, type ActionFunction, type LoaderFunction } from '@remix-run/cloudflare';
+import { type ActionFunction, type LoaderFunction } from 'react-router';
+import { json } from '~/lib/rr7-compat';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and, sql } from 'drizzle-orm';
 import { getSession } from '~/services/auth.server';

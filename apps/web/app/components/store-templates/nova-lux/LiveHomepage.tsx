@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from '@remix-run/react';
+import { Link } from 'react-router';
 import { Star, Heart } from 'lucide-react';
 import { useWishlist } from '~/hooks/useWishlist';
 import type { StoreTemplateProps } from '~/templates/store-registry';

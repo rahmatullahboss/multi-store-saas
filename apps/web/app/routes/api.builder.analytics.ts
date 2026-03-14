@@ -15,7 +15,8 @@
  * script never surfaces errors to end visitors.
  */
 
-import { json, type ActionFunctionArgs } from '@remix-run/cloudflare';
+import { type ActionFunctionArgs } from 'react-router';
+import { json } from '~/lib/rr7-compat';
 import { z } from 'zod';
 import { validateAnalyticsToken, hashVisitor } from '~/lib/analytics/analytics.server';
 

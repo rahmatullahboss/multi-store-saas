@@ -35,7 +35,8 @@
  * }
  */
 
-import { json, type ActionFunctionArgs, type LoaderFunctionArgs } from '@remix-run/cloudflare';
+import { type ActionFunctionArgs, type LoaderFunctionArgs } from 'react-router';
+import { json } from '~/lib/rr7-compat';
 import { createDb } from '~/lib/db.server';
 import { fdaasApiKeys, fdaasUsageLog } from '@db/schema';
 import { eq, sql } from 'drizzle-orm';

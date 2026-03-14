@@ -6,7 +6,7 @@
  * Destroys customer session and redirects to store homepage.
  */
 
-import { LoaderFunctionArgs } from '@remix-run/cloudflare';
+import { LoaderFunctionArgs } from 'react-router';
 import { logoutCustomer, getCustomerStoreId } from '~/services/customer-auth.server';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';

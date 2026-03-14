@@ -3,9 +3,9 @@
  * Shows ticket details and admin responses
  */
 
-import type { LoaderFunctionArgs, ActionFunctionArgs } from '@remix-run/cloudflare';
-import { json } from '@remix-run/cloudflare';
-import { useLoaderData, Form, useNavigation } from '@remix-run/react';
+import type { LoaderFunctionArgs, ActionFunctionArgs } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { useLoaderData, Form, useNavigation } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
 import { supportTickets, stores } from '@db/schema';
 import { eq, and } from 'drizzle-orm';
@@ -20,7 +20,7 @@ import {
   Send,
   MessageCircle
 } from 'lucide-react';
-import { Link } from '@remix-run/react';
+import { Link } from 'react-router';
 import { z } from 'zod';
 
 export async function loader({ request, context, params }: LoaderFunctionArgs) {

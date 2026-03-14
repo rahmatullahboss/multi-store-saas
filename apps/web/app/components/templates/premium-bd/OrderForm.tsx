@@ -1,4 +1,4 @@
-import { useFetcher } from '@remix-run/react';
+import { useFetcher } from 'react-router';
 import { useState, useEffect } from 'react';
 import { CheckCircle2, ArrowRight, ShieldCheck, MapPin } from 'lucide-react';
 import { calculateShipping, DEFAULT_SHIPPING_CONFIG, type DivisionValue } from '~/utils/shipping';

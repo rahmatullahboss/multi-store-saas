@@ -7,8 +7,9 @@
  * to give merchants a true preview of how each theme looks.
  */
 
-import { json, type LoaderFunctionArgs, type MetaFunction } from '@remix-run/cloudflare';
-import { useLoaderData } from '@remix-run/react';
+import { type LoaderFunctionArgs, type MetaFunction } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { useLoaderData } from 'react-router';
 import { Suspense } from 'react';
 import { Eye, X } from 'lucide-react';
 import { useState } from 'react';

@@ -6,7 +6,7 @@
  */
 
 import { useState } from 'react';
-import { Link } from '@remix-run/react';
+import { Link } from 'react-router';
 import { CreditCard, Truck, CheckCircle, ArrowLeft } from 'lucide-react';
 import { resolveDCStoreTheme } from '../theme';
 import type { ThemeConfig } from '@db/types';

@@ -16,7 +16,8 @@
  * POST /api/editor-state/:pageId/publish - Publish to D1
  */
 
-import { json, type ActionFunctionArgs, type LoaderFunctionArgs } from '@remix-run/cloudflare';
+import { type ActionFunctionArgs, type LoaderFunctionArgs } from 'react-router';
+import { json } from '~/lib/rr7-compat';
 import { requireAuth } from '~/lib/auth.server';
 import {
   initEditor,

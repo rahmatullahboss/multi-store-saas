@@ -1,5 +1,5 @@
 
-import { Link } from '@remix-run/react';
+import { Link } from 'react-router';
 import { Heart, ShoppingBag } from 'lucide-react';
 import { useState } from 'react';
 import type { SectionSettings } from './registry';

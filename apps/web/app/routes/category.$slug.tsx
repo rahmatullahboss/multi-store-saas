@@ -6,7 +6,7 @@
  * with category query parameter for consistent category handling.
  */
 
-import { redirect, type LoaderFunctionArgs } from '@remix-run/cloudflare';
+import { redirect, type LoaderFunctionArgs } from 'react-router';
 import { buildCategorySlugFromParam } from '~/utils/storefront-settings';
 
 export async function loader({ params }: LoaderFunctionArgs) {

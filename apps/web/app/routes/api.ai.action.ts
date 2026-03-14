@@ -11,7 +11,8 @@
  * Rate-limited with plan-based quotas.
  */
 
-import { json, type ActionFunctionArgs } from '@remix-run/cloudflare';
+import { type ActionFunctionArgs } from 'react-router';
+import { json } from '~/lib/rr7-compat';
 import { eq, and } from 'drizzle-orm';
 import { stores, users, products } from '@db/schema';
 import { getSession } from '~/services/auth.server';

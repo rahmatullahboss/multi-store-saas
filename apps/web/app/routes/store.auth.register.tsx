@@ -6,13 +6,9 @@
  * Allows customers to create an account for a specific store.
  */
 
-import {
-  json,
-  redirect,
-  type LoaderFunctionArgs,
-  type ActionFunctionArgs,
-} from '@remix-run/cloudflare';
-import { useLoaderData, useActionData, Form, Link, useNavigation } from '@remix-run/react';
+import { redirect, type LoaderFunctionArgs, type ActionFunctionArgs } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { useLoaderData, useActionData, Form, Link, useNavigation } from 'react-router';
 import { createDb } from '~/lib/db.server';
 import { D1Cache } from '~/services/cache-layer.server';
 import { products as productsTable } from '@db/schema';

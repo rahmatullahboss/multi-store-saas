@@ -11,9 +11,10 @@
  */
 
 import { useState, useEffect, useRef } from 'react';
-import { json, redirect } from '@remix-run/cloudflare';
-import { useLoaderData, useFetcher, useNavigate } from '@remix-run/react';
-import type { LoaderFunctionArgs, ActionFunctionArgs } from '@remix-run/cloudflare';
+import { redirect } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { useLoaderData, useFetcher, useNavigate } from 'react-router';
+import type { LoaderFunctionArgs, ActionFunctionArgs } from 'react-router';
 import { Sparkles, ArrowRight, ArrowLeft, CheckCircle, Store, Users, Target, Package, Loader2 } from 'lucide-react';
 import { requireTenant } from '~/lib/tenant-guard.server';
 import { createPageFromTemplate } from '~/lib/page-builder/actions.server';

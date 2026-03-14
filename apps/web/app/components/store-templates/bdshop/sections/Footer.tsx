@@ -1,4 +1,4 @@
-import { Link } from '@remix-run/react';
+import { Link } from 'react-router';
 import { ShoppingBag, Phone, Mail, MapPin, Facebook, Twitter, Sparkles } from 'lucide-react';
 import { BDSHOP_THEME } from '../theme';
 import { OzzylBranding } from '../../shared/OzzylBranding';

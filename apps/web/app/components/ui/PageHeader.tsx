@@ -3,7 +3,7 @@
  * Shopify-inspired design with title, description, and action buttons
  */
 
-import { Link } from '@remix-run/react';
+import { Link } from 'react-router';
 import { ArrowLeft } from 'lucide-react';
 
 interface PageHeaderProps {

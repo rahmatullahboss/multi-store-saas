@@ -8,8 +8,9 @@
  */
 
 import { Suspense } from 'react';
-import { json, type LoaderFunctionArgs, type MetaFunction } from '@remix-run/cloudflare';
-import { useLoaderData, Link, useRouteError, isRouteErrorResponse } from '@remix-run/react';
+import { type LoaderFunctionArgs, type MetaFunction } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { useLoaderData, Link, useRouteError, isRouteErrorResponse } from 'react-router';
 import { eq, and, like, desc } from 'drizzle-orm';
 import { products } from '@db/schema';
 import { createDb } from '~/lib/db.server';

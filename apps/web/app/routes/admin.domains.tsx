@@ -10,15 +10,15 @@
  * - DNS configuration guide for pending domains
  */
 
-import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
-import { json } from '@remix-run/cloudflare';
+import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from 'react-router';
+import { json } from '~/lib/rr7-compat';
 import {
   Form,
   useActionData,
   useLoaderData,
   useNavigation,
   useRevalidator,
-} from '@remix-run/react';
+} from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, isNotNull, or, desc } from 'drizzle-orm';
 import { stores, users } from '@db/schema';

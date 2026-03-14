@@ -11,10 +11,10 @@
  * - Recent orders preview
  */
 
-import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
+import type { LoaderFunctionArgs, MetaFunction } from 'react-router';
 import { Suspense } from 'react';
-import { defer } from '@remix-run/cloudflare';
-import { useNavigate, useLoaderData, Link, Await } from '@remix-run/react';
+import { defer } from '~/lib/rr7-compat';
+import { useNavigate, useLoaderData, Link, Await } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, desc, and, gte, sql } from 'drizzle-orm';
 import { orders, stores } from '@db/schema';

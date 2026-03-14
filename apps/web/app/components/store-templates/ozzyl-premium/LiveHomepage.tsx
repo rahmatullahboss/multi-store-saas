@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from '@remix-run/react';
+import { Link } from 'react-router';
 import { Heart, ShoppingBag, ArrowRight, Star, Menu, X, ChevronDown } from 'lucide-react';
 import { useWishlist } from '~/hooks/useWishlist';
 import type { StoreTemplateProps } from '~/templates/store-registry';

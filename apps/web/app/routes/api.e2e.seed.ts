@@ -1,5 +1,5 @@
-import type { ActionFunctionArgs } from '@remix-run/cloudflare';
-import { json } from '@remix-run/cloudflare';
+import type { ActionFunctionArgs } from 'react-router';
+import { json } from '~/lib/rr7-compat';
 import { z } from 'zod';
 import { createDb } from '~/lib/db.server';
 import { products, stores } from '@db/schema';

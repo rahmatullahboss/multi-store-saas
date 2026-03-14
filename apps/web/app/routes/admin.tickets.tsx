@@ -10,9 +10,9 @@
  * - Respond to tickets
  */
 
-import type { LoaderFunctionArgs, ActionFunctionArgs } from '@remix-run/cloudflare';
-import { json } from '@remix-run/cloudflare';
-import { useLoaderData, Link, Form, useSearchParams } from '@remix-run/react';
+import type { LoaderFunctionArgs, ActionFunctionArgs } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { useLoaderData, Link, Form, useSearchParams } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
 import { supportTickets, stores, users } from '@db/schema';
 import { eq, desc, and, sql, or } from 'drizzle-orm';

@@ -8,7 +8,8 @@
  * - Uptime (hardcoded 99.9% for now)
  */
 
-import { json, type LoaderFunctionArgs } from '@remix-run/cloudflare';
+import { type LoaderFunctionArgs } from 'react-router';
+import { json } from '~/lib/rr7-compat';
 import { drizzle } from 'drizzle-orm/d1';
 import { count, desc } from 'drizzle-orm';
 import { users, stores } from '@db/schema';

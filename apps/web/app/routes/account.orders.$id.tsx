@@ -1,5 +1,6 @@
-import { json, type LoaderFunctionArgs } from '@remix-run/cloudflare';
-import { useLoaderData, Link } from '@remix-run/react';
+import { type LoaderFunctionArgs } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { useLoaderData, Link } from 'react-router';
 import { resolveStore } from '~/lib/store.server';
 import { getCustomerId } from '~/services/customer-auth.server';
 import { getCustomerOrderWithDetails } from '~/services/customer-account.server';

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useParams } from '@remix-run/react';
+import { Link, useParams } from 'react-router';
 import { ShoppingCart, Star, ShieldCheck, Truck, Cpu, ChevronRight } from 'lucide-react';
 import type { SerializedProduct } from '~/templates/store-registry';
 import { AddToCartButton } from '~/components/AddToCartButton';

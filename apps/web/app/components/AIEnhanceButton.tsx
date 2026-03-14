@@ -6,7 +6,7 @@
  */
 
 import { useState, useRef, useEffect } from 'react';
-import { useFetcher } from '@remix-run/react';
+import { useFetcher } from 'react-router';
 import { Sparkles, X, Loader2, Send, Wand2 } from 'lucide-react';
 
 interface AIEnhanceButtonProps {

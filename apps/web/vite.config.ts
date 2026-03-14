@@ -1,4 +1,5 @@
-import { vitePlugin as remix, cloudflareDevProxyVitePlugin } from '@remix-run/dev';
+import { reactRouter } from '@react-router/dev/vite';
+import { cloudflareDevProxy } from '@react-router/dev/vite/cloudflare';
 import tailwindcss from '@tailwindcss/vite';
 import { sentryVitePlugin } from "@sentry/vite-plugin";
 import { defineConfig } from 'vite';
@@ -36,21 +37,11 @@ export default defineConfig({
     ...(
       !process.env.NODE_ENV ||
       (process.env.NODE_ENV === 'development' && !process.env.CI && !process.env.WRANGLER_CI)
-        ? [cloudflareDevProxyVitePlugin()]
+        ? [cloudflareDevProxy()]
         : []
     ),
     tailwindcss(),
-    remix({
-      future: {
-        v3_fetcherPersist: true,
-        v3_relativeSplatPath: true,
-        v3_throwAbortReason: true,
-        v3_singleFetch: true,
-        // Cost optimization: disable /__manifest fog-of-war requests
-        // so one storefront visit does not trigger an extra Worker hit.
-        v3_lazyRouteDiscovery: false,
-      },
-    }),
+    reactRouter(),
     tsconfigPaths(),
     // Sentry plugin disabled for faster builds
     // Uncomment when Sentry integration is needed

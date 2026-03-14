@@ -3,7 +3,7 @@
  * Shopify-inspired design with icon, title, description, and CTA
  */
 
-import { Link } from '@remix-run/react';
+import { Link } from 'react-router';
 
 interface EmptyStateProps {
   icon: React.ReactNode;

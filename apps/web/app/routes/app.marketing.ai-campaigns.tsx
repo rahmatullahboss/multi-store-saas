@@ -7,9 +7,9 @@
  * 3. Send campaigns via Email (SMS coming soon)
  */
 
-import type { LoaderFunctionArgs, ActionFunctionArgs } from '@remix-run/cloudflare';
-import { json } from '@remix-run/cloudflare';
-import { useLoaderData, useFetcher, Link } from '@remix-run/react';
+import type { LoaderFunctionArgs, ActionFunctionArgs } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { useLoaderData, useFetcher, Link } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, sql } from 'drizzle-orm';
 import { customers, stores } from '@db/schema';
@@ -29,7 +29,7 @@ import {
   CheckCircle
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { useRevalidator } from '@remix-run/react';
+import { useRevalidator } from 'react-router';
 
 // Segment definitions
 const SEGMENTS = [

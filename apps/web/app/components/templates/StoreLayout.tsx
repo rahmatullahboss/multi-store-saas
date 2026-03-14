@@ -9,7 +9,7 @@
  * - Footer
  */
 
-import { Link, useFetcher } from '@remix-run/react';
+import { Link, useFetcher } from 'react-router';
 import { useState } from 'react';
 import type { ThemeConfig, SocialLinks, FooterConfig } from '@db/types';
 import { OptimizedImage } from '~/components/OptimizedImage';

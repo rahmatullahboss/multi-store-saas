@@ -7,9 +7,9 @@
  * - Hybrid (both)
  */
 
-import type { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/cloudflare';
-import { json } from '@remix-run/cloudflare';
-import { Form, useLoaderData, useActionData, useNavigation, useNavigate, Link } from '@remix-run/react';
+import type { ActionFunctionArgs, LoaderFunctionArgs } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { Form, useLoaderData, useActionData, useNavigation, useNavigate, Link } from 'react-router';
 import { useEffect } from 'react';
 import { drizzle } from 'drizzle-orm/d1';
 import { stores, type Store } from '@db/schema';

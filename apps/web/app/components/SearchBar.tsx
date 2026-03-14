@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useFetcher, Link } from '@remix-run/react';
+import { useFetcher, Link } from 'react-router';
 import { Search, Loader2 } from 'lucide-react';
 import { formatMoney } from '~/utils/money';
 import { cn } from '~/utils/cn';

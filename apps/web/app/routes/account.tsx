@@ -1,5 +1,6 @@
-import { json, redirect, type LoaderFunctionArgs } from '@remix-run/cloudflare';
-import { Outlet, useLoaderData, useLocation } from '@remix-run/react';
+import { redirect, type LoaderFunctionArgs } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { Outlet, useLoaderData, useLocation } from 'react-router';
 import { resolveStore } from '~/lib/store.server';
 import { getCustomerId } from '~/services/customer-auth.server';
 import { StorePageWrapper } from '~/components/store-layouts/StorePageWrapper';

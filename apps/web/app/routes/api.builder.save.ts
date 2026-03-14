@@ -5,7 +5,8 @@
  * Upserts draft section props to D1, scoped by store_id for multi-tenant safety.
  */
 
-import { json, type ActionFunctionArgs } from '@remix-run/cloudflare';
+import { type ActionFunctionArgs } from 'react-router';
+import { json } from '~/lib/rr7-compat';
 import { requireAuth } from '~/lib/auth.server';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and } from 'drizzle-orm';

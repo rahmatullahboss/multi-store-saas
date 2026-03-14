@@ -5,9 +5,9 @@
  * Allows super admins to review, approve, or remove marketplace themes.
  */
 
-import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from '@remix-run/cloudflare';
-import { json } from '@remix-run/cloudflare';
-import { useLoaderData, useNavigation, useActionData, Form, Link } from '@remix-run/react';
+import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { useLoaderData, useNavigation, useActionData, Form, Link } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
 import { marketplaceThemes } from '@db/schema';
 import { eq, desc } from 'drizzle-orm';

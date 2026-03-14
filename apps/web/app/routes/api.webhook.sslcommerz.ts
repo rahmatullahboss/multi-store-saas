@@ -1,4 +1,5 @@
-import { json, type ActionFunctionArgs } from '@remix-run/cloudflare';
+import { type ActionFunctionArgs } from 'react-router';
+import { json } from '~/lib/rr7-compat';
 import { and, eq } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
 import { orders } from '@db/schema';

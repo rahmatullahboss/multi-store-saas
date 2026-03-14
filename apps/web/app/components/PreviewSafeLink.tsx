@@ -6,7 +6,7 @@
  * This allows template previews to navigate while staying in preview mode.
  */
 
-import { Link, type LinkProps, useNavigate, useParams } from '@remix-run/react';
+import { Link, type LinkProps, useNavigate, useParams } from 'react-router';
 import type { ReactNode, MouseEvent } from 'react';
 
 interface PreviewSafeLinkProps extends Omit<LinkProps, 'to'> {

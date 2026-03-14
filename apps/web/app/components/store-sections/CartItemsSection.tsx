@@ -1,5 +1,5 @@
 
-import { Link } from '@remix-run/react';
+import { Link } from 'react-router';
 import { ShoppingBag, Trash2, Plus, Minus } from 'lucide-react';
 import { useTranslation, useFormatPrice } from '~/contexts/LanguageContext';
 import type { SectionSettings } from './registry';

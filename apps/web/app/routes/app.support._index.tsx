@@ -3,9 +3,9 @@
  * Shows all support tickets for the current store
  */
 
-import type { LoaderFunctionArgs } from '@remix-run/cloudflare';
-import { json } from '@remix-run/cloudflare';
-import { useLoaderData, Link, Form } from '@remix-run/react';
+import type { LoaderFunctionArgs } from 'react-router';
+import { json } from '~/lib/rr7-compat';
+import { useLoaderData, Link, Form } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
 import { supportTickets, stores } from '@db/schema';
 import { eq, desc, and, sql } from 'drizzle-orm';

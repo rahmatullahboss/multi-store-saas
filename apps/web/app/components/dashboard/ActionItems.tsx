@@ -3,7 +3,7 @@
  * Shows pending tasks that need merchant attention
  */
 
-import { Link } from '@remix-run/react';
+import { Link } from 'react-router';
 import { 
   AlertTriangle, 
   Package, 

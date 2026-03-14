@@ -8,7 +8,7 @@
  * Includes Google Sign-In for customer authentication.
  */
 
-import { Link } from '@remix-run/react';
+import { Link } from 'react-router';
 import { useState } from 'react';
 import { useCartCount } from '~/hooks/useCartCount';
 import { Menu, X, Search, ShoppingCart, User, LogOut } from 'lucide-react';
