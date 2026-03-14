@@ -166,7 +166,7 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: apps/web
-          command: deploy --env=staging
+          command: pages deploy build/client --project-name=multi-store-saas-staging
 
       - name: ⏳ Wait for deployment to propagate
         run: sleep 15
@@ -238,7 +238,7 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: apps/web
-          command: deploy --env=production
+          command: pages deploy build/client --project-name=multi-store-saas
 
       - name: ⏳ Wait for deployment to propagate
         run: sleep 20
@@ -285,7 +285,7 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: apps/web
-          command: rollback --env=production
+          command: pages deployment list --project-name=multi-store-saas
 
       - name: 🚨 Create rollback issue
         if: failure()
