@@ -10,7 +10,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useId } from 'react';
 import { z } from 'zod';
 
 // ─── Schema ────────────────────────────────────────────────────────────────────
@@ -42,16 +42,18 @@ function Divider() {
 /** Single form label + input row */
 function FormField({
   label,
+  htmlFor,
   required,
   children,
 }: {
   label: string;
+  htmlFor?: string;
   required?: boolean;
   children: React.ReactNode;
 }) {
   return (
     <div>
-      <label className="mb-1.5 block text-sm font-semibold text-gray-700">
+      <label htmlFor={htmlFor} className="mb-1.5 block text-sm font-semibold text-gray-700">
         {label}
         {required && <span className="ml-0.5 text-red-500">*</span>}
       </label>
@@ -78,6 +80,7 @@ export function OrderFormSection({
   isPreview = false,
 }: OrderFormSectionProps) {
   const p: OrderFormProps = OrderFormSchema.parse(props);
+  const id = useId();
 
   // ── local state (quantity + submission) ──────────────────────────────────
   const [quantity, setQuantity] = useState(1);
@@ -234,8 +237,9 @@ export function OrderFormSection({
               <div className="space-y-4">
 
                 {/* Name */}
-                <FormField label="আপনার নাম" required>
+                <FormField htmlFor={`${id}-name`} label="আপনার নাম" required>
                   <input
+                    id={`${id}-name`}
                     type="text"
                     name="name"
                     placeholder="আপনার নাম লিখুন"
@@ -247,7 +251,7 @@ export function OrderFormSection({
                 </FormField>
 
                 {/* Phone */}
-                <FormField label="মোবাইল নম্বর" required>
+                <FormField htmlFor={`${id}-phone`} label="মোবাইল নম্বর" required>
                   <div className="relative">
                     <span className="absolute inset-y-0 left-3.5 flex items-center">
                       <svg
@@ -266,6 +270,7 @@ export function OrderFormSection({
                       </svg>
                     </span>
                     <input
+                      id={`${id}-phone`}
                       type="tel"
                       name="phone"
                       placeholder="01XXXXXXXXX"
@@ -283,8 +288,9 @@ export function OrderFormSection({
                 </FormField>
 
                 {/* Address */}
-                <FormField label="সম্পূর্ণ ঠিকানা" required>
+                <FormField htmlFor={`${id}-address`} label="সম্পূর্ণ ঠিকানা" required>
                   <textarea
+                    id={`${id}-address`}
                     name="address"
                     rows={3}
                     placeholder="বিস্তারিত ঠিকানা (জেলা, উপজেলা সহ)"

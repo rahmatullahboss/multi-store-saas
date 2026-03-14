@@ -4,6 +4,7 @@
  * Full form logic is handled server-side; this is a preview/display component.
  */
 
+import { useId } from 'react';
 import { CTAPropsSchema, type CTAProps } from '~/lib/page-builder/schemas';
 
 interface CTASectionProps {
@@ -13,6 +14,7 @@ interface CTASectionProps {
 
 export function CTASection({ props, isPreview = false }: CTASectionProps) {
   const p: CTAProps = CTAPropsSchema.parse(props);
+  const id = useId();
 
   const savings = p.productPrice && p.discountedPrice
     ? p.productPrice - p.discountedPrice
@@ -86,8 +88,9 @@ export function CTASection({ props, isPreview = false }: CTASectionProps) {
             {/* Form fields */}
             <div className="space-y-3">
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">{p.nameLabel}</label>
+                <label htmlFor={`${id}-name`} className="mb-1 block text-sm font-medium text-gray-700">{p.nameLabel}</label>
                 <input
+                  id={`${id}-name`}
                   type="text"
                   placeholder={p.namePlaceholder}
                   className="w-full rounded-xl border border-gray-200 px-4 py-3 text-gray-800 placeholder-gray-400 outline-none ring-0 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
@@ -95,8 +98,9 @@ export function CTASection({ props, isPreview = false }: CTASectionProps) {
                 />
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">মোবাইল নম্বর *</label>
+                <label htmlFor={`${id}-phone`} className="mb-1 block text-sm font-medium text-gray-700">মোবাইল নম্বর *</label>
                 <input
+                  id={`${id}-phone`}
                   type="tel"
                   placeholder={p.phonePlaceholder}
                   className="w-full rounded-xl border border-gray-200 px-4 py-3 text-gray-800 placeholder-gray-400 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
@@ -105,8 +109,9 @@ export function CTASection({ props, isPreview = false }: CTASectionProps) {
               </div>
               {p.showDistrictField && (
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700">{p.districtLabel}</label>
+                  <label htmlFor={`${id}-district`} className="mb-1 block text-sm font-medium text-gray-700">{p.districtLabel}</label>
                   <select
+                    id={`${id}-district`}
                     className="w-full rounded-xl border border-gray-200 px-4 py-3 text-gray-700 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
                     disabled={isPreview}
                   >
@@ -123,8 +128,9 @@ export function CTASection({ props, isPreview = false }: CTASectionProps) {
                 </div>
               )}
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">{p.addressLabel}</label>
+                <label htmlFor={`${id}-address`} className="mb-1 block text-sm font-medium text-gray-700">{p.addressLabel}</label>
                 <textarea
+                  id={`${id}-address`}
                   rows={2}
                   placeholder={p.addressPlaceholder}
                   className="w-full rounded-xl border border-gray-200 px-4 py-3 text-gray-800 placeholder-gray-400 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
@@ -133,8 +139,9 @@ export function CTASection({ props, isPreview = false }: CTASectionProps) {
               </div>
               {p.showNoteField && (
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700">{p.noteLabel}</label>
+                  <label htmlFor={`${id}-note`} className="mb-1 block text-sm font-medium text-gray-700">{p.noteLabel}</label>
                   <input
+                    id={`${id}-note`}
                     type="text"
                     placeholder={p.notePlaceholder}
                     className="w-full rounded-xl border border-gray-200 px-4 py-3 text-gray-800 placeholder-gray-400 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"

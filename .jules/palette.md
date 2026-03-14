@@ -1,0 +1,3 @@
+## 2023-10-27 - Form Accessibility in Reusable Builder Components
+**Learning:** Hardcoded `id` attributes on inputs (and matching `htmlFor` on labels) cause accessibility failures when a builder component (like `CTASection` or `OrderFormSection`) is used multiple times on the same page, leading to ID collisions and incorrect label targeting.
+**Action:** Always use React's `useId()` hook to generate a unique prefix for `id` and `htmlFor` attributes within components that may be instanced multiple times. This ensures robust screen reader support and clickable label behavior without side effects.
