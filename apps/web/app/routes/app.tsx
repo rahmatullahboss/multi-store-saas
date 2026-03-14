@@ -30,9 +30,7 @@ import {
   Truck,
   Warehouse,
   ShoppingBag,
-  FileText,
   Mail,
-  Layers,
   Eye,
   CreditCard,
   Palette,
@@ -284,12 +282,9 @@ const navSections: NavSection[] = [
       { to: '/app/inventory', labelKey: 'navInventory', icon: Warehouse },
     ],
   },
-  // === ONLINE STORE (Pages & Theme) ===
   {
     titleKey: 'sidebarOnlineStore',
     items: [
-      { to: '/app/new-builder', labelKey: 'navPages', icon: FileText },
-      { to: '/app/page-builder', labelKey: 'navDragDropBuilder', icon: Layers },
       { to: '/app/store-design', labelKey: 'navTheme', icon: Palette },
     ],
   },
@@ -420,7 +415,7 @@ export default function AppLayout() {
         </div>
       )}
 
-      <div className="flex-1 overflow-y-auto flex flex-col md:flex-row relative">
+      <div className="flex-1 overflow-hidden flex flex-col md:flex-row relative">
       {/* Mobile Sidebar Overlay - hide on builder routes */}
       {!isBuilderRoute && sidebarOpen && (
         <div
@@ -436,7 +431,7 @@ export default function AppLayout() {
           transform transition-transform duration-200 ease-in-out
           lg:translate-x-0
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-          md:sticky md:top-0 md:h-screen md:translate-x-0 md:z-auto md:shrink-0 border-r border-gray-200
+          md:fixed md:top-0 md:left-0 md:h-screen md:translate-x-0 md:z-40 md:shrink-0 border-r border-gray-200
         `}
       >
         <div className="flex flex-col h-full bg-white/90 backdrop-blur-xl">
@@ -614,7 +609,7 @@ export default function AppLayout() {
       </aside>}
 
       {/* Main Content - no left padding on builder routes */}
-      <div className={`flex-1 overflow-y-auto ${isBuilderRoute ? '' : ''}`}>
+      <div className={`flex-1 overflow-y-auto md:ml-64 ${isBuilderRoute ? 'md:ml-0' : ''}`}>
         {/* Mobile Header - hide on builder routes */}
         {!isBuilderRoute && (
           <header className="lg:hidden sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-white/20 px-4 py-3">
