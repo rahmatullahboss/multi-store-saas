@@ -91,7 +91,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     // Get last 90 days revenue
     db
       .select({
-        date: sql<string>`DATE(${orders.createdAt})`.as('date'),
+        date: sql<string>`date(${orders.createdAt}, 'unixepoch')`.as('date'),
         revenue: sql<number>`SUM(${orders.total})`.as('revenue'),
         ordersCount: sql<number>`COUNT(*)`.as('ordersCount'),
       })
@@ -100,11 +100,11 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
         and(
           eq(orders.storeId, storeId),
           gte(orders.createdAt, new Date(Date.now() - 90 * 24 * 60 * 60 * 1000)),
-          eq(orders.status, 'confirmed')
+          sql`status != 'cancelled'`
         )
       )
-      .groupBy(sql`DATE(${orders.createdAt})`)
-      .orderBy(sql`DATE(${orders.createdAt})`),
+      .groupBy(sql`date(${orders.createdAt}, 'unixepoch')`)
+      .orderBy(sql`date(${orders.createdAt}, 'unixepoch')`),
 
     // Recent 5 orders
     db

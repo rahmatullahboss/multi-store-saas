@@ -420,7 +420,7 @@ export default function AppLayout() {
         </div>
       )}
 
-      <div className="flex-1 overflow-hidden flex flex-col md:flex-row relative">
+      <div className="flex-1 overflow-y-auto flex flex-col md:flex-row relative">
       {/* Mobile Sidebar Overlay - hide on builder routes */}
       {!isBuilderRoute && sidebarOpen && (
         <div
