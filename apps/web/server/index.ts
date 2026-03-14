@@ -6,7 +6,7 @@
  * - Rate limiting middleware
  * - Multi-tenancy middleware
  * - API routes (Hono)
- * - Remix SSR (forwarded requests)
+ * - Remix SSR (via createRequestHandler)
  */
 
 import { Hono, Context } from 'hono';
