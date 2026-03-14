@@ -227,11 +227,20 @@ export async function requireTenant(
   }
 
   // ── 6. Staff permission gate ─────────────────────────────────────────────
-  const isOwner = row.userRole === 'merchant';
-  const staffPermissions = isOwner ? null : parsePermissions(row.userPermissions);
+  // Owners (merchant), admins, and super_admins bypass all permission checks.
+  const isOwnerOrAdmin =
+    row.userRole === 'merchant' ||
+    row.userRole === 'admin' ||
+    row.userRole === 'super_admin';
+  const staffPermissions = isOwnerOrAdmin ? null : parsePermissions(row.userPermissions);
 
-  if (options.requirePermission && !isOwner) {
+  if (options.requirePermission && !isOwnerOrAdmin) {
     if (!staffPermissions || !staffPermissions[options.requirePermission]) {
+      console.warn(
+        `[TENANT GUARD] 403 insufficient permissions — userId=${userId} role=${row.userRole} ` +
+        `storeId=${row.storeId} required=${options.requirePermission} ` +
+        `permissions=${row.userPermissions ?? 'null'}`
+      );
       throw new Response('Forbidden: insufficient permissions', { status: 403 });
     }
   }
