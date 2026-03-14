@@ -69,6 +69,15 @@ export default defineConfig({
     sourcemap: false, // Disable source maps in production for faster builds
     minify: true,
     rollupOptions: {
+      // Capacitor packages are dynamically imported only in mobile context
+      // and are not installed for the web build
+      external: [
+        '@capacitor/status-bar',
+        '@capacitor/splash-screen',
+        '@capacitor/network',
+        '@capacitor/app',
+        '@capacitor/push-notifications',
+      ],
       output: {
         assetFileNames: 'assets/[name]-[hash][extname]',
         chunkFileNames: 'assets/[name]-[hash].js',
