@@ -60,12 +60,14 @@ export function SearchInput({
         value={internalValue}
         onChange={(e) => setInternalValue(e.target.value)}
         placeholder={placeholder}
+        aria-label={placeholder}
         className="w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition text-base"
       />
       {internalValue && (
         <button
           type="button"
           onClick={handleClear}
+          aria-label="Clear search"
           className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition"
         >
           <X className="w-4 h-4" />
