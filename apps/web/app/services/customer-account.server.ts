@@ -5,7 +5,7 @@
  * Includes stats, profile updates, address management, and order history.
  */
 
-import { eq, desc, and, count, like } from 'drizzle-orm';
+import { eq, desc, and, count, like, inArray } from 'drizzle-orm';
 import { type DrizzleD1Database } from 'drizzle-orm/d1';
 import * as schema from '@db/schema';
 import { customers, orders, customerAddresses, wishlists, wishlistItems, products, discounts, shipments, orderItems } from '@db/schema';
@@ -152,28 +152,39 @@ export async function getCustomerOrdersWithItems(
     .offset(offset);
 
   // Attach items to orders
-  const ordersWithItems = await Promise.all(
-    customerOrders.map(async (order) => {
-      const items = await db
-        .select({
-          id: orderItems.id,
-          title: orderItems.title,
-          quantity: orderItems.quantity,
-          variantTitle: orderItems.variantTitle,
-          price: orderItems.price,
-          productId: orderItems.productId,
-          image: products.imageUrl,
-        })
-        .from(orderItems)
-        .leftJoin(products, eq(orderItems.productId, products.id))
-        .where(eq(orderItems.orderId, order.id));
+  let ordersWithItems = customerOrders.map(order => ({ ...order, items: [] as any[] }));
 
-      return {
-        ...order,
-        items,
-      };
-    })
-  );
+  if (customerOrders.length > 0) {
+    const orderIds = customerOrders.map(o => o.id);
+
+    const allItems = await db
+      .select({
+        id: orderItems.id,
+        orderId: orderItems.orderId,
+        title: orderItems.title,
+        quantity: orderItems.quantity,
+        variantTitle: orderItems.variantTitle,
+        price: orderItems.price,
+        productId: orderItems.productId,
+        image: products.imageUrl,
+      })
+      .from(orderItems)
+      .leftJoin(products, eq(orderItems.productId, products.id))
+      .where(inArray(orderItems.orderId, orderIds));
+
+    // Group items by orderId
+    const itemsByOrderId = allItems.reduce((acc, item) => {
+      const { orderId, ...itemData } = item;
+      if (!acc[orderId!]) acc[orderId!] = [];
+      acc[orderId!].push(itemData);
+      return acc;
+    }, {} as Record<number, any[]>);
+
+    ordersWithItems = customerOrders.map(order => ({
+      ...order,
+      items: itemsByOrderId[order.id] || [],
+    }));
+  }
 
   return {
     orders: ordersWithItems,
@@ -205,24 +216,33 @@ export async function getCustomerRecentOrdersWithImages(
   if (recentOrders.length === 0) return [];
 
   // For each order, get the first item's product image
-  const ordersWithImages = await Promise.all(
-    recentOrders.map(async (order) => {
-      const firstItem = await db
-        .select({
-          imageUrl: products.imageUrl,
-          title: products.title
-        })
-        .from(orderItems)
-        .leftJoin(products, eq(orderItems.productId, products.id))
-        .where(eq(orderItems.orderId, order.id))
-        .limit(1);
+  const orderIds = recentOrders.map(o => o.id);
 
-      return {
-        ...order,
-        firstItem: firstItem[0] || null,
-      };
+  const allItems = await db
+    .select({
+      orderId: orderItems.orderId,
+      imageUrl: products.imageUrl,
+      title: products.title
     })
-  );
+    .from(orderItems)
+    .leftJoin(products, eq(orderItems.productId, products.id))
+    .where(inArray(orderItems.orderId, orderIds));
+
+  // Get first item per orderId
+  const firstItemByOrderId = allItems.reduce((acc, item) => {
+    if (!acc[item.orderId!]) {
+      acc[item.orderId!] = {
+        imageUrl: item.imageUrl,
+        title: item.title,
+      };
+    }
+    return acc;
+  }, {} as Record<number, { imageUrl: string | null; title: string | null }>);
+
+  const ordersWithImages = recentOrders.map(order => ({
+    ...order,
+    firstItem: firstItemByOrderId[order.id] || null,
+  }));
 
   return ordersWithImages;
 }
