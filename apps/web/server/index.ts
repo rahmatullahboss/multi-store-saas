@@ -1,34 +1,95 @@
 /**
  * Hono Server Entry Point
- * 
+ *
  * Main entry for Cloudflare Workers. Combines:
  * - Security headers middleware
  * - Rate limiting middleware
  * - Multi-tenancy middleware
  * - API routes (Hono)
- * - Remix SSR (via createRequestHandler)
+ * - Remix SSR (forwarded requests)
  */
 
 import { Hono, Context } from 'hono';
-import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
 import { cache } from 'hono/cache';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, and } from 'drizzle-orm';
 import { stores } from '@db/schema';
 import { tenantMiddleware, type TenantEnv, type TenantContext } from './middleware/tenant';
+import { workerTelemetryMiddleware } from './middleware/worker-telemetry';
+import { botControlMiddleware } from './middleware/bot-control';
 import { securityHeaders, apiSecurityHeaders } from './middleware/security';
-import { standardApiLimit, authLimit, orderLimit, aiChatLimit } from './middleware/rate-limit';
+import { csrfOriginGuard } from './middleware/csrf';
+import {
+  standardApiLimit,
+  authLimit,
+  orderLimit,
+  aiChatLimit,
+  checkoutLimit,
+  cartLimit,
+  proxyImageLimit,
+} from './middleware/rate-limit';
+import { requestTracker } from './lib/debug/request-tracker';
 import { productsApi } from './api/products';
 import { ordersApi } from './api/orders';
 import { storesApi } from './api/stores';
+import { graphqlApi } from './api/graphql';
+import { oauthApi } from './api/oauth';
+import customersApi from './api/routes/customers';
+import { v1Router } from './api/v1';
+import { shopifyAppRouter } from './api/shopify-app';
+import { builderPublishApi } from './api/builder-publish';
+
+// Forward all other requests to Remix (via Vite build output)
+import { ServerBuild, createRequestHandler } from '@remix-run/cloudflare';
+// IMPORTANT: Lazy-load the Remix build so unit tests can import this module
+// without executing the compiled server bundle (which can be heavy/fragile in Vitest).
+const getRemixBuild = () => import('../build/server/index.js') as unknown as Promise<ServerBuild>;
 
 // Type definitions for Cloudflare bindings
 interface Env extends TenantEnv {
   ASSETS: Fetcher;
   RATE_LIMIT_KV?: KVNamespace;
-  ENVIRONMENT?: string;
-  HMS_WORKER?: Fetcher; // Service Binding to HMS SaaS worker
+  ENVIRONMENT?: 'development' | 'production' | 'staging';
+  
+  // Bindings
+  AI: Ai;
+  VECTORIZE: VectorizeIndex;
+
+  // Variables
+  R2_PUBLIC_URL: string;
+  SUPER_ADMIN_EMAIL: string;
+  CLOUDFLARE_ZONE_ID: string;
+  AI_MODEL: string;
+  AI_BASE_URL: string;
+  PAGE_BUILDER_URL: string;
+  VAPID_PUBLIC_KEY: string;
+  VAPID_SUBJECT: string;
+  SENTRY_DSN: string;
+  MASTER_FACEBOOK_PIXEL_ID: string;
+  GOOGLE_CLIENT_ID: string;
+
+  // Secrets
+  SESSION_SECRET: string;
+  RESEND_API_KEY: string;
+  VAPID_PRIVATE_KEY: string;
+  OPENROUTER_API_KEY: string;
+  CLOUDFLARE_API_TOKEN: string;
+  GOOGLE_CLIENT_SECRET: string;
+  AXION_TOKEN: string;
+  HEALTH_CHECK_TOKEN?: string;
+
+  // ─── Shopify App (Phase 4) ──────────────────────────────────────────────────
+  /** Shopify App client ID (from Shopify Partners dashboard) */
+  SHOPIFY_CLIENT_ID: string;
+  /** Shopify App client secret (Cloudflare secret) */
+  SHOPIFY_CLIENT_SECRET: string;
+  /** OAuth callback URL registered in Shopify Partners */
+  SHOPIFY_REDIRECT_URI: string;
+  /** 32-byte hex AES-GCM key for encrypting access tokens (Cloudflare secret) */
+  SHOPIFY_ENCRYPTION_KEY: string;
+  /** App handle for post-install redirect (default: "ozzyl") */
+  SHOPIFY_APP_HANDLE?: string;
 }
 
 type AppContext = {
@@ -38,14 +99,55 @@ type AppContext = {
 
 // Create Hono app with typed context
 const app = new Hono<AppContext>();
+const HEALTH_PATHS = new Set(['/api/health', '/api/healthz']);
+
+function serializeError(err: unknown): Record<string, unknown> {
+  if (err instanceof Error) {
+    return {
+      name: err.name,
+      message: err.message,
+      stack: err.stack,
+    };
+  }
+
+  // Some framework paths may throw a Response object.
+  if (err instanceof Response) {
+    return {
+      name: 'Response',
+      status: err.status,
+      statusText: err.statusText,
+    };
+  }
+
+  if (typeof err === 'object' && err !== null) {
+    return { ...(err as Record<string, unknown>) };
+  }
+
+  return { value: String(err) };
+}
 
 // Error and Not Found Handlers
 app.onError((err, c) => {
-  console.error('[SERVER ERROR]', err);
-  return c.json({
-    error: err.message || 'Internal Server Error',
-    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
-  }, 500);
+  const requestId = c.get('requestId') || c.req.header('x-request-id') || 'unknown';
+  const storeId = c.get('storeId') || 0;
+  const isProd = c.env?.ENVIRONMENT === 'production' || !c.env?.ENVIRONMENT;
+  const errorDetails = serializeError(err);
+  console.error('[SERVER ERROR]', {
+    requestId,
+    storeId,
+    method: c.req.method,
+    path: c.req.path,
+    host: c.req.header('host') || null,
+    ...errorDetails,
+  });
+  return c.json(
+    {
+      error: isProd ? 'Internal Server Error' : err.message || 'Internal Server Error',
+      requestId,
+      stack: !isProd ? err.stack : undefined,
+    },
+    500
+  );
 });
 
 app.notFound((c) => {
@@ -53,60 +155,59 @@ app.notFound((c) => {
 });
 
 // ============================================================================
-// HMS ROUTING — Forward hms.ozzyl.com & hms-*.ozzyl.com to HMS Worker
-// ============================================================================
-
-app.use('*', async (c, next) => {
-  const hostname = c.req.header('x-forwarded-host') || c.req.header('host') || '';
-  const cleanHostname = hostname.split(':')[0];
-  const saasDomain = c.env.SAAS_DOMAIN || 'ozzyl.com';
-
-  // Only intercept subdomains of the SaaS domain
-  if (cleanHostname.endsWith(`.${saasDomain}`)) {
-    const subdomain = cleanHostname.replace(`.${saasDomain}`, '');
-
-    // Route hms-* subdomains to HMS Worker (hospital tenants)
-    // Note: bare 'hms.ozzyl.com' is handled by Pages (landing page) via DNS CNAME
-    if (subdomain.startsWith('hms-')) {
-      if (!c.env.HMS_WORKER) {
-        console.error('[HMS] HMS_WORKER service binding not configured');
-        return c.json({ error: 'HMS service unavailable' }, 503);
-      }
-
-      const tenantSlug = subdomain.replace('hms-', '');
-      console.log(`[HMS] Routing to HMS Worker — subdomain: ${subdomain}, tenant: ${tenantSlug || '(landing)'}`);
-
-      // Forward request to HMS worker with tenant context headers
-      const hmsHeaders = new Headers(c.req.raw.headers);
-      hmsHeaders.set('X-Forwarded-Host', cleanHostname);
-      hmsHeaders.set('X-HMS-Tenant', tenantSlug);
-
-      const url = new URL(c.req.url);
-      return c.env.HMS_WORKER.fetch(
-        new Request(url.toString(), {
-          method: c.req.method,
-          headers: hmsHeaders,
-          body: c.req.raw.body,
-        })
-      );
-    }
-  }
-
-  return next();
-});
-
-// ============================================================================
 // GLOBAL MIDDLEWARE
 // ============================================================================
 
-// Logger for development
-app.use('*', logger());
+// Request ID: propagate client-provided x-request-id or generate one.
+// Used for tracing across logs and to help support debug a single request.
+app.use('*', async (c, next) => {
+  const incoming = c.req.header('x-request-id');
+  const requestId =
+    incoming && incoming.length <= 128 ? incoming : crypto.randomUUID();
+
+  c.set('requestId', requestId);
+  await next();
+  c.header('x-request-id', requestId);
+});
+
+// Logger middleware is useful during development, but expensive/noisy in production.
+// Keep production logs focused on business/API paths via requestTracker + explicit errors.
+const honoLogger = logger();
+app.use('*', async (c, next) => {
+  if (c.env.ENVIRONMENT === 'production') {
+    return next();
+  }
+  return honoLogger(c, next);
+});
+
+// Skip noisy logging for static assets
+app.use('*', async (c, next) => {
+  const url = new URL(c.req.url);
+  const isAssetRequest =
+    url.pathname === '/__manifest' ||
+    url.pathname.startsWith('/assets/') ||
+    url.pathname.match(/\.(js|css|png|jpg|jpeg|gif|svg|webp|ico|woff|woff2|ttf|eot|map)$/);
+
+  if (isAssetRequest) {
+    return next();
+  }
+
+  return requestTracker()(c, next);
+});
 
 // Security Headers for all routes
 app.use('*', securityHeaders());
+// SEO-safe bot control: allow verified search crawlers, block non-essential scraping bots
+app.use('*', botControlMiddleware());
 
 // API-specific security headers (stricter CSP)
 app.use('/api/*', apiSecurityHeaders());
+
+// Admin mutation guard (CSRF hard gate)
+// Applies only to authenticated/admin routes to avoid breaking public checkout flows.
+app.use('/app/*', csrfOriginGuard());
+app.use('/admin/*', csrfOriginGuard());
+
 
 // ============================================================================
 // DYNAMIC CORS - Supports merchant custom domains from database
@@ -121,7 +222,7 @@ const staticAllowedOrigins = [
 
 // Trusted domain patterns
 const trustedPatterns = [
-  /^https:\/\/.*\.ozzyl\.com$/,        // *.ozzyl.com subdomains
+  /^https:\/\/.*\.ozzyl\.com$/, // *.ozzyl.com subdomains
   /^https:\/\/.*\.digitalcare\.site$/, // Temporary - ozzyl.com
 ];
 
@@ -132,26 +233,29 @@ const trustedPatterns = [
  * 2. Subdomain patterns (ozzyl.com)
  * 3. Database approved custom domains
  */
-async function validateOrigin(origin: string | undefined, c: Context<AppContext>): Promise<string | null> {
+async function validateOrigin(
+  origin: string | undefined,
+  c: Context<AppContext>
+): Promise<string | null> {
   // No origin = same-origin request
   if (!origin) return 'https://ozzyl.com';
-  
+
   // 1. Check static allowed origins
   if (staticAllowedOrigins.includes(origin)) return origin;
-  
+
   // 2. Check trusted patterns
   for (const pattern of trustedPatterns) {
     if (pattern.test(origin)) return origin;
   }
-  
+
   // 3. Check ozzyl.com subdomains
   if (origin.endsWith('.ozzyl.com')) return origin;
-  
+
   // 4. Check database for approved custom domains
   try {
     const db = drizzle(c.env.DB);
     const originHost = new URL(origin).hostname;
-    
+
     // Query database for this custom domain
     const store = await db
       .select({ id: stores.id })
@@ -164,7 +268,7 @@ async function validateOrigin(origin: string | undefined, c: Context<AppContext>
         )
       )
       .limit(1);
-    
+
     if (store.length > 0) {
       return origin; // Valid custom domain
     }
@@ -172,7 +276,7 @@ async function validateOrigin(origin: string | undefined, c: Context<AppContext>
     console.error('CORS DB check error:', error);
     // Fail closed - deny on error
   }
-  
+
   // 5. Deny unknown origins
   return null;
 }
@@ -181,22 +285,26 @@ async function validateOrigin(origin: string | undefined, c: Context<AppContext>
 app.use('/api/*', async (c, next) => {
   const origin = c.req.header('origin');
   const allowedOrigin = await validateOrigin(origin, c);
-  
+
   // Set CORS headers manually for dynamic validation
   if (allowedOrigin) {
     c.header('Access-Control-Allow-Origin', allowedOrigin);
     c.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
     c.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
-    c.header('Access-Control-Expose-Headers', 'X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset');
+    c.header(
+      'Access-Control-Expose-Headers',
+      'X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset'
+    );
     c.header('Access-Control-Allow-Credentials', 'true');
     c.header('Access-Control-Max-Age', '86400');
   }
-  
+
   // Handle preflight
   if (c.req.method === 'OPTIONS') {
-    return new Response(null, { status: 204 });
+    // Use Hono response helpers so CORS headers set above are preserved
+    return c.body(null, 204);
   }
-  
+
   return next();
 });
 
@@ -208,9 +316,90 @@ app.use('/api/auth/*', authLimit()); // 5 req/15min
 app.use('/api/create-order', orderLimit()); // 10 req/min
 app.use('/api/ai/*', aiChatLimit()); // 20 req/min
 app.use('/api/chat', aiChatLimit());
+app.use('/api/ai-orchestrator', aiChatLimit());
 
-// Apply tenant middleware to all routes
-app.use('*', tenantMiddleware());
+// Rate limiting for billing and cart operations
+app.use('/checkout', checkoutLimit()); // 30 req/min - Page loads
+app.use('/checkout/*', checkoutLimit()); // 30 req/min - All checkout routes
+app.use('/cart', cartLimit()); // 50 req/min - Cart operations (separate limit)
+app.use('/api/proxy-image', proxyImageLimit()); // 60 req/min - Proxy image abuse guard
+
+// Apply tenant middleware to all routes except platform health checks.
+// This keeps /api/health usable on workers.dev even when hostname→store mapping doesn't exist.
+const tenantMw = tenantMiddleware<AppContext>();
+app.use('*', async (c, next) => {
+  // Keep health + staging-only Sentry debug page usable even when hostname→store mapping doesn't exist.
+  if (HEALTH_PATHS.has(c.req.path)) return next();
+  if (c.env.ENVIRONMENT === 'staging' && c.req.path === '/sentry-test') return next();
+  return tenantMw(c, next);
+});
+
+// Cost monitoring telemetry (sampled) to detect abnormal request amplification.
+// Skip /api/health to reduce noise and avoid relying on tenant context.
+const telemetryMw = workerTelemetryMiddleware<AppContext>();
+app.use('*', async (c, next) => {
+  if (HEALTH_PATHS.has(c.req.path)) return next();
+  return telemetryMw(c, next);
+});
+
+// Structured request logs (JSON) for ops/debugging.
+// Goal: include store_id, request_id, and (when available) order_id.
+app.use('*', async (c, next) => {
+  const start = Date.now();
+  const url = new URL(c.req.url);
+
+  // Avoid logging static assets / framework internals (high volume, low value).
+  const isFrameworkInternal =
+    url.pathname === '/__manifest' || url.pathname.startsWith('/__manifest?');
+  const isStaticAsset =
+    url.pathname.startsWith('/assets/') ||
+    /\.(js|css|png|jpg|jpeg|gif|svg|webp|ico|woff|woff2|ttf|eot|map)$/.test(url.pathname);
+  if (isFrameworkInternal || isStaticAsset) {
+    return next();
+  }
+
+  // Avoid noisy health checks.
+  if (HEALTH_PATHS.has(url.pathname)) {
+    return next();
+  }
+
+  await next();
+
+  const durationMs = Date.now() - start;
+  const requestId = c.get('requestId') || c.req.header('x-request-id') || 'unknown';
+  const storeId = (c.get('storeId') as number | undefined) || 0;
+  const cfRay = c.req.header('cf-ray') || undefined;
+
+  // Prefer explicit header from app code; fall back to path/query parsing.
+  // Public API uses x-order-number (safe), admin routes still use x-order-id (internal).
+  const orderNumberHeader = c.res.headers.get('x-order-number') || undefined;
+  const orderIdHeader = c.res.headers.get('x-order-id') || undefined;
+  const orderIdQuery = url.searchParams.get('orderId') || undefined;
+  const orderIdPathMatch = url.pathname.match(/\/orders\/(\d+)(?:\/|$)/);
+  const orderIdPath = orderIdPathMatch?.[1];
+  const orderId = orderNumberHeader || orderIdHeader || orderIdQuery || orderIdPath || undefined;
+
+  // Keep logs machine-readable and low-PII (no cookies, no query strings).
+  // Use waitUntil to defer log emission so it doesn't block the response.
+  const log = {
+    ts: new Date().toISOString(),
+    level: 'info',
+    msg: 'request',
+    environment: c.env.ENVIRONMENT || 'unknown',
+    request_id: requestId,
+    store_id: storeId,
+    order_id: orderId,
+    method: c.req.method,
+    path: url.pathname,
+    status: c.res.status,
+    duration_ms: durationMs,
+    cf_ray: cfRay,
+  };
+
+  c.executionCtx.waitUntil(
+    Promise.resolve().then(() => console.warn(JSON.stringify(log)))
+  );
+});
 
 // ============================================================================
 // API ROUTES - Hono handles these directly
@@ -218,10 +407,34 @@ app.use('*', tenantMiddleware());
 
 // Health check (no tenant required)
 app.get('/api/health', (c) => {
-  return c.json({ 
-    status: 'ok', 
+  return c.json({
+    status: 'ok',
     timestamp: new Date().toISOString(),
     store: c.get('store')?.name || 'unknown',
+  });
+});
+
+// Monitoring health endpoint (token protected, tenant-agnostic).
+// Use for uptime checks when custom domains are protected by challenge rules.
+app.get('/api/healthz', (c) => {
+  const configuredToken = c.env.HEALTH_CHECK_TOKEN;
+  if (!configuredToken) {
+    return c.json({ status: 'disabled' }, 503);
+  }
+
+  const suppliedToken =
+    c.req.header('x-health-token') ||
+    c.req.query('token') ||
+    c.req.header('authorization')?.replace(/^Bearer\s+/i, '');
+
+  if (!suppliedToken || suppliedToken !== configuredToken) {
+    return c.json({ error: 'Unauthorized' }, 401);
+  }
+
+  return c.json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    environment: c.env.ENVIRONMENT || 'unknown',
   });
 });
 
@@ -242,6 +455,24 @@ app.get('/api/store', (c) => {
 app.route('/api/products', productsApi);
 app.route('/api/orders', ordersApi);
 app.route('/api/stores', storesApi);
+app.route('/api/graphql', graphqlApi);
+app.route('/api/oauth', oauthApi);
+app.route('/api/customers', customersApi);
+
+// ─── Builder Publish API (Phase 7) ────────────────────────────────────────────
+// Session-cookie authenticated — merchant-only publish/unpublish actions
+app.route('/api/builder', builderPublishApi);
+
+// ─── Public API Platform v1 ───────────────────────────────────────────────────
+// Bearer token (API key) authenticated — for external integrations
+// WordPress plugins, custom sites, mobile apps, etc.
+app.route('/api/v1', v1Router);
+
+// ─── Shopify App (Phase 4) ────────────────────────────────────────────────────
+// OAuth install/callback, App Bridge session verification, webhook receiver
+// Env vars required: SHOPIFY_CLIENT_ID, SHOPIFY_CLIENT_SECRET,
+//   SHOPIFY_REDIRECT_URI, SHOPIFY_ENCRYPTION_KEY
+app.route('/api/shopify-app', shopifyAppRouter);
 
 // ============================================================================
 // CACHING - For public product pages
@@ -271,9 +502,168 @@ app.get(
 
 // Forward all other requests to Remix (via Vite build output)
 app.all('*', async (c) => {
-  // In production, serve from built assets
-  // The Remix Vite plugin handles SSR
-  return c.env.ASSETS.fetch(c.req.raw);
+  const url = new URL(c.req.url);
+  
+  // 2. Try to fetch from ASSETS binding first
+  // According to Cloudflare docs: https://developers.cloudflare.com/workers/static-assets/binding
+  // When run_worker_first = true, we must forward requests to ASSETS binding
+  // Avoid consuming request bodies for API/non-GET requests (ReadableStream can only be read once)
+  if (url.pathname.startsWith('/api/') || (c.req.method !== 'GET' && c.req.method !== 'HEAD')) {
+    const build = await getRemixBuild();
+    const handler = createRequestHandler(build, c.env.ENVIRONMENT);
+
+    return handler(c.req.raw, {
+      cloudflare: {
+        env: c.env,
+        ctx: c.executionCtx,
+      },
+      storeId: c.get('storeId'),
+      store: c.get('store'),
+      isCustomDomain: c.get('isCustomDomain'),
+    });
+  }
+
+  const assetResponse = await c.env.ASSETS.fetch(c.req.raw);
+  
+  // 3. If asset fetch succeeds (2xx/3xx), return it with optimized cache headers
+  if (assetResponse.status >= 200 && assetResponse.status < 400) {
+    const response = new Response(assetResponse.body, assetResponse);
+    
+    // Immutable assets (hashed filenames) - aggressive caching
+    if (url.pathname.match(/-[A-Za-z0-9_-]{8,}\.(js|css|woff2?|ttf|eot)$/)) {
+      response.headers.set('Cache-Control', 'public, max-age=31536000, immutable');
+    }
+    // Images and fonts - moderate caching
+    else if (url.pathname.match(/\.(png|jpg|jpeg|gif|svg|webp|ico|woff2?|ttf)$/)) {
+      response.headers.set('Cache-Control', 'public, max-age=86400');
+    }
+    // Other assets - short caching
+    else if (url.pathname.startsWith('/assets/')) {
+      response.headers.set('Cache-Control', 'public, max-age=3600');
+    }
+    
+    return response;
+  }
+  
+  // 4. If explicit asset request failed (404), don't fall through to Remix
+  // This prevents Remix from trying to handle missing JS/CSS files
+  if (url.pathname.startsWith('/assets/') || 
+      url.pathname.match(/\.(js|css|png|jpg|jpeg|gif|svg|webp|ico|woff|woff2|ttf|eot|map)$/)) {
+    console.warn(`[ASSETS] 404 Not Found: ${url.pathname}`);
+    return new Response('Asset not found', { 
+      status: 404,
+      headers: { 'Content-Type': 'text/plain' }
+    });
+  }
+  
+  // 5. Not an asset - run Remix SSR for application routes
+  // This handles all page routes (/auth/login, /dashboard, /store.home, etc.)
+  const build = await getRemixBuild();
+  const handler = createRequestHandler(build, c.env.ENVIRONMENT);
+
+  const isCacheablePath =
+    url.pathname === '/' ||
+    url.pathname.startsWith('/products') ||
+    url.pathname.startsWith('/collections') ||
+    url.pathname.startsWith('/p/') ||
+    url.pathname.startsWith('/offers/');
+  const isSensitivePath =
+    url.pathname.startsWith('/cart') ||
+    url.pathname.startsWith('/checkout') ||
+    url.pathname.startsWith('/account') ||
+    url.pathname.startsWith('/admin');
+  const hasAuthHeaders = Boolean(c.req.header('authorization') || c.req.header('cookie'));
+
+  if (c.req.method === 'GET' && isCacheablePath && !isSensitivePath && !hasAuthHeaders) {
+    const cache = (caches as unknown as { default: Cache }).default;
+    // Keep cache key stable across benign header differences to improve hit ratio.
+    const cacheKey = new Request(c.req.raw.url, { method: 'GET' });
+    const cachedResponse = await cache.match(cacheKey);
+
+    if (cachedResponse) {
+      return cachedResponse;
+    }
+
+    const response = await handler(c.req.raw, {
+      cloudflare: {
+        env: c.env,
+        ctx: c.executionCtx,
+      },
+      storeId: c.get('storeId'),
+      store: c.get('store'),
+      isCustomDomain: c.get('isCustomDomain'),
+    });
+
+    const cacheableResponse = new Response(response.body, response);
+    if (response.status === 200) {
+      cacheableResponse.headers.set(
+        'Cache-Control',
+        'public, s-maxage=60, stale-while-revalidate=300'
+      );
+      c.executionCtx.waitUntil(cache.put(cacheKey, cacheableResponse.clone()));
+    }
+
+    return cacheableResponse;
+  }
+
+  // Pass Cloudflare Environment and Hono Context to Remix
+  // This makes `context.cloudflare.env` available in Loaders/Actions
+  return handler(c.req.raw, {
+    cloudflare: {
+      env: c.env,
+      ctx: c.executionCtx,
+    },
+    storeId: c.get('storeId'),
+    store: c.get('store'),
+    isCustomDomain: c.get('isCustomDomain'),
+  });
 });
 
-export default app;
+export { app };
+
+export default {
+  /**
+   * HTTP handler — handled by Hono
+   */
+  fetch: app.fetch.bind(app),
+
+  /**
+   * Cron handler — fires every 30 minutes (configured in wrangler.toml)
+   * Tasks: courier status sync, abandoned cart recovery, win-back, review requests
+   */
+  async scheduled(_event: ScheduledEvent, env: Env, ctx: ExecutionContext): Promise<void> {
+    ctx.waitUntil(
+      (async () => {
+        const { createDb } = await import('../app/lib/db.server');
+        const { runScheduledTasks } = await import('../app/services/scheduler.server');
+        const { logStorefrontSettingsHealthCheck } = await import('../app/lib/storefront-settings-monitor');
+
+        const runTasks = async () => {
+          const db = createDb(env.DB);
+          const results = await runScheduledTasks(db, env);
+          console.log('[CRON] Scheduled tasks completed:', JSON.stringify(results));
+          
+          // Run storefront settings health check
+          await logStorefrontSettingsHealthCheck(env);
+        };
+
+        if (env.SENTRY_DSN && env.ENVIRONMENT !== 'development') {
+          const { init, captureException } = await import('@sentry/remix');
+          init({
+            dsn: env.SENTRY_DSN,
+            environment: env.ENVIRONMENT || 'production',
+          });
+          try {
+            await runTasks();
+          } catch (error) {
+            console.error('[CRON] Fatal error:', error);
+            captureException(error);
+            throw error;
+          }
+        } else {
+          await runTasks();
+        }
+      })()
+    );
+  },
+};

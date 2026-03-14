@@ -78,34 +78,33 @@ index_name = "multi-store-saas-vectors"
 [env.staging.ai]
 binding = "AI"
 
-# SERVICE BINDINGS DISABLED: workers not deployed yet
-# [[env.staging.services]]
-# binding = "ORDER_PROCESSOR_SERVICE"
-# service = "order-processor"
-# 
-# [[env.staging.services]]
-# binding = "CART_SERVICE"
-# service = "cart-processor"
-# 
-# [[env.staging.services]]
-# binding = "CHECKOUT_SERVICE"
-# service = "checkout-lock"
-# 
-# [[env.staging.services]]
-# binding = "RATE_LIMITER_SERVICE"
-# service = "rate-limiter"
-# 
-# [[env.staging.services]]
-# binding = "STORE_CONFIG_SERVICE"
-# service = "store-config"
-# 
-# [[env.staging.services]]
-# binding = "EDITOR_STATE_SERVICE"
-# service = "editor-state"
-# 
-# [[env.staging.services]]
-# binding = "PDF_SERVICE"
-# service = "pdf-generator"
+[[env.staging.services]]
+binding = "ORDER_PROCESSOR_SERVICE"
+service = "order-processor"
+
+[[env.staging.services]]
+binding = "CART_SERVICE"
+service = "cart-processor"
+
+[[env.staging.services]]
+binding = "CHECKOUT_SERVICE"
+service = "checkout-lock"
+
+[[env.staging.services]]
+binding = "RATE_LIMITER_SERVICE"
+service = "rate-limiter"
+
+[[env.staging.services]]
+binding = "STORE_CONFIG_SERVICE"
+service = "store-config"
+
+[[env.staging.services]]
+binding = "EDITOR_STATE_SERVICE"
+service = "editor-state"
+
+[[env.staging.services]]
+binding = "PDF_SERVICE"
+service = "pdf-generator"
 
 # ============================================================================
 # PRODUCTION ROUTING
@@ -162,34 +161,33 @@ index_name = "multi-store-saas-vectors"
 [env.production.ai]
 binding = "AI"
 
-# SERVICE BINDINGS DISABLED: workers not deployed yet
-# [[env.production.services]]
-# binding = "ORDER_PROCESSOR_SERVICE"
-# service = "order-processor"
-# 
-# [[env.production.services]]
-# binding = "CART_SERVICE"
-# service = "cart-processor"
-# 
-# [[env.production.services]]
-# binding = "CHECKOUT_SERVICE"
-# service = "checkout-lock"
-# 
-# [[env.production.services]]
-# binding = "RATE_LIMITER_SERVICE"
-# service = "rate-limiter"
-# 
-# [[env.production.services]]
-# binding = "STORE_CONFIG_SERVICE"
-# service = "store-config"
-# 
-# [[env.production.services]]
-# binding = "EDITOR_STATE_SERVICE"
-# service = "editor-state"
-# 
-# [[env.production.services]]
-# binding = "PDF_SERVICE"
-# service = "pdf-generator"
+[[env.production.services]]
+binding = "ORDER_PROCESSOR_SERVICE"
+service = "order-processor"
+
+[[env.production.services]]
+binding = "CART_SERVICE"
+service = "cart-processor"
+
+[[env.production.services]]
+binding = "CHECKOUT_SERVICE"
+service = "checkout-lock"
+
+[[env.production.services]]
+binding = "RATE_LIMITER_SERVICE"
+service = "rate-limiter"
+
+[[env.production.services]]
+binding = "STORE_CONFIG_SERVICE"
+service = "store-config"
+
+[[env.production.services]]
+binding = "EDITOR_STATE_SERVICE"
+service = "editor-state"
+
+[[env.production.services]]
+binding = "PDF_SERVICE"
+service = "pdf-generator"
 
 # 1) Main App (Admin/Dashboard)
 [[env.production.routes]]
@@ -343,39 +341,40 @@ local_protocol = "http"
 # ============================================================================
 # Deploy workers first: cd workers/{worker-name} && wrangler deploy
 
-# SERVICE BINDINGS DISABLED: workers not deployed yet
-# Uncomment each binding ONLY after deploying the corresponding worker:
-#   cd workers/order-processor && wrangler deploy
-#   cd workers/cart-processor && wrangler deploy
-#   etc.
-#
-# [[services]]
-# binding = "ORDER_PROCESSOR_SERVICE"
-# service = "order-processor"
-# 
-# [[services]]
-# binding = "CART_SERVICE"
-# service = "cart-processor"
-# 
-# [[services]]
-# binding = "CHECKOUT_SERVICE"
-# service = "checkout-lock"
-# 
-# [[services]]
-# binding = "RATE_LIMITER_SERVICE"
-# service = "rate-limiter"
-# 
-# [[services]]
-# binding = "STORE_CONFIG_SERVICE"
-# service = "store-config"
-# 
-# [[services]]
-# binding = "EDITOR_STATE_SERVICE"
-# service = "editor-state"
-# 
-# [[services]]
-# binding = "PDF_SERVICE"
-# service = "pdf-generator"
+# Order Processor Worker (FREE plan - SQLite backend)
+[[services]]
+binding = "ORDER_PROCESSOR_SERVICE"
+service = "order-processor"
+
+# Cart Processor Worker - Race-condition free cart management
+[[services]]
+binding = "CART_SERVICE"
+service = "cart-processor"
+
+# Checkout Lock Worker - Atomic checkout locking
+[[services]]
+binding = "CHECKOUT_SERVICE"
+service = "checkout-lock"
+
+# Rate Limiter Worker - Per-store/IP rate limiting
+[[services]]
+binding = "RATE_LIMITER_SERVICE"
+service = "rate-limiter"
+
+# Store Config Cache Worker - Fast config caching
+[[services]]
+binding = "STORE_CONFIG_SERVICE"
+service = "store-config"
+
+# Editor State Worker - Live page builder state
+[[services]]
+binding = "EDITOR_STATE_SERVICE"
+service = "editor-state"
+
+# PDF Generator Worker - Heavy jsPDF library offloaded
+[[services]]
+binding = "PDF_SERVICE"
+service = "pdf-generator"
 
 # ============================================================================
 # QUEUES (Disabled - using Durable Objects instead for FREE plan)
