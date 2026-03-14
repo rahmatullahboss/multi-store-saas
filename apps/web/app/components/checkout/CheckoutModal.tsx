@@ -366,11 +366,12 @@ export function CheckoutModal({
 
                 {/* Name */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  <label htmlFor="checkout-name" className="block text-sm font-medium text-gray-700 mb-1.5">
                     <User className="w-4 h-4 inline mr-1" />
                     আপনার নাম *
                   </label>
                   <input
+                    id="checkout-name"
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
@@ -391,11 +392,12 @@ export function CheckoutModal({
 
                 {/* Phone */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  <label htmlFor="checkout-phone" className="block text-sm font-medium text-gray-700 mb-1.5">
                     <Phone className="w-4 h-4 inline mr-1" />
                     ফোন নম্বর *
                   </label>
                   <input
+                    id="checkout-phone"
                     type="tel"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
@@ -416,12 +418,13 @@ export function CheckoutModal({
 
                 {/* Delivery Area */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  <label htmlFor="checkout-delivery-area" className="block text-sm font-medium text-gray-700 mb-1.5">
                     <Truck className="w-4 h-4 inline mr-1" />
                     ডেলিভারি এলাকা *
                   </label>
                   <div className="relative">
                     <select
+                      id="checkout-delivery-area"
                       value={deliveryArea}
                       onChange={(e) => setDeliveryArea(e.target.value)}
                       className="w-full px-4 py-2.5 border border-gray-300 rounded-lg appearance-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
@@ -438,11 +441,12 @@ export function CheckoutModal({
 
                 {/* Address */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  <label htmlFor="checkout-address" className="block text-sm font-medium text-gray-700 mb-1.5">
                     <MapPin className="w-4 h-4 inline mr-1" />
                     সম্পূর্ণ ঠিকানা *
                   </label>
                   <textarea
+                    id="checkout-address"
                     value={address}
                     onChange={(e) => setAddress(e.target.value)}
                     placeholder="বাসা/ফ্ল্যাট নম্বর, রোড, এলাকা, থানা"
@@ -463,10 +467,11 @@ export function CheckoutModal({
 
                 {/* Note (Optional) */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  <label htmlFor="checkout-note" className="block text-sm font-medium text-gray-700 mb-1.5">
                     অতিরিক্ত তথ্য (ঐচ্ছিক)
                   </label>
                   <input
+                    id="checkout-note"
                     type="text"
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
