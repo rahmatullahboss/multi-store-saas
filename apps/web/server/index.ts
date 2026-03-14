@@ -180,25 +180,22 @@ app.use('*', async (c, next) => {
   return honoLogger(c, next);
 });
 
-// Skip noisy logging for static assets
+// Request tracker — skip for static assets.
+// With run_worker_first=false, assets rarely reach here, but check cheaply just in case.
+const _requestTracker = requestTracker();
 app.use('*', async (c, next) => {
-  const url = new URL(c.req.url);
-  const isAssetRequest =
-    url.pathname === '/__manifest' ||
-    url.pathname.startsWith('/assets/') ||
-    url.pathname.match(/\.(js|css|png|jpg|jpeg|gif|svg|webp|ico|woff|woff2|ttf|eot|map)$/);
-
-  if (isAssetRequest) {
+  const p = c.req.path;
+  if (p === '/__manifest' || p.startsWith('/assets/')) {
     return next();
   }
-
-  return requestTracker()(c, next);
+  return _requestTracker(c, next);
 });
 
-// Security Headers for all routes
-app.use('*', securityHeaders());
-// SEO-safe bot control: allow verified search crawlers, block non-essential scraping bots
-app.use('*', botControlMiddleware());
+// Security Headers + Bot control — instantiate once, reuse
+const _securityHeaders = securityHeaders();
+const _botControl = botControlMiddleware();
+app.use('*', _securityHeaders);
+app.use('*', _botControl);
 
 // API-specific security headers (stricter CSP)
 app.use('/api/*', apiSecurityHeaders());
@@ -282,27 +279,35 @@ async function validateOrigin(
 }
 
 // Apply dynamic CORS middleware
+// Optimized: skip entirely for same-origin requests (no origin header = admin panel)
 app.use('/api/*', async (c, next) => {
   const origin = c.req.header('origin');
-  const allowedOrigin = await validateOrigin(origin, c);
 
-  // Set CORS headers manually for dynamic validation
+  // Same-origin requests (admin panel, SSR data fetches) — skip CORS entirely
+  if (!origin) return next();
+
+  // Handle preflight early
+  if (c.req.method === 'OPTIONS') {
+    const allowedOrigin = await validateOrigin(origin, c);
+    if (allowedOrigin) {
+      c.header('Access-Control-Allow-Origin', allowedOrigin);
+      c.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+      c.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+      c.header('Access-Control-Expose-Headers', 'X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset');
+      c.header('Access-Control-Allow-Credentials', 'true');
+      c.header('Access-Control-Max-Age', '86400');
+    }
+    return c.body(null, 204);
+  }
+
+  const allowedOrigin = await validateOrigin(origin, c);
   if (allowedOrigin) {
     c.header('Access-Control-Allow-Origin', allowedOrigin);
     c.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
     c.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
-    c.header(
-      'Access-Control-Expose-Headers',
-      'X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset'
-    );
+    c.header('Access-Control-Expose-Headers', 'X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset');
     c.header('Access-Control-Allow-Credentials', 'true');
     c.header('Access-Control-Max-Age', '86400');
-  }
-
-  // Handle preflight
-  if (c.req.method === 'OPTIONS') {
-    // Use Hono response helpers so CORS headers set above are preserved
-    return c.body(null, 204);
   }
 
   return next();
@@ -345,59 +350,45 @@ app.use('*', async (c, next) => {
 // Structured request logs (JSON) for ops/debugging.
 // Goal: include store_id, request_id, and (when available) order_id.
 app.use('*', async (c, next) => {
+  const p = c.req.path;
+
+  // Avoid logging static assets / framework internals / health checks.
+  if (p === '/__manifest' || p.startsWith('/assets/') || HEALTH_PATHS.has(p)) {
+    return next();
+  }
+
   const start = Date.now();
-  const url = new URL(c.req.url);
-
-  // Avoid logging static assets / framework internals (high volume, low value).
-  const isFrameworkInternal =
-    url.pathname === '/__manifest' || url.pathname.startsWith('/__manifest?');
-  const isStaticAsset =
-    url.pathname.startsWith('/assets/') ||
-    /\.(js|css|png|jpg|jpeg|gif|svg|webp|ico|woff|woff2|ttf|eot|map)$/.test(url.pathname);
-  if (isFrameworkInternal || isStaticAsset) {
-    return next();
-  }
-
-  // Avoid noisy health checks.
-  if (HEALTH_PATHS.has(url.pathname)) {
-    return next();
-  }
-
   await next();
 
-  const durationMs = Date.now() - start;
-  const requestId = c.get('requestId') || c.req.header('x-request-id') || 'unknown';
-  const storeId = (c.get('storeId') as number | undefined) || 0;
-  const cfRay = c.req.header('cf-ray') || undefined;
-
-  // Prefer explicit header from app code; fall back to path/query parsing.
-  // Public API uses x-order-number (safe), admin routes still use x-order-id (internal).
-  const orderNumberHeader = c.res.headers.get('x-order-number') || undefined;
-  const orderIdHeader = c.res.headers.get('x-order-id') || undefined;
-  const orderIdQuery = url.searchParams.get('orderId') || undefined;
-  const orderIdPathMatch = url.pathname.match(/\/orders\/(\d+)(?:\/|$)/);
-  const orderIdPath = orderIdPathMatch?.[1];
-  const orderId = orderNumberHeader || orderIdHeader || orderIdQuery || orderIdPath || undefined;
-
-  // Keep logs machine-readable and low-PII (no cookies, no query strings).
-  // Use waitUntil to defer log emission so it doesn't block the response.
-  const log = {
-    ts: new Date().toISOString(),
-    level: 'info',
-    msg: 'request',
-    environment: c.env.ENVIRONMENT || 'unknown',
-    request_id: requestId,
-    store_id: storeId,
-    order_id: orderId,
-    method: c.req.method,
-    path: url.pathname,
-    status: c.res.status,
-    duration_ms: durationMs,
-    cf_ray: cfRay,
-  };
-
+  // Defer log emission via waitUntil so it doesn't block the response.
   c.executionCtx.waitUntil(
-    Promise.resolve().then(() => console.warn(JSON.stringify(log)))
+    Promise.resolve().then(() => {
+      const durationMs = Date.now() - start;
+      const requestId = c.get('requestId') || c.req.header('x-request-id') || 'unknown';
+      const storeId = (c.get('storeId') as number | undefined) || 0;
+
+      // Extract order ID from headers or path
+      const orderId =
+        c.res.headers.get('x-order-number') ||
+        c.res.headers.get('x-order-id') ||
+        p.match(/\/orders\/(\d+)(?:\/|$)/)?.[1] ||
+        undefined;
+
+      console.warn(JSON.stringify({
+        ts: new Date().toISOString(),
+        level: 'info',
+        msg: 'request',
+        environment: c.env.ENVIRONMENT || 'unknown',
+        request_id: requestId,
+        store_id: storeId,
+        order_id: orderId,
+        method: c.req.method,
+        path: p,
+        status: c.res.status,
+        duration_ms: durationMs,
+        cf_ray: c.req.header('cf-ray') || undefined,
+      }));
+    })
   );
 });
 
