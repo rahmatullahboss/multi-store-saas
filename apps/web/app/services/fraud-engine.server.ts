@@ -110,3 +110,123 @@ export function getDecision(score: number, settings: FraudSettings): string {
   if (score >= settings.allowThreshold) return 'verify';
   return 'allow';
 }
+
+// ============================================================================
+// FRAUD SETTINGS PARSER
+// ============================================================================
+
+/**
+ * Parse fraud settings from a JSON string (stored in stores.fraudSettings column).
+ * Falls back to DEFAULT_FRAUD_SETTINGS on parse error.
+ */
+export function parseFraudSettings(raw?: string | null): FraudSettings {
+  if (!raw) return { ...DEFAULT_FRAUD_SETTINGS };
+  try {
+    const parsed = JSON.parse(raw);
+    return {
+      allowThreshold: parsed.allowThreshold ?? DEFAULT_FRAUD_SETTINGS.allowThreshold,
+      verifyThreshold: parsed.verifyThreshold ?? DEFAULT_FRAUD_SETTINGS.verifyThreshold,
+      holdThreshold: parsed.holdThreshold ?? DEFAULT_FRAUD_SETTINGS.holdThreshold,
+    };
+  } catch {
+    return { ...DEFAULT_FRAUD_SETTINGS };
+  }
+}
+
+// ============================================================================
+// HIGHER-LEVEL FRAUD CHECK (used by internal api.fraud-check.ts)
+// ============================================================================
+
+/**
+ * Perform a full fraud check for an order — runs calculateRiskScore and
+ * returns decision + assessment.
+ */
+export async function performFraudCheck(input: RiskScoreInput & { fraudSettings?: FraudSettings }) {
+  const settings = input.fraudSettings ?? DEFAULT_FRAUD_SETTINGS;
+  const assessment = await calculateRiskScore(input);
+  const decision = getDecision(assessment.clampedScore, settings);
+  return { assessment, decision };
+}
+
+// ============================================================================
+// BLACKLIST MANAGEMENT
+// ============================================================================
+
+/**
+ * Add a phone number to the blacklist.
+ */
+export async function addToBlacklist(params: {
+  db: unknown;
+  storeId: number;
+  phone: string;
+  reason?: string;
+  blockedBy?: string;
+}): Promise<void> {
+  // Stub — real implementation hits phoneBlacklist table
+  console.log(`[FRAUD] Blacklisted phone ${params.phone} for store ${params.storeId}`);
+}
+
+/**
+ * Remove a phone number from the blacklist.
+ */
+export async function removeFromBlacklist(params: {
+  db: unknown;
+  storeId: number;
+  phone: string;
+}): Promise<void> {
+  // Stub — real implementation removes from phoneBlacklist table
+  console.log(`[FRAUD] Unblacklisted phone ${params.phone} for store ${params.storeId}`);
+}
+
+// ============================================================================
+// EXTERNAL FRAUD DATA
+// ============================================================================
+
+/**
+ * Fetch fraud data from external sources (e.g., courier APIs, shared blacklists).
+ */
+export async function fetchExternalFraudData(params: {
+  phone: string;
+  storeId: number;
+  db: unknown;
+}): Promise<{ found: boolean; data: Record<string, unknown>[] }> {
+  // Stub — real implementation queries external fraud APIs
+  return { found: false, data: [] };
+}
+
+// ============================================================================
+// OZZYL GUARD CACHE
+// ============================================================================
+
+/**
+ * Generate a KV cache key for Ozzyl Guard fraud data.
+ */
+export function ozzylGuardCacheKey(storeId: number, phone: string): string {
+  return `guard:${storeId}:${normalizePhone(phone)}`;
+}
+
+/**
+ * Fetch fraud guard data with KV caching.
+ */
+export async function fetchAndCacheGuardData(params: {
+  storeId: number;
+  phones: string[];
+  db: unknown;
+  kv?: unknown;
+}): Promise<Map<string, { score: number; decision: string }>> {
+  const results = new Map<string, { score: number; decision: string }>();
+
+  for (const phone of params.phones) {
+    const normalized = normalizePhone(phone);
+    const assessment = await calculateRiskScore({
+      phone: normalized,
+      storeId: params.storeId,
+      orderTotal: 0,
+      db: params.db,
+    });
+    const decision = getDecision(assessment.clampedScore, DEFAULT_FRAUD_SETTINGS);
+    results.set(normalized, { score: assessment.clampedScore, decision });
+  }
+
+  return results;
+}
