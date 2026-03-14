@@ -257,7 +257,7 @@ const navSections: NavSection[] = [
   {
     titleKey: 'sidebarHome',
     items: [
-      { to: '/app/dashboard', labelKey: 'nav.dashboard', icon: LayoutDashboard },
+      { to: '/app/dashboard', labelKey: 'navDashboard', icon: LayoutDashboard },
       { to: '/app/tutorials', labelKey: 'navTutorials', icon: BookOpen },
     ],
   },
@@ -265,7 +265,7 @@ const navSections: NavSection[] = [
   {
     titleKey: 'sidebarOrders',
     items: [
-      { to: '/app/orders', labelKey: 'nav.orders', icon: ShoppingCart },
+      { to: '/app/orders', labelKey: 'navOrders', icon: ShoppingCart },
       { to: '/app/abandoned-carts', labelKey: 'navAbandonedCarts', icon: ShoppingBag },
     ],
   },
@@ -273,14 +273,14 @@ const navSections: NavSection[] = [
   {
     titleKey: 'sidebarCustomers',
     items: [
-      { to: '/app/customers', labelKey: 'nav.customers', icon: Users },
+      { to: '/app/customers', labelKey: 'navCustomers', icon: Users },
     ],
   },
   // === CATALOG ===
   {
     titleKey: 'sidebarCatalog',
     items: [
-      { to: '/app/products', labelKey: 'nav.products', icon: Package },
+      { to: '/app/products', labelKey: 'navProducts', icon: Package },
       { to: '/app/inventory', labelKey: 'navInventory', icon: Warehouse },
     ],
   },
@@ -310,7 +310,7 @@ const navSections: NavSection[] = [
   {
     titleKey: 'sidebarSettings',
     items: [
-      { to: '/app/settings', labelKey: 'nav.settings', icon: Settings },
+      { to: '/app/settings', labelKey: 'navSettings', icon: Settings },
       { to: '/app/settings/homepage', labelKey: 'navStorefront', icon: Home },
       { to: '/app/settings/domain', labelKey: 'navDomain', icon: Globe },
       { to: '/app/settings/shipping', labelKey: 'navShipping', icon: Truck },
@@ -436,7 +436,7 @@ export default function AppLayout() {
           transform transition-transform duration-200 ease-in-out
           lg:translate-x-0
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-          md:relative md:translate-x-0 md:z-auto border-r border-gray-200
+          md:sticky md:top-0 md:h-screen md:translate-x-0 md:z-auto md:shrink-0 border-r border-gray-200
         `}
       >
         <div className="flex flex-col h-full bg-white/90 backdrop-blur-xl">

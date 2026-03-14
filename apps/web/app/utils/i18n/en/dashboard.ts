@@ -138,6 +138,7 @@ export const dashboard = {
   navInventory: 'Inventory',
   navDiscounts: 'Discounts',
   sidebarOrders: 'Orders',
+  navOrders: 'Orders',
   navAllOrders: 'All Orders',
   navAbandonedCarts: 'Abandoned Carts',
   sidebarMarketing: 'Marketing',
@@ -171,6 +172,8 @@ export const dashboard = {
     'Enable your online store to add products, accept orders, and grow your business.',
   enableStoreButton: 'Enable Store',
 
+  sidebarSettings: 'Settings',
+  navSettings: 'Settings',
   // navPlans already defined
   navPageBuilder: 'Advanced Builder (WIP)',
   navPageBuilderV2: 'New Landing Builder',
@@ -198,6 +201,12 @@ export const dashboard = {
   exit: 'Exit',
   viewOrders: 'View Orders',
   aiMessages: 'AI Messages',
+
+  // Revenue Chart
+  revenueTrend: 'Revenue Trend',
+  revenueOverTime: 'Revenue over selected period',
+  noRevenueData: 'No revenue data available',
+  revenue: 'Revenue',
   limitReached: 'Limit Reached',
   runningLow: 'Running Low',
 
@@ -1089,7 +1098,6 @@ export const dashboard = {
   orSelectLandingPage: 'Or select a landing page',
   processing: 'Processing',
   quantity: 'Quantity',
-  sidebarSettings: 'Settings',
   storeRoutesDisabledWarning: 'Store routes are disabled',
   textEdit: 'Text Edit',
   homepageSettingsUpdated: 'Homepage settings updated successfully!',
@@ -1308,7 +1316,6 @@ export const dashboard = {
   visits: 'visits',
   orderStatus: 'Order Status',
   sold: 'sold',
-  revenue: 'Revenue',
 
   // Discounts i18n
   discountMin: 'Min',

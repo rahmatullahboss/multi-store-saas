@@ -139,6 +139,7 @@ export const dashboard = {
   navInventory: 'ইনভেন্টরি',
   navDiscounts: 'ছাড়',
   sidebarOrders: 'অর্ডার',
+  navOrders: 'অর্ডার',
   navAllOrders: 'সব অর্ডার',
   navAbandonedCarts: 'পরিত্যক্ত কার্ট',
   sidebarMarketing: 'মার্কেটিং',
@@ -173,6 +174,7 @@ export const dashboard = {
   enableStoreButton: 'স্টোর সক্রিয় করুন',
 
   sidebarSettings: 'সেটিংস',
+  navSettings: 'সেটিংস',
   navPageBuilder: 'অ্যাডভান্সড বিল্ডার (কাজ চলছে)',
   navPageBuilderV2: 'নতুন ল্যান্ডিং বিল্ডার',
   navStoreTemplates: 'স্টোর ডিজাইন',
@@ -198,6 +200,12 @@ export const dashboard = {
   exit: 'বাহির হোন',
   viewOrders: 'অর্ডার দেখুন',
   aiMessages: 'AI মেসেজ',
+
+  // Revenue Chart
+  revenueTrend: 'রেভিনিউ ট্রেন্ড',
+  revenueOverTime: 'নির্বাচিত সময়কালে রেভিনিউ',
+  noRevenueData: 'কোনো রেভিনিউ ডেটা পাওয়া যায়নি',
+  revenue: 'আয়',
   limitReached: 'সীমা অতিক্রম করেছে',
   runningLow: 'ব্যালেন্স কমে গেছে',
 
@@ -1274,7 +1282,6 @@ export const dashboard = {
   visits: 'টি ভিজিট',
   orderStatus: 'অর্ডারের অবস্থা',
   sold: 'টি বিক্রি',
-  revenue: 'রাজস্ব',
 
   // Discounts i18n
   discountMin: 'সর্বনিম্ন',
