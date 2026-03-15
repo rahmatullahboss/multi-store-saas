@@ -5,6 +5,7 @@
  * across all store pages.
  */
 
+import React from 'react';
 import { Link } from 'react-router';
 import type { StoreTemplateTheme } from '~/templates/store-registry';
 import type { SocialLinks } from '@db/types';
@@ -27,7 +28,9 @@ interface StoreFooterProps {
   isPreview?: boolean;
 }
 
-export function StoreFooter({
+// ⚡ Bolt: Wrapped StoreFooter in React.memo to prevent unnecessary re-renders
+// when parent components update state that doesn't affect the footer.
+export const StoreFooter = React.memo(function StoreFooter({
   storeName,
   logo,
   theme,
@@ -232,4 +235,4 @@ export function StoreFooter({
       </div>
     </footer>
   );
-}
+});

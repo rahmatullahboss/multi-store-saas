@@ -8,8 +8,8 @@
  * Includes Google Sign-In for customer authentication.
  */
 
+import React, { useState } from 'react';
 import { Link } from 'react-router';
-import { useState } from 'react';
 import { useCartCount } from '~/hooks/useCartCount';
 import { Menu, X, Search, ShoppingCart, User, LogOut } from 'lucide-react';
 import type { StoreTemplateTheme } from '~/templates/store-registry';
@@ -29,7 +29,9 @@ interface StoreHeaderProps {
   } | null;
 }
 
-export function StoreHeader({ 
+// ⚡ Bolt: Wrapped StoreHeader in React.memo to prevent unnecessary re-renders
+// when parent components update state that doesn't affect the header structure.
+export const StoreHeader = React.memo(function StoreHeader({
   storeName, 
   logo, 
   theme, 
@@ -305,5 +307,5 @@ export function StoreHeader({
       )}
     </header>
   );
-}
+});
 
