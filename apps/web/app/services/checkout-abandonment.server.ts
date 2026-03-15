@@ -193,7 +193,14 @@ export async function getCheckoutFunnelStats(
   endDate: Date
 ) {
   const logs = await db
-    .select()
+    .select({
+      completedInfo: checkoutAbandonmentLogs.completedInfo,
+      completedAddress: checkoutAbandonmentLogs.completedAddress,
+      completedPayment: checkoutAbandonmentLogs.completedPayment,
+      completedReview: checkoutAbandonmentLogs.completedReview,
+      completedCheckout: checkoutAbandonmentLogs.completedCheckout,
+      abandonedAt: checkoutAbandonmentLogs.abandonedAt,
+    })
     .from(checkoutAbandonmentLogs)
     .where(
       and(
@@ -235,7 +242,7 @@ export async function getExitReasonsBreakdown(
   endDate: Date
 ): Promise<Record<string, number>> {
   const logs = await db
-    .select()
+    .select({ exitReason: checkoutAbandonmentLogs.exitReason })
     .from(checkoutAbandonmentLogs)
     .where(
       and(
@@ -266,7 +273,7 @@ export async function getDeviceBreakdown(
   endDate: Date
 ) {
   const logs = await db
-    .select()
+    .select({ deviceType: checkoutAbandonmentLogs.deviceType })
     .from(checkoutAbandonmentLogs)
     .where(
       and(
