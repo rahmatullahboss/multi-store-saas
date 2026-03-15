@@ -320,6 +320,7 @@ export function AddSectionModal({ availableSections, onAdd, onClose }: AddSectio
             <button
               onClick={onClose}
               className="p-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
+              aria-label="বন্ধ করুন"
             >
               <X size={18} />
             </button>
