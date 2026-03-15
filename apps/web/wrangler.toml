@@ -113,6 +113,11 @@ service = "editor-state"
 binding = "PDF_SERVICE"
 service = "pdf-generator"
 
+# HMS Worker — dispatches hms-*.ozzyl.com subdomains
+[[env.staging.services]]
+binding = "HMS_SERVICE"
+service = "hms-saas-staging"
+
 # ============================================================================
 # PRODUCTION ROUTING
 # ============================================================================
@@ -202,6 +207,11 @@ service = "editor-state"
 [[env.production.services]]
 binding = "PDF_SERVICE"
 service = "pdf-generator"
+
+# HMS Worker — dispatches hms-*.ozzyl.com subdomains
+[[env.production.services]]
+binding = "HMS_SERVICE"
+service = "hms-saas-production"
 
 # 1) Main App (Admin/Dashboard)
 [[env.production.routes]]
@@ -396,6 +406,11 @@ service = "editor-state"
 [[services]]
 binding = "PDF_SERVICE"
 service = "pdf-generator"
+
+# HMS Worker — dispatches hms-*.ozzyl.com subdomains to Hospital Management System
+[[services]]
+binding = "HMS_SERVICE"
+service = "hms-saas-production"
 
 # ============================================================================
 # QUEUES (Disabled - using Durable Objects instead for FREE plan)

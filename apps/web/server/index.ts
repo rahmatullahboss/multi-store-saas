@@ -49,6 +49,7 @@ const getRemixBuild = () => import('../build/server/index.js') as unknown as Pro
 // Type definitions for Cloudflare bindings
 interface Env extends TenantEnv {
   ASSETS: Fetcher;
+  HMS_SERVICE?: Fetcher; // Service binding → hms-saas worker (dispatches hms-*.ozzyl.com)
   RATE_LIMIT_KV?: KVNamespace;
   ENVIRONMENT?: 'development' | 'production' | 'staging';
   
@@ -157,6 +158,18 @@ app.notFound((c) => {
 // ============================================================================
 // GLOBAL MIDDLEWARE
 // ============================================================================
+
+// ─── HMS Worker Dispatch ─────────────────────────────────────────────────────
+// Forward hms-*.ozzyl.com requests to HMS worker via service binding.
+// This runs BEFORE all other middleware — no multi-store logic executes for HMS.
+// The *.ozzyl.com/* route catches all subdomains; we dispatch hms- ones here.
+app.use('*', async (c, next) => {
+  const host = c.req.header('host') || '';
+  if (host.startsWith('hms-') && c.env.HMS_SERVICE) {
+    return c.env.HMS_SERVICE.fetch(c.req.raw);
+  }
+  return next();
+});
 
 // Request ID: propagate client-provided x-request-id or generate one.
 // Used for tracing across logs and to help support debug a single request.
