@@ -318,7 +318,8 @@ export function CheckoutModal({
             </div>
             <button
               onClick={onClose}
-              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-1"
+              aria-label="Close checkout"
             >
               <X className="w-5 h-5" />
             </button>
@@ -350,6 +351,7 @@ export function CheckoutModal({
                           key={v.id}
                           type="button"
                           onClick={() => setSelectedVariant(v.id)}
+                          aria-pressed={selectedVariant === v.id}
                           className={cn(
                             'px-3 py-1.5 text-sm rounded-lg border transition-colors',
                             selectedVariant === v.id
