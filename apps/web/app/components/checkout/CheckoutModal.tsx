@@ -318,7 +318,8 @@ export function CheckoutModal({
             </div>
             <button
               onClick={onClose}
-              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+              aria-label="Close modal"
+              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
             >
               <X className="w-5 h-5" />
             </button>
@@ -366,7 +367,10 @@ export function CheckoutModal({
 
                 {/* Name */}
                 <div>
-                  <label htmlFor="checkout-name" className="block text-sm font-medium text-gray-700 mb-1.5">
+                  <label
+                    htmlFor="checkout-name"
+                    className="block text-sm font-medium text-gray-700 mb-1.5"
+                  >
                     <User className="w-4 h-4 inline mr-1" />
                     আপনার নাম *
                   </label>
@@ -392,7 +396,10 @@ export function CheckoutModal({
 
                 {/* Phone */}
                 <div>
-                  <label htmlFor="checkout-phone" className="block text-sm font-medium text-gray-700 mb-1.5">
+                  <label
+                    htmlFor="checkout-phone"
+                    className="block text-sm font-medium text-gray-700 mb-1.5"
+                  >
                     <Phone className="w-4 h-4 inline mr-1" />
                     ফোন নম্বর *
                   </label>
@@ -418,7 +425,10 @@ export function CheckoutModal({
 
                 {/* Delivery Area */}
                 <div>
-                  <label htmlFor="checkout-delivery-area" className="block text-sm font-medium text-gray-700 mb-1.5">
+                  <label
+                    htmlFor="checkout-delivery-area"
+                    className="block text-sm font-medium text-gray-700 mb-1.5"
+                  >
                     <Truck className="w-4 h-4 inline mr-1" />
                     ডেলিভারি এলাকা *
                   </label>
@@ -441,7 +451,10 @@ export function CheckoutModal({
 
                 {/* Address */}
                 <div>
-                  <label htmlFor="checkout-address" className="block text-sm font-medium text-gray-700 mb-1.5">
+                  <label
+                    htmlFor="checkout-address"
+                    className="block text-sm font-medium text-gray-700 mb-1.5"
+                  >
                     <MapPin className="w-4 h-4 inline mr-1" />
                     সম্পূর্ণ ঠিকানা *
                   </label>
@@ -467,7 +480,10 @@ export function CheckoutModal({
 
                 {/* Note (Optional) */}
                 <div>
-                  <label htmlFor="checkout-note" className="block text-sm font-medium text-gray-700 mb-1.5">
+                  <label
+                    htmlFor="checkout-note"
+                    className="block text-sm font-medium text-gray-700 mb-1.5"
+                  >
                     অতিরিক্ত তথ্য (ঐচ্ছিক)
                   </label>
                   <input
