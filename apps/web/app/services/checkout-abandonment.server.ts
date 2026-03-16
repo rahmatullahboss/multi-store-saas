@@ -12,7 +12,7 @@
 
 import type { Database } from '~/lib/db.server';
 import { checkoutAbandonmentLogs, stores } from '@db/schema';
-import { eq, and, gte, lte, desc } from 'drizzle-orm';
+import { eq, and, gte, lte, desc, sql } from 'drizzle-orm';
 import { validateCheckoutSession, type CheckoutStepUpdate as ValidatedStepUpdate } from '~/lib/validations';
 
 // Session timeout: 30 minutes
@@ -192,8 +192,18 @@ export async function getCheckoutFunnelStats(
   startDate: Date,
   endDate: Date
 ) {
-  const logs = await db
-    .select()
+  // ⚡ Bolt: Optimized DB query to use native SQL aggregation instead of fetching all rows into memory.
+  // Reduces network payload size and memory overhead, especially for stores with thousands of abandoned checkouts.
+  const result = await db
+    .select({
+      totalStarted: sql<number>`count(*)`,
+      completedInfo: sql<number>`sum(case when ${checkoutAbandonmentLogs.completedInfo} = 1 then 1 else 0 end)`,
+      completedAddress: sql<number>`sum(case when ${checkoutAbandonmentLogs.completedAddress} = 1 then 1 else 0 end)`,
+      completedPayment: sql<number>`sum(case when ${checkoutAbandonmentLogs.completedPayment} = 1 then 1 else 0 end)`,
+      completedReview: sql<number>`sum(case when ${checkoutAbandonmentLogs.completedReview} = 1 then 1 else 0 end)`,
+      completedCheckout: sql<number>`sum(case when ${checkoutAbandonmentLogs.completedCheckout} = 1 then 1 else 0 end)`,
+      abandoned: sql<number>`sum(case when ${checkoutAbandonmentLogs.completedCheckout} = 0 and ${checkoutAbandonmentLogs.abandonedAt} is not null then 1 else 0 end)`,
+    })
     .from(checkoutAbandonmentLogs)
     .where(
       and(
@@ -203,13 +213,14 @@ export async function getCheckoutFunnelStats(
       )
     );
 
-  const totalStarted = logs.length;
-  const completedInfo = logs.filter((l) => l.completedInfo === 1).length;
-  const completedAddress = logs.filter((l) => l.completedAddress === 1).length;
-  const completedPayment = logs.filter((l) => l.completedPayment === 1).length;
-  const completedReview = logs.filter((l) => l.completedReview === 1).length;
-  const completedCheckout = logs.filter((l) => l.completedCheckout === 1).length;
-  const abandoned = logs.filter((l) => l.completedCheckout === 0 && l.abandonedAt !== null).length;
+  const stats = result[0];
+  const totalStarted = Number(stats?.totalStarted || 0);
+  const completedInfo = Number(stats?.completedInfo || 0);
+  const completedAddress = Number(stats?.completedAddress || 0);
+  const completedPayment = Number(stats?.completedPayment || 0);
+  const completedReview = Number(stats?.completedReview || 0);
+  const completedCheckout = Number(stats?.completedCheckout || 0);
+  const abandoned = Number(stats?.abandoned || 0);
 
   const abandonmentRate = totalStarted > 0 ? (abandoned / totalStarted) * 100 : 0;
 
@@ -234,22 +245,29 @@ export async function getExitReasonsBreakdown(
   startDate: Date,
   endDate: Date
 ): Promise<Record<string, number>> {
-  const logs = await db
-    .select()
+  // ⚡ Bolt: Optimized DB query to use GROUP BY aggregation.
+  // Transforms an O(N) memory operation into an O(1) memory operation on the worker.
+  const results = await db
+    .select({
+      exitReason: checkoutAbandonmentLogs.exitReason,
+      count: sql<number>`count(*)`,
+    })
     .from(checkoutAbandonmentLogs)
     .where(
       and(
         eq(checkoutAbandonmentLogs.storeId, storeId),
         gte(checkoutAbandonmentLogs.startedAt, startDate),
         lte(checkoutAbandonmentLogs.startedAt, endDate),
-        eq(checkoutAbandonmentLogs.completedCheckout, 0)
+        eq(checkoutAbandonmentLogs.completedCheckout, 0),
+        sql`${checkoutAbandonmentLogs.exitReason} IS NOT NULL`
       )
-    );
+    )
+    .groupBy(checkoutAbandonmentLogs.exitReason);
 
   const reasons: Record<string, number> = {};
-  logs.forEach((log) => {
-    if (log.exitReason) {
-      reasons[log.exitReason] = (reasons[log.exitReason] || 0) + 1;
+  results.forEach((row) => {
+    if (row.exitReason) {
+      reasons[row.exitReason] = Number(row.count);
     }
   });
 
@@ -265,8 +283,12 @@ export async function getDeviceBreakdown(
   startDate: Date,
   endDate: Date
 ) {
-  const logs = await db
-    .select()
+  // ⚡ Bolt: Optimized DB query to use GROUP BY aggregation.
+  const results = await db
+    .select({
+      deviceType: checkoutAbandonmentLogs.deviceType,
+      count: sql<number>`count(*)`,
+    })
     .from(checkoutAbandonmentLogs)
     .where(
       and(
@@ -275,15 +297,19 @@ export async function getDeviceBreakdown(
         lte(checkoutAbandonmentLogs.startedAt, endDate),
         eq(checkoutAbandonmentLogs.completedCheckout, 0)
       )
-    );
+    )
+    .groupBy(checkoutAbandonmentLogs.deviceType);
 
   const breakdown = { mobile: 0, desktop: 0, tablet: 0, unknown: 0 };
-  logs.forEach((log) => {
-    const device = (log.deviceType || 'unknown') as keyof typeof breakdown;
+
+  results.forEach((row) => {
+    const device = (row.deviceType || 'unknown') as keyof typeof breakdown;
+    const count = Number(row.count);
+
     if (breakdown[device] !== undefined) {
-      breakdown[device]++;
+      breakdown[device] += count;
     } else {
-      breakdown.unknown++;
+      breakdown.unknown += count;
     }
   });
 

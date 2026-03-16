@@ -5,3 +5,6 @@
 ## 2026-03-12 - [Batch N+1 Drizzle ORM Queries]
 **Learning:** While `Promise.all` is great for parallelizing independent queries, using `Promise.all` with a `.map()` to iterate over records and fetch child relations causes massive N+1 connection/network latency on Cloudflare D1.
 **Action:** Always extract IDs from a parent array and use a single batch `inArray()` Drizzle DB fetch to gather relations. Group and process the results in-memory rather than relying on thousands of simultaneous asynchronous connections.
+## 2026-03-14 - [Optimize Cloudflare D1 Server-Side Data Aggregation]
+**Learning:** Functions like `getCheckoutFunnelStats` previously queried all matching rows into memory and used JavaScript operations (`.filter()`, `.forEach()`) to calculate funnel completions and counts. This caused large payload transfers between D1 and the worker. Drizzle ORM supports `sql` template literals for server-side aggregation (e.g., `sql\`sum(case when ... then 1 else 0 end)\``, `groupBy`, `count`).
+**Action:** Always favor native SQL aggregations on the database over in-memory JavaScript processing to reduce latency, memory overhead, and network payload size, particularly for analytics functions returning summarized statistics.
