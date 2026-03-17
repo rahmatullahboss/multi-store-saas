@@ -14,7 +14,16 @@ import { json } from '~/lib/rr7-compat';
 import { useLoaderData, useFetcher } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
 import { sql, count, sum, avg, desc, eq, and, gte, lte } from 'drizzle-orm';
-import { customers, stores, orders, products, orderItems, pageViews, carts, checkoutSessions } from '@db/schema';
+import {
+  customers,
+  stores,
+  orders,
+  products,
+  orderItems,
+  pageViews,
+  carts,
+  checkoutSessions,
+} from '@db/schema';
 import { requireSuperAdmin } from '~/services/auth.server';
 import { callAIWithSystemPrompt } from '~/services/ai.server';
 import { useState, useEffect } from 'react';
@@ -64,179 +73,195 @@ export async function loader({ context, request }: LoaderFunctionArgs) {
   const fourteenDaysAgo = now - 14 * 24 * 60 * 60;
   const thirtyDaysAgo = now - 30 * 24 * 60 * 60;
 
-  // ============================================================
-  // CURRENT PERIOD METRICS (Last 7 days)
-  // ============================================================
+  // Execute all independent D1 queries concurrently for maximum performance
+  const [
+    [currentPeriod],
+    [previousPeriod],
+    [allTimeMetrics],
+    [customerMetrics],
+    [storeMetrics],
+    segmentCounts,
+    inactiveStores,
+    [churnRiskMetrics],
+    merchantHealth,
+    topProducts,
+    cohortData,
+    revenueByMonth,
+    [viewMetrics],
+    [cartMetrics],
+    [checkoutMetrics],
+    [orderMetrics],
+  ] = await Promise.all([
+    // CURRENT PERIOD METRICS (Last 7 days)
+    db
+      .select({
+        revenue: sql<number>`COALESCE(SUM(total), 0)`.as('revenue'),
+        orderCount: count().as('order_count'),
+      })
+      .from(orders)
+      .where(sql`${orders.createdAt} >= ${sevenDaysAgo} AND ${orders.status} != 'cancelled'`),
 
-  const [currentPeriod] = await db
-    .select({
-      revenue: sql<number>`COALESCE(SUM(total), 0)`.as('revenue'),
-      orderCount: count().as('order_count'),
-    })
-    .from(orders)
-    .where(sql`${orders.createdAt} >= ${sevenDaysAgo} AND ${orders.status} != 'cancelled'`);
-
-  // Previous period (7-14 days ago)
-  const [previousPeriod] = await db
-    .select({
-      revenue: sql<number>`COALESCE(SUM(total), 0)`.as('revenue'),
-      orderCount: count().as('order_count'),
-    })
-    .from(orders)
-    .where(
-      sql`${orders.createdAt} >= ${fourteenDaysAgo} AND ${orders.createdAt} < ${sevenDaysAgo} AND ${orders.status} != 'cancelled'`
-    );
-
-  // ============================================================
-  // ALL-TIME METRICS
-  // ============================================================
-
-  const [allTimeMetrics] = await db
-    .select({
-      totalRevenue: sql<number>`COALESCE(SUM(total), 0)`.as('total_revenue'),
-      totalOrders: count().as('total_orders'),
-    })
-    .from(orders)
-    .where(sql`${orders.status} != 'cancelled'`);
-
-  const [customerMetrics] = await db
-    .select({
-      totalCustomers: count().as('total_customers'),
-      uniquePhones: sql<number>`COUNT(DISTINCT phone)`.as('unique_phones'),
-    })
-    .from(customers);
-
-  const [storeMetrics] = await db
-    .select({
-      totalStores: count().as('total_stores'),
-      activeStores: sql<number>`COUNT(CASE WHEN status = 'active' THEN 1 END)`.as('active_stores'),
-    })
-    .from(stores);
-
-  // ============================================================
-  // SEGMENT DISTRIBUTION
-  // ============================================================
-
-  const segmentCounts = await db
-    .select({
-      segment: customers.segment,
-      count: count().as('count'),
-    })
-    .from(customers)
-    .groupBy(customers.segment);
-
-  // ============================================================
-  // ALERTS & ANOMALY DETECTION
-  // ============================================================
-
-  // Stores with declining orders (30+ days no orders)
-  const inactiveStores = await db
-    .select({
-      storeId: stores.id,
-      storeName: stores.name,
-      lastOrderDate:
-        sql<number>`(SELECT MAX(created_at) FROM orders WHERE store_id = ${stores.id})`.as(
-          'last_order'
-        ),
-    })
-    .from(stores)
-    .where(eq(stores.isActive, true))
-    .having(sql`last_order < ${thirtyDaysAgo} OR last_order IS NULL`)
-    .limit(10);
-
-  // High churn risk concentration
-  const [churnRiskMetrics] = await db
-    .select({
-      count: count().as('count'),
-    })
-    .from(customers)
-    .where(eq(customers.segment, 'churn_risk'));
-
-  // ============================================================
-  // MERCHANT HEALTH SCORES
-  // ============================================================
-
-  const merchantHealth = await db
-    .select({
-      storeId: stores.id,
-      storeName: stores.name,
-      revenue:
-        sql<number>`COALESCE((SELECT SUM(total) FROM orders WHERE store_id = ${stores.id} AND status != 'cancelled' AND created_at >= ${thirtyDaysAgo}), 0)`.as(
-          'revenue'
-        ),
-      orderCount:
-        sql<number>`(SELECT COUNT(*) FROM orders WHERE store_id = ${stores.id} AND status != 'cancelled' AND created_at >= ${thirtyDaysAgo})`.as(
-          'order_count'
-        ),
-      customerCount: sql<number>`(SELECT COUNT(*) FROM customers WHERE store_id = ${stores.id})`.as(
-        'customer_count'
+    // Previous period (7-14 days ago)
+    db
+      .select({
+        revenue: sql<number>`COALESCE(SUM(total), 0)`.as('revenue'),
+        orderCount: count().as('order_count'),
+      })
+      .from(orders)
+      .where(
+        sql`${orders.createdAt} >= ${fourteenDaysAgo} AND ${orders.createdAt} < ${sevenDaysAgo} AND ${orders.status} != 'cancelled'`
       ),
-      vipCount:
-        sql<number>`(SELECT COUNT(*) FROM customers WHERE store_id = ${stores.id} AND segment = 'vip')`.as(
-          'vip_count'
+
+    // ALL-TIME METRICS
+    db
+      .select({
+        totalRevenue: sql<number>`COALESCE(SUM(total), 0)`.as('total_revenue'),
+        totalOrders: count().as('total_orders'),
+      })
+      .from(orders)
+      .where(sql`${orders.status} != 'cancelled'`),
+
+    db
+      .select({
+        totalCustomers: count().as('total_customers'),
+        uniquePhones: sql<number>`COUNT(DISTINCT phone)`.as('unique_phones'),
+      })
+      .from(customers),
+
+    db
+      .select({
+        totalStores: count().as('total_stores'),
+        activeStores: sql<number>`COUNT(CASE WHEN status = 'active' THEN 1 END)`.as(
+          'active_stores'
         ),
-      avgOrderValue:
-        sql<number>`COALESCE((SELECT AVG(total) FROM orders WHERE store_id = ${stores.id} AND status != 'cancelled'), 0)`.as(
-          'avg_order_value'
+      })
+      .from(stores),
+
+    // SEGMENT DISTRIBUTION
+    db
+      .select({
+        segment: customers.segment,
+        count: count().as('count'),
+      })
+      .from(customers)
+      .groupBy(customers.segment),
+
+    // ALERTS & ANOMALY DETECTION: Stores with declining orders (30+ days no orders)
+    db
+      .select({
+        storeId: stores.id,
+        storeName: stores.name,
+        lastOrderDate:
+          sql<number>`(SELECT MAX(created_at) FROM orders WHERE store_id = ${stores.id})`.as(
+            'last_order'
+          ),
+      })
+      .from(stores)
+      .where(eq(stores.isActive, true))
+      .having(sql`last_order < ${thirtyDaysAgo} OR last_order IS NULL`)
+      .limit(10),
+
+    // High churn risk concentration
+    db
+      .select({
+        count: count().as('count'),
+      })
+      .from(customers)
+      .where(eq(customers.segment, 'churn_risk')),
+
+    // MERCHANT HEALTH SCORES
+    db
+      .select({
+        storeId: stores.id,
+        storeName: stores.name,
+        revenue:
+          sql<number>`COALESCE((SELECT SUM(total) FROM orders WHERE store_id = ${stores.id} AND status != 'cancelled' AND created_at >= ${thirtyDaysAgo}), 0)`.as(
+            'revenue'
+          ),
+        orderCount:
+          sql<number>`(SELECT COUNT(*) FROM orders WHERE store_id = ${stores.id} AND status != 'cancelled' AND created_at >= ${thirtyDaysAgo})`.as(
+            'order_count'
+          ),
+        customerCount:
+          sql<number>`(SELECT COUNT(*) FROM customers WHERE store_id = ${stores.id})`.as(
+            'customer_count'
+          ),
+        vipCount:
+          sql<number>`(SELECT COUNT(*) FROM customers WHERE store_id = ${stores.id} AND segment = 'vip')`.as(
+            'vip_count'
+          ),
+        avgOrderValue:
+          sql<number>`COALESCE((SELECT AVG(total) FROM orders WHERE store_id = ${stores.id} AND status != 'cancelled'), 0)`.as(
+            'avg_order_value'
+          ),
+        visitorCount: stores.monthlyVisitorCount,
+      })
+      .from(stores)
+      .where(eq(stores.isActive, true))
+      .orderBy(sql`revenue DESC`)
+      .limit(20),
+
+    // TOP PERFORMERS
+    db
+      .select({
+        productId: orderItems.productId,
+        productName: products.title,
+        storeName: stores.name,
+        soldCount: sql<number>`SUM(${orderItems.quantity})`.as('sold_count'),
+        revenue: sql<number>`SUM(${orderItems.price} * ${orderItems.quantity})`.as('revenue'),
+      })
+      .from(orderItems)
+      .innerJoin(products, eq(orderItems.productId, products.id))
+      .innerJoin(stores, eq(products.storeId, stores.id))
+      .groupBy(orderItems.productId)
+      .orderBy(sql`sold_count DESC`)
+      .limit(5),
+
+    // COHORT ANALYSIS (Customer signup by month)
+    db
+      .select({
+        month: sql<string>`strftime('%Y-%m', datetime(${customers.createdAt}, 'unixepoch'))`.as(
+          'month'
         ),
-      visitorCount: stores.monthlyVisitorCount,
-    })
-    .from(stores)
-    .where(eq(stores.isActive, true))
-    .orderBy(sql`revenue DESC`)
-    .limit(20);
+        signups: count().as('signups'),
+        withOrders: sql<number>`COUNT(CASE WHEN total_orders > 0 THEN 1 END)`.as('with_orders'),
+      })
+      .from(customers)
+      .groupBy(sql`month`)
+      .orderBy(sql`month DESC`)
+      .limit(6),
 
-  // ============================================================
-  // TOP PERFORMERS
-  // ============================================================
+    // REVENUE BY MONTH (Trend)
+    db
+      .select({
+        month: sql<string>`strftime('%Y-%m', datetime(${orders.createdAt}, 'unixepoch'))`.as(
+          'month'
+        ),
+        revenue: sql<number>`COALESCE(SUM(total), 0)`.as('revenue'),
+        orderCount: count().as('order_count'),
+      })
+      .from(orders)
+      .where(sql`${orders.status} != 'cancelled'`)
+      .groupBy(sql`month`)
+      .orderBy(sql`month DESC`)
+      .limit(6),
 
-  const topProducts = await db
-    .select({
-      productId: orderItems.productId,
-      productName: products.title,
-      storeName: stores.name,
-      soldCount: sql<number>`SUM(${orderItems.quantity})`.as('sold_count'),
-      revenue: sql<number>`SUM(${orderItems.price} * ${orderItems.quantity})`.as('revenue'),
-    })
-    .from(orderItems)
-    .innerJoin(products, eq(orderItems.productId, products.id))
-    .innerJoin(stores, eq(products.storeId, stores.id))
-    .groupBy(orderItems.productId)
-    .orderBy(sql`sold_count DESC`)
-    .limit(5);
+    // GLOBAL CONVERSION FUNNEL (DB-GROUNDED)
+    db
+      .select({ count: sql<number>`COUNT(DISTINCT ${pageViews.visitorId})`.as('count') })
+      .from(pageViews),
 
-  // ============================================================
-  // COHORT ANALYSIS (Customer signup by month)
-  // ============================================================
+    db.select({ count: sql<number>`COUNT(DISTINCT ${carts.visitorId})`.as('count') }).from(carts),
 
-  const cohortData = await db
-    .select({
-      month: sql<string>`strftime('%Y-%m', datetime(${customers.createdAt}, 'unixepoch'))`.as(
-        'month'
-      ),
-      signups: count().as('signups'),
-      withOrders: sql<number>`COUNT(CASE WHEN total_orders > 0 THEN 1 END)`.as('with_orders'),
-    })
-    .from(customers)
-    .groupBy(sql`month`)
-    .orderBy(sql`month DESC`)
-    .limit(6);
+    db
+      .select({ count: sql<number>`COUNT(DISTINCT ${checkoutSessions.id})`.as('count') })
+      .from(checkoutSessions),
 
-  // ============================================================
-  // REVENUE BY MONTH (Trend)
-  // ============================================================
-
-  const revenueByMonth = await db
-    .select({
-      month: sql<string>`strftime('%Y-%m', datetime(${orders.createdAt}, 'unixepoch'))`.as('month'),
-      revenue: sql<number>`COALESCE(SUM(total), 0)`.as('revenue'),
-      orderCount: count().as('order_count'),
-    })
-    .from(orders)
-    .where(sql`${orders.status} != 'cancelled'`)
-    .groupBy(sql`month`)
-    .orderBy(sql`month DESC`)
-    .limit(6);
+    db
+      .select({ count: sql<number>`COUNT(DISTINCT ${orders.id})`.as('count') })
+      .from(orders)
+      .where(sql`${orders.status} != 'cancelled'`),
+  ]);
 
   // Calculate growth rates
   const currentRevenue = Number(currentPeriod?.revenue) || 0;
@@ -257,27 +282,6 @@ export async function loader({ context, request }: LoaderFunctionArgs) {
     },
     {} as Record<string, number>
   );
-
-  // ============================================================
-  // GLOBAL CONVERSION FUNNEL (DB-GROUNDED)
-  // ============================================================
-
-  const [viewMetrics] = await db
-    .select({ count: sql<number>`COUNT(DISTINCT ${pageViews.visitorId})`.as('count') })
-    .from(pageViews);
-
-  const [cartMetrics] = await db
-    .select({ count: sql<number>`COUNT(DISTINCT ${carts.visitorId})`.as('count') })
-    .from(carts);
-
-  const [checkoutMetrics] = await db
-    .select({ count: sql<number>`COUNT(DISTINCT ${checkoutSessions.id})`.as('count') })
-    .from(checkoutSessions);
-
-  const [orderMetrics] = await db
-    .select({ count: sql<number>`COUNT(DISTINCT ${orders.id})`.as('count') })
-    .from(orders)
-    .where(sql`${orders.status} != 'cancelled'`);
 
   return json({
     // Current metrics
@@ -440,9 +444,7 @@ export default function AICommandCenter() {
               </div>
               AI Command Center
             </h1>
-            <p className="text-gray-600 mt-1">
-              Real-time platform intelligence • Powered by AI
-            </p>
+            <p className="text-gray-600 mt-1">Real-time platform intelligence • Powered by AI</p>
           </div>
           <div className="flex items-center gap-2 text-sm text-gray-500">
             <Activity className="w-4 h-4 text-green-500 animate-pulse" />
@@ -547,9 +549,7 @@ export default function AICommandCenter() {
           <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm p-6">
             <div className="flex items-center gap-2 mb-4">
               <Sparkles className="w-5 h-5 text-purple-500" />
-              <h2 className="text-lg font-semibold text-gray-900">
-                AI Platform Analyst
-              </h2>
+              <h2 className="text-lg font-semibold text-gray-900">AI Platform Analyst</h2>
             </div>
 
             {/* Quick Insight Buttons */}
@@ -710,9 +710,7 @@ export default function AICommandCenter() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex justify-between items-center mb-1">
-                        <p className="font-medium text-gray-900 truncate">
-                          {store.storeName}
-                        </p>
+                        <p className="font-medium text-gray-900 truncate">{store.storeName}</p>
                         <span className="text-xs font-mono bg-white px-1.5 py-0.5 rounded border border-gray-200">
                           CR: {conversionRate.toFixed(1)}%
                         </span>
@@ -751,10 +749,7 @@ export default function AICommandCenter() {
             </h2>
             <div className="space-y-3">
               {topProducts.map((product, i) => (
-                <div
-                  key={i}
-                  className="flex items-center gap-4 p-3 bg-gray-50 rounded-xl"
-                >
+                <div key={i} className="flex items-center gap-4 p-3 bg-gray-50 rounded-xl">
                   <div
                     className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-white ${
                       i === 0
@@ -775,9 +770,7 @@ export default function AICommandCenter() {
                     <p className="text-xs text-gray-500 truncate">{product.storeName}</p>
                   </div>
                   <div className="text-right">
-                    <p className="font-bold text-gray-900">
-                      {product.soldCount} sold
-                    </p>
+                    <p className="font-bold text-gray-900">{product.soldCount} sold</p>
                     <p className="text-xs text-green-500">
                       ৳{Number(product.revenue).toLocaleString()}
                     </p>
@@ -856,9 +849,7 @@ function SegmentBar({
       <div className="flex-1">
         <div className="flex justify-between text-sm mb-1">
           <span className="text-gray-700">{label}</span>
-          <span className="font-medium text-gray-900">
-            {count.toLocaleString()}
-          </span>
+          <span className="font-medium text-gray-900">{count.toLocaleString()}</span>
         </div>
         <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
           <div
