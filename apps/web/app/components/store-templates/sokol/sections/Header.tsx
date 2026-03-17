@@ -8,12 +8,12 @@ function cn(...classes: (string | boolean | undefined | null)[]) {
   return classes.filter(Boolean).join(' ');
 }
 
-export function SokolHeader({ 
-  storeName, 
-  logo, 
-  categories, 
+export function SokolHeader({
+  storeName,
+  logo,
+  categories,
   currentCategory,
-  isPreview 
+  isPreview,
 }: StoreHeaderProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -27,7 +27,9 @@ export function SokolHeader({
     const updateCartCount = () => {
       try {
         const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-        setCartCount(cart.reduce((sum: number, item: { quantity: number }) => sum + item.quantity, 0));
+        setCartCount(
+          cart.reduce((sum: number, item: { quantity: number }) => sum + item.quantity, 0)
+        );
       } catch {
         setCartCount(0);
       }
@@ -36,9 +38,9 @@ export function SokolHeader({
     window.addEventListener('scroll', handleScroll);
     window.addEventListener('cart-updated', updateCartCount);
     window.addEventListener('storage', updateCartCount);
-    
+
     updateCartCount();
-    
+
     return () => {
       window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('cart-updated', updateCartCount);
@@ -50,20 +52,21 @@ export function SokolHeader({
 
   return (
     <>
-      <header 
+      <header
         className={cn(
-          "fixed top-0 left-0 right-0 z-50 transition-all duration-300 font-sans",
-          isScrolled 
-            ? "bg-white/98 backdrop-blur-md shadow-sm border-b border-gray-100 py-3" 
-            : "bg-white py-4"
+          'fixed top-0 left-0 right-0 z-50 transition-all duration-300 font-sans',
+          isScrolled
+            ? 'bg-white/98 backdrop-blur-md shadow-sm border-b border-gray-100 py-3'
+            : 'bg-white py-4'
         )}
       >
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between">
             {/* Mobile Menu Button */}
-            <button 
+            <button
               className="lg:hidden p-2 -ml-2 hover:bg-gray-100 rounded-full transition-colors"
               onClick={() => setMobileMenuOpen(true)}
+              aria-label="Open menu"
             >
               <Menu className="w-5 h-5" />
             </button>
@@ -81,30 +84,39 @@ export function SokolHeader({
 
             {/* Desktop Navigation */}
             <nav className="hidden lg:flex items-center space-x-8">
-              <LinkComponent 
-                to="/" 
+              <LinkComponent
+                to="/"
                 className={cn(
-                  "text-sm font-medium tracking-wide hover:text-rose-600 transition-colors",
-                  !currentCategory ? "text-rose-600" : "text-gray-700"
+                  'text-sm font-medium tracking-wide hover:text-rose-600 transition-colors',
+                  !currentCategory ? 'text-rose-600' : 'text-gray-700'
                 )}
               >
                 Home
               </LinkComponent>
-              {categories?.filter(Boolean).slice(0, 5).map((category) => {
-                const catKey = typeof category === 'string' ? category : (category as { title?: string }).title ?? String(category);
-                const catLabel = typeof category === 'string' ? category : (category as { title?: string }).title ?? '';
-                return (
-                  <LinkComponent
-                    key={catKey}
-                    to={`/collections/${catKey}`}
-                    className="text-sm font-medium tracking-wide text-gray-700 hover:text-rose-600 transition-colors"
-                  >
-                    {catLabel}
-                  </LinkComponent>
-                );
-              })}
-              <LinkComponent 
-                to="/products" 
+              {categories
+                ?.filter(Boolean)
+                .slice(0, 5)
+                .map((category) => {
+                  const catKey =
+                    typeof category === 'string'
+                      ? category
+                      : ((category as { title?: string }).title ?? String(category));
+                  const catLabel =
+                    typeof category === 'string'
+                      ? category
+                      : ((category as { title?: string }).title ?? '');
+                  return (
+                    <LinkComponent
+                      key={catKey}
+                      to={`/collections/${catKey}`}
+                      className="text-sm font-medium tracking-wide text-gray-700 hover:text-rose-600 transition-colors"
+                    >
+                      {catLabel}
+                    </LinkComponent>
+                  );
+                })}
+              <LinkComponent
+                to="/products"
                 className="text-sm font-medium tracking-wide text-gray-700 hover:text-rose-600 transition-colors"
               >
                 All Products
@@ -113,25 +125,28 @@ export function SokolHeader({
 
             {/* Icons */}
             <div className="flex items-center space-x-1 md:space-x-2">
-              <button className="p-2 hover:bg-gray-100 rounded-full transition-colors hidden md:flex">
+              <button
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors hidden md:flex"
+                aria-label="Search"
+              >
                 <Search className="w-5 h-5 text-gray-700" />
               </button>
-              
-              <LinkComponent 
-                to="/wishlist" 
+
+              <LinkComponent
+                to="/wishlist"
                 className="p-2 hover:bg-gray-100 rounded-full transition-colors hidden md:flex"
               >
                 <Heart className="w-5 h-5 text-gray-700" />
               </LinkComponent>
 
-              <LinkComponent 
-                to="/account" 
+              <LinkComponent
+                to="/account"
                 className="p-2 hover:bg-gray-100 rounded-full transition-colors hidden md:flex"
               >
                 <User className="w-5 h-5 text-gray-700" />
               </LinkComponent>
 
-              <button 
+              <button
                 className="p-2 hover:bg-gray-100 rounded-full transition-colors relative group"
                 aria-label="Cart"
                 onClick={() => window.dispatchEvent(new CustomEvent('open-cart-drawer'))}
@@ -143,51 +158,56 @@ export function SokolHeader({
                   </span>
                 )}
               </button>
-              
-               <div className="hidden md:block">
-                 <LanguageSelector />
-               </div>
+
+              <div className="hidden md:block">
+                <LanguageSelector />
+              </div>
             </div>
           </div>
         </div>
       </header>
 
       {/* Spacer */}
-      <div className="h-16 md:h-18" /> 
+      <div className="h-16 md:h-18" />
 
       {/* Mobile Menu Drawer */}
       {mobileMenuOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
-          <div 
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm" 
-            onClick={() => setMobileMenuOpen(false)} 
+          <div
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            onClick={() => setMobileMenuOpen(false)}
           />
           <div className="absolute top-0 left-0 bottom-0 w-[85%] max-w-[320px] bg-white shadow-2xl z-50 flex flex-col">
             <div className="p-4 border-b border-gray-100 flex items-center justify-between">
               <span className="font-bold font-heading text-lg">{storeName}</span>
-              <button 
-                onClick={() => setMobileMenuOpen(false)} 
+              <button
+                onClick={() => setMobileMenuOpen(false)}
                 className="p-2 hover:bg-gray-100 rounded-full"
+                aria-label="Close menu"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
             <div className="flex-1 overflow-y-auto py-4">
               <nav className="flex flex-col space-y-1 px-2">
-                <LinkComponent 
-                  to="/" 
+                <LinkComponent
+                  to="/"
                   className="p-3 hover:bg-gray-50 rounded-xl font-medium text-gray-800"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Home
                 </LinkComponent>
                 {categories?.filter(Boolean).map((cat) => {
-                  const catKey = typeof cat === 'string' ? cat : (cat as { title?: string }).title ?? String(cat);
-                  const catLabel = typeof cat === 'string' ? cat : (cat as { title?: string }).title ?? '';
+                  const catKey =
+                    typeof cat === 'string'
+                      ? cat
+                      : ((cat as { title?: string }).title ?? String(cat));
+                  const catLabel =
+                    typeof cat === 'string' ? cat : ((cat as { title?: string }).title ?? '');
                   return (
-                    <LinkComponent 
+                    <LinkComponent
                       key={catKey}
-                      to={`/products/${catKey}`} 
+                      to={`/products/${catKey}`}
                       className="p-3 hover:bg-gray-50 rounded-xl font-medium text-gray-700"
                       onClick={() => setMobileMenuOpen(false)}
                     >
@@ -195,8 +215,8 @@ export function SokolHeader({
                     </LinkComponent>
                   );
                 })}
-                <LinkComponent 
-                  to="/products" 
+                <LinkComponent
+                  to="/products"
                   className="p-3 hover:bg-gray-50 rounded-xl font-medium text-gray-700"
                   onClick={() => setMobileMenuOpen(false)}
                 >
@@ -205,8 +225,8 @@ export function SokolHeader({
               </nav>
             </div>
             <div className="p-4 border-t border-gray-100">
-              <LinkComponent 
-                to="/account" 
+              <LinkComponent
+                to="/account"
                 className="flex items-center gap-3 p-3 hover:bg-gray-50 rounded-xl"
               >
                 <User className="w-5 h-5" />
