@@ -365,8 +365,13 @@ export class EditorStateDO extends DurableObject<Env> {
   private async addSection(data: AddSectionRequest): Promise<Response> {
     this.ensureInitialized();
     
+    const array = new Uint32Array(1);
+    crypto.getRandomValues(array);
+    const randomStr = array[0].toString(36);
+    const random = randomStr.length >= 6 ? randomStr.slice(-6) : randomStr.padStart(6, '0');
+
     const newSection: Section = {
-      id: `section_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+      id: `section_${Date.now()}_${random}`,
       type: data.type,
       props: data.props || {},
       order: this.sections.length,
