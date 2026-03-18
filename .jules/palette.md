@@ -1,0 +1,3 @@
+## 2026-03-18 - [Add ARIA label to Checkout Modal Close Button]
+**Learning:** Found an accessibility issue pattern in icon-only buttons like the close button in `CheckoutModal.tsx` which lacked an `aria-label`. Since the app uses Bengali localization heavily (e.g., 'অর্ডার করুন'), matching the `aria-label` localized language (using 'বন্ধ করুন' instead of 'Close') is necessary for contextual screen-reader accessibility.
+**Action:** When adding ARIA labels to components in `apps/web` with Bengali text, prefer using localized strings like 'বন্ধ করুন' for close buttons to ensure consistency for local users.
