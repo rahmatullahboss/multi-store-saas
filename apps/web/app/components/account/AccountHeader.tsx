@@ -59,6 +59,7 @@ export function AccountHeader({
             onClick={onMobileMenuToggle}
             style={{ color: textColor }}
             className="hover:bg-opacity-10"
+            aria-label="Open menu"
           >
             <Menu className="h-6 w-6" />
           </Button>
@@ -145,6 +146,7 @@ export function AccountHeader({
         <button 
           className="relative p-2 rounded-full transition-colors hover:bg-opacity-10"
           style={{ color: textColor }}
+          aria-label="Notifications"
         >
           <Bell className="h-6 w-6" />
           <span 
