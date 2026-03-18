@@ -84,7 +84,9 @@ export const OrderSchema = z.object({
 // ============================================================================
 function generateOrderNumber(): string {
   const timestamp = Date.now().toString(36).toUpperCase();
-  const random = Math.random().toString(36).substring(2, 5).toUpperCase();
+  const array = new Uint32Array(1);
+  crypto.getRandomValues(array);
+  const random = array[0].toString(36).padStart(6, '0').slice(-3).toUpperCase();
   return `ORD-${timestamp}-${random}`;
 }
 
