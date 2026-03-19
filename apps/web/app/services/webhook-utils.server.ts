@@ -120,6 +120,7 @@ export function generateCheckoutIdempotencyKey(
   const timeBucket = Math.floor(Date.now() / (60 * 1000));
   const normalized = phone.replace(/[^\d]/g, '').slice(-10);
   // Add random suffix to prevent collisions on retry
-  const random = Math.random().toString(36).substring(2, 8);
+  const randomValue = crypto.getRandomValues(new Uint32Array(1))[0];
+  const random = randomValue.toString(36).padStart(6, '0').slice(-6);
   return `${storeId}-${normalized}-${productId}-${timeBucket}-${random}`;
 }
