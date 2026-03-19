@@ -48,14 +48,9 @@ function SortableItem({
   const [hovered, setHovered] = useState(false);
   const meta = getSectionMeta(section.type);
 
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: section.id });
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: section.id,
+  });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -98,9 +93,7 @@ function SortableItem({
 
       {/* Section name + variant badge */}
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-gray-200 truncate">
-          {meta?.name ?? section.type}
-        </p>
+        <p className="text-sm font-medium text-gray-200 truncate">{meta?.name ?? section.type}</p>
         {section.variant && (
           <span className="inline-block text-[10px] px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300 font-mono mt-0.5">
             {section.variant}
@@ -110,14 +103,12 @@ function SortableItem({
 
       {/* Hover actions */}
       {hovered && (
-        <div
-          className="flex items-center gap-1"
-          onClick={(e) => e.stopPropagation()}
-        >
+        <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
           <button
             onClick={() => onToggle(section.id, !section.enabled)}
             className="p-1 rounded text-gray-400 hover:text-yellow-400 hover:bg-white/10 transition-colors"
             title={section.enabled ? 'লুকান' : 'দেখান'}
+            aria-label={section.enabled ? 'লুকান' : 'দেখান'}
           >
             {section.enabled ? <Eye size={13} /> : <EyeOff size={13} />}
           </button>
@@ -125,6 +116,7 @@ function SortableItem({
             onClick={() => onSelect(section.id)}
             className="p-1 rounded text-gray-400 hover:text-blue-400 hover:bg-white/10 transition-colors"
             title="সম্পাদনা করুন"
+            aria-label="সম্পাদনা করুন"
           >
             <Pencil size={13} />
           </button>
@@ -132,6 +124,7 @@ function SortableItem({
             onClick={() => onDuplicate(section.id)}
             className="p-1 rounded text-gray-400 hover:text-green-400 hover:bg-white/10 transition-colors"
             title="কপি করুন"
+            aria-label="কপি করুন"
           >
             <Copy size={13} />
           </button>
@@ -139,6 +132,7 @@ function SortableItem({
             onClick={() => onDelete(section.id)}
             className="p-1 rounded text-gray-400 hover:text-red-400 hover:bg-white/10 transition-colors"
             title="মুছুন"
+            aria-label="মুছুন"
           >
             <Trash2 size={13} />
           </button>
@@ -193,9 +187,7 @@ export function SectionList({
     <div className="flex flex-col h-full">
       {/* Header */}
       <div className="px-3 py-3 border-b border-white/10">
-        <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest">
-          সেকশনসমূহ
-        </p>
+        <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest">সেকশনসমূহ</p>
       </div>
 
       {/* Sortable list */}

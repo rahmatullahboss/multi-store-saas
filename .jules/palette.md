@@ -1,0 +1,3 @@
+## 2024-05-24 - [Add ARIA labels to builder section hover buttons]
+**Learning:** Found multiple icon-only action buttons (Edit, Copy, Delete, Toggle Visibility) inside the drag-and-drop page builder (`SectionList.tsx`) that lacked `aria-label` attributes. Screen readers would not be able to announce the purpose of these critical controls. Also learned that the builder UI heavily uses Bengali text (e.g. `লুকান`, `সম্পাদনা করুন`), and that `aria-label` should match the localized `title` attributes for consistency.
+**Action:** Always add localized `aria-label`s to icon-only buttons, especially in complex interactive widgets like builders where visual context isn't accessible to assistive tech.
