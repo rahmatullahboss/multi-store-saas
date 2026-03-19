@@ -84,7 +84,7 @@ export function GhorerBazarPageWrapper({
         <div className="max-w-7xl mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
             {/* Search Icon */}
-            <button className="p-2 hover:bg-gray-100 rounded-full transition">
+            <button className="p-2 hover:bg-gray-100 rounded-full transition" aria-label="Search">
               <Search className="h-5 w-5 text-gray-600" />
             </button>
 
@@ -101,7 +101,7 @@ export function GhorerBazarPageWrapper({
 
             {/* User & Cart Icons */}
             <div className="flex items-center gap-2">
-              <button className="p-2 hover:bg-gray-100 rounded-full transition">
+              <button className="p-2 hover:bg-gray-100 rounded-full transition" aria-label="User profile">
                 <User className="h-5 w-5 text-gray-600" />
               </button>
               <Link 

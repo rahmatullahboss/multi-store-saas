@@ -159,6 +159,7 @@ export function BDShopCartPage({
                       <button
                         onClick={() => handleRemove(item.id)}
                         className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition self-start"
+                        aria-label="Remove item"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -168,6 +169,7 @@ export function BDShopCartPage({
                         <button
                           onClick={() => handleQuantityChange(item.id, item.quantity, -1)}
                           className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 transition"
+                          aria-label="Decrease quantity"
                         >
                           <Minus className="w-3 h-3" />
                         </button>
@@ -177,6 +179,7 @@ export function BDShopCartPage({
                         <button
                           onClick={() => handleQuantityChange(item.id, item.quantity, 1)}
                           className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 transition"
+                          aria-label="Increase quantity"
                         >
                           <Plus className="w-3 h-3" />
                         </button>
@@ -214,6 +217,7 @@ export function BDShopCartPage({
                         <button
                           onClick={() => handleRemove(item.id)}
                           className="text-xs text-red-500 hover:underline mt-1 flex items-center gap-1"
+                          aria-label="Remove item"
                         >
                           <Trash2 className="w-3 h-3" />
                           Remove
@@ -231,6 +235,7 @@ export function BDShopCartPage({
                         <button
                           onClick={() => handleQuantityChange(item.id, item.quantity, -1)}
                           className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 transition"
+                          aria-label="Decrease quantity"
                         >
                           <Minus className="w-3 h-3" />
                         </button>
@@ -240,6 +245,7 @@ export function BDShopCartPage({
                         <button
                           onClick={() => handleQuantityChange(item.id, item.quantity, 1)}
                           className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 transition"
+                          aria-label="Increase quantity"
                         >
                           <Plus className="w-3 h-3" />
                         </button>
