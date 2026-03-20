@@ -118,6 +118,7 @@ function SortableItem({
             onClick={() => onToggle(section.id, !section.enabled)}
             className="p-1 rounded text-gray-400 hover:text-yellow-400 hover:bg-white/10 transition-colors"
             title={section.enabled ? 'লুকান' : 'দেখান'}
+            aria-label={section.enabled ? 'লুকান' : 'দেখান'}
           >
             {section.enabled ? <Eye size={13} /> : <EyeOff size={13} />}
           </button>
@@ -125,6 +126,7 @@ function SortableItem({
             onClick={() => onSelect(section.id)}
             className="p-1 rounded text-gray-400 hover:text-blue-400 hover:bg-white/10 transition-colors"
             title="সম্পাদনা করুন"
+            aria-label="সম্পাদনা করুন"
           >
             <Pencil size={13} />
           </button>
@@ -132,6 +134,7 @@ function SortableItem({
             onClick={() => onDuplicate(section.id)}
             className="p-1 rounded text-gray-400 hover:text-green-400 hover:bg-white/10 transition-colors"
             title="কপি করুন"
+            aria-label="কপি করুন"
           >
             <Copy size={13} />
           </button>
@@ -139,6 +142,7 @@ function SortableItem({
             onClick={() => onDelete(section.id)}
             className="p-1 rounded text-gray-400 hover:text-red-400 hover:bg-white/10 transition-colors"
             title="মুছুন"
+            aria-label="মুছুন"
           >
             <Trash2 size={13} />
           </button>
