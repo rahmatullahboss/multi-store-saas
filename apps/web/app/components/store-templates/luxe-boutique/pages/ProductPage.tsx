@@ -11,6 +11,7 @@
 
 import { useState } from 'react';
 import { Link, useParams } from 'react-router';
+import { sanitizeHtml } from '~/utils/sanitize';
 import {
   ShoppingBag,
   Heart,
@@ -298,9 +299,10 @@ export function LuxeBoutiqueProductPage({
                 className="text-sm leading-relaxed"
                 style={{ color: theme.muted }}
                 dangerouslySetInnerHTML={{
-                  __html:
+                  __html: sanitizeHtml(
                     product.description.slice(0, 200) +
-                    (product.description.length > 200 ? '...' : ''),
+                    (product.description.length > 200 ? '...' : '')
+                  ),
                 }}
               />
             )}

@@ -11,6 +11,7 @@
 
 import { useState } from 'react';
 import { Link, useParams } from 'react-router';
+import { sanitizeHtml } from '~/utils/sanitize';
 import {
   Heart,
   Minus,
@@ -305,9 +306,10 @@ export function EclipseProductPage({
                 className="text-base leading-relaxed prose prose-invert max-w-none"
                 style={{ color: theme.textMuted }}
                 dangerouslySetInnerHTML={{
-                  __html:
+                  __html: sanitizeHtml(
                     product.description.slice(0, 300) +
-                    (product.description.length > 300 ? '...' : ''),
+                    (product.description.length > 300 ? '...' : '')
+                  ),
                 }}
               />
             )}
