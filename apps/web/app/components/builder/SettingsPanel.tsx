@@ -96,9 +96,7 @@ const SECTION_FIELDS: Record<string, FieldDef[]> = {
     { kind: 'text', key: 'title', label: 'শিরোনাম', placeholder: 'সাধারণ জিজ্ঞাসা' },
     { kind: 'text', key: 'subtitle', label: 'সাব-শিরোনাম' },
   ],
-  gallery: [
-    { kind: 'text', key: 'title', label: 'শিরোনাম', placeholder: 'ফটো গ্যালারি' },
-  ],
+  gallery: [{ kind: 'text', key: 'title', label: 'শিরোনাম', placeholder: 'ফটো গ্যালারি' }],
   video: [
     { kind: 'text', key: 'title', label: 'শিরোনাম', placeholder: 'ভিডিও দেখুন' },
     { kind: 'text', key: 'videoUrl', label: 'ভিডিও URL', placeholder: 'https://youtube.com/...' },
@@ -354,9 +352,7 @@ export function SettingsPanel({ section, onUpdateProps, onVariantChange }: Setti
           <Settings size={20} className="text-gray-500" />
         </div>
         <p className="text-sm text-gray-400 font-medium">কোনো সেকশন নির্বাচিত নেই</p>
-        <p className="text-xs text-gray-600 mt-1">
-          বাম প্যানেল থেকে একটি সেকশনে ক্লিক করুন
-        </p>
+        <p className="text-xs text-gray-600 mt-1">বাম প্যানেল থেকে একটি সেকশনে ক্লিক করুন</p>
       </div>
     );
   }
@@ -371,6 +367,7 @@ export function SettingsPanel({ section, onUpdateProps, onVariantChange }: Setti
         <button
           className="w-full flex items-center gap-2 text-left"
           onClick={() => setCollapsed((c) => !c)}
+          aria-label={collapsed ? 'প্যানেল খুলুন' : 'বন্ধ করুন'}
         >
           <div className="flex-1">
             <p className="text-sm font-semibold text-white">{meta?.name ?? section.type}</p>
@@ -455,6 +452,9 @@ export function SettingsPanel({ section, onUpdateProps, onVariantChange }: Setti
                   <Field key={field.key} label={field.label}>
                     <button
                       type="button"
+                      role="switch"
+                      aria-checked={Boolean(currentValue)}
+                      aria-label={field.label}
                       onClick={() => handleChange(field.key, !currentValue)}
                       className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
                         currentValue ? 'bg-indigo-600' : 'bg-white/10'
