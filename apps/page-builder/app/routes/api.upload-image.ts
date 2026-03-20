@@ -44,9 +44,13 @@ export async function action({ request, context }: ActionFunctionArgs) {
       return json({ success: false, error: 'File too large (max 10MB)' }, { status: 400 });
     }
 
-    // Generate unique filename
+    // Generate unique filename using cryptographically secure random values
+    // to prevent predictable file URLs (IDOR risk/File Enumeration).
+    // Using slice(-6) instead of substring(0, 6) to avoid leading-digit bias.
     const timestamp = Date.now();
-    const randomStr = Math.random().toString(36).substring(2, 8);
+    const randArray = new Uint32Array(1);
+    crypto.getRandomValues(randArray);
+    const randomStr = ('000000' + randArray[0].toString(36)).slice(-6);
     const extension = file.name.split('.').pop() || 'webp';
     const filename = `${user.storeId}-${timestamp}-${randomStr}.${extension}`;
     
