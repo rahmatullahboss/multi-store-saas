@@ -136,15 +136,16 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   }
 
   const db = drizzle(context.cloudflare.env.DB, { schema: { stores, products } });
-  const store = await db.select().from(stores).where(eq(stores.id, storeId)).limit(1);
+  // Fetch store and demo product concurrently
+  const [store, demoProduct] = await Promise.all([
+    db.select().from(stores).where(eq(stores.id, storeId)).limit(1),
+    db.query.products.findFirst({
+      where: (products, { eq }) => eq(products.storeId, storeId),
+      columns: { id: true }
+    })
+  ]);
   
   if (!store[0]) throw new Response('Store not found', { status: 404 });
-
-  // Fetch a demo product for preview
-  const demoProduct = await db.query.products.findFirst({
-    where: (products, { eq }) => eq(products.storeId, storeId),
-    columns: { id: true }
-  });
   
   const themeConfig = parseThemeConfig(store[0].themeConfig as string | null) || defaultThemeConfig;
   const templates = getAllStoreTemplates();
