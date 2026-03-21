@@ -45,6 +45,12 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   // AI Assistant is now available to all stores via credit system
   // No longer checking isCustomerAiEnabled - all stores can use it
 
+  // ⚡ Bolt Performance Optimization:
+  // Replaced N+1 query pattern (fetching conversations then mapping over them to count messages)
+  // with a single joined query using leftJoin and groupBy.
+  // Expected Impact: Reduces database queries from O(N) to O(1) per page load,
+  // significantly improving response time and lowering D1 read operations.
+
   // Get all conversations for this store with message count
   const conversationsResult = await db
     .select({
@@ -54,34 +60,29 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       status: aiConversations.status,
       createdAt: aiConversations.createdAt,
       lastMessageAt: aiConversations.lastMessageAt,
+      messageCount: sql<number>`count(${messages.id})`.mapWith(Number),
     })
     .from(aiConversations)
+    .leftJoin(messages, eq(aiConversations.id, messages.conversationId))
     .where(eq(aiConversations.storeId, storeId))
+    .groupBy(aiConversations.id)
     .orderBy(desc(aiConversations.lastMessageAt));
 
-  // Get message counts for each conversation
-  const conversationsWithCounts: Conversation[] = await Promise.all(
-    conversationsResult.map(async (conv) => {
-      const countResult = await db
-        .select({ count: sql<number>`count(*)` })
-        .from(messages)
-        .where(eq(messages.conversationId, conv.id));
+  // D1/Drizzle may materialize timestamp columns as Date objects.
+  // Normalize to ISO strings for consistent JSON + UI typing.
+  const conversationsWithCounts: Conversation[] = conversationsResult.map((conv) => {
+    const createdAt =
+      conv.createdAt instanceof Date ? conv.createdAt.toISOString() : conv.createdAt;
+    const lastMessageAt =
+      conv.lastMessageAt instanceof Date ? conv.lastMessageAt.toISOString() : conv.lastMessageAt;
 
-      // D1/Drizzle may materialize timestamp columns as Date objects.
-      // Normalize to ISO strings for consistent JSON + UI typing.
-      const createdAt =
-        conv.createdAt instanceof Date ? conv.createdAt.toISOString() : conv.createdAt;
-      const lastMessageAt =
-        conv.lastMessageAt instanceof Date ? conv.lastMessageAt.toISOString() : conv.lastMessageAt;
-
-      return {
-        ...conv,
-        createdAt: createdAt ?? null,
-        lastMessageAt: lastMessageAt ?? null,
-        messageCount: countResult[0]?.count || 0,
-      };
-    })
-  );
+    return {
+      ...conv,
+      createdAt: createdAt ?? null,
+      lastMessageAt: lastMessageAt ?? null,
+      messageCount: conv.messageCount || 0,
+    };
+  });
 
   return json({ conversations: conversationsWithCounts, aiEnabled: true });
 }
