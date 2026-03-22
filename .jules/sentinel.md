@@ -7,3 +7,8 @@
 **Vulnerability:** The `product.description` field was being sliced using `slice(0, N)` and then rendered via `dangerouslySetInnerHTML` directly in the Eclipse and Luxe Boutique templates. If a user provided HTML with unclosed tags near the slice limit, or included malicious scripts, they would execute without sanitization.
 **Learning:** When slicing user-generated HTML content (like product.description) for previews, always apply `sanitizeHtml` *after* slicing to prevent malformed, unclosed HTML tags from breaking the layout, and to clean malicious input.
 **Prevention:** Avoid rendering raw `product.description` chunks without wrapping the final string in `sanitizeHtml`.
+
+## 2025-03-22 - [Medium] Fix insecure random number generation for order IDs
+**Vulnerability:** The `generateOrderNumber` function in `api.create-order.ts` relied on `Math.random().toString(36).substring(2, 5)` to generate order ID suffixes.
+**Learning:** `Math.random()` is not cryptographically secure, and the resulting values can be predicted. In an e-commerce platform, predictable order IDs can lead to enumeration attacks or ID collisions.
+**Prevention:** Always use `crypto.getRandomValues()` for any string generation that requires unpredictability (like order numbers, session IDs, or tokens). Convert the value to a string (e.g. `base36`), pad it with leading zeros to ensure a consistent length, and use `.slice(-N)` to extract the needed characters.
