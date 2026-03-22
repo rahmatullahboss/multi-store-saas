@@ -239,6 +239,7 @@ function SectionCard({ meta, onClick }: SectionCardProps) {
     <button
       onClick={onClick}
       className="group flex flex-col gap-2 p-2.5 rounded-xl border border-white/10 hover:border-indigo-500/50 bg-[#1a1a2e] hover:bg-[#1e1e35] transition-all text-left"
+      aria-label={`Add ${meta.name} section`}
     >
       <SectionPreview type={meta.type} />
       <div className="flex items-start justify-between gap-1">
@@ -320,6 +321,7 @@ export function AddSectionModal({ availableSections, onAdd, onClose }: AddSectio
             <button
               onClick={onClose}
               className="p-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
+              aria-label="Close modal"
             >
               <X size={18} />
             </button>
