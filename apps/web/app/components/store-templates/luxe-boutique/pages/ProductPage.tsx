@@ -25,6 +25,7 @@ import {
 import { LUXE_BOUTIQUE_THEME } from '../theme';
 import type { Product } from '@db/schema';
 import { formatPrice } from '~/lib/formatting';
+import { sanitizeHtml } from '~/utils/sanitize';
 
 interface ProductPageProps {
   product: Product;
@@ -299,7 +300,7 @@ export function LuxeBoutiqueProductPage({
                 style={{ color: theme.muted }}
                 dangerouslySetInnerHTML={{
                   __html:
-                    product.description.slice(0, 200) +
+                    sanitizeHtml(product.description).slice(0, 200) +
                     (product.description.length > 200 ? '...' : ''),
                 }}
               />

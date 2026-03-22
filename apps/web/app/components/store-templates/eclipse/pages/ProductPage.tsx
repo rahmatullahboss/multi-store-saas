@@ -30,6 +30,7 @@ import { ECLIPSE_THEME } from '../theme';
 import { AddToCartButton } from '~/components/AddToCartButton';
 import type { SerializedProduct } from '~/templates/store-registry';
 import { formatPrice } from '~/lib/formatting';
+import { sanitizeHtml } from '~/utils/sanitize';
 
 interface ProductPageProps {
   product: SerializedProduct;
@@ -306,7 +307,7 @@ export function EclipseProductPage({
                 style={{ color: theme.textMuted }}
                 dangerouslySetInnerHTML={{
                   __html:
-                    product.description.slice(0, 300) +
+                    sanitizeHtml(product.description).slice(0, 300) +
                     (product.description.length > 300 ? '...' : ''),
                 }}
               />
