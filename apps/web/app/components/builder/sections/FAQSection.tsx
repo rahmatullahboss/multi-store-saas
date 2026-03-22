@@ -5,7 +5,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useId } from 'react';
 import { FAQPropsSchema, type FAQProps } from '~/lib/page-builder/schemas';
 
 interface FAQSectionProps {
@@ -24,13 +24,16 @@ function AccordionItem({
   isOpen: boolean;
   onToggle: () => void;
 }) {
+  const contentId = useId();
+
   return (
-    <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition hover:border-indigo-200">
+    <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition hover:border-indigo-200 focus-within:ring-2 focus-within:ring-indigo-500">
       <button
         type="button"
         onClick={onToggle}
-        className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left"
+        className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left focus:outline-none"
         aria-expanded={isOpen}
+        aria-controls={contentId}
       >
         <span className="font-semibold text-gray-900">{question}</span>
         <span
@@ -38,12 +41,19 @@ function AccordionItem({
             isOpen ? 'rotate-180 bg-indigo-600 text-white' : 'bg-gray-100 text-gray-600'
           }`}
         >
-          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+          <svg
+            className="h-4 w-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2.5}
+          >
             <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
           </svg>
         </span>
       </button>
       <div
+        id={contentId}
         className={`overflow-hidden transition-all duration-300 ${
           isOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
         }`}
@@ -63,7 +73,10 @@ export function FAQSection({ props, isPreview = false }: FAQSectionProps) {
   const toggle = (i: number) => setOpenIndex(openIndex === i ? null : i);
 
   return (
-    <section data-section-type="faq" className="w-full bg-gradient-to-b from-white to-slate-50 py-14 sm:py-20">
+    <section
+      data-section-type="faq"
+      className="w-full bg-gradient-to-b from-white to-slate-50 py-14 sm:py-20"
+    >
       <div className="mx-auto max-w-2xl px-4">
         {/* Header */}
         <div className="mb-10 text-center">
@@ -75,9 +88,7 @@ export function FAQSection({ props, isPreview = false }: FAQSectionProps) {
           {p.title && (
             <h2 className="text-2xl font-extrabold text-gray-900 sm:text-3xl">{p.title}</h2>
           )}
-          {p.subtitle && (
-            <p className="mt-2 text-gray-500">{p.subtitle}</p>
-          )}
+          {p.subtitle && <p className="mt-2 text-gray-500">{p.subtitle}</p>}
         </div>
 
         {/* Accordion items */}
@@ -96,7 +107,9 @@ export function FAQSection({ props, isPreview = false }: FAQSectionProps) {
         {/* Still have questions? */}
         <div className="mt-10 rounded-2xl bg-indigo-50 p-6 text-center">
           <p className="text-lg font-semibold text-gray-800">আরো প্রশ্ন আছে?</p>
-          <p className="mt-1 text-sm text-gray-600">আমাদের সাথে যোগাযোগ করুন, আমরা সাহায্য করতে সদা প্রস্তুত।</p>
+          <p className="mt-1 text-sm text-gray-600">
+            আমাদের সাথে যোগাযোগ করুন, আমরা সাহায্য করতে সদা প্রস্তুত।
+          </p>
           <a
             href="tel:"
             className="mt-4 inline-block rounded-full bg-indigo-600 px-6 py-2.5 text-sm font-bold text-white shadow transition hover:bg-indigo-700"
