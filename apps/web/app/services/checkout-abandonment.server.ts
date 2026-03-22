@@ -12,7 +12,7 @@
 
 import type { Database } from '~/lib/db.server';
 import { checkoutAbandonmentLogs, stores } from '@db/schema';
-import { eq, and, gte, lte, desc } from 'drizzle-orm';
+import { eq, and, gte, lte, desc, sql, isNotNull } from 'drizzle-orm';
 import { validateCheckoutSession, type CheckoutStepUpdate as ValidatedStepUpdate } from '~/lib/validations';
 
 // Session timeout: 30 minutes
@@ -192,8 +192,17 @@ export async function getCheckoutFunnelStats(
   startDate: Date,
   endDate: Date
 ) {
-  const logs = await db
-    .select()
+  // Optimization: Pushed aggregations to the DB to reduce memory usage and avoid N+1 array iterations
+  const [stats] = await db
+    .select({
+      totalStarted: sql<number>`count(*)`,
+      completedInfo: sql<number>`sum(${checkoutAbandonmentLogs.completedInfo})`,
+      completedAddress: sql<number>`sum(${checkoutAbandonmentLogs.completedAddress})`,
+      completedPayment: sql<number>`sum(${checkoutAbandonmentLogs.completedPayment})`,
+      completedReview: sql<number>`sum(${checkoutAbandonmentLogs.completedReview})`,
+      completedCheckout: sql<number>`sum(${checkoutAbandonmentLogs.completedCheckout})`,
+      abandoned: sql<number>`sum(case when ${checkoutAbandonmentLogs.completedCheckout} = 0 and ${checkoutAbandonmentLogs.abandonedAt} is not null then 1 else 0 end)`,
+    })
     .from(checkoutAbandonmentLogs)
     .where(
       and(
@@ -203,23 +212,17 @@ export async function getCheckoutFunnelStats(
       )
     );
 
-  const totalStarted = logs.length;
-  const completedInfo = logs.filter((l) => l.completedInfo === 1).length;
-  const completedAddress = logs.filter((l) => l.completedAddress === 1).length;
-  const completedPayment = logs.filter((l) => l.completedPayment === 1).length;
-  const completedReview = logs.filter((l) => l.completedReview === 1).length;
-  const completedCheckout = logs.filter((l) => l.completedCheckout === 1).length;
-  const abandoned = logs.filter((l) => l.completedCheckout === 0 && l.abandonedAt !== null).length;
-
+  const totalStarted = Number(stats?.totalStarted || 0);
+  const abandoned = Number(stats?.abandoned || 0);
   const abandonmentRate = totalStarted > 0 ? (abandoned / totalStarted) * 100 : 0;
 
   return {
     totalStarted,
-    completedInfo,
-    completedAddress,
-    completedPayment,
-    completedReview,
-    completedCheckout,
+    completedInfo: Number(stats?.completedInfo || 0),
+    completedAddress: Number(stats?.completedAddress || 0),
+    completedPayment: Number(stats?.completedPayment || 0),
+    completedReview: Number(stats?.completedReview || 0),
+    completedCheckout: Number(stats?.completedCheckout || 0),
     abandoned,
     abandonmentRate: Math.round(abandonmentRate * 100) / 100,
   };
@@ -234,22 +237,28 @@ export async function getExitReasonsBreakdown(
   startDate: Date,
   endDate: Date
 ): Promise<Record<string, number>> {
-  const logs = await db
-    .select()
+  // Optimization: Perform group by and count directly in DB rather than retrieving all rows
+  const breakdown = await db
+    .select({
+      exitReason: checkoutAbandonmentLogs.exitReason,
+      count: sql<number>`count(*)`,
+    })
     .from(checkoutAbandonmentLogs)
     .where(
       and(
         eq(checkoutAbandonmentLogs.storeId, storeId),
         gte(checkoutAbandonmentLogs.startedAt, startDate),
         lte(checkoutAbandonmentLogs.startedAt, endDate),
-        eq(checkoutAbandonmentLogs.completedCheckout, 0)
+        eq(checkoutAbandonmentLogs.completedCheckout, 0),
+        isNotNull(checkoutAbandonmentLogs.exitReason)
       )
-    );
+    )
+    .groupBy(checkoutAbandonmentLogs.exitReason);
 
   const reasons: Record<string, number> = {};
-  logs.forEach((log) => {
-    if (log.exitReason) {
-      reasons[log.exitReason] = (reasons[log.exitReason] || 0) + 1;
+  breakdown.forEach((row) => {
+    if (row.exitReason) {
+      reasons[row.exitReason] = Number(row.count);
     }
   });
 
@@ -265,8 +274,12 @@ export async function getDeviceBreakdown(
   startDate: Date,
   endDate: Date
 ) {
+  // Optimization: Perform group by and count directly in DB rather than retrieving all rows
   const logs = await db
-    .select()
+    .select({
+      deviceType: checkoutAbandonmentLogs.deviceType,
+      count: sql<number>`count(*)`,
+    })
     .from(checkoutAbandonmentLogs)
     .where(
       and(
@@ -275,15 +288,16 @@ export async function getDeviceBreakdown(
         lte(checkoutAbandonmentLogs.startedAt, endDate),
         eq(checkoutAbandonmentLogs.completedCheckout, 0)
       )
-    );
+    )
+    .groupBy(checkoutAbandonmentLogs.deviceType);
 
   const breakdown = { mobile: 0, desktop: 0, tablet: 0, unknown: 0 };
-  logs.forEach((log) => {
-    const device = (log.deviceType || 'unknown') as keyof typeof breakdown;
+  logs.forEach((row) => {
+    const device = (row.deviceType || 'unknown') as keyof typeof breakdown;
     if (breakdown[device] !== undefined) {
-      breakdown[device]++;
+      breakdown[device] += Number(row.count);
     } else {
-      breakdown.unknown++;
+      breakdown.unknown += Number(row.count);
     }
   });
 
