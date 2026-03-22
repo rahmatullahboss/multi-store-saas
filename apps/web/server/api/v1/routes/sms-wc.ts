@@ -64,7 +64,12 @@ smsWc.post('/send', requireScope('sms'), async (c) => {
       storeId: Number(storeId),
     });
 
-    const message_id = smsRes.messageId || `sms_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    // Security Enhancement: Use Web Crypto API instead of Math.random() for secure ID generation
+    const randomArray = new Uint32Array(1);
+    crypto.getRandomValues(randomArray);
+    const randomStr = randomArray[0].toString(36);
+    const randomPad = randomStr.length >= 6 ? randomStr.slice(-6) : randomStr.padStart(6, '0');
+    const message_id = smsRes.messageId || `sms_${Date.now()}_${randomPad}`;
     console.log(`[SMS] Store=${storeId} Phone=${msisdn} Type=${data.type} MsgId=${message_id} Success=${smsRes.success}`);
     console.log(`[SMS] Message: ${data.message}`);
 
