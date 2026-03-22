@@ -434,7 +434,11 @@ export class OrderProcessor extends DurableObject<Env> {
     
     for (const item of batch) {
       for (const task of item.tasks) {
-        const id = `t_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+        const array = new Uint32Array(1);
+        crypto.getRandomValues(array);
+        const randomStr = array[0].toString(36);
+        const random = randomStr.length >= 6 ? randomStr.slice(-6) : randomStr.padStart(6, '0');
+        const id = `t_${Date.now().toString(36)}_${random}`;
         allTaskIds.push(id);
         values.push('(?, ?, ?, ?, ?, ?)');
         params.push(id, item.orderId, item.storeId, task.type, JSON.stringify(task.payload), now);
