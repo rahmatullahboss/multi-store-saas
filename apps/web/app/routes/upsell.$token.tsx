@@ -71,30 +71,28 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
 
   const upsellOffer = offer[0];
 
-  // Get product details
-  const product = await db
-    .select()
-    .from(products)
-    .where(and(eq(products.id, upsellOffer.offerProductId), eq(products.storeId, upsellOffer.storeId)))
-    .limit(1);
+  // Get product, order, and store details concurrently to optimize D1 max-latency
+  const [product, order, store] = await Promise.all([
+    db
+      .select()
+      .from(products)
+      .where(and(eq(products.id, upsellOffer.offerProductId), eq(products.storeId, upsellOffer.storeId)))
+      .limit(1),
+    db
+      .select({ orderNumber: orders.orderNumber, total: orders.total })
+      .from(orders)
+      .where(and(eq(orders.id, upsellToken.orderId), eq(orders.storeId, upsellOffer.storeId)))
+      .limit(1),
+    db
+      .select({ name: stores.name, currency: stores.currency })
+      .from(stores)
+      .where(eq(stores.id, upsellOffer.storeId))
+      .limit(1)
+  ]);
 
   if (product.length === 0) {
     throw redirect(`/thank-you/${upsellToken.orderId}`);
   }
-
-  // Get order details
-  const order = await db
-    .select({ orderNumber: orders.orderNumber, total: orders.total })
-    .from(orders)
-    .where(and(eq(orders.id, upsellToken.orderId), eq(orders.storeId, upsellOffer.storeId)))
-    .limit(1);
-
-  // Get store details
-  const store = await db
-    .select({ name: stores.name, currency: stores.currency })
-    .from(stores)
-    .where(eq(stores.id, upsellOffer.storeId))
-    .limit(1);
 
   // Calculate prices
   const originalPrice = product[0].price;

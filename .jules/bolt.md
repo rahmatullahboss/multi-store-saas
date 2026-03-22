@@ -5,3 +5,7 @@
 ## 2026-03-12 - [Batch N+1 Drizzle ORM Queries]
 **Learning:** While `Promise.all` is great for parallelizing independent queries, using `Promise.all` with a `.map()` to iterate over records and fetch child relations causes massive N+1 connection/network latency on Cloudflare D1.
 **Action:** Always extract IDs from a parent array and use a single batch `inArray()` Drizzle DB fetch to gather relations. Group and process the results in-memory rather than relying on thousands of simultaneous asynchronous connections.
+
+## 2026-03-14 - Optimize Cloudflare D1 Queries
+**Learning:** When fetching multiple independent datasets from Cloudflare D1 in Remix loaders, grouping sequential Drizzle ORM queries using `Promise.all` is critical to shift the performance profile from sum-latency to max-latency. The app heavily relies on this pattern.
+**Action:** Always look for and convert sequential, independent D1 queries to `Promise.all` arrays across server files to reduce load times.
