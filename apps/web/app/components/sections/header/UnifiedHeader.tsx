@@ -1,7 +1,19 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { ShoppingBag, ShoppingCart, Search, Menu, X, Sparkles, User, Headphones, Heart, Grid3X3, ChevronRight } from 'lucide-react';
+import {
+  ShoppingBag,
+  ShoppingCart,
+  Search,
+  Menu,
+  X,
+  Sparkles,
+  User,
+  Headphones,
+  Heart,
+  Grid3X3,
+  ChevronRight,
+} from 'lucide-react';
 import { useCartCount } from '~/hooks/useCartCount';
 import { useWishlist } from '~/hooks/useWishlist';
 import { PreviewSafeLink } from '~/components/PreviewSafeLink';
@@ -53,7 +65,7 @@ export function UnifiedHeader({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  
+
   const { t } = useTranslation();
   const count = useCartCount();
   const { count: wishlistCount } = useWishlist();
@@ -70,7 +82,7 @@ export function UnifiedHeader({
   const validCategories = categories
     .map((category) => (typeof category === 'string' ? category : category?.title || null))
     .filter(Boolean);
-  
+
   const announcement = config?.announcement;
 
   // Search Handler
@@ -84,21 +96,31 @@ export function UnifiedHeader({
   // ============================================================================
   // STYLES DEDUCTION
   // ============================================================================
-  
+
   // Luxury variant uses a blurred/transparent header before scroll, solid after.
   // Marketplace uses a solid primary color always.
-  const headerBgColor = 
-    variant === 'luxury' 
-      ? (isScrolled ? (theme.headerBg || '#ffffff') : 'rgba(255, 255, 255, 0.9)')
-      : (variant === 'marketplace' ? theme.primary : (theme.headerBg || '#ffffff'));
+  const headerBgColor =
+    variant === 'luxury'
+      ? isScrolled
+        ? theme.headerBg || '#ffffff'
+        : 'rgba(255, 255, 255, 0.9)'
+      : variant === 'marketplace'
+        ? theme.primary
+        : theme.headerBg || '#ffffff';
 
   const headerTextColor = variant === 'marketplace' ? '#ffffff' : theme.text;
   const headerIconColor = variant === 'marketplace' ? '#ffffff' : theme.text;
-  
+
   // Luxury effects
   const backdropFilter = variant === 'luxury' && enableBlur ? 'blur(12px)' : 'none';
-  const boxShadow = variant === 'luxury' && isScrolled ? '0 4px 20px rgba(0, 0, 0, 0.05)' : (variant === 'marketplace' ? '0 4px 6px -1px rgba(0, 0, 0, 0.1)' : 'none');
-  const borderBottom = variant === 'luxury' && isScrolled ? `1px solid ${theme.cardBorder || '#f3f4f6'}` : 'none';
+  const boxShadow =
+    variant === 'luxury' && isScrolled
+      ? '0 4px 20px rgba(0, 0, 0, 0.05)'
+      : variant === 'marketplace'
+        ? '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+        : 'none';
+  const borderBottom =
+    variant === 'luxury' && isScrolled ? `1px solid ${theme.cardBorder || '#f3f4f6'}` : 'none';
 
   // Fonts
   const headingFont = variant === 'luxury' ? 'Cormorant Garamond, serif' : 'inherit';
@@ -126,7 +148,10 @@ export function UnifiedHeader({
                 {t('store.helpSupport', 'Help & Support')}
               </span>
               {!isPreview && (
-                <Link to="/auth/login" className="hover:text-white transition-colors flex items-center gap-1.5">
+                <Link
+                  to="/auth/login"
+                  className="hover:text-white transition-colors flex items-center gap-1.5"
+                >
                   <User className="w-3.5 h-3.5" />
                   {t('store.loginSignup', 'Login / Sign Up')}
                 </Link>
@@ -153,14 +178,18 @@ export function UnifiedHeader({
           <div
             className="text-center py-2.5 text-sm font-medium transition-all"
             style={{
-              background: theme.accentGradient || `linear-gradient(135deg, ${theme.accent}, ${theme.primary})`,
+              background:
+                theme.accentGradient ||
+                `linear-gradient(135deg, ${theme.accent}, ${theme.primary})`,
               color: '#ffffff',
             }}
           >
             <div className="flex items-center justify-center gap-2">
               <Sparkles className="w-4 h-4" />
               {announcement.link ? (
-                <a href={announcement.link} className="hover:underline">{announcement.text}</a>
+                <a href={announcement.link} className="hover:underline">
+                  {announcement.text}
+                </a>
               ) : (
                 announcement.text
               )}
@@ -171,12 +200,11 @@ export function UnifiedHeader({
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-14 md:h-16 lg:h-20 gap-3 md:gap-4">
-            
             {/* MOBILE MENU BUTTON */}
             <button
               className="md:hidden p-2 rounded-lg transition-colors hover:bg-black/5"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              aria-label="Toggle menu"
+              aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
             >
               {mobileMenuOpen ? (
                 <X className="w-5 h-5 md:w-6 md:h-6" style={{ color: headerIconColor }} />
@@ -223,16 +251,21 @@ export function UnifiedHeader({
                   className={`h-8 w-8 ${layout === 'logo-center' ? 'lg:h-12 lg:w-12 bg-transparent' : 'md:h-10 md:w-10 bg-white'} object-contain rounded`}
                 />
               ) : (
-                <div className={`h-8 w-8 ${layout === 'logo-center' ? 'lg:h-12 lg:w-12' : 'md:h-10 md:w-10 bg-white'} rounded flex items-center justify-center`}>
-                  <ShoppingBag className="w-5 h-5 md:w-6 md:h-6" style={{ color: layout === 'logo-center' ? headerIconColor : theme.primary }} />
+                <div
+                  className={`h-8 w-8 ${layout === 'logo-center' ? 'lg:h-12 lg:w-12' : 'md:h-10 md:w-10 bg-white'} rounded flex items-center justify-center`}
+                >
+                  <ShoppingBag
+                    className="w-5 h-5 md:w-6 md:h-6"
+                    style={{ color: layout === 'logo-center' ? headerIconColor : theme.primary }}
+                  />
                 </div>
               )}
               <span
                 className="font-bold text-lg md:text-xl hidden sm:block tracking-tight"
-                style={{ 
+                style={{
                   color: layout === 'logo-center' ? theme.primary : headerTextColor,
                   fontFamily: headingFont,
-                  fontSize: layout === 'logo-center' ? '1.5rem' : '1.125rem' 
+                  fontSize: layout === 'logo-center' ? '1.5rem' : '1.125rem',
                 }}
               >
                 {storeName}
@@ -241,7 +274,10 @@ export function UnifiedHeader({
 
             {/* SEARCH BAR (MARKETPLACE - Center) */}
             {layout === 'logo-left' && variant === 'marketplace' && (
-              <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-2xl mx-2 md:mx-4">
+              <form
+                onSubmit={handleSearch}
+                className="hidden md:flex flex-1 max-w-2xl mx-2 md:mx-4"
+              >
                 <div className="relative flex w-full">
                   <input
                     type="text"
@@ -263,7 +299,9 @@ export function UnifiedHeader({
             )}
 
             {/* RIGHT NAVIGATION (Icons) */}
-            <div className={`flex items-center gap-1 md:gap-2 ${layout === 'logo-center' ? 'flex-1 justify-end' : ''}`}>
+            <div
+              className={`flex items-center gap-1 md:gap-2 ${layout === 'logo-center' ? 'flex-1 justify-end' : ''}`}
+            >
               {/* Luxury Language Selector */}
               {variant === 'luxury' && (
                 <div className="hidden lg:block mr-1">
@@ -273,7 +311,10 @@ export function UnifiedHeader({
 
               {/* Search Icon (Mobile or Luxury Desktop) */}
               {(variant === 'luxury' || layout === 'logo-center') && (
-                <button className="p-2.5 rounded-full transition-all duration-300 hover:bg-black/5">
+                <button
+                  className="p-2.5 rounded-full transition-all duration-300 hover:bg-black/5"
+                  aria-label="Search"
+                >
                   <Search className="w-5 h-5" style={{ color: headerIconColor }} />
                 </button>
               )}
@@ -285,11 +326,18 @@ export function UnifiedHeader({
                 aria-label="Cart"
                 isPreview={isPreview}
               >
-                <ShoppingCart className="h-5 w-5 md:h-6 md:w-6" style={{ color: headerIconColor }} />
+                <ShoppingCart
+                  className="h-5 w-5 md:h-6 md:w-6"
+                  style={{ color: headerIconColor }}
+                />
                 {(count > 0 || variant === 'luxury') && (
                   <span
                     className="absolute -top-0.5 -right-0.5 md:-top-1 md:-right-1 min-w-[18px] h-[18px] md:min-w-[20px] md:h-[20px] px-1 rounded-full flex items-center justify-center text-[10px] md:text-xs font-bold"
-                    style={{ backgroundColor: variant === 'marketplace' ? (theme.accent || '#F59E0B') : theme.primary, color: '#fff' }}
+                    style={{
+                      backgroundColor:
+                        variant === 'marketplace' ? theme.accent || '#F59E0B' : theme.primary,
+                      color: '#fff',
+                    }}
                   >
                     {count}
                   </span>
@@ -298,7 +346,10 @@ export function UnifiedHeader({
 
               {/* Wishlist (Marketplace Desktop) */}
               {variant === 'marketplace' && (
-                <button className="hidden md:flex p-2 rounded transition-colors hover:bg-black/5 relative cursor-pointer" aria-label="Wishlist">
+                <button
+                  className="hidden md:flex p-2 rounded transition-colors hover:bg-black/5 relative cursor-pointer"
+                  aria-label="Wishlist"
+                >
                   <Heart className="h-6 w-6" style={{ color: headerIconColor }} />
                   {wishlistCount > 0 && (
                     <span
@@ -319,17 +370,20 @@ export function UnifiedHeader({
                   title={customer ? customer.name || customer.email || 'My Account' : 'Login'}
                 >
                   {customer && variant === 'luxury' ? (
-                     <div
+                    <div
                       className="w-7 h-7 rounded-full flex items-center justify-center text-sm font-medium"
                       style={{ background: theme.accentGradient || theme.accent, color: '#ffffff' }}
-                     >
-                       {(customer.name?.[0] || customer.email?.[0] || 'U').toUpperCase()}
-                     </div>
+                    >
+                      {(customer.name?.[0] || customer.email?.[0] || 'U').toUpperCase()}
+                    </div>
                   ) : (
                     <User className="h-5 w-5 md:h-6 md:w-6" style={{ color: headerIconColor }} />
                   )}
                   {customer && variant === 'luxury' && (
-                    <span className="text-sm font-medium hidden md:block" style={{ color: theme.text }}>
+                    <span
+                      className="text-sm font-medium hidden md:block"
+                      style={{ color: theme.text }}
+                    >
                       {customer.name || customer.email?.split('@')[0] || 'Account'}
                     </span>
                   )}
@@ -337,28 +391,28 @@ export function UnifiedHeader({
               )}
             </div>
           </div>
-          
+
           {/* MOBILE SEARCH BAR (Marketplace) */}
           {layout === 'logo-left' && variant === 'marketplace' && (
-             <form onSubmit={handleSearch} className="md:hidden pb-3">
-               <div className="relative flex w-full">
-                 <input
-                   type="text"
-                   placeholder={`Search in ${storeName}`}
-                   value={searchQuery}
-                   onChange={(e) => setSearchQuery(e.target.value)}
-                   className="w-full h-10 pl-4 pr-12 rounded text-sm border-0 focus:outline-none"
-                   style={{ backgroundColor: theme.cardBg, color: theme.text }}
-                 />
-                 <button
-                   type="submit"
-                   className="absolute right-0 top-0 bottom-0 px-4 flex items-center justify-center rounded-r"
-                   style={{ color: theme.primary }}
-                 >
-                   <Search className="w-5 h-5" />
-                 </button>
-               </div>
-             </form>
+            <form onSubmit={handleSearch} className="md:hidden pb-3">
+              <div className="relative flex w-full">
+                <input
+                  type="text"
+                  placeholder={`Search in ${storeName}`}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full h-10 pl-4 pr-12 rounded text-sm border-0 focus:outline-none"
+                  style={{ backgroundColor: theme.cardBg, color: theme.text }}
+                />
+                <button
+                  type="submit"
+                  className="absolute right-0 top-0 bottom-0 px-4 flex items-center justify-center rounded-r"
+                  style={{ color: theme.primary }}
+                >
+                  <Search className="w-5 h-5" />
+                </button>
+              </div>
+            </form>
           )}
         </div>
 
@@ -366,23 +420,36 @@ export function UnifiedHeader({
         {/* 3. MOBILE MENU OVERLAY                                           */}
         {/* ------------------------------------------------------------------ */}
         {mobileMenuOpen && (
-          <div 
+          <div
             className="md:hidden fixed inset-0 z-[60] flex flex-col transition-all duration-300"
-            style={{ 
-              backgroundColor: variant === 'luxury' ? 'rgba(255, 255, 255, 0.95)' : theme.background,
+            style={{
+              backgroundColor:
+                variant === 'luxury' ? 'rgba(255, 255, 255, 0.95)' : theme.background,
               backdropFilter: variant === 'luxury' ? 'blur(16px)' : 'none',
-              top: variant === 'marketplace' ? 'auto' : '0' // Marketplace dropdown vs Luxury full screen overlay
+              top: variant === 'marketplace' ? 'auto' : '0', // Marketplace dropdown vs Luxury full screen overlay
             }}
           >
-            <div className="flex items-center justify-between p-4 border-b" style={{ borderColor: theme.cardBorder || '#e5e7eb' }}>
-              <span className="text-xl font-bold tracking-wider" style={{ fontFamily: headingFont, color: variant === 'luxury' ? theme.primary : theme.text }}>
+            <div
+              className="flex items-center justify-between p-4 border-b"
+              style={{ borderColor: theme.cardBorder || '#e5e7eb' }}
+            >
+              <span
+                className="text-xl font-bold tracking-wider"
+                style={{
+                  fontFamily: headingFont,
+                  color: variant === 'luxury' ? theme.primary : theme.text,
+                }}
+              >
                 {variant === 'luxury' ? 'Menu' : t('store.categories', 'Categories')}
               </span>
               <button
                 onClick={() => setMobileMenuOpen(false)}
                 className="p-2 rounded-lg hover:bg-black/5 transition-colors"
               >
-                <X className="w-6 h-6" style={{ color: variant === 'luxury' ? theme.primary : theme.text }} />
+                <X
+                  className="w-6 h-6"
+                  style={{ color: variant === 'luxury' ? theme.primary : theme.text }}
+                />
               </button>
             </div>
 
@@ -391,10 +458,13 @@ export function UnifiedHeader({
                 to="/"
                 onClick={() => setMobileMenuOpen(false)}
                 className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors cursor-pointer ${variant === 'luxury' ? 'text-lg border-b' : 'text-sm'}`}
-                style={{ 
-                  backgroundColor: (!currentCategory && variant === 'marketplace') ? `${theme.primary}15` : 'transparent',
-                  color: (!currentCategory && variant === 'marketplace') ? theme.primary : theme.text,
-                  borderColor: variant === 'luxury' ? (theme.cardBorder || '#f3f4f6') : 'transparent'
+                style={{
+                  backgroundColor:
+                    !currentCategory && variant === 'marketplace'
+                      ? `${theme.primary}15`
+                      : 'transparent',
+                  color: !currentCategory && variant === 'marketplace' ? theme.primary : theme.text,
+                  borderColor: variant === 'luxury' ? theme.cardBorder || '#f3f4f6' : 'transparent',
                 }}
                 isPreview={isPreview}
               >
@@ -411,15 +481,21 @@ export function UnifiedHeader({
                     onClick={() => setMobileMenuOpen(false)}
                     className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors cursor-pointer ${variant === 'luxury' ? 'text-lg border-b' : 'text-sm'}`}
                     style={{
-                      backgroundColor: (isActive && variant === 'marketplace') ? `${theme.primary}15` : 'transparent',
-                      color: (isActive && variant === 'marketplace') ? theme.primary : theme.text,
-                      borderColor: variant === 'luxury' ? (theme.cardBorder || '#f3f4f6') : 'transparent'
+                      backgroundColor:
+                        isActive && variant === 'marketplace'
+                          ? `${theme.primary}15`
+                          : 'transparent',
+                      color: isActive && variant === 'marketplace' ? theme.primary : theme.text,
+                      borderColor:
+                        variant === 'luxury' ? theme.cardBorder || '#f3f4f6' : 'transparent',
                     }}
                     isPreview={isPreview}
                   >
                     {variant === 'marketplace' && <Grid3X3 className="w-5 h-5 opacity-60" />}
                     {title}
-                    {variant === 'marketplace' && <ChevronRight className="w-4 h-4 ml-auto opacity-40" />}
+                    {variant === 'marketplace' && (
+                      <ChevronRight className="w-4 h-4 ml-auto opacity-40" />
+                    )}
                   </PreviewSafeLink>
                 );
               })}
@@ -427,13 +503,26 @@ export function UnifiedHeader({
               {/* Additional Marketplace Menu Items */}
               {variant === 'marketplace' && (
                 <>
-                  <div className="h-px my-2" style={{ backgroundColor: theme.cardBorder || '#e5e7eb' }} />
-                  <a href="#support" className="flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-sm cursor-pointer" style={{ color: theme.muted }}>
+                  <div
+                    className="h-px my-2"
+                    style={{ backgroundColor: theme.cardBorder || '#e5e7eb' }}
+                  />
+                  <a
+                    href="#support"
+                    className="flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-sm cursor-pointer"
+                    style={{ color: theme.muted }}
+                  >
                     <Headphones className="w-5 h-5" />
                     {t('store.helpSupport', 'Help & Support')}
                   </a>
                   {!isPreview && (
-                    <PreviewSafeLink to="/auth/login" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-sm cursor-pointer" style={{ color: theme.muted }} isPreview={isPreview}>
+                    <PreviewSafeLink
+                      to="/auth/login"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-sm cursor-pointer"
+                      style={{ color: theme.muted }}
+                      isPreview={isPreview}
+                    >
                       <User className="w-5 h-5" />
                       {t('store.loginSignup', 'Login / Sign Up')}
                     </PreviewSafeLink>
