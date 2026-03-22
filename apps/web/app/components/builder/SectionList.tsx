@@ -48,14 +48,9 @@ function SortableItem({
   const [hovered, setHovered] = useState(false);
   const meta = getSectionMeta(section.type);
 
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: section.id });
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: section.id,
+  });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -84,7 +79,7 @@ function SortableItem({
         className="flex-shrink-0 text-gray-500 hover:text-gray-300 cursor-grab active:cursor-grabbing p-0.5 rounded"
         onClick={(e) => e.stopPropagation()}
         title="ড্র্যাগ করুন"
-        aria-label="Drag section"
+        aria-label="ড্র্যাগ করুন"
       >
         <svg width="10" height="16" viewBox="0 0 10 16" fill="currentColor">
           <circle cx="2" cy="2" r="1.5" />
@@ -98,9 +93,7 @@ function SortableItem({
 
       {/* Section name + variant badge */}
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-gray-200 truncate">
-          {meta?.name ?? section.type}
-        </p>
+        <p className="text-sm font-medium text-gray-200 truncate">{meta?.name ?? section.type}</p>
         {section.variant && (
           <span className="inline-block text-[10px] px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300 font-mono mt-0.5">
             {section.variant}
@@ -110,10 +103,7 @@ function SortableItem({
 
       {/* Hover actions */}
       {hovered && (
-        <div
-          className="flex items-center gap-1"
-          onClick={(e) => e.stopPropagation()}
-        >
+        <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
           <button
             onClick={() => onToggle(section.id, !section.enabled)}
             className="p-1 rounded text-gray-400 hover:text-yellow-400 hover:bg-white/10 transition-colors"
@@ -197,9 +187,7 @@ export function SectionList({
     <div className="flex flex-col h-full">
       {/* Header */}
       <div className="px-3 py-3 border-b border-white/10">
-        <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest">
-          সেকশনসমূহ
-        </p>
+        <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest">সেকশনসমূহ</p>
       </div>
 
       {/* Sortable list */}
