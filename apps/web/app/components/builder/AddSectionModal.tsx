@@ -109,7 +109,16 @@ function SectionPreview({ type }: { type: string }) {
           <svg viewBox="0 0 80 50" className="w-full h-full">
             <rect x="5" y="5" width="70" height="12" rx="2" fill={sketch} opacity="0.6" />
             {[10, 27, 44, 61].map((x, i) => (
-              <rect key={i} x={x} y="22" width="12" height="16" rx="2" fill={sketch} opacity="0.8" />
+              <rect
+                key={i}
+                x={x}
+                y="22"
+                width="12"
+                height="16"
+                rx="2"
+                fill={sketch}
+                opacity="0.8"
+              />
             ))}
           </svg>
         );
@@ -295,10 +304,7 @@ export function AddSectionModal({ availableSections, onAdd, onClose }: AddSectio
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-        onClick={onClose}
-      />
+      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
 
       {/* Modal */}
       <div className="relative bg-[#0f0f1a] border border-white/10 rounded-2xl shadow-2xl w-full max-w-4xl h-[80vh] flex flex-col overflow-hidden">
@@ -320,6 +326,7 @@ export function AddSectionModal({ availableSections, onAdd, onClose }: AddSectio
             <button
               onClick={onClose}
               className="p-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
+              aria-label="বন্ধ করুন"
             >
               <X size={18} />
             </button>
@@ -370,9 +377,7 @@ export function AddSectionModal({ availableSections, onAdd, onClose }: AddSectio
 
         {/* Footer */}
         <div className="px-5 py-3 border-t border-white/10 flex items-center justify-between">
-          <p className="text-xs text-gray-500">
-            {filtered.length} টি সেকশন পাওয়া গেছে
-          </p>
+          <p className="text-xs text-gray-500">{filtered.length} টি সেকশন পাওয়া গেছে</p>
           <a
             href="?pro=1"
             className="flex items-center gap-1 text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
