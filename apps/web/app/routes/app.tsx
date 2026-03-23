@@ -82,7 +82,11 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       userId = await requireUserId(request, context.cloudflare.env);
       console.log('[app.loader] User authenticated - UserID:', userId);
     } catch (authError) {
-      console.error('[app.loader] Authentication failed:', authError);
+      if (authError instanceof Response) {
+        console.log('[app.loader] User not authenticated, redirecting to login');
+      } else {
+        console.error('[app.loader] Authentication failed:', authError);
+      }
       throw authError; // Re-throw to trigger redirect
     }
 

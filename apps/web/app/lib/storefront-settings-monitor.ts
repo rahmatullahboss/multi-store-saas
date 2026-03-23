@@ -155,7 +155,13 @@ export async function checkStorefrontSettingsHealth(env: Env): Promise<Storefron
       healthStatus,
     };
   } catch (error) {
-    console.error('[checkStorefrontSettingsHealth] Error checking health:', error);
+    // If the column doesn't exist yet (staging DB), log as warning, not error
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    if (errorMsg.includes('no such column') || errorMsg.includes('SQLITE_ERROR')) {
+      console.warn('[checkStorefrontSettingsHealth] Column not yet available (migration pending):', errorMsg);
+    } else {
+      console.error('[checkStorefrontSettingsHealth] Error checking health:', error);
+    }
     return {
       totalStores: 0,
       storesWithUnifiedSettings: 0,
