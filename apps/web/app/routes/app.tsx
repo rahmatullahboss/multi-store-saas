@@ -112,35 +112,24 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
     const db = drizzle(context.cloudflare.env.DB);
 
-    // Fetch store info with error handling
-    console.log('[app.loader] Fetching store info for storeId:', storeId);
-    let storeResult;
+    // ⚡ Bolt: Use `db.batch()` to combine independent D1 database queries into a single HTTP request
+    // This drastically reduces network latency overhead compared to separate or Promise.all queries
+    console.log('[app.loader] Fetching store and user info in a single batch request');
+    let storeResult: typeof stores.$inferSelect[] = [];
+    let userResult: typeof users.$inferSelect[] = [];
     try {
-      storeResult = await db
-        .select()
-        .from(stores)
-        .where(eq(stores.id, storeId))
-        .limit(1);
-      console.log('[app.loader] Store query completed. Found:', storeResult.length, 'store(s)');
-    } catch (storeDbError) {
-      console.error('[app.loader] Database error fetching store:', storeDbError);
-      const errorMessage = storeDbError instanceof Error ? storeDbError.message : String(storeDbError);
-      throw new Response(`Database error: ${errorMessage}`, { status: 500 });
-    }
+      const batchResult = await db.batch([
+        db.select().from(stores).where(eq(stores.id, storeId)).limit(1),
+        db.select().from(users).where(eq(users.id, userId)).limit(1)
+      ]);
 
-    // Fetch user info with error handling
-    console.log('[app.loader] Fetching user info for userId:', userId);
-    let userResult;
-    try {
-      userResult = await db
-        .select()
-        .from(users)
-        .where(eq(users.id, userId))
-        .limit(1);
-      console.log('[app.loader] User query completed. Found:', userResult.length, 'user(s)');
-    } catch (userDbError) {
-      console.error('[app.loader] Database error fetching user:', userDbError);
-      const errorMessage = userDbError instanceof Error ? userDbError.message : String(userDbError);
+      storeResult = batchResult[0] as typeof stores.$inferSelect[];
+      userResult = batchResult[1] as typeof users.$inferSelect[];
+
+      console.log('[app.loader] Batch query completed. Store(s):', storeResult.length, '| User(s):', userResult.length);
+    } catch (dbError) {
+      console.error('[app.loader] Database error fetching store/user:', dbError);
+      const errorMessage = dbError instanceof Error ? dbError.message : String(dbError);
       throw new Response(`Database error: ${errorMessage}`, { status: 500 });
     }
 
