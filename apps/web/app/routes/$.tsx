@@ -5,7 +5,7 @@
  * Route: Catches all unmatched routes
  */
 
-import { type LoaderFunctionArgs, type MetaFunction } from 'react-router';
+import { type ActionFunctionArgs, type LoaderFunctionArgs, type MetaFunction } from 'react-router';
 import { json } from '~/lib/rr7-compat';
 import { useLoaderData } from 'react-router';
 import { resolveStore } from '~/lib/store.server';
@@ -47,6 +47,15 @@ export const meta: MetaFunction = () => {
     { name: 'description', content: 'The page you are looking for does not exist.' },
   ];
 };
+
+/**
+ * Handle POST/PUT/DELETE to unknown routes (bots probing /graphql, /wp-admin, etc.)
+ */
+export async function action({ request }: ActionFunctionArgs) {
+  const url = new URL(request.url);
+  console.warn(`[$.action] Bot/unknown ${request.method} to ${url.pathname}`);
+  return json({ error: 'Not Found' }, { status: 404 });
+}
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   // Resolve store
