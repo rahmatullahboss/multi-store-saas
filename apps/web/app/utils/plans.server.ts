@@ -318,21 +318,30 @@ export async function getUsageStats(
   aiCredits: { current: number; limit: number; percentage: number };
 }> {
   const db = drizzle(dbBinding);
-  const { planType, aiCredits } = await getStorePlans(db, storeId);
-  const limits = PLAN_LIMITS[planType];
   
-  const orderCount = await getMonthlyOrderCount(db, storeId);
-  const productCount = await getActiveProductCount(db, storeId);
-  
-  // Get visitor count from stores table
-  const storeResult = await db
-    .select({ monthlyVisitorCount: stores.monthlyVisitorCount })
-    .from(stores)
-    .where(eq(stores.id, storeId))
-    .limit(1);
-  
+  // ⚡ Bolt Optimization: Group independent queries using Promise.all
+  // to avoid N+1 sequential latency round-trips to Cloudflare D1.
+  // Also combined multiple store table lookups into a single query.
+  const [storeResult, orderCount, productCount] = await Promise.all([
+    db
+      .select({
+        planType: stores.planType,
+        aiCredits: stores.aiCredits,
+        monthlyVisitorCount: stores.monthlyVisitorCount
+      })
+      .from(stores)
+      .where(eq(stores.id, storeId))
+      .limit(1),
+    getMonthlyOrderCount(db, storeId),
+    getActiveProductCount(db, storeId)
+  ]);
+
+  const planType = (storeResult[0]?.planType as PlanType) || 'free';
+  const aiCredits = storeResult[0]?.aiCredits ?? 0;
   const visitorCount = storeResult[0]?.monthlyVisitorCount ?? 0;
   
+  const limits = PLAN_LIMITS[planType] || PLAN_LIMITS.free;
+
   return {
     planType,
     orders: {

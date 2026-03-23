@@ -3,6 +3,7 @@
  * Shopify-inspired design
  */
 
+import React from 'react';
 import { Link } from 'react-router';
 
 interface StatCardProps {
@@ -26,24 +27,34 @@ const colorClasses = {
   gray: 'bg-gray-50 border-gray-100 text-gray-600',
 };
 
-export function StatCard({ label, value, icon, color = 'gray', href, trend }: StatCardProps) {
+// ⚡ Bolt: Wrap StatCard with React.memo to prevent unnecessary re-renders when parent components re-render.
+// This is especially impactful on dashboard and analytics pages where StatCards are used frequently.
+export const StatCard = React.memo(function StatCard({
+  label,
+  value,
+  icon,
+  color = 'gray',
+  href,
+  trend,
+}: StatCardProps) {
   const colorClass = colorClasses[color];
 
   const content = (
-    <div className={`rounded-xl border p-4 ${colorClass} ${href ? 'hover:shadow-md cursor-pointer' : ''} transition`}>
+    <div
+      className={`rounded-xl border p-4 ${colorClass} ${href ? 'hover:shadow-md cursor-pointer' : ''} transition`}
+    >
       <div className="flex items-center gap-3">
-        {icon && (
-          <div className="flex-shrink-0">
-            {icon}
-          </div>
-        )}
+        {icon && <div className="flex-shrink-0">{icon}</div>}
         <div className="min-w-0">
           <p className="text-xs font-medium text-gray-500 truncate">{label}</p>
           <div className="flex items-baseline gap-2">
             <p className="text-xl font-bold text-gray-900">{value}</p>
             {trend && (
-              <span className={`text-xs font-medium ${trend.value >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                {trend.value >= 0 ? '+' : ''}{trend.value}%
+              <span
+                className={`text-xs font-medium ${trend.value >= 0 ? 'text-emerald-600' : 'text-red-600'}`}
+              >
+                {trend.value >= 0 ? '+' : ''}
+                {trend.value}%
               </span>
             )}
           </div>
@@ -53,4 +64,4 @@ export function StatCard({ label, value, icon, color = 'gray', href, trend }: St
   );
 
   return href ? <Link to={href}>{content}</Link> : content;
-}
+});

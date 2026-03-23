@@ -1,6 +1,6 @@
 /**
  * Account Header Component
- * 
+ *
  * Provides a consistent header for account pages that matches the starter-store theme.
  * This replaces the generic top header in account layout with a theme-aware version.
  */
@@ -42,23 +42,24 @@ export function AccountHeader({
   const textColor = theme.text || '#1f2937';
 
   return (
-    <header 
+    <header
       className="h-20 border-b flex items-center justify-between px-6 sticky top-0 z-10 transition-colors"
-      style={{ 
+      style={{
         backgroundColor: headerBg,
-        borderBottomColor: theme.primary + '20'
+        borderBottomColor: theme.primary + '20',
       }}
     >
       {/* Left Section - Mobile Menu + Logo/Store Name */}
       <div className="flex items-center gap-4">
         {/* Mobile Menu Trigger */}
         <div className="lg:hidden">
-          <Button 
-            variant="ghost" 
-            size="icon" 
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label={t('toggleMenu') || 'Toggle menu'}
             onClick={onMobileMenuToggle}
             style={{ color: textColor }}
-            className="hover:bg-opacity-10"
+            className="hover:bg-opacity-10 focus-visible:outline-none focus-visible:ring-2"
           >
             <Menu className="h-6 w-6" />
           </Button>
@@ -67,24 +68,21 @@ export function AccountHeader({
         {/* Store Branding */}
         <Link to="/" className="flex items-center gap-3 group">
           {logo ? (
-            <img 
-              src={logo} 
-              alt={storeName} 
-              className="h-8 w-auto object-contain transition-transform group-hover:scale-105" 
+            <img
+              src={logo}
+              alt={storeName}
+              className="h-8 w-auto object-contain transition-transform group-hover:scale-105"
             />
           ) : (
-            <span 
-              className="text-xl font-bold transition-colors"
-              style={{ color: theme.primary }}
-            >
+            <span className="text-xl font-bold transition-colors" style={{ color: theme.primary }}>
               {storeName}
             </span>
           )}
-          <span 
+          <span
             className="hidden md:inline-flex items-center gap-2 text-sm font-medium px-3 py-1 rounded-full"
-            style={{ 
+            style={{
               backgroundColor: theme.primary + '15',
-              color: theme.primary
+              color: theme.primary,
             }}
           >
             <Home className="h-4 w-4" />
@@ -95,14 +93,14 @@ export function AccountHeader({
 
       {/* Center Section - Navigation Links (Desktop) */}
       <nav className="hidden md:flex items-center justify-center gap-6 flex-1 px-8">
-        <Link 
-          to="/" 
+        <Link
+          to="/"
           className="text-sm font-medium hover:opacity-80 transition-colors"
           style={{ color: textColor }}
         >
           {t('home') || 'Home'}
         </Link>
-        <Link 
+        <Link
           to="/products"
           className="text-sm font-medium hover:opacity-80 transition-colors"
           style={{ color: textColor }}
@@ -122,7 +120,7 @@ export function AccountHeader({
       </nav>
 
       {/* Search Bar - Moved to right side or condensed if needed, but keeping it simple for now */}
-       {/* 
+      {/*
       <div className="hidden lg:flex items-center rounded-lg px-4 py-2 w-64 border focus-within:ring-2 transition-all mx-4"
         style={{
           backgroundColor: headerBg === '#ffffff' ? '#f9fafb' : 'rgba(255,255,255,0.05)',
@@ -142,22 +140,24 @@ export function AccountHeader({
       {/* Right Section - Notifications + User Profile */}
       <div className="flex items-center gap-4 ml-auto">
         {/* Notifications */}
-        <button 
-          className="relative p-2 rounded-full transition-colors hover:bg-opacity-10"
+        <button
+          aria-label={t('notifications') || 'Notifications'}
+          className="relative p-2 rounded-full transition-colors hover:bg-opacity-10 focus-visible:outline-none focus-visible:ring-2"
           style={{ color: textColor }}
         >
           <Bell className="h-6 w-6" />
-          <span 
+          <span
             className="absolute top-2 right-2 w-2 h-2 rounded-full border-2"
-            style={{ 
+            style={{
               backgroundColor: theme.accent,
-              borderColor: headerBg
+              borderColor: headerBg,
             }}
           ></span>
         </button>
-        
+
         {/* User Profile */}
-        <div className="flex items-center gap-3 border-l pl-4"
+        <div
+          className="flex items-center gap-3 border-l pl-4"
           style={{ borderLeftColor: theme.primary + '20' }}
         >
           <div className="text-right hidden md:block">
@@ -168,12 +168,12 @@ export function AccountHeader({
               {loyaltyTier}
             </p>
           </div>
-          <div 
+          <div
             className="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden border-2 shadow-sm"
-            style={{ 
+            style={{
               backgroundColor: theme.primary + '15',
               borderColor: theme.primary,
-              color: theme.primary
+              color: theme.primary,
             }}
           >
             <User className="h-6 w-6" />

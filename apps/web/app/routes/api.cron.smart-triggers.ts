@@ -53,7 +53,11 @@ export const loader = async ({ request, context }: LoaderFunctionArgs) => {
       limit: 20 // Batch limit prevents timeout
     });
 
-    for (const cart of abandoned) {
+    // ⚡ Bolt: Using Promise.allSettled for concurrent external I/O operations
+    // This shifts the performance profile from sum-latency to max-latency.
+    // We map over each cart and execute the notification + DB update in parallel,
+    // handling individual failures gracefully without crashing the whole batch.
+    const cartPromises = abandoned.map(async (cart) => {
       if (cart.customerPhone) {
         const storeUrl = cart.store.customDomain
           ? `https://${cart.store.customDomain}`
@@ -78,9 +82,20 @@ export const loader = async ({ request, context }: LoaderFunctionArgs) => {
           .set({ recoveryEmailSent: true, recoveryEmailSentAt: new Date() })
           .where(eq(schema.abandonedCarts.id, cart.id));
         
-        results.abandonedCarts++;
+        return true;
       }
-    }
+      return false;
+    });
+
+    const cartResults = await Promise.allSettled(cartPromises);
+    cartResults.forEach(result => {
+      if (result.status === 'fulfilled' && result.value) {
+        results.abandonedCarts++;
+      } else if (result.status === 'rejected') {
+        console.error("Failed to process abandoned cart:", result.reason);
+        results.errors.push(result.reason.message || "Cart recovery failed");
+      }
+    });
 
     // === 2. REVIEW REQUESTS (3 Days after Delivery) ===
     const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
@@ -101,7 +116,10 @@ export const loader = async ({ request, context }: LoaderFunctionArgs) => {
       limit: 20
     });
 
-    for (const order of deliveredOrders) {
+    // ⚡ Bolt: Using Promise.allSettled for concurrent external I/O operations
+    // This parallelizes the notification sending and database updates for review requests,
+    // reducing total latency and preventing one slow API call from delaying the rest.
+    const reviewPromises = deliveredOrders.map(async (order) => {
       if (order.customerPhone) {
         await sendSmartNotification(
           db,
@@ -120,9 +138,20 @@ export const loader = async ({ request, context }: LoaderFunctionArgs) => {
             .set({ reviewRequestSent: true, reviewRequestSentAt: new Date() })
             .where(eq(schema.orders.id, order.id));
 
-        results.reviewRequests++;
+        return true;
       }
-    }
+      return false;
+    });
+
+    const reviewResults = await Promise.allSettled(reviewPromises);
+    reviewResults.forEach(result => {
+      if (result.status === 'fulfilled' && result.value) {
+        results.reviewRequests++;
+      } else if (result.status === 'rejected') {
+        console.error("Failed to process review request:", result.reason);
+        results.errors.push(result.reason.message || "Review request failed");
+      }
+    });
 
     // === 3. WIN-BACK (30 Days Inactive) ===
     // This is expensive to query every hour. Best done via a daily scheduled worker or a specific endpoint.

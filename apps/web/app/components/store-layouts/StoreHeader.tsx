@@ -137,6 +137,7 @@ export function StoreHeader({
               <button
                 onClick={() => setSearchOpen(false)}
                 className={`p-2 rounded-lg ${hoverBg}`}
+                aria-label="Close search"
               >
                 <X className={`h-5 w-5 ${textColor}`} />
               </button>
@@ -145,6 +146,7 @@ export function StoreHeader({
             <button
               onClick={() => setSearchOpen(true)}
               className={`p-2 rounded-lg ${hoverBg} transition`}
+              aria-label="Open search"
             >
               <Search className={`h-5 w-5 ${textColor}`} />
             </button>
@@ -156,6 +158,7 @@ export function StoreHeader({
               <button
                 onClick={() => setUserMenuOpen(!userMenuOpen)}
                 className={`flex items-center gap-2 p-2 rounded-lg ${hoverBg} transition`}
+                aria-label="User menu"
               >
                 <div 
                   className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-medium"
@@ -217,6 +220,7 @@ export function StoreHeader({
           <Link
             to="/cart"
             className={`relative p-2 rounded-lg ${hoverBg} transition`}
+            aria-label="Cart"
           >
             <ShoppingCart className={`h-5 w-5 ${textColor}`} />
             <span 
