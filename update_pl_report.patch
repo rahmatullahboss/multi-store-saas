@@ -1,0 +1,115 @@
+--- apps/web/app/services/pl-report.server.ts
++++ apps/web/app/services/pl-report.server.ts
+@@ -131,45 +131,45 @@
+   }
+
+-  // ── Query 1: Delivered orders ──────────────────────────────────────────────
+-  const deliveredResult = await db
+-    .select({
+-      grossRevenue: sql<number>\`COALESCE(SUM(\${orders.total}), 0)\`,
+-      ordersCount: sql<number>\`COUNT(DISTINCT \${orders.id})\`,
+-      totalCOGS: sql<number>\`COALESCE(SUM(
+-        CASE WHEN \${orderItems.costPriceSnapshot} IS NOT NULL
+-          THEN \${orderItems.costPriceSnapshot} * \${orderItems.quantity}
+-          ELSE 0
+-        END
+-      ), 0)\`,
+-      cogsOrdersCount: sql<number>\`COUNT(DISTINCT CASE
+-        WHEN \${orderItems.costPriceSnapshot} IS NOT NULL THEN \${orders.id}
+-        END)\`,
+-      revenueWithCost: sql<number>\`COALESCE(SUM(
+-        CASE WHEN \${orderItems.costPriceSnapshot} IS NOT NULL
+-          THEN \${orders.total}
+-          ELSE 0
+-        END
+-      ), 0)\`,
+-      courierCostPaisa: sql<number>\`COALESCE(SUM(\${orders.courierCharge}), 0)\`,
+-    })
+-    .from(orders)
+-    .leftJoin(orderItems, eq(orderItems.orderId, orders.id))
+-    .where(
+-      and(
+-        eq(orders.storeId, storeId),
+-        eq(orders.status, 'delivered'),
+-        gte(orders.createdAt, periodStart),
+-        lte(orders.createdAt, endOfDay)
+-      )
+-    );
+-
+-  // ── Query 2: Returned orders impact ───────────────────────────────────────
+-  const returnedResult = await db
+-    .select({
+-      returnedCount: sql<number>\`COUNT(DISTINCT \${orders.id})\`,
+-      returnCOGSLoss: sql<number>\`COALESCE(SUM(
+-        CASE WHEN \${orderItems.costPriceSnapshot} IS NOT NULL
+-          THEN \${orderItems.costPriceSnapshot} * \${orderItems.quantity}
+-          ELSE 0
+-        END
+-      ), 0)\`,
+-      returnCourierLossPaisa: sql<number>\`COALESCE(SUM(\${orders.courierCharge}), 0)\`,
+-    })
+-    .from(orders)
+-    .leftJoin(orderItems, eq(orderItems.orderId, orders.id))
+-    .where(
+-      and(
+-        eq(orders.storeId, storeId),
+-        eq(orders.status, 'returned'),
+-        gte(orders.createdAt, periodStart),
+-        lte(orders.createdAt, endOfDay)
+-      )
+-    );
++  // Run queries in parallel to save latency
++  const [deliveredResult, returnedResult] = await Promise.all([
++    db
++      .select({
++        grossRevenue: sql<number>\`COALESCE(SUM(\${orders.total}), 0)\`,
++        ordersCount: sql<number>\`COUNT(DISTINCT \${orders.id})\`,
++        totalCOGS: sql<number>\`COALESCE(SUM(
++          CASE WHEN \${orderItems.costPriceSnapshot} IS NOT NULL
++            THEN \${orderItems.costPriceSnapshot} * \${orderItems.quantity}
++            ELSE 0
++          END
++        ), 0)\`,
++        cogsOrdersCount: sql<number>\`COUNT(DISTINCT CASE
++          WHEN \${orderItems.costPriceSnapshot} IS NOT NULL THEN \${orders.id}
++          END)\`,
++        revenueWithCost: sql<number>\`COALESCE(SUM(
++          CASE WHEN \${orderItems.costPriceSnapshot} IS NOT NULL
++            THEN \${orders.total}
++            ELSE 0
++          END
++        ), 0)\`,
++        courierCostPaisa: sql<number>\`COALESCE(SUM(\${orders.courierCharge}), 0)\`,
++      })
++      .from(orders)
++      .leftJoin(orderItems, eq(orderItems.orderId, orders.id))
++      .where(
++        and(
++          eq(orders.storeId, storeId),
++          eq(orders.status, 'delivered'),
++          gte(orders.createdAt, periodStart),
++          lte(orders.createdAt, endOfDay)
++        )
++      ),
++    db
++      .select({
++        returnedCount: sql<number>\`COUNT(DISTINCT \${orders.id})\`,
++        returnCOGSLoss: sql<number>\`COALESCE(SUM(
++          CASE WHEN \${orderItems.costPriceSnapshot} IS NOT NULL
++            THEN \${orderItems.costPriceSnapshot} * \${orderItems.quantity}
++            ELSE 0
++          END
++        ), 0)\`,
++        returnCourierLossPaisa: sql<number>\`COALESCE(SUM(\${orders.courierCharge}), 0)\`,
++      })
++      .from(orders)
++      .leftJoin(orderItems, eq(orderItems.orderId, orders.id))
++      .where(
++        and(
++          eq(orders.storeId, storeId),
++          eq(orders.status, 'returned'),
++          gte(orders.createdAt, periodStart),
++          lte(orders.createdAt, endOfDay)
++        )
++      ),
++  ]);

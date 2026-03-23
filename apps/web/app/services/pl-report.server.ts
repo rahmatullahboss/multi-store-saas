@@ -131,61 +131,62 @@ export async function getPLSummary(
     // Cache miss or error — continue to DB query
   }
 
-  // ── Query 1: Delivered orders ──────────────────────────────────────────────
-  const deliveredResult = await db
-    .select({
-      grossRevenue: sql<number>`COALESCE(SUM(${orders.total}), 0)`,
-      ordersCount: sql<number>`COUNT(DISTINCT ${orders.id})`,
-      totalCOGS: sql<number>`COALESCE(SUM(
-        CASE WHEN ${orderItems.costPriceSnapshot} IS NOT NULL
-          THEN ${orderItems.costPriceSnapshot} * ${orderItems.quantity}
-          ELSE 0
-        END
-      ), 0)`,
-      cogsOrdersCount: sql<number>`COUNT(DISTINCT CASE
-        WHEN ${orderItems.costPriceSnapshot} IS NOT NULL THEN ${orders.id}
-        END)`,
-      revenueWithCost: sql<number>`COALESCE(SUM(
-        CASE WHEN ${orderItems.costPriceSnapshot} IS NOT NULL
-          THEN ${orders.total}
-          ELSE 0
-        END
-      ), 0)`,
-      courierCostPaisa: sql<number>`COALESCE(SUM(${orders.courierCharge}), 0)`,
-    })
-    .from(orders)
-    .leftJoin(orderItems, eq(orderItems.orderId, orders.id))
-    .where(
-      and(
-        eq(orders.storeId, storeId),
-        eq(orders.status, 'delivered'),
-        gte(orders.createdAt, periodStart),
-        lte(orders.createdAt, endOfDay)
-      )
-    );
-
-  // ── Query 2: Returned orders impact ───────────────────────────────────────
-  const returnedResult = await db
-    .select({
-      returnedCount: sql<number>`COUNT(DISTINCT ${orders.id})`,
-      returnCOGSLoss: sql<number>`COALESCE(SUM(
-        CASE WHEN ${orderItems.costPriceSnapshot} IS NOT NULL
-          THEN ${orderItems.costPriceSnapshot} * ${orderItems.quantity}
-          ELSE 0
-        END
-      ), 0)`,
-      returnCourierLossPaisa: sql<number>`COALESCE(SUM(${orders.courierCharge}), 0)`,
-    })
-    .from(orders)
-    .leftJoin(orderItems, eq(orderItems.orderId, orders.id))
-    .where(
-      and(
-        eq(orders.storeId, storeId),
-        eq(orders.status, 'returned'),
-        gte(orders.createdAt, periodStart),
-        lte(orders.createdAt, endOfDay)
-      )
-    );
+  // ── Query 1: Delivered orders and Query 2: Returned orders impact ─────────
+  // Run queries in parallel to reduce sequential latency round trips to DB
+  const [deliveredResult, returnedResult] = await Promise.all([
+    db
+      .select({
+        grossRevenue: sql<number>`COALESCE(SUM(${orders.total}), 0)`,
+        ordersCount: sql<number>`COUNT(DISTINCT ${orders.id})`,
+        totalCOGS: sql<number>`COALESCE(SUM(
+          CASE WHEN ${orderItems.costPriceSnapshot} IS NOT NULL
+            THEN ${orderItems.costPriceSnapshot} * ${orderItems.quantity}
+            ELSE 0
+          END
+        ), 0)`,
+        cogsOrdersCount: sql<number>`COUNT(DISTINCT CASE
+          WHEN ${orderItems.costPriceSnapshot} IS NOT NULL THEN ${orders.id}
+          END)`,
+        revenueWithCost: sql<number>`COALESCE(SUM(
+          CASE WHEN ${orderItems.costPriceSnapshot} IS NOT NULL
+            THEN ${orders.total}
+            ELSE 0
+          END
+        ), 0)`,
+        courierCostPaisa: sql<number>`COALESCE(SUM(${orders.courierCharge}), 0)`,
+      })
+      .from(orders)
+      .leftJoin(orderItems, eq(orderItems.orderId, orders.id))
+      .where(
+        and(
+          eq(orders.storeId, storeId),
+          eq(orders.status, 'delivered'),
+          gte(orders.createdAt, periodStart),
+          lte(orders.createdAt, endOfDay)
+        )
+      ),
+    db
+      .select({
+        returnedCount: sql<number>`COUNT(DISTINCT ${orders.id})`,
+        returnCOGSLoss: sql<number>`COALESCE(SUM(
+          CASE WHEN ${orderItems.costPriceSnapshot} IS NOT NULL
+            THEN ${orderItems.costPriceSnapshot} * ${orderItems.quantity}
+            ELSE 0
+          END
+        ), 0)`,
+        returnCourierLossPaisa: sql<number>`COALESCE(SUM(${orders.courierCharge}), 0)`,
+      })
+      .from(orders)
+      .leftJoin(orderItems, eq(orderItems.orderId, orders.id))
+      .where(
+        and(
+          eq(orders.storeId, storeId),
+          eq(orders.status, 'returned'),
+          gte(orders.createdAt, periodStart),
+          lte(orders.createdAt, endOfDay)
+        )
+      ),
+  ]);
 
   const d = deliveredResult[0];
   const r = returnedResult[0];
@@ -240,10 +241,7 @@ export async function getPLSummary(
  * Invalidate P&L KV cache for a store.
  * Call this after order status changes to 'delivered' or 'returned'.
  */
-export async function invalidatePLCache(
-  env: { KV: KVNamespace },
-  storeId: number
-): Promise<void> {
+export async function invalidatePLCache(env: { KV: KVNamespace }, storeId: number): Promise<void> {
   // We can't enumerate KV keys by prefix easily, so we invalidate
   // current month and last month keys (most common periods merchants view)
   const now = new Date();
@@ -357,20 +355,75 @@ export async function getProductMargins(
     .offset(offset);
 
   // Count total for pagination
-  const countResult = await db
-    .select({ count: sql<number>`COUNT(DISTINCT ${orderItems.productId})` })
-    .from(orderItems)
-    .innerJoin(
-      orders,
-      and(
-        eq(orderItems.orderId, orders.id),
-        eq(orders.storeId, storeId),
-        eq(orders.status, 'delivered'),
-        gte(orders.createdAt, periodStart),
-        lte(orders.createdAt, endOfDay)
+  // Run data and count queries in parallel
+  const [rows, countResult] = await Promise.all([
+    db
+      .select({
+        productId: orderItems.productId,
+        productTitle: orderItems.title,
+        unitsSold: sql<number>`SUM(${orderItems.quantity})`,
+        revenue: sql<number>`SUM(${orderItems.price} * ${orderItems.quantity})`,
+        cogs: sql<number | null>`
+          CASE
+            WHEN COUNT(CASE WHEN ${orderItems.costPriceSnapshot} IS NOT NULL THEN 1 END) > 0
+            THEN SUM(CASE WHEN ${orderItems.costPriceSnapshot} IS NOT NULL
+              THEN ${orderItems.costPriceSnapshot} * ${orderItems.quantity}
+              ELSE 0 END)
+            ELSE NULL
+          END`,
+        grossProfit: sql<number | null>`
+          CASE
+            WHEN COUNT(CASE WHEN ${orderItems.costPriceSnapshot} IS NOT NULL THEN 1 END) > 0
+            THEN SUM(${orderItems.price} * ${orderItems.quantity}) -
+                 SUM(CASE WHEN ${orderItems.costPriceSnapshot} IS NOT NULL
+                   THEN ${orderItems.costPriceSnapshot} * ${orderItems.quantity}
+                   ELSE 0 END)
+            ELSE NULL
+          END`,
+        marginPct: sql<number | null>`
+          CASE
+            WHEN COUNT(CASE WHEN ${orderItems.costPriceSnapshot} IS NOT NULL THEN 1 END) > 0
+              AND SUM(${orderItems.price} * ${orderItems.quantity}) > 0
+            THEN ROUND(
+              (SUM(${orderItems.price} * ${orderItems.quantity}) -
+               SUM(CASE WHEN ${orderItems.costPriceSnapshot} IS NOT NULL
+                 THEN ${orderItems.costPriceSnapshot} * ${orderItems.quantity}
+                 ELSE 0 END)) /
+              SUM(${orderItems.price} * ${orderItems.quantity}) * 100, 1)
+            ELSE NULL
+          END`,
+      })
+      .from(orderItems)
+      .innerJoin(
+        orders,
+        and(
+          eq(orderItems.orderId, orders.id),
+          eq(orders.storeId, storeId),
+          eq(orders.status, 'delivered'),
+          gte(orders.createdAt, periodStart),
+          lte(orders.createdAt, endOfDay)
+        )
       )
-    )
-    .where(isNotNull(orderItems.productId));
+      .where(isNotNull(orderItems.productId))
+      .groupBy(orderItems.productId, orderItems.title)
+      .orderBy(sortDir === 'desc' ? desc(sortCol) : sortCol)
+      .limit(limit)
+      .offset(offset),
+    db
+      .select({ count: sql<number>`COUNT(DISTINCT ${orderItems.productId})` })
+      .from(orderItems)
+      .innerJoin(
+        orders,
+        and(
+          eq(orderItems.orderId, orders.id),
+          eq(orders.storeId, storeId),
+          eq(orders.status, 'delivered'),
+          gte(orders.createdAt, periodStart),
+          lte(orders.createdAt, endOfDay)
+        )
+      )
+      .where(isNotNull(orderItems.productId)),
+  ]);
 
   return {
     rows: rows.map((r) => ({
