@@ -1,9 +1,9 @@
 /**
  * Language Selector Component
- * 
+ *
  * A dropdown/toggle for switching between languages
  * Extensible - automatically shows all available languages from config
- * 
+ *
  * Variants:
  * - dropdown: Shows a dropdown menu with all languages (default)
  * - toggle: Simple toggle button (for 2 languages)
@@ -64,11 +64,7 @@ export function LanguageSelector({
         aria-label={`Switch to ${lang === 'en' ? 'বাংলা' : 'English'}`}
       >
         {showFlag && currentLanguage?.flag}
-        {showName && (
-          <span className="font-medium">
-            {lang === 'en' ? 'বাংলা' : 'English'}
-          </span>
-        )}
+        {showName && <span className="font-medium">{lang === 'en' ? 'বাংলা' : 'English'}</span>}
       </button>
     );
   }
@@ -81,11 +77,14 @@ export function LanguageSelector({
           <button
             key={language.code}
             onClick={() => setLang(language.code)}
+            aria-pressed={lang === language.code}
+            aria-label={`Select ${language.nativeName}`}
             className={`
               ${sizeClasses[size]} font-semibold rounded-lg transition-all duration-200
-              ${lang === language.code
-                ? 'bg-[#006A4E] text-white shadow-sm'
-                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200'
+              ${
+                lang === language.code
+                  ? 'bg-[#006A4E] text-white shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200'
               }
             `}
           >
@@ -108,6 +107,7 @@ export function LanguageSelector({
           ${sizeClasses[size]}
         `}
         aria-label="Select language"
+        aria-haspopup="menu"
         aria-expanded={isOpen}
       >
         <Globe className="w-4 h-4 text-gray-500" />
@@ -117,15 +117,23 @@ export function LanguageSelector({
             {currentLanguage?.nativeName || 'Language'}
           </span>
         )}
-        <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown
+          className={`w-4 h-4 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+        />
       </button>
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-50 animate-fade-in">
+        <div
+          className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-50 animate-fade-in"
+          role="menu"
+          aria-orientation="vertical"
+        >
           {availableLanguages.map((language) => (
             <button
               key={language.code}
+              role="menuitem"
+              aria-current={lang === language.code ? 'true' : undefined}
               onClick={() => {
                 setLang(language.code);
                 setIsOpen(false);
@@ -140,9 +148,7 @@ export function LanguageSelector({
                 <div className="font-medium text-gray-900">{language.nativeName}</div>
                 <div className="text-xs text-gray-500">{language.name}</div>
               </div>
-              {lang === language.code && (
-                <Check className="w-4 h-4 text-emerald-600" />
-              )}
+              {lang === language.code && <Check className="w-4 h-4 text-emerald-600" />}
             </button>
           ))}
         </div>

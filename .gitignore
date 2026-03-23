@@ -44,3 +44,4 @@ test-results/
 .roo/mcp.json
 .cursor/mcp.json
 .claude/mcp.json
+apps/web/.react-router/
