@@ -507,6 +507,23 @@ app.get(
 // Forward all other requests to Remix (via Vite build output)
 app.all('*', async (c) => {
   const url = new URL(c.req.url);
+
+  // Handle CORS preflight for non-API paths (API preflight is handled above).
+  // Remix does not support OPTIONS and throws "Invalid request method".
+  if (c.req.method === 'OPTIONS') {
+    const origin = c.req.header('origin');
+    if (origin) {
+      const allowedOrigin = await validateOrigin(origin, c);
+      if (allowedOrigin) {
+        c.header('Access-Control-Allow-Origin', allowedOrigin);
+        c.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+        c.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+        c.header('Access-Control-Allow-Credentials', 'true');
+        c.header('Access-Control-Max-Age', '86400');
+      }
+    }
+    return c.body(null, 204);
+  }
   
   // 2. Try to fetch from ASSETS binding first
   // According to Cloudflare docs: https://developers.cloudflare.com/workers/static-assets/binding
