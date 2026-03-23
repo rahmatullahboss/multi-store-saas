@@ -156,8 +156,8 @@ export function StarterStoreTemplate({
         themeColors={theme}
       />
 
-      <main className="pt-[64px]">
-        {/* Hero Banner — pt-[64px] offsets fixed header height so hero starts below header */}
+      <main>
+        {/* Hero Banner */}
         <section className="relative h-[50vh] md:h-[70vh] overflow-hidden">
           {/* Carousel slides — all stacked, crossfade via opacity transition */}
           {heroBehavior.isCarousel && heroBehavior.slides.length > 1
