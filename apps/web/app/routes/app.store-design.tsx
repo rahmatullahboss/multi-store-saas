@@ -19,8 +19,8 @@ import { parseThemeConfig, defaultThemeConfig, type ThemeConfig, parseSocialLink
 import { requireUserId, getStoreId } from '~/services/auth.server';
 import { getAllStoreTemplates, DEFAULT_STORE_TEMPLATE_ID, STORE_TEMPLATE_THEMES } from '~/templates/store-registry';
 import { 
-  Check, ExternalLink, Store, Eye, Sparkles, Crown, Palette, 
-  Layout, Image, Settings, Save, Loader2, Megaphone, User, Phone, Mail, MapPin, Facebook, Instagram, MessageCircle, Type, Code
+  Check, ExternalLink, Store, Eye, Crown, Palette, 
+  Layout, Image, Save, Loader2, Megaphone, User, Phone, Mail, MapPin, Facebook, Instagram, MessageCircle, Type
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from '~/contexts/LanguageContext';
@@ -178,17 +178,7 @@ export const action = async ({ request, context }: any) => {
     return json({ success: true, message: 'infoSaved' });
   }
 
-  if (intent === 'save-advanced') {
-    const customCSS = formData.get('customCSS') as string || '';
-    
-    const updatedConfig: ThemeConfig = { ...currentConfig, customCSS };
-    await db.update(stores).set({ 
-      themeConfig: JSON.stringify(updatedConfig),
-      updatedAt: new Date() 
-    }).where(eq(stores.id, storeId));
-    
-    return json({ success: true, message: 'advancedSaved' });
-  }
+
 
   return json({ error: 'Unknown action' }, { status: 400 });
 }
@@ -204,7 +194,7 @@ export default function StoreDesignPage() {
   
   const storeUrl = `https://${storeSubdomain}.ozzyl.com`;
   
-  const [activeTab, setActiveTab] = useState<'templates' | 'theme' | 'banner' | 'info' | 'advanced'>('templates');
+  const [activeTab, setActiveTab] = useState<'templates' | 'theme' | 'banner' | 'info'>('templates');
   const [selectedTemplateId, setSelectedTemplateId] = useState(currentTemplateId);
   const [showSuccess, setShowSuccess] = useState(false);
   const [previewTemplate, setPreviewTemplate] = useState<string | null>(null);
@@ -213,7 +203,7 @@ export default function StoreDesignPage() {
   const [primaryColor, setPrimaryColor] = useState(themeConfig.primaryColor || '#6366f1');
   const [accentColor, setAccentColor] = useState(themeConfig.accentColor || '#f59e0b');
   const [fontFamily, setFontFamily] = useState(storedFontFamily || 'inter');
-  const [customCSS, setCustomCSS] = useState(themeConfig.customCSS || '');
+
   
   // Banner state
   const [bannerUrl, setBannerUrl] = useState(themeConfig.bannerUrl || '');
@@ -281,26 +271,12 @@ export default function StoreDesignPage() {
               </div>
               <div className="flex items-center gap-3">
                 <Link
-                  to="/app/theme-store"
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-primary to-indigo-600 text-white rounded-lg font-bold shadow-lg shadow-primary/20 hover:scale-105 transition-all text-sm uppercase tracking-wider"
-                >
-                  <Sparkles size={16} />
-                  {lang === 'bn' ? 'থিম স্টোর দেখুন' : 'Browse Theme Store'}
-                </Link>
-                <Link
                   to={storeUrl}
                   target="_blank"
                   className="inline-flex items-center gap-2 px-4 py-2 bg-white text-gray-700 rounded-lg border border-gray-200 font-semibold shadow-sm hover:bg-gray-50 transition-all text-sm"
                 >
                   <Eye size={16} />
                   {t('viewLiveStore')}
-                </Link>
-                <Link
-                  to="/store-live-editor"
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg font-semibold shadow-lg shadow-primary/25 hover:bg-primary/90 transition-all text-sm"
-                >
-                  <Layout size={16} />
-                  {t('openLiveEditor')}
                 </Link>
               </div>
             </div>
@@ -342,7 +318,7 @@ export default function StoreDesignPage() {
                 { id: 'theme', label: t('theme'), icon: Palette },
                 { id: 'banner', label: t('banner'), icon: Image },
                 { id: 'info', label: t('info'), icon: User },
-                { id: 'advanced', label: t('advanced'), icon: Settings },
+
               ].map((tab) => (
           <button
             key={tab.id}
@@ -981,59 +957,7 @@ export default function StoreDesignPage() {
           </Form>
         )}
 
-        {/* Advanced Tab */}
-        {activeTab === 'advanced' && (
-          <Form method="post" className="max-w-2xl">
-            <input type="hidden" name="intent" value="save-advanced" />
-            
-            <div className="space-y-6">
-              {/* Custom CSS */}
-              <div className="bg-white rounded-xl border border-gray-200 p-6">
-                <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                  <Code className="w-5 h-5 text-purple-600" />
-                  {t('customCss')}
-                </h3>
-                <p className="text-sm text-gray-500 mb-4">
-                  {t('customCssDesc')}
-                </p>
 
-                <div>
-                  <textarea
-                    name="customCSS"
-                    value={customCSS}
-                    onChange={(e) => setCustomCSS(e.target.value)}
-                    placeholder={`/* Example: Change header background */
-.header {
-  background: linear-gradient(to right, #6366f1, #8b5cf6);
-}
-
-/* Example: Custom button styles */
-.btn-primary {
-  border-radius: 9999px;
-}`}
-                    rows={12}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg font-mono text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-y"
-                  />
-                  <p className="text-xs text-gray-500 mt-2">
-                    {t('cssWarning')}
-                  </p>
-                </div>
-              </div>
-
-              {/* Save Button */}
-              <div className="flex justify-end">
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition disabled:opacity-50"
-                >
-                  {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                  {t('saveAdvancedSettings')}
-                </button>
-              </div>
-            </div>
-          </Form>
-        )}
       </div>
 
       {/* Preview Modal */}
