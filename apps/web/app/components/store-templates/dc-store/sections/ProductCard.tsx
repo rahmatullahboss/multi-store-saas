@@ -38,7 +38,7 @@ export function DCProductCard({
     
   // Format Price
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('bn-BD', {
       style: 'currency',
       currency: currency,
       minimumFractionDigits: 0,
@@ -84,7 +84,7 @@ export function DCProductCard({
              <div className="absolute bottom-3 left-3 z-10">
                <span className="px-2 py-1 bg-black/60 backdrop-blur-md text-white rounded-full text-[10px] sm:text-xs font-bold flex items-center gap-1">
                  <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
-                 Featured
+                 ফিচার্ড
                </span>
              </div>
           )}
@@ -132,7 +132,7 @@ export function DCProductCard({
           }}
         >
           <ShoppingCart className="w-4 h-4" />
-          {t('store.addToCart', 'Order Now')}
+          {t('store.addToCart', 'অর্ডার করুন')}
         </AddToCartButton>
       </div>
     </div>

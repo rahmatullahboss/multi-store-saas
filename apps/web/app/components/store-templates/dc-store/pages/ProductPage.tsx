@@ -51,18 +51,18 @@ export function DCProductPage({ product, storeId, isPreview = false, config }: D
   const highlightCards = [
     {
       icon: Truck,
-      title: 'Fast Delivery',
-      subtitle: 'Reliable shipping across Bangladesh',
+      title: 'দ্রুত ডেলিভারি',
+      subtitle: 'সারা বাংলাদেশে নির্ভরযোগ্য শিপিং',
     },
     {
       icon: ShieldCheck,
-      title: 'Secure Payment',
-      subtitle: '100% safe and secure transactions',
+      title: 'নিরাপদ পেমেন্ট',
+      subtitle: '১০০% নিরাপদ লেনদেন',
     },
     {
       icon: RotateCcw,
-      title: 'Easy Returns',
-      subtitle: 'Simple 7-day return policy',
+      title: 'সহজ রিটার্ন',
+      subtitle: '৭ দিনের মধ্যে রিটার্ন নীতি',
     },
   ];
 
@@ -86,7 +86,7 @@ export function DCProductPage({ product, storeId, isPreview = false, config }: D
               style={{ color: theme.text }}
             >
               <ArrowLeft className="h-4 w-4" />
-              Back to Shop
+              দোকানে ফিরে যান
             </PreviewSafeLink>
             {product.category && (
               <span className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-amber-700"
@@ -143,7 +143,7 @@ export function DCProductPage({ product, storeId, isPreview = false, config }: D
               {product.description && (
                 <div className="grid gap-3 rounded-xl sm:rounded-[2rem] border border-white/60 bg-white/70 p-4 sm:p-6 backdrop-blur">
                   <p className="text-sm font-semibold uppercase tracking-[0.24em]" style={{ color: theme.primary }}>
-                    Highlights
+                    বিশেষ বিবরণ
                   </p>
                   <div 
                     className="text-base leading-relaxed text-gray-600 line-clamp-4 [&_p]:mb-2 [&_strong]:font-semibold [&_br]:hidden"
@@ -151,11 +151,11 @@ export function DCProductPage({ product, storeId, isPreview = false, config }: D
                   />
                   <div className="flex flex-wrap gap-3 text-sm text-gray-500">
                     <span className="inline-flex items-center gap-2 rounded-full bg-amber-100 px-3 py-1 text-amber-700">
-                      ⭐ Rated {averageRating.toFixed(1)}/5
+                      ⭐ রেটিং {averageRating.toFixed(1)}/৫
                     </span>
                     {reviewCount > 0 && (
                       <span className="inline-flex items-center gap-2 rounded-full bg-rose-100 px-3 py-1 text-rose-700">
-                        {reviewCount} Verified Reviews
+                        {reviewCount}টি রিভিউ
                       </span>
                     )}
                   </div>
@@ -182,7 +182,7 @@ export function DCProductPage({ product, storeId, isPreview = false, config }: D
                         color: theme.primary,
                       }}
                     >
-                      In Stock
+                      স্টকে আছে
                     </span>
                   </div>
 
@@ -197,7 +197,7 @@ export function DCProductPage({ product, storeId, isPreview = false, config }: D
                           <StarHalf className="h-4 w-4 fill-amber-400 text-amber-400" />
                         )}
                       </div>
-                      <span>({reviewCount} reviews)</span>
+                      <span>({reviewCount} রিভিউ)</span>
                     </div>
                     {product.category && (
                       <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-1 font-medium text-amber-700">
@@ -210,7 +210,7 @@ export function DCProductPage({ product, storeId, isPreview = false, config }: D
                   <div className="mt-6 flex items-end justify-between gap-4">
                     <div>
                       <p className="text-xs uppercase tracking-[0.3em]" style={{ color: theme.primary }}>
-                        {discount > 0 ? 'Special Offer' : 'Price'}
+                        {discount > 0 ? 'বিশেষ অফার' : 'মূল্য'}
                       </p>
                       <p className="text-3xl sm:text-4xl font-bold lg:text-5xl" style={{ color: theme.text }}>
                         {formatPrice(product.price)}
@@ -226,7 +226,7 @@ export function DCProductPage({ product, storeId, isPreview = false, config }: D
                         className="rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.25em] text-white shadow-lg"
                         style={{ backgroundImage: theme.brandGradient }}
                       >
-                        Save {formatPrice(saveAmount)}
+                        সেভ {formatPrice(saveAmount)}
                       </span>
                     )}
                   </div>
@@ -235,7 +235,7 @@ export function DCProductPage({ product, storeId, isPreview = false, config }: D
                   <div className="mt-6 sm:mt-8 space-y-4">
                     {/* Quantity Selector */}
                     <div className="flex items-center gap-4">
-                      <span className="text-sm font-medium text-gray-500">Quantity:</span>
+                      <span className="text-sm font-medium text-gray-500">পরিমাণ:</span>
                       <div className="flex items-center bg-gray-50 rounded-full border border-gray-200 p-0.5">
                         <button
                           onClick={() => setQuantity(Math.max(1, quantity - 1))}
@@ -267,7 +267,7 @@ export function DCProductPage({ product, storeId, isPreview = false, config }: D
                         style={{ backgroundColor: theme.primary }}
                       >
                         <ShoppingCart className="h-5 w-5" />
-                        Add to Cart
+                        কার্টে যোগ করুন
                       </AddToCartButton>
 
                       <PreviewSafeLink
@@ -280,7 +280,7 @@ export function DCProductPage({ product, storeId, isPreview = false, config }: D
                         }}
                       >
                         <ShoppingBag className="h-5 w-5" />
-                        Buy Now
+                        এখনই কিনুন
                       </PreviewSafeLink>
                     </div>
                   </div>
@@ -309,10 +309,10 @@ export function DCProductPage({ product, storeId, isPreview = false, config }: D
                 {/* Help Section */}
                 <div className="rounded-xl sm:rounded-[2rem] border border-white/60 bg-white/70 p-6 text-sm text-gray-500 backdrop-blur">
                   <p className="text-xs font-semibold uppercase tracking-[0.24em]" style={{ color: theme.primary }}>
-                    Need Help?
+                    সাহায্য প্রয়োজন?
                   </p>
                   <p className="mt-2 leading-relaxed">
-                    Our support team is here to assist you with any questions about this product. Feel free to reach out anytime.
+                    এই পণ্য সম্পর্কে যেকোনো প্রশ্নে আমাদের সাপোর্ট টিম আপনাকে সাহায্য করতে প্রস্তুত। যেকোনো সময় যোগাযোগ করুন।
                   </p>
                 </div>
               </div>
@@ -323,7 +323,7 @@ export function DCProductPage({ product, storeId, isPreview = false, config }: D
           {product.description && (
             <section className="mt-8 sm:mt-16 rounded-xl sm:rounded-[2.75rem] border border-white/60 bg-white/80 p-4 sm:p-8 shadow-xl backdrop-blur">
               <h2 className="text-xl font-bold mb-4" style={{ color: theme.text }}>
-                Product Description
+                পণ্যের বিবরণ
               </h2>
               <div 
                 className="text-base leading-relaxed text-gray-600 [&_p]:mb-3 [&_strong]:font-semibold [&_br]:block"
@@ -338,21 +338,21 @@ export function DCProductPage({ product, storeId, isPreview = false, config }: D
               <div className="rounded-2xl border border-amber-100 bg-amber-50/50 p-6">
                 <h4 className="font-semibold mb-2 flex items-center gap-2" style={{ color: theme.text }}>
                   <Package className="h-5 w-5" style={{ color: theme.primary }} />
-                  Delivery Information
+                  ডেলিভারি তথ্য
                 </h4>
                 <ul className="space-y-2 text-sm">
-                  <li>• Inside Dhaka: 1-2 business days</li>
-                  <li>• Outside Dhaka: 3-5 business days</li>
-                  <li>• Free shipping on orders above ৳ 2,000</li>
+                  <li>• ঢাকার মধ্যে: ১-২ কর্মদিবস</li>
+                  <li>• ঢাকার বাইরে: ৩-৫ কর্মদিবস</li>
+                  <li>• ২,০০০ টাকার উপরে অর্ডারে ফ্রি শিপিং</li>
                 </ul>
               </div>
               <div className="rounded-2xl border border-gray-100 bg-white p-6">
                 <h4 className="font-semibold mb-2 flex items-center gap-2" style={{ color: theme.text }}>
                   <RotateCcw className="h-5 w-5" style={{ color: theme.primary }} />
-                  Return Policy
+                  রিটার্ন নীতি
                 </h4>
                 <p className="text-sm">
-                  We offer a hassle-free 7-day return policy. If you're not satisfied with your purchase, simply return the product in its original condition for a full refund or exchange.
+                  আমরা ৭ দিনের সহজ রিটার্ন নীতি প্রদান করি। আপনি যদি ক্রয়ে সন্তুষ্ট না হন, তাহলে পণ্যটি মূল অবস্থায় ফেরত দিন এবং পূর্ণ রিফান্ড বা বদলি পান।
                 </p>
               </div>
             </div>

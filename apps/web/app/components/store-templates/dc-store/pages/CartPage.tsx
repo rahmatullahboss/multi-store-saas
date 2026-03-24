@@ -42,7 +42,7 @@ export function DCCartPage({ items, onUpdateQuantity, onRemove, isPreview = fals
 
   // Format Price
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('bn-BD', {
       style: 'currency',
       currency: 'BDT',
       minimumFractionDigits: 0,
@@ -55,17 +55,17 @@ export function DCCartPage({ items, onUpdateQuantity, onRemove, isPreview = fals
         <div className="text-center py-16 px-4">
           <ShoppingCart className="w-24 h-24 mx-auto mb-6" style={{ color: theme.muted }} />
           <h1 className="text-3xl font-bold mb-4" style={{ color: theme.text }}>
-            Your cart is empty
+            আপনার কার্ট খালি
           </h1>
           <p className="text-lg mb-8" style={{ color: theme.muted }}>
-            Start shopping to add items to your cart
+            আপনার কার্টে পণ্য যোগ করতে শপিং শুরু করুন
           </p>
           <Link
             to="/products"
             className="inline-block px-8 py-3 rounded-xl text-lg font-bold text-white transition-all hover:opacity-90 hover:shadow-lg"
             style={{ backgroundColor: theme.primary }}
           >
-            Continue Shopping
+            শপিং চালিয়ে যান
           </Link>
         </div>
       </div>
@@ -77,7 +77,7 @@ export function DCCartPage({ items, onUpdateQuantity, onRemove, isPreview = fals
       <div className="max-w-7xl mx-auto px-4">
         {/* Header */}
         <h1 className="text-4xl font-bold mb-8" style={{ color: theme.text }}>
-          Shopping Cart ({items.length} {items.length === 1 ? 'item' : 'items'})
+          শপিং কার্ট ({items.length}টি {items.length === 1 ? 'পণ্য' : 'পণ্য'})
         </h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -121,7 +121,7 @@ export function DCCartPage({ items, onUpdateQuantity, onRemove, isPreview = fals
                       <p className="text-sm mt-1" style={{ color: theme.muted }}>
                         <span className="line-through">{formatPrice(item.compareAtPrice)}</span>
                         <span className="ml-2 font-bold" style={{ color: theme.accent }}>
-                          Save {formatPrice((item.compareAtPrice - item.price) * item.quantity)}
+                          সেভ {formatPrice((item.compareAtPrice - item.price) * item.quantity)}
                         </span>
                       </p>
                     )}
@@ -178,24 +178,24 @@ export function DCCartPage({ items, onUpdateQuantity, onRemove, isPreview = fals
               }}
             >
               <h2 className="text-2xl font-bold" style={{ color: theme.text }}>
-                Order Summary
+                অর্ডার সারাংশ
               </h2>
 
               <div className="space-y-3 pt-4 border-t" style={{ borderColor: theme.border }}>
                 <div className="flex justify-between text-base" style={{ color: theme.textSecondary }}>
-                  <span>Subtotal</span>
+                  <span>সাবটোটাল</span>
                   <span className="font-semibold">{formatPrice(subtotal)}</span>
                 </div>
                 
                 {totalSavings > 0 && (
                   <div className="flex justify-between text-base" style={{ color: theme.success }}>
-                    <span>You Save</span>
+                    <span>আপনি সেভ করছেন</span>
                     <span className="font-semibold">-{formatPrice(totalSavings)}</span>
                   </div>
                 )}
 
                 <div className="flex justify-between text-lg font-bold pt-3 border-t" style={{ borderColor: theme.border, color: theme.text }}>
-                  <span>Total</span>
+                  <span>মোট</span>
                   <span className="bg-gradient-to-r from-amber-500 to-rose-500 bg-clip-text text-transparent">
                     {formatPrice(subtotal)}
                   </span>
@@ -210,7 +210,7 @@ export function DCCartPage({ items, onUpdateQuantity, onRemove, isPreview = fals
                   boxShadow: theme.shadowMd,
                 }}
               >
-                Proceed to Checkout
+                চেকআউটে যান
                 <ArrowRight className="w-5 h-5" />
               </Link>
 
@@ -223,7 +223,7 @@ export function DCCartPage({ items, onUpdateQuantity, onRemove, isPreview = fals
                   color: theme.text,
                 }}
               >
-                Continue Shopping
+                শপিং চালিয়ে যান
               </Link>
 
               {/* Trust Badges */}
@@ -232,7 +232,7 @@ export function DCCartPage({ items, onUpdateQuantity, onRemove, isPreview = fals
                   <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: theme.primary + '15' }}>
                     <ShoppingCart className="w-4 h-4" style={{ color: theme.primary }} />
                   </div>
-                  <span className="text-sm" style={{ color: theme.muted }}>Secure Checkout</span>
+                  <span className="text-sm" style={{ color: theme.muted }}>নিরাপদ চেকআউট</span>
                 </div>
               </div>
             </div>

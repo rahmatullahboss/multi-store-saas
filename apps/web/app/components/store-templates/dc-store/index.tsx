@@ -130,7 +130,7 @@ export function DCStoreTemplate({
           youtube: socialLinks.youtube ?? undefined,
           linkedin: socialLinks.linkedin ?? undefined,
         } : undefined}
-        variant={!currentCategory ? 'overlay' : 'default'}
+        variant="default"
         customer={customer}
         themeColors={theme}
       />
@@ -159,13 +159,13 @@ export function DCStoreTemplate({
               <div className="relative z-10 w-full lg:w-2/3 px-6 lg:pl-16 flex flex-col items-start gap-4 sm:gap-6">
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 border border-white/30 text-white text-xs sm:text-sm font-bold tracking-wide uppercase backdrop-blur-sm">
                   <span className="size-2 rounded-full bg-primary animate-pulse" style={{ backgroundColor: theme.primary }} />
-                  New Collection
+                  নতুন কালেকশন
                 </div>
 
                 <h1 className="text-white text-4xl sm:text-6xl lg:text-7xl font-bold leading-[0.95] tracking-tighter">
-                  Premium Quality
+                  প্রিমিয়াম কোয়ালিটি
                   <br />
-                  <span className="text-transparent bg-clip-text" style={{ backgroundImage: theme.brandGradient }}>Products</span>
+                  <span className="text-transparent bg-clip-text" style={{ backgroundImage: theme.brandGradient }}>পণ্য সমূহ</span>
                 </h1>
 
                 <p className="text-gray-200 text-base sm:text-lg lg:text-xl max-w-md leading-relaxed opacity-90">
@@ -187,7 +187,7 @@ export function DCStoreTemplate({
                     isPreview={isPreview}
                     className="h-11 sm:h-12 px-6 sm:px-8 rounded-full flex items-center justify-center bg-white/10 backdrop-blur-md border border-white/20 text-white font-bold hover:bg-white/20 transition-all"
                   >
-                    Browse Categories
+                    ক্যাটাগরি দেখুন
                   </PreviewSafeLink>
                 </div>
               </div>
@@ -202,8 +202,8 @@ export function DCStoreTemplate({
                     }}
                   />
                   <div className="flex-1 min-w-0">
-                    <p className="text-white text-sm font-bold truncate">Featured Item</p>
-                    <p className="text-xs font-bold" style={{ color: theme.primary }}>Best Seller</p>
+                    <p className="text-white text-sm font-bold truncate">ফিচার্ড আইটেম</p>
+                    <p className="text-xs font-bold" style={{ color: theme.primary }}>বেস্ট সেলার</p>
                   </div>
                   <PreviewSafeLink
                     to="/products"
@@ -228,7 +228,7 @@ export function DCStoreTemplate({
                 className="flex h-10 shrink-0 items-center justify-center gap-2 rounded-full px-5 font-medium text-sm transition-all bg-black text-white"
               >
                 <LayoutGrid className="h-4 w-4" />
-                All
+                সকল
               </PreviewSafeLink>
               {validCategories.map((cat, idx) => {
                 const title = typeof cat === 'object' && cat !== null ? (cat as StoreCategory).title : cat;
@@ -251,7 +251,7 @@ export function DCStoreTemplate({
                 className="flex h-10 shrink-0 items-center justify-center gap-2 rounded-full px-5 font-medium text-sm transition-all bg-white border border-gray-200 text-gray-700 hover:border-primary hover:text-primary"
               >
                 <Sparkles className="h-4 w-4" />
-                Newest
+                নতুন
               </PreviewSafeLink>
             </div>
           </section>
@@ -263,7 +263,7 @@ export function DCStoreTemplate({
             <div className="flex items-center gap-3">
               <div className="w-2 h-8 rounded-sm" style={{ backgroundColor: theme.primary }} />
               <h2 className="text-2xl md:text-3xl font-bold tracking-tight">
-                {currentCategory ? currentCategory : 'New Arrivals'}
+                {currentCategory ? currentCategory : 'নতুন পণ্য'}
               </h2>
             </div>
             <PreviewSafeLink
@@ -271,7 +271,7 @@ export function DCStoreTemplate({
               isPreview={isPreview}
               className="text-gray-500 hover:text-black flex items-center gap-1 text-sm font-medium transition-colors"
             >
-              View All <ArrowRight className="h-4 w-4" />
+              সবগুলো দেখুন <ArrowRight className="h-4 w-4" />
             </PreviewSafeLink>
           </div>
 
@@ -295,7 +295,7 @@ export function DCStoreTemplate({
                 className="inline-flex items-center justify-center px-8 py-3 rounded-full text-white font-bold transition-all duration-300 hover:scale-105 shadow-lg"
                 style={{ backgroundColor: theme.primary }}
               >
-                View All Products <ArrowRight className="ml-2 h-4 w-4" />
+                সকল পণ্য দেখুন <ArrowRight className="ml-2 h-4 w-4" />
               </PreviewSafeLink>
             </div>
           )}
@@ -307,7 +307,7 @@ export function DCStoreTemplate({
             <div className="max-w-7xl mx-auto">
               <div className="flex items-center gap-3 mb-8">
                 <div className="w-2 h-8 rounded-sm bg-rose-500" />
-                <h2 className="text-2xl md:text-3xl font-bold tracking-tight">Trending Now</h2>
+                <h2 className="text-2xl md:text-3xl font-bold tracking-tight">ট্রেন্ডিং পণ্য</h2>
               </div>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                 {trendingProducts.map((product) => (
@@ -333,8 +333,8 @@ export function DCStoreTemplate({
                   <Truck className="w-8 h-8" style={{ color: theme.primary }} />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold mb-1">Fast Delivery</h3>
-                  <p className="text-gray-500 text-sm">Reliable shipping across Bangladesh</p>
+                  <h3 className="text-xl font-bold mb-1">দ্রুত ডেলিভারি</h3>
+                  <p className="text-gray-500 text-sm">সারা বাংলাদেশে নির্ভরযোগ্য শিপিং</p>
                 </div>
               </div>
               <div className="flex flex-col items-center text-center gap-4 p-8 rounded-3xl bg-white shadow-sm border border-gray-100">
@@ -342,8 +342,8 @@ export function DCStoreTemplate({
                   <Shield className="w-8 h-8" style={{ color: theme.primary }} />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold mb-1">Secure Payment</h3>
-                  <p className="text-gray-500 text-sm">100% safe and secure transactions</p>
+                  <h3 className="text-xl font-bold mb-1">নিরাপদ পেমেন্ট</h3>
+                  <p className="text-gray-500 text-sm">১০০% নিরাপদ লেনদেন</p>
                 </div>
               </div>
               <div className="flex flex-col items-center text-center gap-4 p-8 rounded-3xl bg-white shadow-sm border border-gray-100">
@@ -351,8 +351,8 @@ export function DCStoreTemplate({
                   <RotateCcw className="w-8 h-8" style={{ color: theme.primary }} />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold mb-1">Easy Return</h3>
-                  <p className="text-gray-500 text-sm">Simple 7-day return policy</p>
+                  <h3 className="text-xl font-bold mb-1">সহজ রিটার্ন</h3>
+                  <p className="text-gray-500 text-sm">৭ দিনের মধ্যে রিটার্ন নীতি</p>
                 </div>
               </div>
             </div>

@@ -234,7 +234,7 @@ export function DCStoreFooter({
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-sm" style={{ color: theme.footerText + '99' }}>
-              © {new Date().getFullYear()} {storeName}. All rights reserved.
+              © {new Date().getFullYear()} {storeName}। সর্বস্বত্ব সংরক্ষিত।
             </p>
             
             <div className="flex items-center gap-6">
@@ -244,7 +244,7 @@ export function DCStoreFooter({
                 className="text-sm hover:underline transition-colors"
                 style={{ color: theme.footerText + '99' }}
               >
-                Privacy Policy
+                গোপনীয়তা নীতি
               </PreviewSafeLink>
               <PreviewSafeLink
                 to="/pages/terms"
@@ -252,7 +252,7 @@ export function DCStoreFooter({
                 className="text-sm hover:underline transition-colors"
                 style={{ color: theme.footerText + '99' }}
               >
-                Terms of Service
+                শর্তাবলী
               </PreviewSafeLink>
             </div>
 

@@ -55,7 +55,7 @@ export function DCCollectionPage({
       <div className="relative h-48 md:h-64 overflow-hidden">
         <img
           src="https://images.unsplash.com/photo-1555529771-83ae7c2a8b2e?w=1600&h=400&fit=crop"
-          alt={category || 'All Products'}
+          alt={category || 'সকল পণ্য'}
           className="w-full h-full object-cover"
         />
         <div 
@@ -64,10 +64,10 @@ export function DCCollectionPage({
         >
           <div className="text-center text-white px-4">
             <h1 className="text-4xl md:text-5xl font-bold mb-2">
-              {category || 'All Products'}
+              {category || 'সকল পণ্য'}
             </h1>
             <p className="text-lg opacity-90">
-              {products.length} {products.length === 1 ? 'product' : 'products'}
+              {products.length} টি পণ্য
             </p>
           </div>
         </div>
@@ -87,7 +87,7 @@ export function DCCollectionPage({
             }}
           >
             <Filter className="w-5 h-5" />
-            Filters
+            ফিল্টার
           </button>
 
           {/* Sort & View Options */}
@@ -104,10 +104,10 @@ export function DCCollectionPage({
                 '--tw-ring-color': theme.primaryLight,
               } as React.CSSProperties}
             >
-              <option value="featured">Featured</option>
-              <option value="price-low">Price: Low to High</option>
-              <option value="price-high">Price: High to Low</option>
-              <option value="newest">Newest</option>
+              <option value="featured">ফিচার্ড</option>
+              <option value="price-low">দাম: কম থেকে বেশি</option>
+              <option value="price-high">দাম: বেশি থেকে কম</option>
+              <option value="newest">নতুন</option>
             </select>
 
             {/* View Mode Toggle */}
@@ -150,14 +150,14 @@ export function DCCollectionPage({
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-xl font-bold flex items-center gap-2" style={{ color: theme.text }}>
                 <SlidersHorizontal className="w-5 h-5" style={{ color: theme.primary }} />
-                Filters
+                ফিল্টার
               </h3>
               <button
                 onClick={() => setShowFilters(false)}
                 className="text-sm font-medium hover:underline"
                 style={{ color: theme.muted }}
               >
-                Close
+                বন্ধ করুন
               </button>
             </div>
             
@@ -165,12 +165,12 @@ export function DCCollectionPage({
               {/* Price Range */}
               <div>
                 <label className="block text-sm font-medium mb-2" style={{ color: theme.text }}>
-                  Price Range
+                  দামের সীমা
                 </label>
                 <div className="flex items-center gap-2">
                   <input
                     type="number"
-                    placeholder="Min"
+                    placeholder="সর্বনিম্ন"
                     className="flex-1 px-3 py-2 rounded-lg border focus:outline-none focus:ring-2"
                     style={{ 
                       borderColor: theme.border,
@@ -179,7 +179,7 @@ export function DCCollectionPage({
                   />
                   <input
                     type="number"
-                    placeholder="Max"
+                    placeholder="সর্বোচ্চ"
                     className="flex-1 px-3 py-2 rounded-lg border focus:outline-none focus:ring-2"
                     style={{ 
                       borderColor: theme.border,
@@ -192,28 +192,28 @@ export function DCCollectionPage({
               {/* Category Filter */}
               <div>
                 <label className="block text-sm font-medium mb-2" style={{ color: theme.text }}>
-                  Category
+                  ক্যাটাগরি
                 </label>
                 <select className="w-full px-3 py-2 rounded-lg border focus:outline-none focus:ring-2" style={{ 
                   borderColor: theme.border,
                   '--tw-ring-color': theme.primaryLight,
                 } as React.CSSProperties}>
-                  <option value="">All Categories</option>
-                  <option value="electronics">Electronics</option>
-                  <option value="fashion">Fashion</option>
-                  <option value="home">Home & Living</option>
-                  <option value="beauty">Beauty</option>
+                  <option value="">সকল ক্যাটাগরি</option>
+                  <option value="electronics">ইলেক্ট্রনিক্স</option>
+                  <option value="fashion">ফ্যাশন</option>
+                  <option value="home">হোম ও লিভিং</option>
+                  <option value="beauty">বিউটি</option>
                 </select>
               </div>
 
               {/* Availability */}
               <div>
                 <label className="block text-sm font-medium mb-2" style={{ color: theme.text }}>
-                  Availability
+                  প্রাপ্যতা
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" className="w-4 h-4" style={{ accentColor: theme.primary }} />
-                  <span style={{ color: theme.text }}>In Stock Only</span>
+                  <span style={{ color: theme.text }}>শুধুমাত্র স্টকে আছে</span>
                 </label>
               </div>
             </div>
@@ -227,13 +227,13 @@ export function DCCollectionPage({
                   color: theme.text,
                 }}
               >
-                Clear All
+                সব মুছুন
               </button>
               <button
                 className="px-6 py-2 rounded-xl font-bold text-white transition-all hover:opacity-90"
                 style={{ backgroundColor: theme.primary }}
               >
-                Apply Filters
+                ফিল্টার প্রয়োগ করুন
               </button>
             </div>
           </div>
@@ -261,10 +261,10 @@ export function DCCollectionPage({
               <Filter className="w-10 h-10" style={{ color: theme.primary }} />
             </div>
             <h3 className="text-2xl font-bold mb-2" style={{ color: theme.text }}>
-              No products found
+              কোনো পণ্য পাওয়া যায়নি
             </h3>
             <p className="text-lg" style={{ color: theme.muted }}>
-              Try adjusting your filters or search criteria
+              ফিল্টার পরিবর্তন করে আবার চেষ্টা করুন
             </p>
           </div>
         )}
@@ -281,7 +281,7 @@ export function DCCollectionPage({
                 color: theme.muted,
               }}
             >
-              Previous
+              পূর্ববর্তী
             </button>
             <button
               className="px-4 py-2 rounded-xl font-bold text-white"
@@ -317,7 +317,7 @@ export function DCCollectionPage({
                 color: theme.text,
               }}
             >
-              Next
+              পরবর্তী
             </button>
           </div>
         )}

@@ -132,7 +132,7 @@ export function DCStoreHeader({
                 className="text-sm font-medium hover:opacity-70 transition-opacity"
                 style={{ color: textColor }}
               >
-                {t('home')}
+                {t('home') !== 'home' ? t('home') : 'হোম'}
               </PreviewSafeLink>
               <PreviewSafeLink
                 to="/products"
@@ -140,7 +140,7 @@ export function DCStoreHeader({
                 className="text-sm font-medium hover:opacity-70 transition-opacity"
                 style={{ color: textColor }}
               >
-                {t('store.products')}
+                পণ্য সমূহ
               </PreviewSafeLink>
               {validCategories.length > 0 && (
                 <div className="relative group">
@@ -148,7 +148,7 @@ export function DCStoreHeader({
                     className="text-sm font-medium hover:opacity-70 transition-opacity flex items-center gap-1"
                     style={{ color: textColor }}
                   >
-                    {t('store.categories')}
+                    ক্যাটাগরি
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
@@ -226,13 +226,13 @@ export function DCStoreHeader({
                         <p className="text-xs" style={{ color: theme.muted }}>{customer.email}</p>
                       </div>
                       <Link to="/account/orders" className="block px-4 py-2 text-sm hover:bg-gray-50 transition-colors" style={{ color: textColor }}>
-                        Orders
+                        অর্ডার সমূহ
                       </Link>
                       <Link to="/account/profile" className="block px-4 py-2 text-sm hover:bg-gray-50 transition-colors" style={{ color: textColor }}>
-                        Profile
+                        প্রোফাইল
                       </Link>
                       <Link to="/logout" className="block px-4 py-2 text-sm hover:bg-gray-50 transition-colors" style={{ color: theme.danger }}>
-                        Logout
+                        লগআউট
                       </Link>
                     </div>
                   </div>
@@ -313,7 +313,7 @@ export function DCStoreHeader({
                 style={{ color: textColor }}
                 onClick={() => setMobileMenuOpen(false)}
               >
-                {t('home')}
+                {t('home') !== 'home' ? t('home') : 'হোম'}
               </PreviewSafeLink>
               <PreviewSafeLink
                 to="/products"
@@ -322,7 +322,7 @@ export function DCStoreHeader({
                 style={{ color: textColor }}
                 onClick={() => setMobileMenuOpen(false)}
               >
-                {t('store.products')}
+                পণ্য সমূহ
               </PreviewSafeLink>
               {validCategories.map((cat, idx) => {
                 const title = typeof cat === 'object' && cat !== null ? (cat as StoreCategory).title : cat;
