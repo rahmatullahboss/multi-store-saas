@@ -44,3 +44,7 @@ test-results/
 .roo/mcp.json
 .cursor/mcp.json
 .claude/mcp.json
+
+AGENT.md
+CLAUDE.md
+.agent-mem/
