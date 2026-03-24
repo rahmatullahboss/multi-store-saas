@@ -28,10 +28,11 @@ interface DCCartPageProps {
   onRemove: (itemId: number) => void;
   isPreview?: boolean;
   config?: ThemeConfig | null;
+  theme?: any;
 }
 
-export function DCCartPage({ items, onUpdateQuantity, onRemove, isPreview = false, config }: DCCartPageProps) {
-  const theme = resolveDCStoreTheme(config);
+export function DCCartPage({ items, onUpdateQuantity, onRemove, isPreview = false, config, theme: themeProp }: DCCartPageProps) {
+  const theme = resolveDCStoreTheme(config, themeProp);
   const { t } = useTranslation();
 
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
