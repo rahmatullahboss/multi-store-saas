@@ -77,7 +77,7 @@ export function StarterProductCard({
             <span className="font-bold" style={{ color: resolvedTheme.primary }}>
               {formatPrice(product.price)}
             </span>
-            {product.compareAtPrice && (
+            {product.compareAtPrice != null && product.compareAtPrice > 0 && (
               <span className="text-sm line-through" style={{ color: resolvedTheme.muted }}>
                 {formatPrice(product.compareAtPrice)}
               </span>

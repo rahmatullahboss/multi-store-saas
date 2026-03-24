@@ -496,7 +496,7 @@ export function StarterStoreTemplate({
           aiEnabled={isCustomerAiEnabled}
           aiCredits={aiCredits}
           storeId={parseInt(storeId ?? '0', 10)}
-          accentColor={theme.primary}
+          accentColor={theme.accent || theme.primary}
         />
       )}
     </div>
