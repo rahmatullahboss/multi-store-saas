@@ -23,9 +23,17 @@ interface DCProductPageProps {
   storeId: number;
   isPreview?: boolean;
   config?: any;
+  shippingConfig?: {
+    enabled: boolean;
+    insideDhaka: number;
+    outsideDhaka: number;
+    freeShippingAbove: number;
+    freeDeliveryAbove: number | null;
+    deliveryCharge: number;
+  };
 }
 
-export function DCProductPage({ product, storeId, isPreview = false, config }: DCProductPageProps) {
+export function DCProductPage({ product, storeId, isPreview = false, config, shippingConfig }: DCProductPageProps) {
   const theme = resolveDCStoreTheme(config);
   const [quantity, setQuantity] = useState(1);
 
@@ -150,8 +158,16 @@ export function DCProductPage({ product, storeId, isPreview = false, config }: D
                     dangerouslySetInnerHTML={{ __html: product.description }}
                   />
                   <div className="flex flex-wrap gap-3 text-sm text-gray-500">
-                    <span className="inline-flex items-center gap-2 rounded-full bg-amber-100 px-3 py-1 text-amber-700">
-                      ⭐ রেটিং {averageRating.toFixed(1)}/৫
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1 text-amber-700">
+                      <span className="flex">
+                        {Array.from({ length: Math.floor(averageRating) }).map((_, i) => (
+                          <Star key={i} className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                        ))}
+                        {averageRating % 1 >= 0.5 && (
+                          <StarHalf className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                        )}
+                      </span>
+                      {averageRating.toFixed(1)}/৫
                     </span>
                     {reviewCount > 0 && (
                       <span className="inline-flex items-center gap-2 rounded-full bg-rose-100 px-3 py-1 text-rose-700">
@@ -341,9 +357,11 @@ export function DCProductPage({ product, storeId, isPreview = false, config }: D
                   ডেলিভারি তথ্য
                 </h4>
                 <ul className="space-y-2 text-sm">
-                  <li>• ঢাকার মধ্যে: ১-২ কর্মদিবস</li>
-                  <li>• ঢাকার বাইরে: ৩-৫ কর্মদিবস</li>
-                  <li>• ২,০০০ টাকার উপরে অর্ডারে ফ্রি শিপিং</li>
+                  <li>• ঢাকার মধ্যে: ৳ {shippingConfig?.insideDhaka ?? 60} (১-২ কর্মদিবস)</li>
+                  <li>• ঢাকার বাইরে: ৳ {shippingConfig?.outsideDhaka ?? 120} (৩-৫ কর্মদিবস)</li>
+                  {(shippingConfig?.freeShippingAbove ?? 0) > 0 && (
+                    <li>• ৳ {shippingConfig!.freeShippingAbove.toLocaleString()} টাকার উপরে অর্ডারে ফ্রি শিপিং</li>
+                  )}
                 </ul>
               </div>
               <div className="rounded-2xl border border-gray-100 bg-white p-6">

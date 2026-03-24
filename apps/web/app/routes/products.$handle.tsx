@@ -111,6 +111,14 @@ interface ProductPageData {
   themeConfig: ThemeConfig | null;
   storeShippingInfo: string | null;
   storeRefundPolicy: string | null;
+  shippingConfig: {
+    enabled: boolean;
+    insideDhaka: number;
+    outsideDhaka: number;
+    freeShippingAbove: number;
+    freeDeliveryAbove: number | null;
+    deliveryCharge: number;
+  };
   isCustomerAiEnabled: boolean;
   aiCredits: number;
 }
@@ -476,6 +484,7 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
       themeConfig: mergedProductThemeConfig,
       storeShippingInfo: shippingInfo,
       storeRefundPolicy: productDetails.returnPolicy || store?.customRefundPolicy || null,
+      shippingConfig: unifiedShippingConfig,
       isCustomerAiEnabled: Boolean(store?.isCustomerAiEnabled),
       aiCredits: Number(store?.aiCredits) || 0,
     };
@@ -798,6 +807,7 @@ function ProductDetailView({ data }: { data: ProductPageData }) {
           theme={theme}
           config={themeConfig}
           storeName={storeName}
+          shippingConfig={data.shippingConfig}
         />
       ) : (
         <div className="text-center py-20">
