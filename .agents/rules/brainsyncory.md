@@ -1,7 +1,7 @@
 
 
 # Project Memory — multi-store-saas
-> 33 notes | Score threshold: >40
+> 36 notes | Score threshold: >40
 
 ## Safety — Never Run Destructive Commands
 
@@ -18,17 +18,33 @@
 
 **Stack:** TypeScript/JavaScript/Python · React + Tailwind
 
-## 📝 NOTE: 1 uncommitted file(s) in working tree.\n\n## Project Standards
+## 📝 NOTE: 1 uncommitted file(s) in working tree.\n\n## Important Warnings
 
-- convention in store-live-editor.tsx
+- **gotcha in bolt.md** — File updated (external): .Jules/bolt.md
+
+Content summary (10 lines):
+#
+
+## Active: `.Jules`
+
+- **convention in palette.md**
+- **gotcha in bolt.md**
+- **convention in palette.md**
+- **what-changed in palette.md**
+- **what-changed in sentinel.md**
+
+## Project Standards
+
 - convention in palette.md
+- convention in palette.md
+- convention in store-live-editor.tsx
 
 ## Recent Decisions
 
-- decision in SettingsPanel.tsx
-- decision in SectionList.tsx
 - Optimized Multi — offloads heavy computation off the main thread
 - Optimized Optimize — parallelizes async operations for speed
+- decision in SettingsPanel.tsx
+- decision in SectionList.tsx
 
 ## Learned Patterns
 
