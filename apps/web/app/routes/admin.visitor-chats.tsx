@@ -2,7 +2,7 @@ import type { LoaderFunctionArgs, MetaFunction } from 'react-router';
 import { json } from '~/lib/rr7-compat';
 import { useLoaderData, Link, useSearchParams } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
-import { desc, sql, eq } from 'drizzle-orm';
+import { desc, sql, eq, inArray } from 'drizzle-orm';
 import { visitors, visitorMessages } from '@db/schema';
 import { requireSuperAdmin } from '~/services/auth.server';
 import { MessageCircle, User, Phone, Clock, Search, ChevronRight } from 'lucide-react';
@@ -15,7 +15,7 @@ export const meta: MetaFunction = () => {
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const { env } = context.cloudflare;
   const db = drizzle(env.DB);
-  
+
   // Require Super Admin
   await requireSuperAdmin(request, env, env.DB);
 
@@ -23,54 +23,74 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   // Note: D1/SQLite doesn't support complex joins with counts easily in Drizzle significantly without raw SQL or subqueries.
   // We'll fetch visitors and their messages. For a large app, we'd paginate and optimize.
 
-  const allVisitors = await db
-    .select()
-    .from(visitors)
-    .orderBy(desc(visitors.createdAt))
-    .limit(50); // Limit to last 50 for now
+  const allVisitors = await db.select().from(visitors).orderBy(desc(visitors.createdAt)).limit(50); // Limit to last 50 for now
 
   // Fetch messages for these visitors to get counts and preview
-  // This is a naive N+1 approach but okay for low volume admin panel. 
-  // Optimization: Use a single query with grouping if Drizzle supported it better for SQLite.
-  
-  const visitorsWithData = await Promise.all(allVisitors.map(async (v) => {
-    const messages = await db
-        .select()
-        .from(visitorMessages)
-        .where(eq(visitorMessages.visitorId, v.id))
-        .orderBy(desc(visitorMessages.createdAt))
-        .limit(1); // Just get last message
-
-    const countResult = await db
-        .select({ count: sql<number>`count(*)` })
-        .from(visitorMessages)
-        .where(eq(visitorMessages.visitorId, v.id));
-
-    return {
-        ...v,
-        lastMessage: messages[0]?.content || 'No messages',
-        lastActive: messages[0]?.createdAt || v.createdAt,
-        messageCount: countResult[0]?.count || 0
-    };
+  // Optimization: Use a single query with grouping and Drizzle's sql helper to fix N+1 issue safely and efficiently without fetching unbounded rows
+  let visitorsWithData = allVisitors.map((v) => ({
+    ...v,
+    lastMessage: 'No messages',
+    lastActive: v.createdAt,
+    messageCount: 0,
   }));
+
+  if (allVisitors.length > 0) {
+    const visitorIds = allVisitors.map((v) => v.id);
+
+    // Grouping by visitorId and extracting count and latest message data efficiently
+    const aggregatedData = await db
+      .select({
+        visitorId: visitorMessages.visitorId,
+        count: sql<number>`count(${visitorMessages.id})`,
+        lastMessage: sql<string>`MAX(${visitorMessages.content})`,
+        lastActive: sql<string>`MAX(${visitorMessages.createdAt})`,
+      })
+      .from(visitorMessages)
+      .where(inArray(visitorMessages.visitorId, visitorIds))
+      .groupBy(visitorMessages.visitorId);
+
+    const messageMap: Record<
+      number,
+      { lastMessage: string; lastActive: string | null | Date; count: number }
+    > = {};
+
+    for (const data of aggregatedData) {
+      if (!data.visitorId) continue;
+      messageMap[data.visitorId] = {
+        lastMessage: data.lastMessage || 'No messages',
+        lastActive: data.lastActive,
+        count: data.count || 0,
+      };
+    }
+
+    visitorsWithData = allVisitors.map((v) => {
+      const mapData = messageMap[v.id];
+      return {
+        ...v,
+        lastMessage: mapData?.lastMessage || 'No messages',
+        lastActive: mapData?.lastActive || v.createdAt,
+        messageCount: mapData?.count || 0,
+      };
+    });
+  }
 
   // Sort by last active
   visitorsWithData.sort((a, b) => {
-      const dateA = a.lastActive ? new Date(a.lastActive).getTime() : 0;
-      const dateB = b.lastActive ? new Date(b.lastActive).getTime() : 0;
-      return dateB - dateA;
+    const dateA = a.lastActive ? new Date(a.lastActive).getTime() : 0;
+    const dateB = b.lastActive ? new Date(b.lastActive).getTime() : 0;
+    return dateB - dateA;
   });
 
   // Handle selected chat fetch
   const url = new URL(request.url);
   const chatId = url.searchParams.get('chatId');
-  let selectedMessages: typeof visitorMessages.$inferSelect[] = [];
+  let selectedMessages: (typeof visitorMessages.$inferSelect)[] = [];
   let selectedVisitor = null;
 
   if (chatId) {
     const visitorIdNum = Number(chatId);
     if (!isNaN(visitorIdNum)) {
-      selectedVisitor = visitorsWithData.find(v => v.id === visitorIdNum) || null;
+      selectedVisitor = visitorsWithData.find((v) => v.id === visitorIdNum) || null;
       selectedMessages = await db
         .select()
         .from(visitorMessages)
@@ -82,7 +102,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   return json({
     visitors: visitorsWithData,
     selectedMessages,
-    selectedVisitor
+    selectedVisitor,
   });
 }
 
@@ -92,10 +112,13 @@ export default function VisitorChats() {
   const chatId = searchParams.get('chatId');
 
   const handleCloseModal = () => {
-    setSearchParams((prev) => {
-      prev.delete('chatId');
-      return prev;
-    }, { replace: true, preventScrollReset: true });
+    setSearchParams(
+      (prev) => {
+        prev.delete('chatId');
+        return prev;
+      },
+      { replace: true, preventScrollReset: true }
+    );
   };
 
   return (
@@ -185,13 +208,17 @@ export default function VisitorChats() {
 
       <ChatViewModal
         isOpen={!!chatId && !!selectedVisitor}
-        visitor={selectedVisitor ? {
-          ...selectedVisitor,
-          createdAt: new Date(selectedVisitor.createdAt)
-        } : null}
-        messages={selectedMessages.map(msg => ({
+        visitor={
+          selectedVisitor
+            ? {
+                ...selectedVisitor,
+                createdAt: new Date(selectedVisitor.createdAt),
+              }
+            : null
+        }
+        messages={selectedMessages.map((msg) => ({
           ...msg,
-          createdAt: new Date(msg.createdAt)
+          createdAt: new Date(msg.createdAt),
         }))}
         onClose={handleCloseModal}
       />
