@@ -1,6 +1,6 @@
 /**
  * DC Store Product Detail Page
- * 
+ *
  * Redesigned to match the original DC Store project with:
  * - Breadcrumb with category badge
  * - Large product image with discount/featured badges
@@ -11,12 +11,26 @@
  */
 
 import { useState } from 'react';
-import { ShoppingCart, ShoppingBag, Heart, Share2, Truck, ShieldCheck, RotateCcw, CheckCircle, ArrowLeft, Star, StarHalf, Package } from 'lucide-react';
+import {
+  ShoppingCart,
+  ShoppingBag,
+  Heart,
+  Share2,
+  Truck,
+  ShieldCheck,
+  RotateCcw,
+  CheckCircle,
+  ArrowLeft,
+  Star,
+  StarHalf,
+  Package,
+} from 'lucide-react';
 import type { SerializedProduct } from '~/templates/store-registry';
 import { PreviewSafeLink } from '~/components/PreviewSafeLink';
 import { AddToCartButton } from '~/components/AddToCartButton';
 import { resolveDCStoreTheme } from '../theme';
 import { buildProxyImageUrl } from '~/utils/imageOptimization';
+import { sanitizeHtml } from '~/utils/sanitize';
 
 interface DCProductPageProps {
   product: SerializedProduct;
@@ -29,17 +43,15 @@ export function DCProductPage({ product, storeId, isPreview = false, config }: D
   const theme = resolveDCStoreTheme(config);
   const [quantity, setQuantity] = useState(1);
 
-  const discount = product.compareAtPrice 
-    ? Math.round((1 - product.price / product.compareAtPrice) * 100) 
+  const discount = product.compareAtPrice
+    ? Math.round((1 - product.price / product.compareAtPrice) * 100)
     : 0;
 
-  const saveAmount = product.compareAtPrice 
-    ? (product.compareAtPrice - product.price) 
-    : 0;
+  const saveAmount = product.compareAtPrice ? product.compareAtPrice - product.price : 0;
 
   const imageUrl = product.imageUrl || '/placeholder-product.svg';
-  
-  // Format Price  
+
+  // Format Price
   const formatPrice = (price: number) => {
     return `৳ ${price.toLocaleString()}`;
   };
@@ -89,7 +101,8 @@ export function DCProductPage({ product, storeId, isPreview = false, config }: D
               দোকানে ফিরে যান
             </PreviewSafeLink>
             {product.category && (
-              <span className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-amber-700"
+              <span
+                className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-amber-700"
                 style={{ backgroundImage: 'linear-gradient(to right, #fef3c7, #ffe4e6)' }}
               >
                 {product.category}
@@ -102,7 +115,8 @@ export function DCProductPage({ product, storeId, isPreview = false, config }: D
             {/* Left: Product Image */}
             <div className="space-y-6">
               {/* Main Image */}
-              <div className="group relative overflow-hidden rounded-2xl sm:rounded-[2.75rem] border border-white/60 bg-white shadow-xl"
+              <div
+                className="group relative overflow-hidden rounded-2xl sm:rounded-[2.75rem] border border-white/60 bg-white shadow-xl"
                 style={{ boxShadow: `0 20px 50px -12px ${theme.primary}30` }}
               >
                 <div className="relative aspect-square">
@@ -142,12 +156,15 @@ export function DCProductPage({ product, storeId, isPreview = false, config }: D
               {/* Highlights Section */}
               {product.description && (
                 <div className="grid gap-3 rounded-xl sm:rounded-[2rem] border border-white/60 bg-white/70 p-4 sm:p-6 backdrop-blur">
-                  <p className="text-sm font-semibold uppercase tracking-[0.24em]" style={{ color: theme.primary }}>
+                  <p
+                    className="text-sm font-semibold uppercase tracking-[0.24em]"
+                    style={{ color: theme.primary }}
+                  >
                     বিশেষ বিবরণ
                   </p>
-                  <div 
+                  <div
                     className="text-base leading-relaxed text-gray-600 line-clamp-4 [&_p]:mb-2 [&_strong]:font-semibold [&_br]:hidden"
-                    dangerouslySetInnerHTML={{ __html: product.description }}
+                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(product.description || '') }}
                   />
                   <div className="flex flex-wrap gap-3 text-sm text-gray-500">
                     <span className="inline-flex items-center gap-2 rounded-full bg-amber-100 px-3 py-1 text-amber-700">
@@ -167,17 +184,21 @@ export function DCProductPage({ product, storeId, isPreview = false, config }: D
             <aside className="space-y-6">
               <div className="sticky top-28 space-y-6">
                 {/* Main Info Card */}
-                <div className="rounded-xl sm:rounded-[2.75rem] border border-white/60 bg-white/80 p-4 sm:p-8 shadow-2xl backdrop-blur"
+                <div
+                  className="rounded-xl sm:rounded-[2.75rem] border border-white/60 bg-white/80 p-4 sm:p-8 shadow-2xl backdrop-blur"
                   style={{ boxShadow: `0 25px 50px -12px ${theme.primary}20` }}
                 >
                   {/* Title & Badge */}
                   <div className="flex items-start justify-between gap-4">
-                    <h1 className="text-xl sm:text-3xl font-bold tracking-tight lg:text-4xl" style={{ color: theme.text }}>
+                    <h1
+                      className="text-xl sm:text-3xl font-bold tracking-tight lg:text-4xl"
+                      style={{ color: theme.text }}
+                    >
                       {product.title}
                     </h1>
                     <span
                       className="shrink-0 rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em]"
-                      style={{ 
+                      style={{
                         backgroundColor: theme.primary + '15',
                         color: theme.primary,
                       }}
@@ -209,10 +230,16 @@ export function DCProductPage({ product, storeId, isPreview = false, config }: D
                   {/* Price Section */}
                   <div className="mt-6 flex items-end justify-between gap-4">
                     <div>
-                      <p className="text-xs uppercase tracking-[0.3em]" style={{ color: theme.primary }}>
+                      <p
+                        className="text-xs uppercase tracking-[0.3em]"
+                        style={{ color: theme.primary }}
+                      >
                         {discount > 0 ? 'বিশেষ অফার' : 'মূল্য'}
                       </p>
-                      <p className="text-3xl sm:text-4xl font-bold lg:text-5xl" style={{ color: theme.text }}>
+                      <p
+                        className="text-3xl sm:text-4xl font-bold lg:text-5xl"
+                        style={{ color: theme.text }}
+                      >
                         {formatPrice(product.price)}
                       </p>
                       {product.compareAtPrice && (
@@ -274,7 +301,7 @@ export function DCProductPage({ product, storeId, isPreview = false, config }: D
                         to="/cart"
                         isPreview={isPreview}
                         className="gap-2 py-3.5 rounded-full font-bold transition-all flex items-center justify-center border-2 hover:bg-amber-50 active:scale-95"
-                        style={{ 
+                        style={{
                           borderColor: theme.primary,
                           color: theme.primary,
                         }}
@@ -292,13 +319,16 @@ export function DCProductPage({ product, storeId, isPreview = false, config }: D
                         key={title}
                         className="flex items-start gap-4 rounded-2xl border border-amber-100/60 bg-amber-50/40 p-4 text-sm text-gray-500 shadow-sm"
                       >
-                        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white shadow-inner shrink-0"
+                        <span
+                          className="flex h-10 w-10 items-center justify-center rounded-xl bg-white shadow-inner shrink-0"
                           style={{ color: theme.primary }}
                         >
                           <Icon className="h-5 w-5" />
                         </span>
                         <div>
-                          <p className="font-semibold" style={{ color: theme.text }}>{title}</p>
+                          <p className="font-semibold" style={{ color: theme.text }}>
+                            {title}
+                          </p>
                           <p className="text-xs text-gray-500">{subtitle}</p>
                         </div>
                       </div>
@@ -308,11 +338,15 @@ export function DCProductPage({ product, storeId, isPreview = false, config }: D
 
                 {/* Help Section */}
                 <div className="rounded-xl sm:rounded-[2rem] border border-white/60 bg-white/70 p-6 text-sm text-gray-500 backdrop-blur">
-                  <p className="text-xs font-semibold uppercase tracking-[0.24em]" style={{ color: theme.primary }}>
+                  <p
+                    className="text-xs font-semibold uppercase tracking-[0.24em]"
+                    style={{ color: theme.primary }}
+                  >
                     সাহায্য প্রয়োজন?
                   </p>
                   <p className="mt-2 leading-relaxed">
-                    এই পণ্য সম্পর্কে যেকোনো প্রশ্নে আমাদের সাপোর্ট টিম আপনাকে সাহায্য করতে প্রস্তুত। যেকোনো সময় যোগাযোগ করুন।
+                    এই পণ্য সম্পর্কে যেকোনো প্রশ্নে আমাদের সাপোর্ট টিম আপনাকে সাহায্য করতে প্রস্তুত।
+                    যেকোনো সময় যোগাযোগ করুন।
                   </p>
                 </div>
               </div>
@@ -325,9 +359,9 @@ export function DCProductPage({ product, storeId, isPreview = false, config }: D
               <h2 className="text-xl font-bold mb-4" style={{ color: theme.text }}>
                 পণ্যের বিবরণ
               </h2>
-              <div 
+              <div
                 className="text-base leading-relaxed text-gray-600 [&_p]:mb-3 [&_strong]:font-semibold [&_br]:block"
-                dangerouslySetInnerHTML={{ __html: product.description }}
+                dangerouslySetInnerHTML={{ __html: sanitizeHtml(product.description || '') }}
               />
             </section>
           )}
@@ -336,7 +370,10 @@ export function DCProductPage({ product, storeId, isPreview = false, config }: D
           <section className="mt-8 rounded-xl sm:rounded-[2.75rem] border border-white/60 bg-white/80 p-4 sm:p-8 shadow-xl backdrop-blur">
             <div className="space-y-6 text-gray-500">
               <div className="rounded-2xl border border-amber-100 bg-amber-50/50 p-6">
-                <h4 className="font-semibold mb-2 flex items-center gap-2" style={{ color: theme.text }}>
+                <h4
+                  className="font-semibold mb-2 flex items-center gap-2"
+                  style={{ color: theme.text }}
+                >
                   <Package className="h-5 w-5" style={{ color: theme.primary }} />
                   ডেলিভারি তথ্য
                 </h4>
@@ -347,12 +384,16 @@ export function DCProductPage({ product, storeId, isPreview = false, config }: D
                 </ul>
               </div>
               <div className="rounded-2xl border border-gray-100 bg-white p-6">
-                <h4 className="font-semibold mb-2 flex items-center gap-2" style={{ color: theme.text }}>
+                <h4
+                  className="font-semibold mb-2 flex items-center gap-2"
+                  style={{ color: theme.text }}
+                >
                   <RotateCcw className="h-5 w-5" style={{ color: theme.primary }} />
                   রিটার্ন নীতি
                 </h4>
                 <p className="text-sm">
-                  আমরা ৭ দিনের সহজ রিটার্ন নীতি প্রদান করি। আপনি যদি ক্রয়ে সন্তুষ্ট না হন, তাহলে পণ্যটি মূল অবস্থায় ফেরত দিন এবং পূর্ণ রিফান্ড বা বদলি পান।
+                  আমরা ৭ দিনের সহজ রিটার্ন নীতি প্রদান করি। আপনি যদি ক্রয়ে সন্তুষ্ট না হন, তাহলে
+                  পণ্যটি মূল অবস্থায় ফেরত দিন এবং পূর্ণ রিফান্ড বা বদলি পান।
                 </p>
               </div>
             </div>
