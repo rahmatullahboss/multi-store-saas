@@ -19,7 +19,7 @@ import { parseThemeConfig, defaultThemeConfig, type ThemeConfig, parseSocialLink
 import { requireUserId, getStoreId } from '~/services/auth.server';
 import { getAllStoreTemplates, DEFAULT_STORE_TEMPLATE_ID, STORE_TEMPLATE_THEMES } from '~/templates/store-registry';
 import { 
-  Check, ExternalLink, Store, Eye, Crown, Palette, 
+  Check, ExternalLink, Store, Eye, Crown, Palette, Sparkles,
   Layout, Image, Save, Loader2, Megaphone, User, Phone, Mail, MapPin, Facebook, Instagram, MessageCircle, Type
 } from 'lucide-react';
 import { useEffect, useState } from 'react';

@@ -1,7 +1,7 @@
 
 
 # Project Memory — multi-store-saas
-> 38 notes | Score threshold: >40
+> 40 notes | Score threshold: >40
 
 ## Safety — Never Run Destructive Commands
 
@@ -16,7 +16,7 @@
 - **ALWAYS** ask the user before running commands that modify system state, install packages, or make network requests.
 - When in doubt, **show the command first** and wait for approval.
 
-**Stack:** TypeScript/JavaScript/Python · React + Tailwind
+**Stack:** TypeScript/Python
 
 ## 📝 NOTE: 1 uncommitted file(s) in working tree.\n\n## Project Standards
 

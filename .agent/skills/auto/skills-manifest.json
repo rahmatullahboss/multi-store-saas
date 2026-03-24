@@ -1,7 +1,7 @@
 {
   "typescript-react": {
     "enabled": true,
-    "lastGenerated": "2026-03-24T04:02:30.814Z",
+    "lastGenerated": "2026-03-24T19:12:28.280Z",
     "observationCount": 17,
     "skillCount": 0,
     "domain": "typescript-react",
@@ -12,7 +12,7 @@
   },
   "typescript": {
     "enabled": true,
-    "lastGenerated": "2026-03-24T04:02:30.814Z",
+    "lastGenerated": "2026-03-24T19:12:28.280Z",
     "observationCount": 3,
     "skillCount": 0,
     "domain": "typescript",
@@ -24,8 +24,8 @@
   },
   "project": {
     "enabled": true,
-    "lastGenerated": "2026-03-24T04:02:30.814Z",
-    "observationCount": 18,
+    "lastGenerated": "2026-03-24T19:12:28.279Z",
+    "observationCount": 20,
     "skillCount": 0,
     "domain": "project",
     "triggerGlobs": [
@@ -35,7 +35,7 @@
   },
   "gotcha": {
     "enabled": true,
-    "lastGenerated": "2026-03-24T04:02:30.814Z",
+    "lastGenerated": "2026-03-24T19:12:28.280Z",
     "observationCount": 0,
     "skillCount": 1,
     "domain": "gotcha",
