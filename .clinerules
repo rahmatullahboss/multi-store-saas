@@ -52,7 +52,7 @@ Content summary (47 lines):
 > Context above IS your context. Do NOT call get_context() at startup.
 
 # Project Memory — multi-store-saas
-> 40 notes | Score threshold: >40
+> 41 notes | Score threshold: >40
 
 ## Safety — Never Run Destructive Commands
 

@@ -101,11 +101,25 @@ export const action = async ({ request, context }: any) => {
     const templateId = formData.get('templateId') as string;
     if (!templateId) return json({ success: false, error: 'Template required' }, { status: 400 });
     
+    // Save to legacy themeConfig for backwards compatibility
     const updatedConfig: ThemeConfig = { ...currentConfig, storeTemplateId: templateId };
     await db.update(stores).set({ 
       themeConfig: JSON.stringify(updatedConfig), 
       updatedAt: new Date() 
     }).where(eq(stores.id, storeId));
+
+    // Also save to unified storefront settings (source of truth for storefront routes)
+    try {
+      const { saveUnifiedStorefrontSettingsWithCacheInvalidation } = await import('~/services/unified-storefront-settings.server');
+      await saveUnifiedStorefrontSettingsWithCacheInvalidation(
+        db,
+        context.cloudflare.env,
+        storeId,
+        { theme: { templateId } }
+      );
+    } catch (e) {
+      console.error('Failed to update unified settings template:', e);
+    }
     
     return json({ success: true, message: 'templateApplied' });
   }
@@ -121,6 +135,22 @@ export const action = async ({ request, context }: any) => {
       fontFamily,
       updatedAt: new Date() 
     }).where(eq(stores.id, storeId));
+
+    // Also save to unified storefront settings
+    try {
+      const { saveUnifiedStorefrontSettingsWithCacheInvalidation } = await import('~/services/unified-storefront-settings.server');
+      await saveUnifiedStorefrontSettingsWithCacheInvalidation(
+        db,
+        context.cloudflare.env,
+        storeId,
+        { 
+          theme: { primary: primaryColor, accent: accentColor },
+          typography: { fontFamily },
+        }
+      );
+    } catch (e) {
+      console.error('Failed to update unified settings theme:', e);
+    }
     
     return json({ success: true, message: 'themeSaved' });
   }

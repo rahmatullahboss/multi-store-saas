@@ -1,7 +1,7 @@
 
 
 # Project Memory — multi-store-saas
-> 40 notes | Score threshold: >40
+> 41 notes | Score threshold: >40
 
 ## Safety — Never Run Destructive Commands
 
