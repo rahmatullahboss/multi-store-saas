@@ -145,9 +145,10 @@ export function DCProductPage({ product, storeId, isPreview = false, config }: D
                   <p className="text-sm font-semibold uppercase tracking-[0.24em]" style={{ color: theme.primary }}>
                     Highlights
                   </p>
-                  <p className="text-base leading-relaxed text-gray-600 whitespace-pre-line line-clamp-4">
-                    {product.description}
-                  </p>
+                  <div 
+                    className="text-base leading-relaxed text-gray-600 line-clamp-4 [&_p]:mb-2 [&_strong]:font-semibold [&_br]:hidden"
+                    dangerouslySetInnerHTML={{ __html: product.description }}
+                  />
                   <div className="flex flex-wrap gap-3 text-sm text-gray-500">
                     <span className="inline-flex items-center gap-2 rounded-full bg-amber-100 px-3 py-1 text-amber-700">
                       ⭐ Rated {averageRating.toFixed(1)}/5
@@ -324,9 +325,10 @@ export function DCProductPage({ product, storeId, isPreview = false, config }: D
               <h2 className="text-xl font-bold mb-4" style={{ color: theme.text }}>
                 Product Description
               </h2>
-              <div className="text-base leading-relaxed text-gray-600 whitespace-pre-line">
-                {product.description}
-              </div>
+              <div 
+                className="text-base leading-relaxed text-gray-600 [&_p]:mb-3 [&_strong]:font-semibold [&_br]:block"
+                dangerouslySetInnerHTML={{ __html: product.description }}
+              />
             </section>
           )}
 
