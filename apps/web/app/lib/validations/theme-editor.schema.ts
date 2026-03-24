@@ -42,8 +42,8 @@ const safeCssSchema = z
 
 /** Valid theme preset IDs */
 const themePresetIdSchema = z
-  .enum(['starter-store', 'daraz', 'bdshop', 'ghorer-bazar'])
-  .default('starter-store');
+  .enum(['starter-store', 'daraz', 'bdshop', 'ghorer-bazar', 'dc-store'])
+  .default('dc-store');
 
 /** Store template ID */
 const storeTemplateIdSchema = z

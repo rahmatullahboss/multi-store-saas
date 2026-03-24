@@ -326,7 +326,7 @@ function buildTemplateFromThemeConfig(
         id: `fallback_theme_${store.id}`,
         shopId: store.id,
         name: 'Fallback Theme',
-        presetId: themeConfig.templateId || 'starter-store',
+        presetId: themeConfig.templateId || 'dc-store',
         isActive: 1,
         createdAt: new Date(),
         updatedAt: new Date(),
