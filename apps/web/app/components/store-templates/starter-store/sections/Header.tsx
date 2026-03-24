@@ -60,13 +60,23 @@ export function StarterStoreHeader({
 
   return (
     <>
-      {/* Announcement Bar */}
-      <div 
-        className="text-center py-2 text-sm font-medium text-white"
-        style={{ backgroundColor: theme.accent }}
-      >
-        🎉 ফ্রি ডেলিভারি ৳১০০০+ অর্ডারে! কোড: FREE2024
-      </div>
+      {/* Announcement Bar - only show when enabled in config */}
+      {config?.announcement?.enabled && config.announcement.text && (
+        <div 
+          className="text-center py-2 text-sm font-medium text-white"
+          style={{ backgroundColor: config.announcement.bgColor || theme.accent }}
+        >
+          {config.announcement.link ? (
+            <a href={config.announcement.link} className="hover:underline" style={{ color: config.announcement.textColor || '#ffffff' }}>
+              {config.announcement.text}
+            </a>
+          ) : (
+            <span style={{ color: config.announcement.textColor || '#ffffff' }}>
+              {config.announcement.text}
+            </span>
+          )}
+        </div>
+      )}
 
       {/* Main Header */}
       <header 
