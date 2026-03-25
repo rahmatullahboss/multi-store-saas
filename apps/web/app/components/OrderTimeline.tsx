@@ -171,7 +171,10 @@ export function OrderTimeline({ logs, orderId: _orderId, isSubmitting: _isSubmit
                     {parsedDetails && !isNote && (
                       <button
                         onClick={() => toggleExpand(log.id)}
-                        className="p-1 text-gray-400 hover:text-gray-600 flex-shrink-0"
+                        className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 transition-all flex-shrink-0"
+                        aria-expanded={expandedLogs.has(log.id)}
+                        aria-label={expandedLogs.has(log.id) ? 'Collapse details' : 'Expand details'}
+                        title={expandedLogs.has(log.id) ? 'Collapse details' : 'Expand details'}
                       >
                         {expandedLogs.has(log.id) ? (
                           <ChevronUp className="w-4 h-4" />
