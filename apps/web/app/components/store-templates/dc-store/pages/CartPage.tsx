@@ -152,7 +152,7 @@ export function DCCartPage({ items, onUpdateQuantity, onRemove, isPreview = fals
 
                     {/* Price & Remove */}
                     <div className="flex items-center gap-4">
-                      <span className="text-xl font-bold bg-gradient-to-r from-amber-500 to-rose-500 bg-clip-text text-transparent">
+                      <span className="text-xl font-bold" style={{ color: theme.primary }}>
                         {formatPrice(item.price * item.quantity)}
                       </span>
                       <button
@@ -197,7 +197,7 @@ export function DCCartPage({ items, onUpdateQuantity, onRemove, isPreview = fals
 
                 <div className="flex justify-between text-lg font-bold pt-3 border-t" style={{ borderColor: theme.border, color: theme.text }}>
                   <span>মোট</span>
-                  <span className="bg-gradient-to-r from-amber-500 to-rose-500 bg-clip-text text-transparent">
+                  <span style={{ color: theme.primary, fontWeight: 700 }}>
                     {formatPrice(subtotal)}
                   </span>
                 </div>
