@@ -116,7 +116,7 @@ export function DCCollectionPage({
                 onClick={() => setViewMode('grid')}
                 className={`p-2 rounded-lg transition-colors ${viewMode === 'grid' ? '' : 'hover:bg-gray-100'}`}
                 style={{ 
-                  backgroundColor: viewMode === 'grid' ? theme.primary : 'transparent',
+                  backgroundColor: viewMode === 'grid' ? theme.secondary : 'transparent',
                   color: viewMode === 'grid' ? '#ffffff' : theme.text,
                 }}
                 aria-label="Grid view"
@@ -127,7 +127,7 @@ export function DCCollectionPage({
                 onClick={() => setViewMode('list')}
                 className={`p-2 rounded-lg transition-colors ${viewMode === 'list' ? '' : 'hover:bg-gray-100'}`}
                 style={{ 
-                  backgroundColor: viewMode === 'list' ? theme.primary : 'transparent',
+                  backgroundColor: viewMode === 'list' ? theme.secondary : 'transparent',
                   color: viewMode === 'list' ? '#ffffff' : theme.text,
                 }}
                 aria-label="List view"
@@ -231,7 +231,7 @@ export function DCCollectionPage({
               </button>
               <button
                 className="px-6 py-2 rounded-xl font-bold text-white transition-all hover:opacity-90"
-                style={{ backgroundColor: theme.primary }}
+                style={{ backgroundColor: theme.secondary }}
               >
                 ফিল্টার প্রয়োগ করুন
               </button>
@@ -285,7 +285,7 @@ export function DCCollectionPage({
             </button>
             <button
               className="px-4 py-2 rounded-xl font-bold text-white"
-              style={{ backgroundColor: theme.primary }}
+              style={{ backgroundColor: theme.secondary }}
             >
               1
             </button>

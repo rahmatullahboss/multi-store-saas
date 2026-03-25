@@ -177,7 +177,7 @@ export function DCStoreTemplate({
                     to={heroButtonLink}
                     isPreview={isPreview}
                     className="h-11 sm:h-12 px-6 sm:px-8 rounded-full flex items-center justify-center font-bold transition-all duration-300 hover:scale-105 shadow-lg"
-                    style={{ backgroundColor: theme.primary, color: '#fff' }}
+                    style={{ backgroundColor: theme.secondary, color: '#fff' }}
                   >
                     {heroButtonText}
                     <ArrowRight className="ml-2 h-4 w-4" />
@@ -241,7 +241,7 @@ export function DCStoreTemplate({
                     to={`/products/${encodeURIComponent(title.trim().toLowerCase().replace(/\s+/g, ' ')).replace(/%20/g, '-')}`}
                     isPreview={isPreview}
                     className="flex h-10 shrink-0 items-center justify-center gap-2 rounded-full px-5 font-medium text-sm transition-all bg-white border border-gray-200 text-gray-700 hover:border-primary hover:text-primary"
-                    style={{ '--hover-color': theme.primary } as any}
+                    style={{ '--hover-color': theme.secondary } as any}
                   >
                     {title}
                   </PreviewSafeLink>
@@ -295,7 +295,7 @@ export function DCStoreTemplate({
                 to="/products"
                 isPreview={isPreview}
                 className="inline-flex items-center justify-center px-8 py-3 rounded-full text-white font-bold transition-all duration-300 hover:scale-105 shadow-lg"
-                style={{ backgroundColor: theme.primary }}
+                style={{ backgroundColor: theme.secondary }}
               >
                 সকল পণ্য দেখুন <ArrowRight className="ml-2 h-4 w-4" />
               </PreviewSafeLink>
@@ -403,7 +403,7 @@ export function DCStoreTemplate({
           aiEnabled={isCustomerAiEnabled}
           aiCredits={aiCredits}
           storeId={parseInt(storeId ?? '0', 10)}
-          accentColor={theme.primary}
+          accentColor={theme.secondary}
         />
       )}
     </div>

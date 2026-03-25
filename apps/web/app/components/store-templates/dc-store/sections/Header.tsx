@@ -200,7 +200,7 @@ export function DCStoreHeader({
                   {wishlistCount > 0 && (
                     <span
                       className="absolute -top-1 -right-1 w-5 h-5 text-xs font-bold text-white rounded-full flex items-center justify-center"
-                      style={{ backgroundColor: theme.primary }}
+                      style={{ backgroundColor: theme.secondary }}
                     >
                       {wishlistCount}
                     </span>
@@ -243,7 +243,7 @@ export function DCStoreHeader({
                     to="/login"
                     isPreview={isPreview}
                     className="hidden sm:block px-4 py-2 text-sm font-medium rounded-lg transition-colors"
-                    style={{ backgroundColor: theme.primary, color: '#ffffff' }}
+                    style={{ backgroundColor: theme.secondary, color: '#ffffff' }}
                   >
                     {t('login')}
                   </PreviewSafeLink>
@@ -262,7 +262,7 @@ export function DCStoreHeader({
                   {cartCount > 0 && (
                     <span
                       className="absolute -top-1 -right-1 w-5 h-5 text-xs font-bold text-white rounded-full flex items-center justify-center"
-                      style={{ backgroundColor: theme.primary }}
+                      style={{ backgroundColor: theme.secondary }}
                     >
                       {cartCount}
                     </span>
@@ -293,7 +293,7 @@ export function DCStoreHeader({
                 <button
                   type="submit"
                   className="px-6 py-2 text-sm font-medium text-white rounded-lg transition hover:opacity-90"
-                  style={{ backgroundColor: theme.primary }}
+                  style={{ backgroundColor: theme.secondary }}
                 >
                   {t('search')}
                 </button>

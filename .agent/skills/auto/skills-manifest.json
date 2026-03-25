@@ -1,18 +1,18 @@
 {
   "typescript-react": {
     "enabled": true,
-    "lastGenerated": "2026-03-24T19:22:28.165Z",
-    "observationCount": 17,
+    "lastGenerated": "2026-03-25T15:00:45.247Z",
+    "observationCount": 26,
     "skillCount": 0,
     "domain": "typescript-react",
     "triggerGlobs": [
       "**/*.tsx"
     ],
-    "description": "Typescript React for multi-store-saas. 1 conventions, 2 fixes."
+    "description": "Typescript React for multi-store-saas. 3 conventions, 5 fixes."
   },
   "typescript": {
     "enabled": true,
-    "lastGenerated": "2026-03-24T19:22:28.165Z",
+    "lastGenerated": "2026-03-25T15:00:45.247Z",
     "observationCount": 3,
     "skillCount": 0,
     "domain": "typescript",
@@ -24,8 +24,8 @@
   },
   "project": {
     "enabled": true,
-    "lastGenerated": "2026-03-24T19:22:28.165Z",
-    "observationCount": 21,
+    "lastGenerated": "2026-03-25T15:00:45.247Z",
+    "observationCount": 32,
     "skillCount": 0,
     "domain": "project",
     "triggerGlobs": [
@@ -35,7 +35,7 @@
   },
   "gotcha": {
     "enabled": true,
-    "lastGenerated": "2026-03-24T19:22:28.165Z",
+    "lastGenerated": "2026-03-25T15:00:45.247Z",
     "observationCount": 0,
     "skillCount": 1,
     "domain": "gotcha",

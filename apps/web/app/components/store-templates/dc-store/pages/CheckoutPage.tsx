@@ -84,7 +84,7 @@ export function DCCheckoutPage({
           <Link
             to="/products"
             className="inline-block px-8 py-3 rounded-xl text-lg font-bold text-white transition-all hover:opacity-90 hover:shadow-lg"
-            style={{ backgroundColor: theme.primary }}
+            style={{ backgroundColor: theme.secondary }}
           >
             পণ্য দেখুন
           </Link>
@@ -380,7 +380,7 @@ export function DCCheckoutPage({
                   type="submit"
                   className="w-full py-4 rounded-xl text-lg font-bold text-white transition-all duration-300 hover:opacity-90 hover:shadow-lg active:scale-95"
                   style={{ 
-                    backgroundColor: theme.primary,
+                    backgroundColor: theme.secondary,
                     boxShadow: theme.shadowMd,
                   }}
                 >

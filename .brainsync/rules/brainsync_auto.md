@@ -1,7 +1,7 @@
 
 
 # Project Memory — multi-store-saas
-> 41 notes | Score threshold: >40
+> 61 notes | Score threshold: >40
 
 ## Safety — Never Run Destructive Commands
 
@@ -20,6 +20,8 @@
 
 ## 📝 NOTE: 1 uncommitted file(s) in working tree.\n\n## Project Standards
 
+- Strengthened types index
+- Fixed null crash in Also — reduces initial bundle size with code splitting — confirmed 3x
 - convention in palette.md
 - convention in store-live-editor.tsx
 - convention in palette.md

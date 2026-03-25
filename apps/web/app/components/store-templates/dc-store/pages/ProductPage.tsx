@@ -284,7 +284,7 @@ export function DCProductPage({ product, storeId, isPreview = false, config, shi
                         currency="BDT"
                         isPreview={isPreview}
                         className="gap-2 py-3.5 rounded-full font-bold text-white transition-all duration-300 hover:opacity-90 hover:shadow-lg flex items-center justify-center active:scale-95"
-                        style={{ backgroundColor: theme.primary }}
+                        style={{ backgroundColor: theme.secondary }}
                       >
                         <ShoppingCart className="h-5 w-5" />
                         কার্টে যোগ করুন
@@ -295,8 +295,8 @@ export function DCProductPage({ product, storeId, isPreview = false, config, shi
                         isPreview={isPreview}
                         className="gap-2 py-3.5 rounded-full font-bold transition-all flex items-center justify-center border-2 hover:bg-amber-50 active:scale-95"
                         style={{ 
-                          borderColor: theme.primary,
-                          color: theme.primary,
+                          borderColor: theme.secondary,
+                          color: theme.secondary,
                         }}
                       >
                         <ShoppingBag className="h-5 w-5" />
@@ -313,7 +313,7 @@ export function DCProductPage({ product, storeId, isPreview = false, config, shi
                         className="flex items-start gap-4 rounded-2xl border border-amber-100/60 bg-amber-50/40 p-4 text-sm text-gray-500 shadow-sm"
                       >
                         <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white shadow-inner shrink-0"
-                          style={{ color: theme.primary }}
+                          style={{ color: theme.secondary }}
                         >
                           <Icon className="h-5 w-5" />
                         </span>

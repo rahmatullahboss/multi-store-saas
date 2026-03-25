@@ -64,7 +64,7 @@ export function DCCartPage({ items, onUpdateQuantity, onRemove, isPreview = fals
           <Link
             to="/products"
             className="inline-block px-8 py-3 rounded-xl text-lg font-bold text-white transition-all hover:opacity-90 hover:shadow-lg"
-            style={{ backgroundColor: theme.primary }}
+            style={{ backgroundColor: theme.secondary }}
           >
             শপিং চালিয়ে যান
           </Link>
@@ -152,7 +152,7 @@ export function DCCartPage({ items, onUpdateQuantity, onRemove, isPreview = fals
 
                     {/* Price & Remove */}
                     <div className="flex items-center gap-4">
-                      <span className="text-xl font-bold" style={{ color: theme.primary }}>
+                      <span className="text-xl font-bold" style={{ color: theme.secondary }}>
                         {formatPrice(item.price * item.quantity)}
                       </span>
                       <button
@@ -197,7 +197,7 @@ export function DCCartPage({ items, onUpdateQuantity, onRemove, isPreview = fals
 
                 <div className="flex justify-between text-lg font-bold pt-3 border-t" style={{ borderColor: theme.border, color: theme.text }}>
                   <span>মোট</span>
-                  <span style={{ color: theme.primary, fontWeight: 700 }}>
+                  <span style={{ color: theme.secondary, fontWeight: 700 }}>
                     {formatPrice(subtotal)}
                   </span>
                 </div>
@@ -207,7 +207,7 @@ export function DCCartPage({ items, onUpdateQuantity, onRemove, isPreview = fals
                 to="/checkout"
                 className="w-full py-4 rounded-xl text-lg font-bold text-white transition-all duration-300 hover:opacity-90 hover:shadow-lg flex items-center justify-center gap-2 active:scale-95"
                 style={{ 
-                  backgroundColor: theme.primary,
+                  backgroundColor: theme.secondary,
                   boxShadow: theme.shadowMd,
                 }}
               >
@@ -230,8 +230,8 @@ export function DCCartPage({ items, onUpdateQuantity, onRemove, isPreview = fals
               {/* Trust Badges */}
               <div className="pt-4 border-t space-y-3" style={{ borderColor: theme.border }}>
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: theme.primary + '15' }}>
-                    <ShoppingCart className="w-4 h-4" style={{ color: theme.primary }} />
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: theme.secondary + '15' }}>
+                    <ShoppingCart className="w-4 h-4" style={{ color: theme.secondary }} />
                   </div>
                   <span className="text-sm" style={{ color: theme.muted }}>নিরাপদ চেকআউট</span>
                 </div>
