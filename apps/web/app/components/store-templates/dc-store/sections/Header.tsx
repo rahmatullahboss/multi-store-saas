@@ -119,7 +119,7 @@ export function DCStoreHeader({
                   className={`h-10 w-auto object-contain rounded px-2 py-1 ${logoBg}`}
                 />
               )}
-              <span className="text-xl font-bold" style={{ color: theme.primary }}>
+              <span className="text-xl sm:text-2xl font-black tracking-tighter" style={{ color: theme.primary }}>
                 {storeName}
               </span>
             </PreviewSafeLink>
