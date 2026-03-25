@@ -327,34 +327,34 @@ export function DCStoreTemplate({
         )}
 
         {/* Trust Badges */}
-        <section className="py-16 px-4">
+        <section className="py-8 md:py-16 px-4">
           <div className="max-w-5xl mx-auto">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <div className="flex flex-col items-center text-center gap-4 p-8 rounded-3xl bg-white shadow-sm border border-gray-100">
-                <div className="p-4 rounded-2xl" style={{ backgroundColor: theme.primary + '15' }}>
-                  <Truck className="w-8 h-8" style={{ color: theme.primary }} />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8">
+              <div className="flex flex-col items-center text-center gap-3 md:gap-4 p-6 md:p-8 rounded-2xl md:rounded-3xl bg-white shadow-sm border border-gray-100">
+                <div className="p-3 md:p-4 rounded-xl md:rounded-2xl" style={{ backgroundColor: theme.primary + '15' }}>
+                  <Truck className="w-6 h-6 md:w-8 md:h-8" style={{ color: theme.primary }} />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold mb-1">দ্রুত ডেলিভারি</h3>
-                  <p className="text-gray-500 text-sm">সারা বাংলাদেশে নির্ভরযোগ্য শিপিং</p>
+                  <h3 className="text-lg md:text-xl font-bold mb-1">দ্রুত ডেলিভারি</h3>
+                  <p className="text-gray-500 text-xs md:text-sm">সারা বাংলাদেশে নির্ভরযোগ্য শিপিং</p>
                 </div>
               </div>
-              <div className="flex flex-col items-center text-center gap-4 p-8 rounded-3xl bg-white shadow-sm border border-gray-100">
-                <div className="p-4 rounded-2xl" style={{ backgroundColor: theme.primary + '15' }}>
-                  <Shield className="w-8 h-8" style={{ color: theme.primary }} />
+              <div className="flex flex-col items-center text-center gap-3 md:gap-4 p-6 md:p-8 rounded-2xl md:rounded-3xl bg-white shadow-sm border border-gray-100">
+                <div className="p-3 md:p-4 rounded-xl md:rounded-2xl" style={{ backgroundColor: theme.primary + '15' }}>
+                  <Shield className="w-6 h-6 md:w-8 md:h-8" style={{ color: theme.primary }} />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold mb-1">নিরাপদ পেমেন্ট</h3>
-                  <p className="text-gray-500 text-sm">১০০% নিরাপদ লেনদেন</p>
+                  <h3 className="text-lg md:text-xl font-bold mb-1">নিরাপদ পেমেন্ট</h3>
+                  <p className="text-gray-500 text-xs md:text-sm">১০০% নিরাপদ লেনদেন</p>
                 </div>
               </div>
-              <div className="flex flex-col items-center text-center gap-4 p-8 rounded-3xl bg-white shadow-sm border border-gray-100">
-                <div className="p-4 rounded-2xl" style={{ backgroundColor: theme.primary + '15' }}>
-                  <RotateCcw className="w-8 h-8" style={{ color: theme.primary }} />
+              <div className="flex flex-col items-center text-center gap-3 md:gap-4 p-6 md:p-8 rounded-2xl md:rounded-3xl bg-white shadow-sm border border-gray-100">
+                <div className="p-3 md:p-4 rounded-xl md:rounded-2xl" style={{ backgroundColor: theme.primary + '15' }}>
+                  <RotateCcw className="w-6 h-6 md:w-8 md:h-8" style={{ color: theme.primary }} />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold mb-1">সহজ রিটার্ন</h3>
-                  <p className="text-gray-500 text-sm">৭ দিনের মধ্যে রিটার্ন নীতি</p>
+                  <h3 className="text-lg md:text-xl font-bold mb-1">সহজ রিটার্ন</h3>
+                  <p className="text-gray-500 text-xs md:text-sm">৭ দিনের মধ্যে রিটার্ন নীতি</p>
                 </div>
               </div>
             </div>
