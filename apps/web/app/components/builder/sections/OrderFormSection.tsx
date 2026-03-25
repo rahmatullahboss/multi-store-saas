@@ -10,7 +10,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useId } from 'react';
 import { z } from 'zod';
 
 // ─── Schema ────────────────────────────────────────────────────────────────────
@@ -43,15 +43,17 @@ function Divider() {
 function FormField({
   label,
   required,
+  htmlFor,
   children,
 }: {
   label: string;
   required?: boolean;
+  htmlFor?: string;
   children: React.ReactNode;
 }) {
   return (
     <div>
-      <label className="mb-1.5 block text-sm font-semibold text-gray-700">
+      <label htmlFor={htmlFor} className="mb-1.5 block text-sm font-semibold text-gray-700">
         {label}
         {required && <span className="ml-0.5 text-red-500">*</span>}
       </label>
@@ -73,10 +75,8 @@ interface OrderFormSectionProps {
   isPreview?: boolean;
 }
 
-export function OrderFormSection({
-  props,
-  isPreview = false,
-}: OrderFormSectionProps) {
+export function OrderFormSection({ props, isPreview = false }: OrderFormSectionProps) {
+  const formId = useId();
   const p: OrderFormProps = OrderFormSchema.parse(props);
 
   // ── local state (quantity + submission) ──────────────────────────────────
@@ -93,9 +93,7 @@ export function OrderFormSection({
       : 0;
 
   const savings =
-    p.originalPrice && p.originalPrice > p.price
-      ? (p.originalPrice - p.price) * quantity
-      : 0;
+    p.originalPrice && p.originalPrice > p.price ? (p.originalPrice - p.price) * quantity : 0;
 
   // ── handlers ─────────────────────────────────────────────────────────────
   function decQty() {
@@ -129,15 +127,9 @@ export function OrderFormSection({
             <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-green-100 text-4xl">
               ✅
             </div>
-            <h2 className="mb-2 text-2xl font-extrabold text-gray-900">
-              অর্ডার নিশ্চিত হয়েছে!
-            </h2>
-            <p className="mb-1 text-base text-gray-600">
-              শীঘ্রই আমাদের টিম আপনাকে কল করবে।
-            </p>
-            <p className="text-sm text-gray-400">
-              অর্ডারের জন্য ধন্যবাদ 🎉
-            </p>
+            <h2 className="mb-2 text-2xl font-extrabold text-gray-900">অর্ডার নিশ্চিত হয়েছে!</h2>
+            <p className="mb-1 text-base text-gray-600">শীঘ্রই আমাদের টিম আপনাকে কল করবে।</p>
+            <p className="text-sm text-gray-400">অর্ডারের জন্য ধন্যবাদ 🎉</p>
             <div className="mt-6 rounded-xl bg-green-50 px-6 py-4 text-left text-sm text-green-800 ring-1 ring-green-200">
               <p className="font-semibold">অর্ডার সারাংশ:</p>
               <p className="mt-1">
@@ -162,7 +154,6 @@ export function OrderFormSection({
     >
       <div className="mx-auto max-w-lg px-4">
         <div className="overflow-hidden rounded-3xl bg-white shadow-2xl ring-1 ring-gray-100">
-
           {/* ── Header banner ─────────────────────────────────────────────── */}
           <div
             className="relative overflow-hidden px-6 py-7 text-center"
@@ -178,14 +169,11 @@ export function OrderFormSection({
               {p.headline}
             </h2>
             {p.subheadline && (
-              <p className="relative mt-1.5 text-sm font-medium text-green-100">
-                {p.subheadline}
-              </p>
+              <p className="relative mt-1.5 text-sm font-medium text-green-100">{p.subheadline}</p>
             )}
           </div>
 
           <div className="p-6 sm:p-8">
-
             {/* ── Product summary ─────────────────────────────────────────── */}
             <div
               className="mb-6 flex items-center gap-4 rounded-2xl p-4"
@@ -203,14 +191,9 @@ export function OrderFormSection({
               </div>
 
               <div className="flex-1 min-w-0">
-                <p className="truncate text-sm font-semibold text-gray-800">
-                  {p.productName}
-                </p>
+                <p className="truncate text-sm font-semibold text-gray-800">{p.productName}</p>
                 <div className="mt-0.5 flex flex-wrap items-baseline gap-2">
-                  <span
-                    className="text-xl font-extrabold"
-                    style={{ color: p.buttonColor }}
-                  >
+                  <span className="text-xl font-extrabold" style={{ color: p.buttonColor }}>
                     ৳{p.price.toLocaleString('bn-BD')}
                   </span>
                   {p.originalPrice && p.originalPrice > p.price && (
@@ -232,12 +215,12 @@ export function OrderFormSection({
             {/* ── Form ────────────────────────────────────────────────────── */}
             <form onSubmit={handleSubmit} noValidate>
               <div className="space-y-4">
-
                 {/* Name */}
-                <FormField label="আপনার নাম" required>
+                <FormField label="আপনার নাম" required htmlFor={`${formId}-name`}>
                   <input
                     type="text"
                     name="name"
+                    id={`${formId}-name`}
                     placeholder="আপনার নাম লিখুন"
                     autoComplete="name"
                     required
@@ -247,7 +230,7 @@ export function OrderFormSection({
                 </FormField>
 
                 {/* Phone */}
-                <FormField label="মোবাইল নম্বর" required>
+                <FormField label="মোবাইল নম্বর" required htmlFor={`${formId}-phone`}>
                   <div className="relative">
                     <span className="absolute inset-y-0 left-3.5 flex items-center">
                       <svg
@@ -268,6 +251,7 @@ export function OrderFormSection({
                     <input
                       type="tel"
                       name="phone"
+                      id={`${formId}-phone`}
                       placeholder="01XXXXXXXXX"
                       autoComplete="tel"
                       required
@@ -277,15 +261,14 @@ export function OrderFormSection({
                       className={`${inputCls} pl-9`}
                     />
                   </div>
-                  <p className="mt-1 text-xs text-gray-400">
-                    উদাহরণ: 01712345678
-                  </p>
+                  <p className="mt-1 text-xs text-gray-400">উদাহরণ: 01712345678</p>
                 </FormField>
 
                 {/* Address */}
-                <FormField label="সম্পূর্ণ ঠিকানা" required>
+                <FormField label="সম্পূর্ণ ঠিকানা" required htmlFor={`${formId}-address`}>
                   <textarea
                     name="address"
+                    id={`${formId}-address`}
                     rows={3}
                     placeholder="বিস্তারিত ঠিকানা (জেলা, উপজেলা সহ)"
                     required
@@ -308,7 +291,8 @@ export function OrderFormSection({
                         −
                       </button>
 
-                      <div className="flex h-11 flex-1 items-center justify-center rounded-xl border-2 bg-gray-50 text-lg font-extrabold text-gray-900"
+                      <div
+                        className="flex h-11 flex-1 items-center justify-center rounded-xl border-2 bg-gray-50 text-lg font-extrabold text-gray-900"
                         style={{ borderColor: `${p.accentColor}50` }}
                       >
                         {quantity}
@@ -324,13 +308,10 @@ export function OrderFormSection({
                         +
                       </button>
 
-                      <span className="text-xs text-gray-400">
-                        সর্বোচ্চ {p.maxQuantity}টি
-                      </span>
+                      <span className="text-xs text-gray-400">সর্বোচ্চ {p.maxQuantity}টি</span>
                     </div>
                   </FormField>
                 )}
-
               </div>
 
               <Divider />
@@ -357,17 +338,26 @@ export function OrderFormSection({
                   {savings > 0 && (
                     <div className="flex items-center justify-between text-green-600">
                       <span>সাশ্রয় হচ্ছে</span>
-                      <span className="font-semibold">
-                        − ৳{savings.toLocaleString('bn-BD')}
-                      </span>
+                      <span className="font-semibold">− ৳{savings.toLocaleString('bn-BD')}</span>
                     </div>
                   )}
 
                   {/* Delivery */}
                   <div className="flex items-center justify-between text-gray-500">
                     <span className="flex items-center gap-1">
-                      <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} aria-hidden="true">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M20 7H4a2 2 0 00-2 2v6a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z" />
+                      <svg
+                        className="h-3.5 w-3.5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={2}
+                        aria-hidden="true"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M20 7H4a2 2 0 00-2 2v6a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"
+                        />
                         <path strokeLinecap="round" strokeLinejoin="round" d="M16 3v4M8 3v4" />
                       </svg>
                       ডেলিভারি চার্জ
@@ -386,9 +376,7 @@ export function OrderFormSection({
                     }}
                   >
                     <span>সর্বমোট</span>
-                    <span className="text-xl">
-                      ৳{total.toLocaleString('bn-BD')}
-                    </span>
+                    <span className="text-xl">৳{total.toLocaleString('bn-BD')}</span>
                   </div>
                 </div>
               </div>
@@ -448,9 +436,7 @@ export function OrderFormSection({
 
               {/* Trust line */}
               {p.trustLine && (
-                <p className="mt-4 text-center text-xs font-medium text-gray-500">
-                  {p.trustLine}
-                </p>
+                <p className="mt-4 text-center text-xs font-medium text-gray-500">{p.trustLine}</p>
               )}
 
               {/* COD badge row */}
