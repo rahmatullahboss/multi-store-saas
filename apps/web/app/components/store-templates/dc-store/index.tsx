@@ -193,27 +193,29 @@ export function DCStoreTemplate({
               </div>
 
               {/* Floating Glassmorphism Product Card */}
-              <div className="absolute bottom-6 right-6 hidden lg:flex gap-4">
-                <div className="w-64 p-4 rounded-xl bg-black/40 backdrop-blur-xl border border-white/10 flex items-center gap-4 shadow-2xl">
-                  <div
-                    className="size-16 rounded-lg bg-cover bg-center shrink-0 border border-white/10"
-                    style={{
-                      backgroundImage: `url("https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=150&h=150&fit=crop")`,
-                    }}
-                  />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-white text-sm font-bold truncate">ফিচার্ড আইটেম</p>
-                    <p className="text-xs font-bold" style={{ color: theme.primary }}>বেস্ট সেলার</p>
+              {featuredProducts.length > 0 && (
+                <div className="absolute bottom-6 right-6 hidden lg:flex gap-4">
+                  <div className="w-64 p-4 rounded-xl bg-black/40 backdrop-blur-xl border border-white/10 flex items-center gap-4 shadow-2xl">
+                    <div
+                      className="size-16 rounded-lg bg-cover bg-center shrink-0 border border-white/10"
+                      style={{
+                        backgroundImage: `url("${featuredProducts[0].imageUrl || '/placeholder-product.svg'}")`,
+                      }}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-white text-sm font-bold truncate">{featuredProducts[0].title || 'ফিচার্ড আইটেম'}</p>
+                      <p className="text-xs font-bold" style={{ color: theme.primary }}>বেস্ট সেলার</p>
+                    </div>
+                    <PreviewSafeLink
+                      to={`/products/${featuredProducts[0].slug || featuredProducts[0].id}`}
+                      isPreview={isPreview}
+                      className="size-8 rounded-full bg-white flex items-center justify-center text-black hover:bg-primary transition-colors"
+                    >
+                      <ArrowRight className="h-4 w-4" />
+                    </PreviewSafeLink>
                   </div>
-                  <PreviewSafeLink
-                    to="/products"
-                    isPreview={isPreview}
-                    className="size-8 rounded-full bg-white flex items-center justify-center text-black hover:bg-primary transition-colors"
-                  >
-                    <ArrowRight className="h-4 w-4" />
-                  </PreviewSafeLink>
                 </div>
-              </div>
+              )}
             </div>
           </section>
         )}
