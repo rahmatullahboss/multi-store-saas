@@ -52,9 +52,9 @@ export function DCProductPage({ product, storeId, isPreview = false, config, shi
     return `৳ ${price.toLocaleString()}`;
   };
 
-  // Simulated rating (since multi-store SaaS may not have reviews yet)
-  const averageRating = 4.5;
-  const reviewCount = 0;
+  // Use actual review data from product (passed from route)
+  const averageRating = product.reviews?.average ?? 0;
+  const reviewCount = product.reviews?.count ?? 0;
 
   const highlightCards = [
     {
@@ -158,17 +158,19 @@ export function DCProductPage({ product, storeId, isPreview = false, config, shi
                     dangerouslySetInnerHTML={{ __html: product.description }}
                   />
                   <div className="flex flex-wrap gap-3 text-sm text-gray-500">
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1 text-amber-700">
-                      <span className="flex">
-                        {Array.from({ length: Math.floor(averageRating) }).map((_, i) => (
-                          <Star key={i} className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-                        ))}
-                        {averageRating % 1 >= 0.5 && (
-                          <StarHalf className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-                        )}
+                    {averageRating > 0 && (
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1 text-amber-700">
+                        <span className="flex">
+                          {Array.from({ length: Math.floor(averageRating) }).map((_, i) => (
+                            <Star key={i} className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                          ))}
+                          {averageRating % 1 >= 0.5 && (
+                            <StarHalf className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                          )}
+                        </span>
+                        {averageRating.toFixed(1)}/৫
                       </span>
-                      {averageRating.toFixed(1)}/৫
-                    </span>
+                    )}
                     {reviewCount > 0 && (
                       <span className="inline-flex items-center gap-2 rounded-full bg-rose-100 px-3 py-1 text-rose-700">
                         {reviewCount}টি রিভিউ
@@ -204,17 +206,19 @@ export function DCProductPage({ product, storeId, isPreview = false, config, shi
 
                   {/* Rating & Category */}
                   <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-gray-500">
-                    <div className="flex items-center gap-2">
-                      <div className="flex">
-                        {Array.from({ length: Math.floor(averageRating) }).map((_, i) => (
-                          <Star key={i} className="h-4 w-4 fill-amber-400 text-amber-400" />
-                        ))}
-                        {averageRating % 1 >= 0.5 && (
-                          <StarHalf className="h-4 w-4 fill-amber-400 text-amber-400" />
-                        )}
+                    {averageRating > 0 && (
+                      <div className="flex items-center gap-2">
+                        <div className="flex">
+                          {Array.from({ length: Math.floor(averageRating) }).map((_, i) => (
+                            <Star key={i} className="h-4 w-4 fill-amber-400 text-amber-400" />
+                          ))}
+                          {averageRating % 1 >= 0.5 && (
+                            <StarHalf className="h-4 w-4 fill-amber-400 text-amber-400" />
+                          )}
+                        </div>
+                        <span>({reviewCount} রিভিউ)</span>
                       </div>
-                      <span>({reviewCount} রিভিউ)</span>
-                    </div>
+                    )}
                     {product.category && (
                       <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-1 font-medium text-amber-700">
                         {product.category}
