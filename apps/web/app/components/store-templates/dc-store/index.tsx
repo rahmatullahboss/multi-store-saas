@@ -139,7 +139,7 @@ export function DCStoreTemplate({
         {/* Hero Section */}
         {!currentCategory && (
           <section className="relative w-full max-w-7xl mx-auto px-4 lg:px-10 pt-4 lg:pt-8">
-            <div className="relative overflow-hidden rounded-2xl min-h-[450px] sm:min-h-[550px] lg:min-h-[650px] flex items-center shadow-xl">
+            <div className="relative overflow-hidden rounded-2xl min-h-[300px] sm:min-h-[400px] lg:min-h-[480px] flex items-center shadow-xl">
               <img
                 src={heroSrc}
                 alt="Hero"
