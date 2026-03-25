@@ -38,9 +38,9 @@ interface FilterTab {
 // ============================================================================
 
 const FILTER_TABS: FilterTab[] = [
-  { id: 'all',        labelBn: 'সব',         labelEn: 'All' },
-  { id: 'sales',      labelBn: 'বিক্রয়',    labelEn: 'Sales' },
-  { id: 'leads',      labelBn: 'লিড',        labelEn: 'Leads' },
+  { id: 'all', labelBn: 'সব', labelEn: 'All' },
+  { id: 'sales', labelBn: 'বিক্রয়', labelEn: 'Sales' },
+  { id: 'leads', labelBn: 'লিড', labelEn: 'Leads' },
   { id: 'restaurant', labelBn: 'রেস্তোরাঁ', labelEn: 'Restaurant' },
 ];
 
@@ -74,16 +74,16 @@ function ConversionStars({ score }: { score: number }) {
 // ============================================================================
 
 const SECTION_LABELS: Record<string, { bn: string; icon: string }> = {
-  'hero':          { bn: 'হিরো সেকশন',         icon: '🎯' },
-  'trust-badges':  { bn: 'বিশ্বাসযোগ্যতা ব্যাজ', icon: '✅' },
-  'features':      { bn: 'ফিচার গ্রিড',          icon: '⭐' },
-  'testimonials':  { bn: 'কাস্টমার রিভিউ',       icon: '💬' },
-  'faq':           { bn: 'সাধারণ প্রশ্ন',         icon: '❓' },
-  'cta':           { bn: 'কল টু অ্যাকশন',        icon: '🚀' },
-  'product-grid':  { bn: 'প্রোডাক্ট গ্রিড',      icon: '🛍️' },
-  'countdown':     { bn: 'কাউন্টডাউন টাইমার',    icon: '⏰' },
-  'video':         { bn: 'ভিডিও সেকশন',          icon: '🎬' },
-  'gallery':       { bn: 'ইমেজ গ্যালারি',        icon: '🖼️' },
+  hero: { bn: 'হিরো সেকশন', icon: '🎯' },
+  'trust-badges': { bn: 'বিশ্বাসযোগ্যতা ব্যাজ', icon: '✅' },
+  features: { bn: 'ফিচার গ্রিড', icon: '⭐' },
+  testimonials: { bn: 'কাস্টমার রিভিউ', icon: '💬' },
+  faq: { bn: 'সাধারণ প্রশ্ন', icon: '❓' },
+  cta: { bn: 'কল টু অ্যাকশন', icon: '🚀' },
+  'product-grid': { bn: 'প্রোডাক্ট গ্রিড', icon: '🛍️' },
+  countdown: { bn: 'কাউন্টডাউন টাইমার', icon: '⏰' },
+  video: { bn: 'ভিডিও সেকশন', icon: '🎬' },
+  gallery: { bn: 'ইমেজ গ্যালারি', icon: '🖼️' },
 };
 
 interface PreviewModalProps {
@@ -108,15 +108,20 @@ function PreviewModal({ template, onClose, onUse, isSubmitting }: PreviewModalPr
         {/* Header */}
         <div
           className="flex items-center justify-between px-6 py-4 text-white flex-shrink-0"
-          style={{ background: `linear-gradient(135deg, ${template.primaryColor}, ${template.accentColor})` }}
+          style={{
+            background: `linear-gradient(135deg, ${template.primaryColor}, ${template.accentColor})`,
+          }}
         >
           <div>
             <p className="font-bold text-lg">{template.nameBn}</p>
-            <p className="text-sm opacity-80">{template.name} · {template.industry}</p>
+            <p className="text-sm opacity-80">
+              {template.name} · {template.industry}
+            </p>
           </div>
           <button
             onClick={onClose}
             className="p-2 rounded-full bg-white/20 hover:bg-white/30 transition-colors"
+            aria-label="বন্ধ করুন"
           >
             <X size={18} />
           </button>
@@ -147,7 +152,12 @@ function PreviewModal({ template, onClose, onUse, isSubmitting }: PreviewModalPr
               {/* Mock badges */}
               <div className="flex gap-2 flex-wrap justify-center">
                 {['🚚 ফ্রি ডেলিভারি', '💯 অরিজিনাল', '↩️ রিটার্ন', '💳 COD'].map((b) => (
-                  <span key={b} className="text-[11px] px-2 py-0.5 bg-white/30 rounded-full text-white font-medium">{b}</span>
+                  <span
+                    key={b}
+                    className="text-[11px] px-2 py-0.5 bg-white/30 rounded-full text-white font-medium"
+                  >
+                    {b}
+                  </span>
                 ))}
               </div>
             </div>
@@ -162,7 +172,10 @@ function PreviewModal({ template, onClose, onUse, isSubmitting }: PreviewModalPr
               {template.defaultSections.map((sec, i) => {
                 const label = SECTION_LABELS[sec.type] ?? { bn: sec.type, icon: '📄' };
                 return (
-                  <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 border border-gray-100">
+                  <div
+                    key={i}
+                    className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 border border-gray-100"
+                  >
                     <span className="text-xl">{label.icon}</span>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-gray-800">{label.bn}</p>
@@ -188,7 +201,13 @@ function PreviewModal({ template, onClose, onUse, isSubmitting }: PreviewModalPr
               <p className="text-xs text-amber-500 mt-1">কনভার্সন স্কোর</p>
             </div>
             <div className="text-center p-3 bg-green-50 rounded-xl">
-              <p className="text-lg font-bold text-green-700">{template.goal === 'sales' ? 'বিক্রয়' : template.goal === 'leads' ? 'লিড' : 'রেস্তোরাঁ'}</p>
+              <p className="text-lg font-bold text-green-700">
+                {template.goal === 'sales'
+                  ? 'বিক্রয়'
+                  : template.goal === 'leads'
+                    ? 'লিড'
+                    : 'রেস্তোরাঁ'}
+              </p>
               <p className="text-xs text-green-500 mt-1">লক্ষ্য</p>
             </div>
           </div>
@@ -247,10 +266,7 @@ function TemplateCard({ template, onUse, isSubmitting }: TemplateCardProps) {
       onMouseLeave={() => setHovered(false)}
     >
       {/* ── Thumbnail / Preview area ── */}
-      <div
-        className="relative overflow-hidden"
-        style={{ height: '300px', background: previewBg }}
-      >
+      <div className="relative overflow-hidden" style={{ height: '300px', background: previewBg }}>
         {/* Decorative gradient overlay */}
         <div
           className="absolute inset-0 opacity-40"
@@ -345,7 +361,10 @@ function TemplateCard({ template, onUse, isSubmitting }: TemplateCardProps) {
             </button>
 
             <button
-              onClick={(e) => { e.stopPropagation(); setShowPreview(true); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowPreview(true);
+              }}
               className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm bg-white/10 border border-white/30 text-white hover:bg-white/20 transition-all"
             >
               <Eye size={16} />
@@ -360,7 +379,10 @@ function TemplateCard({ template, onUse, isSubmitting }: TemplateCardProps) {
         <PreviewModal
           template={template}
           onClose={() => setShowPreview(false)}
-          onUse={(id) => { setShowPreview(false); onUse(id); }}
+          onUse={(id) => {
+            setShowPreview(false);
+            onUse(id);
+          }}
           isSubmitting={isSubmitting}
         />
       )}
@@ -376,15 +398,24 @@ function TemplateCard({ template, onUse, isSubmitting }: TemplateCardProps) {
             <p className="text-xs text-gray-400 truncate">{template.name}</p>
           </div>
           {/* Goal pill */}
-          <span className={`flex-shrink-0 px-2 py-0.5 rounded-full text-[10px] font-semibold ${
-            template.goal === 'sales'      ? 'bg-blue-100 text-blue-700' :
-            template.goal === 'leads'      ? 'bg-green-100 text-green-700' :
-            template.goal === 'restaurant' ? 'bg-orange-100 text-orange-700' :
-                                            'bg-purple-100 text-purple-700'
-          }`}>
-            {template.goal === 'sales'      ? 'বিক্রয়' :
-             template.goal === 'leads'      ? 'লিড' :
-             template.goal === 'restaurant' ? 'ফুড' : 'ব্র্যান্ড'}
+          <span
+            className={`flex-shrink-0 px-2 py-0.5 rounded-full text-[10px] font-semibold ${
+              template.goal === 'sales'
+                ? 'bg-blue-100 text-blue-700'
+                : template.goal === 'leads'
+                  ? 'bg-green-100 text-green-700'
+                  : template.goal === 'restaurant'
+                    ? 'bg-orange-100 text-orange-700'
+                    : 'bg-purple-100 text-purple-700'
+            }`}
+          >
+            {template.goal === 'sales'
+              ? 'বিক্রয়'
+              : template.goal === 'leads'
+                ? 'লিড'
+                : template.goal === 'restaurant'
+                  ? 'ফুড'
+                  : 'ব্র্যান্ড'}
           </span>
         </div>
 
@@ -421,18 +452,14 @@ export function TemplateGallery({ templates, pagesCount }: TemplateGalleryProps)
   const isSubmitting = fetcher.state !== 'idle';
 
   // Filter templates
-  const filtered = activeFilter === 'all'
-    ? templates
-    : templates.filter(t => t.goal === activeFilter);
+  const filtered =
+    activeFilter === 'all' ? templates : templates.filter((t) => t.goal === activeFilter);
 
   // Group by goal for tab counts
-  const countByGoal = (goal: TemplateGoal) => templates.filter(t => t.goal === goal).length;
+  const countByGoal = (goal: TemplateGoal) => templates.filter((t) => t.goal === goal).length;
 
   const handleUseTemplate = (templateId: string) => {
-    fetcher.submit(
-      { intent: 'create-from-builder-template', templateId },
-      { method: 'POST' }
-    );
+    fetcher.submit({ intent: 'create-from-builder-template', templateId }, { method: 'POST' });
   };
 
   return (
@@ -442,12 +469,8 @@ export function TemplateGallery({ templates, pagesCount }: TemplateGalleryProps)
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">
-                টেমপ্লেট বেছে নিন
-              </h1>
-              <p className="text-sm text-gray-500 mt-0.5">
-                আপনার ব্যবসার ধরন অনুযায়ী শুরু করুন
-              </p>
+              <h1 className="text-2xl font-bold text-gray-900">টেমপ্লেট বেছে নিন</h1>
+              <p className="text-sm text-gray-500 mt-0.5">আপনার ব্যবসার ধরন অনুযায়ী শুরু করুন</p>
             </div>
 
             <div className="flex items-center gap-3">
@@ -476,7 +499,8 @@ export function TemplateGallery({ templates, pagesCount }: TemplateGalleryProps)
           {/* ── Filter Tabs ── */}
           <div className="flex items-center gap-2 mt-4 overflow-x-auto pb-0.5 scrollbar-none">
             {FILTER_TABS.map((tab) => {
-              const count = tab.id === 'all' ? templates.length : countByGoal(tab.id as TemplateGoal);
+              const count =
+                tab.id === 'all' ? templates.length : countByGoal(tab.id as TemplateGoal);
               const isActive = activeFilter === tab.id;
               return (
                 <button
@@ -489,9 +513,11 @@ export function TemplateGallery({ templates, pagesCount }: TemplateGalleryProps)
                   }`}
                 >
                   {tab.labelBn}
-                  <span className={`text-xs px-1.5 py-0.5 rounded-full font-semibold ${
-                    isActive ? 'bg-white/20 text-white' : 'bg-white text-gray-500'
-                  }`}>
+                  <span
+                    className={`text-xs px-1.5 py-0.5 rounded-full font-semibold ${
+                      isActive ? 'bg-white/20 text-white' : 'bg-white text-gray-500'
+                    }`}
+                  >
                     {count}
                   </span>
                 </button>
@@ -531,9 +557,7 @@ export function TemplateGallery({ templates, pagesCount }: TemplateGalleryProps)
         {/* Bottom CTA — Genie shortcut */}
         <div className="mt-12 bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-2xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div>
-            <p className="font-bold text-gray-900 text-lg">
-              ✨ Genie দিয়ে তৈরি করুন
-            </p>
+            <p className="font-bold text-gray-900 text-lg">✨ Genie দিয়ে তৈরি করুন</p>
             <p className="text-sm text-gray-600 mt-0.5">
               AI আপনার জন্য সেরা লেআউট তৈরি করবে — মাত্র ৩টি প্রশ্নের উত্তরে
             </p>
