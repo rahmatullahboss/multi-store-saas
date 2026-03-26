@@ -34,6 +34,25 @@ const BLOCKED_BOT_PATTERNS = [
   /dotbot/i,
 ];
 
+function isSuspiciousPath(path: string): boolean {
+  const lowerPath = path.toLowerCase();
+  
+  const badExtensions = ['.php', '.env', '.sql', '.bak', '.jsp', '.asp', '.aspx', '.ini', '.conf', '.tar.gz', '.zip'];
+  if (badExtensions.some((ext) => lowerPath.endsWith(ext))) return true;
+  
+  if (
+    lowerPath.includes('/wp-content/') ||
+    lowerPath.includes('/wp-admin/') ||
+    lowerPath.includes('/wp-includes/') ||
+    lowerPath.includes('/.git/') ||
+    lowerPath.includes('.env')
+  ) {
+    return true;
+  }
+  
+  return false;
+}
+
 function isVerifiedSearchBot(userAgent: string): boolean {
   return VERIFIED_SEARCH_BOT_PATTERNS.some((pattern) => pattern.test(userAgent));
 }
@@ -47,10 +66,17 @@ export const botControlMiddleware = (): MiddlewareHandler<{
   Variables: TenantContext;
 }> => {
   return async (c, next) => {
+    const path = c.req.path;
+    
+    // 🛑 WAF Phase: Block common vulnerability scanners immediately
+    // This runs before tenant middleware to save thousands of KV/D1 read operations
+    if (isSuspiciousPath(path)) {
+      return new Response('Not Found', { status: 404 });
+    }
+
     const method = c.req.method;
     if (method !== 'GET' && method !== 'HEAD') return next();
 
-    const path = c.req.path;
     if (path.startsWith('/api/')) return next();
 
     // Keep admin domain fully accessible
