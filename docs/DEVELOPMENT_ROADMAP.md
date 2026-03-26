@@ -224,6 +224,39 @@
 
 ---
 
+## Phase 15: Headless Theme Architecture ✅ (Complete — 2026-03-26)
+
+### 15.1 Visual Editor Removal
+
+- [x] Delete Store Live Editor (3,384 lines)
+- [x] Delete Page Builder v2 (GrapesJS + new-builder)
+- [x] Delete Quick Builder
+- [x] Delete all editor APIs (editor-state, builder.save, builder.analytics)
+- [x] Delete all preview routes (template-preview, landing-template-preview, store-template-preview)
+- [x] Delete `components/builder/` (25 section components)
+- [x] Delete `components/page-builder/`, `components/store-builder/`
+- [x] Delete `lib/page-builder/`, `lib/template-builder/`
+- [x] Delete `hooks/useEditorHistory.ts`, `hooks/useBuilderClipboard.ts`
+- [x] **Total: 117 files, 30,830 lines removed**
+
+### 15.2 Headless Data Contract
+
+- [x] `storefront-types.ts` — Canonical type definitions (StorefrontData interface)
+- [x] `storefront-data.server.ts` — Server-side data builder function
+- [x] All 18 templates verified working with headless system
+
+### 15.3 Architecture Finalization
+
+- [x] Refactored `_index.tsx` — Always renders TemplateComponent directly
+- [x] Refactored `app.tsx` — Removed builder-specific sidebar logic
+- [x] Simplified `p.$slug.tsx` — Custom HTML pages only
+- [x] Simplified `app.pages.tsx` — List/manage custom pages only
+- [x] Created compatibility shims for legacy template imports
+
+> 📖 Full documentation: `docs/HEADLESS_THEME_ARCHITECTURE.md`
+
+---
+
 ## Priority Order
 
 | Priority | Phase                        | Status   |
@@ -237,4 +270,6 @@
 | ✅ Done  | Phase 8 (Multi-User)         | Complete |
 | ✅ Done  | Phase 9 (Advanced Features)  | Complete |
 | ✅ Done  | Phase 14 (Product Reviews)   | Complete |
+| ✅ Done  | Phase 15 (Headless Architecture) | Complete |
 | 🟡 Next  | Phase 7 (Notifications)      | Partial  |
+
