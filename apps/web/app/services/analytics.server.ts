@@ -40,7 +40,7 @@ export async function getStoreStats(db: Database, storeId: number) {
     todayResult,
     yesterdayResult,
     salesDataRaw,
-  ] = await Promise.all([
+  ] = await db.batch([
     db.select({ count: count() }).from(products).where(and(eq(products.storeId, storeId), eq(products.isPublished, true))),
     db.select({ count: count() }).from(products).where(and(eq(products.storeId, storeId), sql`inventory <= 5`)),
     db.select({ count: count() }).from(orders).where(eq(orders.storeId, storeId)),
@@ -191,7 +191,7 @@ export async function getAbandonedCartRecoveryStats(db: Database, storeId?: numb
 }
 
 export async function getStoreFunnelMetrics(db: Database, storeId: number) {
-  const [views, cartsCount, checkouts, ordersCount] = await Promise.all([
+  const [views, cartsCount, checkouts, ordersCount] = await db.batch([
     db
       .select({ count: sql<number>`count(distinct ${pageViews.visitorId})` })
       .from(pageViews)

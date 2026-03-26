@@ -74,7 +74,7 @@ export async function loader({ context }: LoaderFunctionArgs): Promise<Response>
   
   try {
     // Fetch counts in parallel
-    const [userCountResult, storeCountResult, recentUsersResult] = await Promise.all([
+    const [userCountResult, storeCountResult, recentUsersResult] = await db.batch([
       // Total users
       db.select({ count: count() }).from(users),
       // Total stores
