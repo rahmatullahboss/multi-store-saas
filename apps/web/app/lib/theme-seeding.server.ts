@@ -24,7 +24,7 @@ import {
   type TemplateKey,
 } from '@db/schema';
 import { getThemePreset, ROVO_PRESET, type ThemePresetDefinition } from './theme-presets';
-
+import { DEFAULT_UNIFIED_SETTINGS, serializeUnifiedSettings } from '~/services/storefront-settings.schema';
 // ============================================================================
 // TYPES
 // ============================================================================
@@ -461,7 +461,7 @@ export async function seedDefaultTheme(
       const homeTemplate = presetConfig.templates.find(t => t.key === 'home');
       // Construct a ThemeConfig object from the preset
       const legacyThemeConfig = {
-        storeTemplateId: presetConfig.id,
+        storeTemplateId: presetConfig.id === 'default' ? 'dc-store' : presetConfig.id, // Fallback properly for new stores
         primaryColor: presetConfig.settings.primaryColor,
         accentColor: presetConfig.settings.accentColor,
         backgroundColor: presetConfig.settings.backgroundColor,
@@ -476,15 +476,34 @@ export async function seedDefaultTheme(
         ...presetConfig.settings
       };
 
+      // Construct Unified Settings V1 for the new Canonical Source of Truth
+      const unifiedSettings = {
+        ...DEFAULT_UNIFIED_SETTINGS,
+        theme: {
+          ...DEFAULT_UNIFIED_SETTINGS.theme,
+          templateId: presetConfig.id === 'default' ? 'dc-store' : presetConfig.id,
+          primary: presetConfig.settings.primaryColor as string,
+          accent: presetConfig.settings.accentColor as string,
+          background: presetConfig.settings.backgroundColor as string,
+          text: presetConfig.settings.textColor as string,
+        },
+        typography: {
+          ...DEFAULT_UNIFIED_SETTINGS.typography,
+          fontFamily: presetConfig.settings.bodyFont as string,
+        }
+      };
+
       await drizzleDb.update(stores)
         .set({ 
           themeConfig: JSON.stringify(legacyThemeConfig),
+          storefrontSettings: serializeUnifiedSettings(unifiedSettings),
+          theme: unifiedSettings.theme.templateId, // Keep synced with legacy schema
           fontFamily: presetConfig.settings.bodyFont as string,
           updatedAt: now
         })
         .where(eq(stores.id, storeId));
     } catch (legacyError) {
-      console.warn('Failed to sync legacy store config:', legacyError);
+      console.warn('Failed to sync store config:', legacyError);
       // Continue, as this is secondary
     }
     

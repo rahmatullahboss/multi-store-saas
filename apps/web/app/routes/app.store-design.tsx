@@ -9,13 +9,13 @@
  * 4. Update store info (announcement, contact)
  */
 
-import type { ActionFunctionArgs, LoaderFunctionArgs, MetaFunction } from 'react-router';
+import type { MetaFunction } from 'react-router';
 import { json } from '~/lib/rr7-compat';
 import { Form, Link, useLoaderData, useNavigation, useActionData } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
 import { stores } from '@db/schema';
-import { parseThemeConfig, defaultThemeConfig, type ThemeConfig, parseSocialLinks, type SocialLinks } from '@db/types';
+// Removed deprecated legacy imports
 import { requireUserId, getStoreId } from '~/services/auth.server';
 import { getAllStoreTemplates, DEFAULT_STORE_TEMPLATE_ID, STORE_TEMPLATE_THEMES } from '~/templates/store-registry';
 import { 
@@ -49,16 +49,30 @@ export const loader = async ({ request, context }: any) => {
 
   const db = drizzle(context.cloudflare.env.DB);
   const store = await db.select().from(stores).where(eq(stores.id, storeId)).limit(1);
-  
   if (!store[0]) throw new Response('Store not found', { status: 404 });
   
-  const themeConfig = parseThemeConfig(store[0].themeConfig as string | null) || defaultThemeConfig;
-  const currentTemplateId = themeConfig.storeTemplateId || DEFAULT_STORE_TEMPLATE_ID;
+  const { getUnifiedStorefrontSettings } = await import('~/services/unified-storefront-settings.server');
+  const unifiedSettings = await getUnifiedStorefrontSettings(db, storeId, { env: context.cloudflare.env });
+  
+  const currentTemplateId = unifiedSettings.theme.templateId || DEFAULT_STORE_TEMPLATE_ID;
   const templates = getAllStoreTemplates();
   
   return json({
     currentTemplateId,
-    themeConfig,
+    themeConfig: {
+      primaryColor: unifiedSettings.theme.primary,
+      accentColor: unifiedSettings.theme.accent,
+      bannerUrl: unifiedSettings.heroBanner?.slides?.[0]?.imageUrl || '',
+      bannerText: unifiedSettings.heroBanner?.slides?.[0]?.heading || '',
+      announcement: unifiedSettings.announcement ? {
+        enabled: unifiedSettings.announcement.enabled,
+        text: unifiedSettings.announcement.text,
+        link: unifiedSettings.announcement.link,
+        bgColor: unifiedSettings.announcement.backgroundColor,
+        textColor: unifiedSettings.announcement.textColor,
+        dismissible: false, // Not supported in unified schema
+      } : null,
+    },
     templates: templates.map(t => ({ 
       id: t.id, 
       name: t.name, 
@@ -69,12 +83,20 @@ export const loader = async ({ request, context }: any) => {
       fonts: t.fonts,
     })),
     storeSubdomain: store[0].subdomain,
-    storeName: store[0].name,
-    storeMode: store[0].mode || 'store',
-    storeLogo: store[0].logo || '',
-    businessInfo: store[0].businessInfo ? JSON.parse(store[0].businessInfo) : { phone: '', email: '', address: '' },
-    socialLinks: parseSocialLinks(store[0].socialLinks as string | null) || { facebook: '', instagram: '', whatsapp: '' },
-    fontFamily: store[0].fontFamily || 'inter',
+    storeName: unifiedSettings.branding.storeName,
+    storeMode: (store[0] as any).mode || 'store',
+    storeLogo: unifiedSettings.branding.logo || '',
+    businessInfo: { 
+      phone: unifiedSettings.business?.phone || '', 
+      email: unifiedSettings.business?.email || '', 
+      address: unifiedSettings.business?.address || '' 
+    },
+    socialLinks: { 
+      facebook: unifiedSettings.social?.facebook || '', 
+      instagram: unifiedSettings.social?.instagram || '', 
+      whatsapp: unifiedSettings.social?.whatsapp || '' 
+    },
+    fontFamily: unifiedSettings.typography.fontFamily || 'inter',
   });
 }
 
@@ -91,26 +113,14 @@ export const action = async ({ request, context }: any) => {
 
   const db = drizzle(context.cloudflare.env.DB);
   
-  // Get current config
-  const store = await db.select().from(stores).where(eq(stores.id, storeId)).limit(1);
-  if (!store[0]) throw new Response('Store not found', { status: 404 });
-  
-  const currentConfig = parseThemeConfig(store[0].themeConfig as string | null) || defaultThemeConfig;
+  const { getUnifiedStorefrontSettings, saveUnifiedStorefrontSettingsWithCacheInvalidation } = await import('~/services/unified-storefront-settings.server');
+  const unified = await getUnifiedStorefrontSettings(db, storeId, { env: context.cloudflare.env });
 
   if (intent === 'select-template') {
     const templateId = formData.get('templateId') as string;
     if (!templateId) return json({ success: false, error: 'Template required' }, { status: 400 });
     
-    // Save to legacy themeConfig for backwards compatibility
-    const updatedConfig: ThemeConfig = { ...currentConfig, storeTemplateId: templateId };
-    await db.update(stores).set({ 
-      themeConfig: JSON.stringify(updatedConfig), 
-      updatedAt: new Date() 
-    }).where(eq(stores.id, storeId));
-
-    // Also save to unified storefront settings (source of truth for storefront routes)
     try {
-      const { saveUnifiedStorefrontSettingsWithCacheInvalidation } = await import('~/services/unified-storefront-settings.server');
       await saveUnifiedStorefrontSettingsWithCacheInvalidation(
         db,
         context.cloudflare.env,
@@ -119,26 +129,18 @@ export const action = async ({ request, context }: any) => {
       );
     } catch (e) {
       console.error('Failed to update unified settings template:', e);
+      return json({ success: false, error: 'Failed to apply template' }, { status: 500 });
     }
     
     return json({ success: true, message: 'templateApplied' });
   }
 
   if (intent === 'save-theme') {
-    const primaryColor = formData.get('primaryColor') as string || currentConfig.primaryColor;
-    const accentColor = formData.get('accentColor') as string || currentConfig.accentColor;
+    const primaryColor = formData.get('primaryColor') as string || unified.theme.primary;
+    const accentColor = formData.get('accentColor') as string || unified.theme.accent;
     const fontFamily = formData.get('fontFamily') as string || 'inter';
     
-    const updatedConfig: ThemeConfig = { ...currentConfig, primaryColor, accentColor };
-    await db.update(stores).set({ 
-      themeConfig: JSON.stringify(updatedConfig),
-      fontFamily,
-      updatedAt: new Date() 
-    }).where(eq(stores.id, storeId));
-
-    // Also save to unified storefront settings
     try {
-      const { saveUnifiedStorefrontSettingsWithCacheInvalidation } = await import('~/services/unified-storefront-settings.server');
       await saveUnifiedStorefrontSettingsWithCacheInvalidation(
         db,
         context.cloudflare.env,
@@ -150,7 +152,14 @@ export const action = async ({ request, context }: any) => {
       );
     } catch (e) {
       console.error('Failed to update unified settings theme:', e);
+      return json({ success: false, error: 'Failed to save theme' }, { status: 500 });
     }
+    
+    // Legacy Sync
+    await db.update(stores).set({ 
+      fontFamily,
+      updatedAt: new Date() 
+    }).where(eq(stores.id, storeId));
     
     return json({ success: true, message: 'themeSaved' });
   }
@@ -163,25 +172,41 @@ export const action = async ({ request, context }: any) => {
     const announcementLink = formData.get('announcementLink') as string || '';
     const announcementBgColor = formData.get('announcementBgColor') as string || '';
     const announcementTextColor = formData.get('announcementTextColor') as string || '';
-    const announcementDismissible = formData.get('announcementDismissible') === 'true';
     
-    const updatedConfig: ThemeConfig = { 
-      ...currentConfig, 
-      bannerUrl: bannerUrl || undefined,
-      bannerText: bannerText || undefined,
-      announcement: announcementText ? {
-        enabled: announcementEnabled,
-        text: announcementText,
-        link: announcementLink || undefined,
-        bgColor: announcementBgColor || undefined,
-        textColor: announcementTextColor || undefined,
-        dismissible: announcementDismissible
-      } : undefined,
-    };
-    await db.update(stores).set({ 
-      themeConfig: JSON.stringify(updatedConfig), 
-      updatedAt: new Date() 
-    }).where(eq(stores.id, storeId));
+    const slides = unified.heroBanner?.slides || [];
+    if (slides.length > 0) {
+      slides[0].imageUrl = bannerUrl || null;
+      slides[0].heading = bannerText || null;
+    } else {
+      slides.push({
+        imageUrl: bannerUrl || null,
+        heading: bannerText || null,
+        subheading: null,
+        ctaText: null,
+        ctaLink: null
+      });
+    }
+
+    try {
+      await saveUnifiedStorefrontSettingsWithCacheInvalidation(
+        db,
+        context.cloudflare.env,
+        storeId,
+        { 
+          heroBanner: { slides },
+          announcement: announcementText ? {
+            enabled: announcementEnabled,
+            text: announcementText,
+            link: announcementLink || null,
+            backgroundColor: announcementBgColor || '#4F46E5',
+            textColor: announcementTextColor || '#ffffff'
+          } : undefined,
+        }
+      );
+    } catch (e) {
+      console.error('Failed to update unified settings banner:', e);
+      return json({ success: false, error: 'Failed to save banner settings' }, { status: 500 });
+    }
     
     return json({ success: true, message: 'bannerSaved' });
   }
@@ -195,13 +220,33 @@ export const action = async ({ request, context }: any) => {
     const instagram = formData.get('instagram') as string || '';
     const whatsapp = formData.get('whatsapp') as string || '';
     
-    const businessInfo = JSON.stringify({ phone, email, address });
-    const socialLinks = JSON.stringify({ facebook, instagram, whatsapp });
+    try {
+      await saveUnifiedStorefrontSettingsWithCacheInvalidation(
+        db,
+        context.cloudflare.env,
+        storeId,
+        { 
+          branding: { logo: logo || null },
+          business: { 
+            phone: phone || null, 
+            email: email || null, 
+            address: address || null 
+          },
+          social: {
+            facebook: facebook || null,
+            instagram: instagram || null,
+            whatsapp: whatsapp || null,
+          }
+        }
+      );
+    } catch (e) {
+      console.error('Failed to update unified settings info:', e);
+      return json({ success: false, error: 'Failed to save store info' }, { status: 500 });
+    }
     
+    // Legacy Sync
     await db.update(stores).set({ 
       logo: logo || null,
-      businessInfo,
-      socialLinks,
       updatedAt: new Date() 
     }).where(eq(stores.id, storeId));
     
@@ -217,8 +262,9 @@ export const action = async ({ request, context }: any) => {
 // COMPONENT
 // ============================================================================
 export default function StoreDesignPage() {
-  const { currentTemplateId, themeConfig, templates, storeSubdomain, storeName, storeMode, storeLogo, businessInfo, socialLinks, fontFamily: storedFontFamily } = useLoaderData<typeof loader>();
-  const actionData = useActionData<typeof action>();
+  const loaderData = useLoaderData() as any;
+  const { currentTemplateId, themeConfig, templates, storeSubdomain, storeName, storeMode, storeLogo, businessInfo, socialLinks, fontFamily: storedFontFamily } = loaderData;
+  const actionData = useActionData() as any;
   const navigation = useNavigation();
   const { t, lang } = useTranslation();
   
@@ -370,7 +416,7 @@ export default function StoreDesignPage() {
         {/* Templates Tab */}
         {activeTab === 'templates' && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {templates.map((template) => {
+            {templates.map((template: any) => {
               const isActive = template.id === currentTemplateId;
               const theme = STORE_TEMPLATE_THEMES[template.id];
               
@@ -995,7 +1041,7 @@ export default function StoreDesignPage() {
         isOpen={!!previewTemplate}
         onClose={() => setPreviewTemplate(null)}
         templateId={previewTemplate || ''}
-        templateName={templates.find(t => t.id === previewTemplate)?.name || ''}
+        templateName={templates.find((t: any) => t.id === previewTemplate)?.name || ''}
         storeName={storeName}
         onApply={() => {
           if (previewTemplate) {
