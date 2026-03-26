@@ -1,6 +1,6 @@
 ---
 name: project
-description: "Project for multi-store-saas. 37 gotchas, 50 conventions."
+description: "Project for multi-store-saas. 37 gotchas, 52 conventions."
 domain: project
 triggers:
   - glob: "**/*"
@@ -10,7 +10,7 @@ enabled: true
 
 # Project
 
-Auto-compiled from **120 real patterns** in **multi-store-saas**. This skill is auto-routed to agents when working on project files.
+Auto-compiled from **123 real patterns** in **multi-store-saas**. This skill is auto-routed to agents when working on project files.
 
 ## ⚠️ Anti-Patterns & Gotchas
 
@@ -59,6 +59,8 @@ Auto-compiled from **120 real patterns** in **multi-store-saas**. This skill is 
 ## 📐 Conventions & Best Practices
 
 ### Project Conventions
+- 📐 **what-changed in 7931905348bf65aaf2f51d6ae1b25848d520c43d115e16cc97bb110d8f1d53a5.sqlite-wal — confirmed 3x**
+- 📐 **what-changed in 7931905348bf65aaf2f51d6ae1b25848d520c43d115e16cc97bb110d8f1d53a5.sqlite-shm — confirmed 3x**
 - 📐 **Extract repeated class patterns into components** — Extract repeated class patterns into components
 - 📐 **Use responsive prefixes consistently (sm:, md:, lg:, xl:)** — Use responsive prefixes consistently (sm:, md:, lg:, xl:)
 - 📐 **Don't use arbitrary values when a utility class exists** — Don't use arbitrary values when a utility class exists
@@ -107,18 +109,11 @@ Auto-compiled from **120 real patterns** in **multi-store-saas**. This skill is 
 - 📐 **Always pull before push to avoid conflicts** — Always pull before push to avoid conflicts
 - 📐 **Use meaningful commit messages in imperative mood: "Add feature" not "Added feature"** — Use meaningful commit messages in imperative mood: "Add feature" not "Added feature"
 - 📐 **Don't commit node_modules, __pycache__, build/, dist/ — add to .gitignore** — Don't commit node_modules, __pycache__, build/, dist/ — add to .gitignore
-- 📐 **convention in palette.md** — - ## 2024-03-13 - Focus and Loading States
-+ ## 2026-03-20 - Added ARIA labels and roles
-- **Learnin
-- 📐 **convention in palette.md** — File updated (external): .Jules/palette.md
-
-Content summary (4 lines):
-## 2026-03-20 - Added ARIA la
 
 ## 🤔 Decisions & Trade-offs
 
 - **Optimized Multi — offloads heavy computation off the main thread** — - 1. **Optimize `getStoreStats` in `apps/web/app/services/analytics.server.ts`**:
 + # Multi-Tenant F
-- **Optimized Optimize — parallelizes async operations for s
+- **Optimized Optimize — parallelizes async operations for speed** — - # Multi-Tenant Feature Gaps — I
 
 ... [Truncated — see individual observations for full content]

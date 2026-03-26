@@ -610,16 +610,16 @@ export default function Checkout() {
           return 'w-full bg-[#1a1a1a] text-white px-8 py-3 uppercase tracking-widest text-xs font-bold hover:bg-[#c9a961] hover:text-white transition-colors shadow-lg';
       }
     }
-    // Default styles
+    // Default styles — use theme's primary color via CSS variable
     switch (variant) {
       case 'primary':
-        return 'w-full mt-6 py-3.5 px-4 bg-gray-900 text-white font-bold rounded-xl shadow-lg hover:shadow-xl hover:bg-gray-800 transition-all disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2';
+        return 'w-full mt-6 py-3.5 px-4 bg-[var(--color-primary)] text-white font-bold rounded-xl shadow-lg hover:shadow-xl hover:opacity-90 transition-all disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2';
       case 'secondary':
-        return 'px-4 py-2 text-sm font-medium text-white bg-gray-800 rounded-lg hover:bg-gray-700 disabled:opacity-50';
+        return 'px-4 py-2 text-sm font-medium text-white bg-[var(--color-primary)] rounded-lg hover:opacity-90 disabled:opacity-50';
       case 'outline':
         return 'flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--color-primary)] focus:border-[var(--color-primary)]';
       default:
-        return 'w-full mt-6 py-3.5 px-4 bg-gray-900 text-white font-bold rounded-xl shadow-lg hover:shadow-xl hover:bg-gray-800 transition-all';
+        return 'w-full mt-6 py-3.5 px-4 bg-[var(--color-primary)] text-white font-bold rounded-xl shadow-lg hover:shadow-xl hover:opacity-90 transition-all';
     }
   };
 

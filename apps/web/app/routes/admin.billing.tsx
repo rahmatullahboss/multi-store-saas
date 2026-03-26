@@ -148,10 +148,10 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   
   const revenueDataRaw = await drizzleDb.all(sql`
     SELECT 
-      strftime('%Y-%m', created_at / 1000, 'unixepoch') as month,
+      strftime('%Y-%m', created_at, 'unixepoch') as month,
       sum(amount) as revenue
     FROM payments
-    WHERE status = 'paid' AND created_at >= ${twelveMonthsAgo.getTime()}
+    WHERE status = 'paid' AND created_at >= ${Math.floor(twelveMonthsAgo.getTime() / 1000)}
     GROUP BY month
     ORDER BY month ASC
   `);

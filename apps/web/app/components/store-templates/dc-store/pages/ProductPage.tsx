@@ -23,6 +23,7 @@ interface DCProductPageProps {
   storeId: number;
   isPreview?: boolean;
   config?: any;
+  theme?: any;
   shippingConfig?: {
     enabled: boolean;
     insideDhaka: number;
@@ -33,8 +34,8 @@ interface DCProductPageProps {
   };
 }
 
-export function DCProductPage({ product, storeId, isPreview = false, config, shippingConfig }: DCProductPageProps) {
-  const theme = resolveDCStoreTheme(config);
+export function DCProductPage({ product, storeId, isPreview = false, config, theme: themeProp, shippingConfig }: DCProductPageProps) {
+  const theme = resolveDCStoreTheme(config, themeProp);
   const [quantity, setQuantity] = useState(1);
 
   const discount = product.compareAtPrice 

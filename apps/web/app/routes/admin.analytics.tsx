@@ -109,7 +109,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   
   const dailyGMVRaw = await drizzleDb.all(sql`
     SELECT 
-      date(created_at / 1000, 'unixepoch') as date, 
+      date(created_at, 'unixepoch') as date, 
       sum(total) as total 
     FROM orders 
     WHERE status != 'cancelled' AND created_at >= ${thirtyDaysAgo.getTime() / 1000} 
@@ -121,7 +121,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   const dailySignupsRaw = await drizzleDb.all(sql`
     SELECT 
-      date(created_at / 1000, 'unixepoch') as date, 
+      date(created_at, 'unixepoch') as date, 
       count(id) as count 
     FROM stores 
     WHERE created_at >= ${thirtyDaysAgo.getTime() / 1000} 

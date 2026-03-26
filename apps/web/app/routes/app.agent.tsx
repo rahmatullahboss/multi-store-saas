@@ -55,11 +55,11 @@ export const loader = async ({ request, context }: LoaderFunctionArgs) => {
 
     db.all(sql`
         SELECT
-            strftime('%Y-%m-%d', created_at / 1000, 'unixepoch') as date,
+            strftime('%Y-%m-%d', created_at, 'unixepoch') as date,
             count(*) as count
         FROM ai_conversations
         WHERE agent_id = ${agent?.id || 0}
-        AND created_at >= ${sevenDaysAgo.getTime()}
+        AND created_at >= ${Math.floor(sevenDaysAgo.getTime() / 1000)}
         GROUP BY date
         ORDER BY date ASC
       `),

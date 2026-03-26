@@ -29,6 +29,7 @@ interface DCCheckoutPageProps {
   onSubmitOrder: (data: any) => void;
   isPreview?: boolean;
   config?: ThemeConfig | null;
+  theme?: any;
 }
 
 export function DCCheckoutPage({ 
@@ -38,9 +39,10 @@ export function DCCheckoutPage({
   total, 
   onSubmitOrder, 
   isPreview = false,
-  config 
+  config,
+  theme: themeProp,
 }: DCCheckoutPageProps) {
-  const theme = resolveDCStoreTheme(config);
+  const theme = resolveDCStoreTheme(config, themeProp);
   const { t } = useTranslation();
   const [formData, setFormData] = useState({
     fullName: '',
