@@ -1,0 +1,3 @@
+## 2024-03-27 - Keyboard Focus on Hover-Revealed Elements
+**Learning:** Elements hidden with `opacity-0` and revealed on hover (`group-hover:opacity-100`) become invisible traps for keyboard users navigating via Tab unless they also have focus visibility.
+**Action:** Always pair hover-revealed opacity styles with `focus-visible:opacity-100` and clear focus rings (e.g., `focus-visible:ring-2`) to ensure interactive elements are accessible to keyboard users.
