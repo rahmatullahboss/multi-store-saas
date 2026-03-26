@@ -10,7 +10,6 @@
 import { type LoaderFunctionArgs, type MetaFunction } from 'react-router';
 import { json } from '~/lib/rr7-compat';
 import { useLoaderData, Link } from 'react-router';
-import { drizzle } from 'drizzle-orm/d1';
 import { orders, orderItems, stores } from '@db/schema';
 import { eq, and } from 'drizzle-orm';
 import { useEffect, useRef } from 'react';
@@ -43,7 +42,7 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
   // Support both numeric orderId AND string orderNumber (e.g., ORD-XXXX-XXX)
   const isNumeric = !isNaN(Number(orderParam));
 
-  // Fetch order with items
+  // Fetch order
   const order = await db
     .select()
     .from(orders)
@@ -58,26 +57,24 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     throw new Response('Order not found', { status: 404 });
   }
 
-  // Fetch order items
-  const items = await db.select().from(orderItems).where(eq(orderItems.orderId, order[0].id));
+  // Parallelize remaining DB calls for speed
+  const [items, storeResult, unifiedSettings] = await Promise.all([
+    db.select().from(orderItems).where(eq(orderItems.orderId, order[0].id)),
+    db
+      .select({
+        name: stores.name,
+        currency: stores.currency,
+        planType: stores.planType,
+      })
+      .from(stores)
+      .where(eq(stores.id, order[0].storeId))
+      .limit(1),
+    getUnifiedStorefrontSettings(db, order[0].storeId, {
+      env: context.cloudflare.env,
+    }),
+  ]);
 
-  // Fetch store info
-  const storeResult = await db
-    .select({
-      name: stores.name,
-      currency: stores.currency,
-      planType: stores.planType,
-    })
-    .from(stores)
-    .where(eq(stores.id, order[0].storeId))
-    .limit(1);
-
-  // Get unified settings for business info (single source of truth)
-  const unifiedSettings = await getUnifiedStorefrontSettings(db, order[0].storeId, {
-    env: context.cloudflare.env,
-  });
-
-  let storePhone = unifiedSettings.business.phone || '01XXXXXXXXX';
+  const storePhone = unifiedSettings.business.phone || '01XXXXXXXXX';
 
   return json({
     order: order[0],
@@ -87,6 +84,29 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
     planType: storeResult[0]?.planType || 'free',
     storePhone,
   });
+}
+
+// ErrorBoundary to prevent blank pages on loader failures
+export function ErrorBoundary() {
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-emerald-900 to-gray-900 text-white flex items-center justify-center">
+      <div className="text-center max-w-md mx-auto px-6">
+        <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-emerald-500 text-white text-5xl mb-6">
+          ✓
+        </div>
+        <h1 className="text-3xl font-bold mb-4">অর্ডার সফল হয়েছে! 🎉</h1>
+        <p className="text-emerald-300 text-lg mb-6">
+          আপনার অর্ডার সফলভাবে গ্রহণ করা হয়েছে। পেইজ লোড হতে সমস্যা হয়েছে, কিন্তু চিন্তা করবেন না — আমরা শীঘ্রই কল করে কনফার্ম করবো।
+        </p>
+        <Link
+          to="/"
+          className="inline-flex items-center gap-2 px-8 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-xl transition"
+        >
+          ← হোমপেইজে ফিরে যান
+        </Link>
+      </div>
+    </div>
+  );
 }
 
 export default function ThankYouPage() {
@@ -293,3 +313,4 @@ export default function ThankYouPage() {
     </div>
   );
 }
+

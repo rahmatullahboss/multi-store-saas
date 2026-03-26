@@ -67,7 +67,7 @@ export const DEFAULT_FRAUD_SETTINGS: FraudSettings = {
   verifyThreshold: 60,
   holdThreshold: 80,
   codAutoConfirmAboveRate: 80, // 80%+ delivery rate → auto-confirm
-  codBlockBelowRate: 20,       // <20% delivery rate → block COD
+  codBlockBelowRate: 30,       // <30% delivery rate → block COD
   autoDispatchCourier: false,
 };
 
@@ -356,8 +356,8 @@ export async function fetchExternalFraudData(params: {
         'User-Agent':
           'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
       },
-      // 5 second timeout
-      signal: AbortSignal.timeout(5000),
+      // 8 second timeout (allow enough time for slow responses)
+      signal: AbortSignal.timeout(8000),
     });
 
     if (!response.ok) return { found: false, data: null };
