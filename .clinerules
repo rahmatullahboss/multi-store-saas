@@ -52,7 +52,7 @@ Content summary (47 lines):
 > Context above IS your context. Do NOT call get_context() at startup.
 
 # Project Memory — multi-store-saas
-> 61 notes | Score threshold: >40
+> 64 notes | Score threshold: >40
 
 ## Safety — Never Run Destructive Commands
 
@@ -76,13 +76,6 @@ Content summary (47 lines):
 - convention in palette.md
 - convention in store-live-editor.tsx
 - convention in palette.md
-
-## Recent Decisions
-
-- decision in SettingsPanel.tsx
-- decision in SectionList.tsx
-- Optimized Multi — offloads heavy computation off the main thread
-- Optimized Optimize — parallelizes async operations for speed
 
 ## Learned Patterns
 

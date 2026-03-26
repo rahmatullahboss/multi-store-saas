@@ -738,7 +738,7 @@ export async function register({
     // Create store first
     console.warn('[register] Creating store...');
     const defaultThemeConfig = {
-      storeTemplateId: 'starter-store',
+      storeTemplateId: 'dc-store',
       primaryColor: '#6366f1',
       accentColor: '#f59e0b',
       backgroundColor: '#ffffff',
@@ -753,7 +753,7 @@ export async function register({
       },
       theme: {
         ...DEFAULT_UNIFIED_SETTINGS.theme,
-        templateId: 'starter-store',
+        templateId: 'dc-store',
       },
       flags: {
         ...DEFAULT_UNIFIED_SETTINGS.flags,
@@ -1027,7 +1027,7 @@ export async function completeGoogleOnboardingForExistingUser({
 
     // 3. Create the store
     const defaultThemeConfig = {
-      storeTemplateId: 'starter-store',
+      storeTemplateId: 'dc-store',
       primaryColor: '#6366f1',
       accentColor: '#f59e0b',
       backgroundColor: '#ffffff',
@@ -1042,7 +1042,7 @@ export async function completeGoogleOnboardingForExistingUser({
       },
       theme: {
         ...DEFAULT_UNIFIED_SETTINGS.theme,
-        templateId: 'starter-store',
+        templateId: 'dc-store',
       },
       flags: {
         ...DEFAULT_UNIFIED_SETTINGS.flags,

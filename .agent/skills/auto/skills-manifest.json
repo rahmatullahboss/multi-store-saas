@@ -1,7 +1,7 @@
 {
   "typescript-react": {
     "enabled": true,
-    "lastGenerated": "2026-03-25T15:00:45.247Z",
+    "lastGenerated": "2026-03-26T11:54:48.592Z",
     "observationCount": 26,
     "skillCount": 0,
     "domain": "typescript-react",
@@ -12,32 +12,32 @@
   },
   "typescript": {
     "enabled": true,
-    "lastGenerated": "2026-03-25T15:00:45.247Z",
-    "observationCount": 3,
+    "lastGenerated": "2026-03-26T11:54:48.592Z",
+    "observationCount": 6,
     "skillCount": 0,
     "domain": "typescript",
     "triggerGlobs": [
       "**/*.ts",
       "**/*.tsx"
     ],
-    "description": "Typescript for multi-store-saas. ."
+    "description": "Typescript for multi-store-saas. 1 fixes."
   },
   "project": {
     "enabled": true,
-    "lastGenerated": "2026-03-25T15:00:45.247Z",
-    "observationCount": 32,
+    "lastGenerated": "2026-03-26T11:54:48.592Z",
+    "observationCount": 120,
     "skillCount": 0,
     "domain": "project",
     "triggerGlobs": [
       "**/*"
     ],
-    "description": "Project for multi-store-saas. 3 gotchas, 2 conventions."
+    "description": "Project for multi-store-saas. 37 gotchas, 50 conventions."
   },
   "gotcha": {
     "enabled": true,
-    "lastGenerated": "2026-03-25T15:00:45.247Z",
+    "lastGenerated": "2026-03-26T11:54:48.592Z",
     "observationCount": 0,
-    "skillCount": 1,
+    "skillCount": 2,
     "domain": "gotcha",
     "triggerGlobs": [
       "**/*"

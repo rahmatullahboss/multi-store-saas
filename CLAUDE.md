@@ -1,8 +1,8 @@
 # multi-store-saas — Project Memory
 
-> Auto-synced | 60 observations
+> Auto-synced | 146 observations
 
-**Stack:** TypeScript/Python
+**Stack:** JavaScript/Python/TypeScript · Next.js + React + Tailwind
 
 ## 🛡️ GLOBAL SAFETY RULES
 
@@ -12,6 +12,25 @@
 ## 🧭 ACTIVE CONTEXT
 
 > Always read `.cursor/active-context.md` for exact instructions on the specific file you are currently editing. It updates dynamically.
+
+## 🔴 STOP — READ THESE FIRST
+
+- **Don't mix Tailwind with inline styles** — Don't mix Tailwind with inline styles
+- **Don't import server-only code in client components** — Don't import server-only code in client components
+- **Environment variables: NEXT_PUBLIC_ prefix for client-side only** — Environment variables: NEXT_PUBLIC_ prefix for client-side only
+- **Don't use useEffect for data fetching — use server actions or loader** — Don't use useEffect for data fetching — use server actions or loader
+- **Clean up effects — return cleanup function from useEffect** — Clean up effects — return cleanup function from useEffect
+
+## 📐 Conventions
+
+- Extract repeated class patterns into components
+- Use responsive prefixes consistently (sm:, md:, lg:, xl:)
+- Don't use arbitrary values when a utility class exists
+- Use middleware.ts for authentication guards, not client-side checks
+- Use next/image (not img tag) for automatic optimization
+- Handle loading.tsx and error.tsx for every async route
+- Use Server Components by default — add "use client" only when needed
+- Use Suspense and Error Boundaries for async operations
 
 ## ⚡ Available Tools (ON-DEMAND only)
 - `save(title, content, category)` — Save a note + auto-detect conflicts
@@ -23,46 +42,4 @@
 > ℹ️ DO NOT call get_context() or get_gotchas() at startup — context above IS your context.
 
 ---
-*Auto-synced | 2026-03-25*
-
-# Project Memory — multi-store-saas
-> 61 notes | Score threshold: >40
-
-## Safety — Never Run Destructive Commands
-
-> Dangerous commands are actively monitored.
-> Critical/high risk commands trigger error notifications in real-time.
-
-- **NEVER** run `rm -rf`, `del /s`, `rmdir`, `format`, or any command that deletes files/directories without EXPLICIT user approval.
-- **NEVER** run `DROP TABLE`, `DELETE FROM`, `TRUNCATE`, or any destructive database operation.
-- **NEVER** run `git push --force`, `git reset --hard`, or any command that rewrites history.
-- **NEVER** run `npm publish`, `docker rm`, `terraform destroy`, or any irreversible deployment/infrastructure command.
-- **NEVER** pipe remote scripts to shell (`curl | bash`, `wget | sh`).
-- **ALWAYS** ask the user before running commands that modify system state, install packages, or make network requests.
-- When in doubt, **show the command first** and wait for approval.
-
-**Stack:** TypeScript/Python
-
-## 📝 NOTE: 1 uncommitted file(s) in working tree.\n\n## Project Standards
-
-- Strengthened types index
-- Fixed null crash in Also — reduces initial bundle size with code splitting — confirmed 3x
-- convention in palette.md
-- convention in store-live-editor.tsx
-- convention in palette.md
-
-## Recent Decisions
-
-- decision in SettingsPanel.tsx
-- decision in SectionList.tsx
-- Optimized Multi — offloads heavy computation off the main thread
-- Optimized Optimize — parallelizes async operations for speed
-
-## Learned Patterns
-
-- Avoid: gotcha in .gitignore (seen 2x)
-
-## Available Tools (ON-DEMAND only)
-- `query(q)` — Deep search when stuck
-- `find(query)` — Full-text lookup
-> Context above IS your context. Do NOT call load() at startup.
+*Auto-synced | 2026-03-26*

@@ -72,8 +72,8 @@ const ACTIVE_TEMPLATE_IDS = new Set([
 ]);
 
 function sanitizeTemplateId(templateId: string | null | undefined): string {
-  if (!templateId) return 'starter-store';
-  return ACTIVE_TEMPLATE_IDS.has(templateId) ? templateId : 'starter-store';
+  if (!templateId) return 'dc-store';
+  return ACTIVE_TEMPLATE_IDS.has(templateId) ? templateId : 'dc-store';
 }
 
 function sanitizeUnifiedSettings(
@@ -273,7 +273,7 @@ export async function migrateStoreToUnifiedSettings<TSchema extends Record<strin
     }
 
     // Extract legacy template info
-    let legacyTemplateId = store.theme || 'starter-store';
+    let legacyTemplateId = store.theme || 'dc-store';
     let legacyConfig = null;
     if (store.themeConfig) {
       try {

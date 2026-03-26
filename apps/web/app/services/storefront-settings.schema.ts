@@ -16,7 +16,7 @@ import { generateUUID } from '~/lib/uuid';
 // ============================================================================
 
 const ThemeSettingsSchema = z.object({
-  templateId: z.string().default('starter-store'),
+  templateId: z.string().default('dc-store'),
   primary: z
     .string()
     .regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/)
@@ -417,7 +417,7 @@ export type WhyChooseUsSettings = z.infer<typeof WhyChooseUsSchema>;
 export const UnifiedStorefrontSettingsV1Schema = z.object({
   version: z.literal(1),
   theme: ThemeSettingsSchema.default({
-    templateId: 'starter-store',
+    templateId: 'dc-store',
     primary: '#4F46E5',
     accent: '#F59E0B',
     background: '#ffffff',
@@ -608,7 +608,7 @@ export function isAllowedThemeId(themeId: string): themeId is AllowedThemeId {
 }
 
 export function validateThemeId(themeId: string): AllowedThemeId {
-  return isAllowedThemeId(themeId) ? themeId : 'starter-store';
+  return isAllowedThemeId(themeId) ? themeId : 'dc-store';
 }
 
 export function isValidHexColor(color: string | null | undefined): boolean {
@@ -628,7 +628,7 @@ export function validateColor(color: string | null | undefined, fallback: string
 export const DEFAULT_UNIFIED_SETTINGS: UnifiedStorefrontSettingsV1 = {
   version: 1,
   theme: {
-    templateId: 'starter-store',
+    templateId: 'dc-store',
     primary: '#4F46E5',
     accent: '#F59E0B',
     background: '#ffffff',
