@@ -5,7 +5,7 @@
  */
 
 import { Hono } from 'hono';
-import { eq, and, desc } from 'drizzle-orm';
+import { eq, and, desc, inArray } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
 import { orders, orderItems, products, type NewOrder, type NewOrderItem } from '@db/schema';
 import type { TenantEnv, TenantContext } from '../middleware/tenant';
@@ -124,7 +124,8 @@ ordersApi.post('/', async (c) => {
     .from(products)
     .where(
       and(
-        eq(products.storeId, storeId)
+        eq(products.storeId, storeId),
+        inArray(products.id, productIds)
       )
     );
   
