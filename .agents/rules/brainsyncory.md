@@ -1,7 +1,7 @@
 
 
 # Project Memory — multi-store-saas
-> 164 notes | Score threshold: >40
+> 168 notes | Score threshold: >40
 
 ## Safety — Never Run Destructive Commands
 
@@ -42,6 +42,7 @@ Content summary (54 lines):
 
 ## Recent Decisions
 
+- decision in storefront-data.server.ts
 - decision in app.store-design.tsx
 - decision in app.store-design.tsx
 

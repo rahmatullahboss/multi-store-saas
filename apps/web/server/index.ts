@@ -38,7 +38,7 @@ import { oauthApi } from './api/oauth';
 import customersApi from './api/routes/customers';
 import { v1Router } from './api/v1';
 import { shopifyAppRouter } from './api/shopify-app';
-import { builderPublishApi } from './api/builder-publish';
+
 
 // Forward all other requests to React Router (via Vite build output)
 import { type ServerBuild, createRequestHandler } from 'react-router';
@@ -463,9 +463,7 @@ app.route('/api/stores', storesApi);
 app.route('/api/oauth', oauthApi);
 app.route('/api/customers', customersApi);
 
-// ─── Builder Publish API (Phase 7) ────────────────────────────────────────────
-// Session-cookie authenticated — merchant-only publish/unpublish actions
-app.route('/api/builder', builderPublishApi);
+
 
 // ─── Public API Platform v1 ───────────────────────────────────────────────────
 // Bearer token (API key) authenticated — for external integrations
