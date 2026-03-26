@@ -211,7 +211,17 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
       for (const { phone, val } of cacheResults) {
         if (val) {
-          fraudCacheByPhone[phone] = val as (typeof fraudCacheByPhone)[string];
+          const raw = val as any;
+          if (typeof raw.successRate !== 'number') {
+            raw.successRate = 100 - (raw.riskScore ?? raw.score ?? (raw.isHighRisk ? 100 : 0));
+            raw.totalOrders = raw.totalOrders ?? 0;
+            raw.deliveredOrders = raw.deliveredOrders ?? 0;
+            raw.returnedOrders = raw.returnedOrders ?? 0;
+            raw.isHighRisk = raw.isHighRisk ?? (raw.decision === 'hold' || 100 - raw.successRate > 60);
+            raw.riskScore = raw.riskScore ?? raw.score ?? 100 - raw.successRate;
+            raw.cachedAt = raw.cachedAt ?? new Date().toISOString();
+          }
+          fraudCacheByPhone[phone] = raw as (typeof fraudCacheByPhone)[string];
         }
       }
     }
@@ -498,8 +508,19 @@ export async function action({ request, context }: ActionFunctionArgs) {
         return json({ error: 'ফ্রড চেক ব্যর্থ হয়েছে। কিছুক্ষণ পরে আবার চেষ্টা করুন।' }, { status: 502 });
       }
 
+      const raw = resultObj as any;
+      const successRate = 100 - (raw.riskScore ?? raw.score ?? (raw.isHighRisk ? 100 : 0));
+      const normalizedResultObj = {
+        successRate,
+        totalOrders: raw.totalOrders ?? 0,
+        deliveredOrders: raw.deliveredOrders ?? 0,
+        returnedOrders: raw.returnedOrders ?? 0,
+        isHighRisk: raw.isHighRisk ?? (raw.decision === 'hold' || 100 - successRate > 60),
+        riskScore: raw.riskScore ?? raw.score ?? 100 - successRate
+      };
+
       return json(
-        { success: true, intent: 'FRAUD_CHECK', orderId, riskResult: { ...resultObj, fromCache: false } },
+        { success: true, intent: 'FRAUD_CHECK', orderId, riskResult: { ...normalizedResultObj, fromCache: false } },
         { headers: { 'x-order-id': String(orderId) } }
       );
     } catch (error) {
