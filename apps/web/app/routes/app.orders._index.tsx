@@ -37,15 +37,13 @@ import {
   X,
   Database,
   SearchX,
-  Receipt,
-  Eye,
 } from 'lucide-react';
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { useTranslation } from '~/contexts/LanguageContext';
 import { formatPrice } from '~/utils/formatPrice';
 import { type OrderStatus, assertOrderStatusTransition, isOrderStatus } from '~/lib/orderStatus';
 import { getUnifiedStorefrontSettings } from '~/services/unified-storefront-settings.server';
-import { ozzylGuardCacheKey, fetchAndCacheGuardData } from '~/services/fraud-engine.server';
+import { ozzylGuardCacheKey, fetchExternalFraudData } from '~/services/fraud-engine.server';
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Orders - Merchant Dashboard' }];
@@ -118,25 +116,94 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       .reduce((sum, o) => sum + o.total, 0),
   };
 
-  // Read courier provider from unified settings (single source of truth)
+  // === PARALLELIZE independent fetches to avoid cold-start 502 ===
+  // These 3 operations are independent: unified settings, order items, fraud cache
+  const orderIds = storeOrders.map((o) => o.id);
+
+  // Start all independent fetches simultaneously
+  const [unifiedResult, orderItemsResult, fraudCacheResult] = await Promise.all([
+    // 1. Unified settings (for courier config)
+    getUnifiedStorefrontSettings(db, storeId, { env: context.cloudflare.env })
+      .catch(() => null),
+
+    // 2. Order items with product images
+    orderIds.length > 0
+      ? db
+          .select({
+            orderId: orderItems.orderId,
+            title: orderItems.title,
+            quantity: orderItems.quantity,
+            imageUrl: products.imageUrl,
+          })
+          .from(orderItems)
+          .leftJoin(products, eq(orderItems.productId, products.id))
+          .where(inArray(orderItems.orderId, orderIds))
+          .catch(() => [] as Array<{ orderId: number; title: string; quantity: number; imageUrl: string | null }>)
+      : Promise.resolve([] as Array<{ orderId: number; title: string; quantity: number; imageUrl: string | null }>),
+
+    // 3. KV fraud cache (limit to 20 phones to reduce cold-start latency)
+    (async () => {
+      const cache: Record<string, any> = {};
+      try {
+        const kv = context.cloudflare.env.STORE_CACHE;
+        if (!kv) return cache;
+        const uniquePhones = [
+          ...new Set(ordersWithAddress.map((o) => o.customerPhone).filter((p): p is string => !!p)),
+        ].slice(0, 20); // Reduced from 40 → 20 to cut cold-start time
+
+        const results = await Promise.all(
+          uniquePhones.map((phone) =>
+            kv.get(ozzylGuardCacheKey(storeId, phone), 'json')
+              .then((val: any) => ({ phone, val }))
+              .catch(() => ({ phone, val: null }))
+          )
+        );
+
+        for (const { phone, val } of results) {
+          if (val) {
+            const raw = val as any;
+            if (typeof raw.successRate !== 'number') {
+              raw.successRate = 100 - (raw.riskScore ?? raw.score ?? (raw.isHighRisk ? 100 : 0));
+              raw.totalOrders = raw.totalOrders ?? 0;
+              raw.deliveredOrders = raw.deliveredOrders ?? 0;
+              raw.returnedOrders = raw.returnedOrders ?? 0;
+              raw.isHighRisk = raw.isHighRisk ?? (raw.decision === 'hold' || 100 - raw.successRate > 60);
+              raw.riskScore = raw.riskScore ?? raw.score ?? 100 - raw.successRate;
+              raw.cachedAt = raw.cachedAt ?? new Date().toISOString();
+            }
+            cache[phone] = raw;
+          }
+        }
+      } catch (e) {
+        console.warn('[FRAUD CACHE] Bulk KV read failed:', e);
+      }
+      return cache;
+    })(),
+  ]);
+
+  // Process unified settings result
   let courierProvider: string | null = null;
   let allCouriers: string[] = [];
-  try {
-    const unified = await getUnifiedStorefrontSettings(db, storeId, {
-      env: context.cloudflare.env,
-    });
-    courierProvider = unified.courier?.provider || null;
-    if (unified.courier?.pathao) allCouriers.push('pathao');
-    if (unified.courier?.redx) allCouriers.push('redx');
-    if (unified.courier?.steadfast) allCouriers.push('steadfast');
-  } catch {
-    courierProvider = null;
+  if (unifiedResult) {
+    courierProvider = unifiedResult.courier?.provider || null;
+    if (unifiedResult.courier?.pathao) allCouriers.push('pathao');
+    if (unifiedResult.courier?.redx) allCouriers.push('redx');
+    if (unifiedResult.courier?.steadfast) allCouriers.push('steadfast');
   }
-
-  // Ensure unique couriers
   allCouriers = Array.from(new Set(allCouriers));
   if (allCouriers.length === 0 && courierProvider) {
     allCouriers.push(courierProvider);
+  }
+
+  // Process order items result
+  const itemsByOrderId: Record<number, Array<{ title: string; quantity: number; imageUrl: string | null }>> = {};
+  for (const item of orderItemsResult) {
+    if (!itemsByOrderId[item.orderId]) itemsByOrderId[item.orderId] = [];
+    itemsByOrderId[item.orderId].push({
+      title: item.title,
+      quantity: item.quantity,
+      imageUrl: item.imageUrl ?? null,
+    });
   }
 
   // Calculate daily stats for the last 5 days
@@ -176,91 +243,10 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     }
   });
 
-  // === BULK LOAD FRAUD CACHE FROM KV ===
-  // Read previously cached Steadfast fraud results for all unique phones in this order list
-  const fraudCacheByPhone: Record<
-    string,
-    {
-      successRate: number;
-      totalOrders: number;
-      deliveredOrders: number;
-      returnedOrders: number;
-      isHighRisk: boolean;
-      riskScore: number;
-      cachedAt: string;
-    }
-  > = {};
-
-  try {
-    const kv = context.cloudflare.env.STORE_CACHE;
-    if (kv) {
-      const uniquePhones = [
-        ...new Set(ordersWithAddress.map((o) => o.customerPhone).filter((p): p is string => !!p)),
-      ];
-
-      // Fetch in parallel (up to 20 unique phones at a time to avoid overloading)
-      const phoneSlice = uniquePhones.slice(0, 40);
-      const cacheResults = await Promise.all(
-        phoneSlice.map((phone) =>
-          kv
-            .get(ozzylGuardCacheKey(storeId, phone), 'json')
-            .then((val) => ({ phone, val }))
-            .catch(() => ({ phone, val: null }))
-        )
-      );
-
-      for (const { phone, val } of cacheResults) {
-        if (val) {
-          const raw = val as any;
-          if (typeof raw.successRate !== 'number') {
-            raw.successRate = 100 - (raw.riskScore ?? raw.score ?? (raw.isHighRisk ? 100 : 0));
-            raw.totalOrders = raw.totalOrders ?? 0;
-            raw.deliveredOrders = raw.deliveredOrders ?? 0;
-            raw.returnedOrders = raw.returnedOrders ?? 0;
-            raw.isHighRisk = raw.isHighRisk ?? (raw.decision === 'hold' || 100 - raw.successRate > 60);
-            raw.riskScore = raw.riskScore ?? raw.score ?? 100 - raw.successRate;
-            raw.cachedAt = raw.cachedAt ?? new Date().toISOString();
-          }
-          fraudCacheByPhone[phone] = raw as (typeof fraudCacheByPhone)[string];
-        }
-      }
-    }
-  } catch (e) {
-    // Non-blocking — fraud cache is optional display data
-    console.warn('[FRAUD CACHE] Bulk KV read failed:', e);
-  }
-
-  // Fetch order items for all orders (with product image)
-  const orderIds = storeOrders.map((o) => o.id);
-  let itemsByOrderId: Record<number, Array<{ title: string; quantity: number; imageUrl: string | null }>> = {};
-  if (orderIds.length > 0) {
-    try {
-      const allItems = await db
-        .select({
-          orderId: orderItems.orderId,
-          title: orderItems.title,
-          quantity: orderItems.quantity,
-          imageUrl: products.imageUrl,
-        })
-        .from(orderItems)
-        .leftJoin(products, eq(orderItems.productId, products.id))
-        .where(inArray(orderItems.orderId, orderIds));
-
-      for (const item of allItems) {
-        if (!itemsByOrderId[item.orderId]) itemsByOrderId[item.orderId] = [];
-        itemsByOrderId[item.orderId].push({
-          title: item.title,
-          quantity: item.quantity,
-          imageUrl: item.imageUrl ?? null,
-        });
-      }
-    } catch { /* ignore */ }
-  }
-
   // Attach cached fraud data to each order
   const ordersWithFraud = ordersWithAddress.map((o) => ({
     ...o,
-    fraudCache: o.customerPhone ? (fraudCacheByPhone[o.customerPhone] ?? null) : null,
+    fraudCache: o.customerPhone ? (fraudCacheResult[o.customerPhone] ?? null) : null,
     items: itemsByOrderId[o.id] ?? [],
   }));
 
@@ -488,39 +474,44 @@ export async function action({ request, context }: ActionFunctionArgs) {
       const kv = context.cloudflare.env.STORE_CACHE;
       const forceRefresh = formData.get('forceRefresh') === 'true';
 
-      // ── If forceRefresh, delete cache so fetchAndCacheGuardData re-fetches ──
+      // ── If forceRefresh, delete cache so we re-fetch live ──
       if (forceRefresh && kv) {
         try {
           await kv.delete(ozzylGuardCacheKey(storeId, phoneForCheck));
         } catch { /* ignore */ }
       }
 
-      // ── fetchAndCacheGuardData: reads KV first, then fetches live, saves to KV ──
-      const resultMap = await fetchAndCacheGuardData({
-        storeId,
-        phones: [phoneForCheck],
-        db,
-        kv
-      });
-      const resultObj = resultMap ? Array.from(resultMap.values())[0] : null;
+      // ── Live fetch from fraudchecker.link ──
+      const extResponse = await fetchExternalFraudData({ phone: phoneForCheck, storeId, db });
+      const data = extResponse.data;
 
-      if (!resultObj) {
+      if (!data) {
         return json({ error: 'ফ্রড চেক ব্যর্থ হয়েছে। কিছুক্ষণ পরে আবার চেষ্টা করুন।' }, { status: 502 });
       }
 
-      const raw = resultObj as any;
-      const successRate = 100 - (raw.riskScore ?? raw.score ?? (raw.isHighRisk ? 100 : 0));
-      const normalizedResultObj = {
-        successRate,
-        totalOrders: raw.totalOrders ?? 0,
-        deliveredOrders: raw.deliveredOrders ?? 0,
-        returnedOrders: raw.returnedOrders ?? 0,
-        isHighRisk: raw.isHighRisk ?? (raw.decision === 'hold' || 100 - successRate > 60),
-        riskScore: raw.riskScore ?? raw.score ?? 100 - successRate
+      const resultObj = {
+        successRate: data.deliveryRate,
+        totalOrders: data.totalOrders,
+        deliveredOrders: data.totalDelivered,
+        returnedOrders: data.totalCancelled,
+        isHighRisk: data.riskLevel === 'critical' || data.riskLevel === 'high',
+        riskScore: Math.round(100 - data.deliveryRate),
+        riskLevel: data.riskLevel,
+        riskMessage: data.riskMessage,
+        couriers: data.couriers,
+        source: 'fraudchecker_link',
+        cachedAt: new Date().toISOString(),
       };
 
+      // ── KV Cache write (24h) exactly as standard ──
+      if (kv && phoneForCheck) {
+        try {
+          await kv.put(ozzylGuardCacheKey(storeId, phoneForCheck), JSON.stringify(resultObj), { expirationTtl: 86400 });
+        } catch { /* ignore */ }
+      }
+
       return json(
-        { success: true, intent: 'FRAUD_CHECK', orderId, riskResult: { ...normalizedResultObj, fromCache: false } },
+        { success: true, intent: 'FRAUD_CHECK', orderId, riskResult: { ...resultObj, fromCache: false } },
         { headers: { 'x-order-id': String(orderId) } }
       );
     } catch (error) {
@@ -608,7 +599,7 @@ export default function DashboardOrdersPage() {
     stats,
     courierProvider,
     allCouriers = [],
-  } = useLoaderData<typeof loader>();
+  } = useLoaderData<any>();
   const [searchParams, setSearchParams] = useSearchParams();
   const { t, lang } = useTranslation();
 
@@ -1176,36 +1167,6 @@ export default function DashboardOrdersPage() {
                       ? (order as { fraudCache: { successRate: number; totalOrders: number; isHighRisk: boolean; cachedAt: string } | null }).fraudCache
                       : null);
 
-                    const fraudBarColor = fc
-                      ? fc.successRate >= 80
-                        ? 'bg-emerald-500'
-                        : fc.successRate >= 60
-                          ? 'bg-green-500'
-                          : fc.successRate >= 40
-                            ? 'bg-amber-400'
-                            : fc.successRate >= 20
-                              ? 'bg-orange-500'
-                              : 'bg-red-500'
-                      : order.status === 'delivered'
-                        ? 'bg-emerald-500'
-                        : order.status === 'cancelled' || order.status === 'returned'
-                          ? 'bg-red-500'
-                          : order.status === 'shipped'
-                            ? 'bg-indigo-400'
-                            : 'bg-slate-300';
-
-                    const fraudSuccessText = fc
-                      ? fc.successRate >= 80
-                        ? { color: 'text-emerald-600', text: `${fc.successRate.toFixed(0)}% Success` }
-                        : fc.successRate >= 60
-                          ? { color: 'text-green-600', text: `${fc.successRate.toFixed(0)}% Success` }
-                          : fc.successRate >= 40
-                            ? { color: 'text-amber-600', text: `${fc.successRate.toFixed(0)}% Success` }
-                            : fc.successRate >= 20
-                              ? { color: 'text-orange-600', text: `${fc.successRate.toFixed(0)}% Success` }
-                              : { color: 'text-red-600', text: `${fc.successRate.toFixed(0)}% Success` }
-                      : null;
-
                     const orderItemsMobile = (order as typeof order & { items: Array<{title: string; quantity: number; imageUrl: string | null}> }).items ?? [];
                     const firstItem = orderItemsMobile[0] ?? null;
 
@@ -1352,7 +1313,7 @@ export default function DashboardOrdersPage() {
                                     className="text-[10px] border border-slate-200 rounded-md py-1 px-1.5 bg-white text-slate-600 outline-none"
                                     defaultValue={allCouriers[0]}
                                   >
-                                    {allCouriers.map((c) => (
+                                    {allCouriers.map((c: any) => (
                                       <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>
                                     ))}
                                   </select>
@@ -1450,7 +1411,7 @@ export default function DashboardOrdersPage() {
                               {/* Products */}
                               <td className="px-4 py-4">
                                 <div className="flex items-center gap-1.5 max-w-[200px]">
-                                  {orderItemsList.slice(0, 6).map((item, idx) => (
+                                  {orderItemsList.slice(0, 6).map((item: any, idx: number) => (
                                     <div key={idx} className="relative shrink-0">
                                       <div className="h-10 w-10 overflow-hidden rounded bg-slate-100 ring-1 ring-slate-200">
                                         {item.imageUrl ? (
