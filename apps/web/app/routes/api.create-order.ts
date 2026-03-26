@@ -30,6 +30,12 @@ import { triggerAutomation } from '~/services/automation.server';
 import { parseLandingConfig } from '@db/types';
 import { generateCheckoutIdempotencyKey } from '~/services/webhook-utils.server';
 import { notifyMerchantViaWhatsApp } from '~/services/whatsapp-notify.server';
+import {
+  parseFraudSettings,
+  checkCODByDeliveryRate,
+  DEFAULT_FRAUD_SETTINGS,
+  type FraudSettings,
+} from '~/services/fraud-engine.server';
 
 
 // ============================================================================
@@ -692,11 +698,89 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
     // 2. CREATE ORDER
     let orderId: number | undefined;
+    let orderStatus: string = 'pending';
+
+    // ── COD Fraud Rate Control ────────────────────────────────────────────────
+    // Non-COD orders (bKash, Nagad, Rocket, SSLCommerz) pass freely —
+    // payment is already collected so no fraud risk.
+    //
+    // For COD orders we run a delivery-rate check via fraudchecker.link.
+    // All thresholds are configured by the merchant in Settings → Fraud Detection.
+    let fraudSettings: FraudSettings = DEFAULT_FRAUD_SETTINGS;
+
+    if (input.payment_method === 'cod') {
+      try {
+        // Load this store's fraud settings (stored as JSON in stores.fraudSettings)
+        const storeRow = await db
+          .select({ fraudSettings: stores.fraudSettings })
+          .from(stores)
+          .where(eq(stores.id, input.store_id))
+          .get();
+
+        fraudSettings = parseFraudSettings(storeRow?.fraudSettings);
+
+        // Run delivery rate check via fraudchecker.link
+        const rateDecision = await checkCODByDeliveryRate(
+          input.phone,
+          fraudSettings,
+          { storeId: input.store_id, db }
+        );
+
+        switch (rateDecision.action) {
+          case 'block_cod':
+            // Terrible history → block COD entirely
+            console.log(
+              `[COD RATE CONTROL] BLOCKED — phone ${input.phone}, ` +
+              `delivery rate ${rateDecision.deliveryRate.toFixed(1)}% (threshold: ${fraudSettings.codBlockBelowRate}%)`
+            );
+            return json(
+              {
+                success: false,
+                error:
+                  'আপনার অর্ডার হিস্টরি খারাপ হওয়ার কারণে ক্যাশ অন ডেলিভারি (COD) অর্ডার ব্লক করা হয়েছে। ' +
+                  'দয়া করে অ্যাডভান্স পেমেন্ট (bKash/Nagad) ব্যবহার করুন।',
+                code: 'COD_BLOCKED_LOW_DELIVERY_RATE',
+                deliveryRate: rateDecision.deliveryRate,
+              },
+              { status: 403 }
+            );
+
+          case 'auto_confirm':
+            // Excellent history → auto-confirm without merchant intervention
+            orderStatus = 'confirmed';
+            console.log(
+              `[COD RATE CONTROL] Auto-confirmed — phone ${input.phone}, ` +
+              `delivery rate ${rateDecision.deliveryRate.toFixed(1)}% (threshold: ${fraudSettings.codAutoConfirmAboveRate}%)`
+            );
+            break;
+
+          case 'pending':
+            // Middle ground → leave as pending for merchant to review
+            orderStatus = 'pending';
+            console.log(
+              `[COD RATE CONTROL] Pending — phone ${input.phone}, ` +
+              `delivery rate ${rateDecision.deliveryRate.toFixed(1)}% (between thresholds)`
+            );
+            break;
+
+          case 'skip':
+          default:
+            // No data / feature off → leave as pending (safe default)
+            orderStatus = 'pending';
+            console.log(`[COD RATE CONTROL] Skipped — ${rateDecision.reason}`);
+            break;
+        }
+      } catch (error) {
+        // Never fail an order because of a fraud-check error — fail open
+        console.error('[COD RATE CONTROL] Check failed during checkout (fail open):', error);
+        orderStatus = 'pending';
+      }
+    }
     try {
       const orderResult = await db.insert(orders).values({
         storeId: input.store_id,
         orderNumber,
-        status: 'pending',
+        status: orderStatus as 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'returned',
         paymentStatus: 'pending',
         paymentMethod: input.payment_method as any,
         transactionId: input.transaction_id || null,

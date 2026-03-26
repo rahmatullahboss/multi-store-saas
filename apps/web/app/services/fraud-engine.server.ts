@@ -51,15 +51,24 @@ export interface FraudAssessment {
 }
 
 export interface FraudSettings {
+  enabled: boolean;
   allowThreshold: number;
   verifyThreshold: number;
   holdThreshold: number;
+  // COD control thresholds (delivery rate %)
+  codAutoConfirmAboveRate: number; // >= this rate → auto-confirm
+  codBlockBelowRate: number;       // < this rate → block COD
+  autoDispatchCourier: boolean;     // Auto-book courier after auto-confirm
 }
 
 export const DEFAULT_FRAUD_SETTINGS: FraudSettings = {
+  enabled: true,
   allowThreshold: 30,
   verifyThreshold: 60,
   holdThreshold: 80,
+  codAutoConfirmAboveRate: 80, // 80%+ delivery rate → auto-confirm
+  codBlockBelowRate: 20,       // <20% delivery rate → block COD
+  autoDispatchCourier: false,
 };
 
 export interface RiskScoreInput {
@@ -193,12 +202,87 @@ export function parseFraudSettings(raw?: string | null): FraudSettings {
   try {
     const parsed = JSON.parse(raw);
     return {
+      enabled: parsed.enabled ?? DEFAULT_FRAUD_SETTINGS.enabled,
       allowThreshold: parsed.allowThreshold ?? DEFAULT_FRAUD_SETTINGS.allowThreshold,
       verifyThreshold: parsed.verifyThreshold ?? DEFAULT_FRAUD_SETTINGS.verifyThreshold,
       holdThreshold: parsed.holdThreshold ?? DEFAULT_FRAUD_SETTINGS.holdThreshold,
+      codAutoConfirmAboveRate: parsed.codAutoConfirmAboveRate ?? DEFAULT_FRAUD_SETTINGS.codAutoConfirmAboveRate,
+      codBlockBelowRate: parsed.codBlockBelowRate ?? DEFAULT_FRAUD_SETTINGS.codBlockBelowRate,
+      autoDispatchCourier: parsed.autoDispatchCourier ?? DEFAULT_FRAUD_SETTINGS.autoDispatchCourier,
     };
   } catch {
     return { ...DEFAULT_FRAUD_SETTINGS };
+  }
+}
+
+// ============================================================================
+// COD DELIVERY RATE CONTROL (used during checkout)
+// ============================================================================
+
+export type CODDecision = 
+  | { action: 'auto_confirm'; deliveryRate: number; reason: string }
+  | { action: 'pending'; deliveryRate: number; reason: string }
+  | { action: 'block_cod'; deliveryRate: number; reason: string }
+  | { action: 'skip'; deliveryRate: number; reason: string };
+
+/**
+ * Check delivery rate from fraudchecker.link and decide COD behavior.
+ * - rate >= codAutoConfirmAboveRate → auto-confirm
+ * - rate < codBlockBelowRate → block COD
+ * - in between → leave as pending
+ * - no data / API down → skip (fail open, leave as pending)
+ */
+export async function checkCODByDeliveryRate(
+  phone: string,
+  settings: FraudSettings,
+  opts?: { storeId?: number; db?: unknown }
+): Promise<CODDecision> {
+  if (!settings.enabled) {
+    return { action: 'skip', deliveryRate: 0, reason: 'Fraud check disabled' };
+  }
+
+  try {
+    const result = await fetchExternalFraudData({ phone, storeId: opts?.storeId, db: opts?.db });
+    
+    if (!result.found || !result.data) {
+      return { action: 'skip', deliveryRate: 0, reason: 'No external data found' };
+    }
+
+    const deliveryRate = result.data.deliveryRate;
+    const totalOrders = result.data.totalOrders;
+
+    // New customers (0 orders) — leave as pending (no data to judge)
+    if (totalOrders === 0) {
+      return { action: 'skip', deliveryRate: 0, reason: 'New customer, no order history' };
+    }
+
+    // Excellent history → auto-confirm
+    if (deliveryRate >= settings.codAutoConfirmAboveRate) {
+      return {
+        action: 'auto_confirm',
+        deliveryRate,
+        reason: `Delivery rate ${deliveryRate.toFixed(1)}% >= ${settings.codAutoConfirmAboveRate}% threshold`,
+      };
+    }
+
+    // Terrible history → block COD
+    if (deliveryRate < settings.codBlockBelowRate) {
+      return {
+        action: 'block_cod',
+        deliveryRate,
+        reason: `Delivery rate ${deliveryRate.toFixed(1)}% < ${settings.codBlockBelowRate}% threshold`,
+      };
+    }
+
+    // Middle ground → pending for manual review
+    return {
+      action: 'pending',
+      deliveryRate,
+      reason: `Delivery rate ${deliveryRate.toFixed(1)}% between thresholds`,
+    };
+  } catch (error) {
+    console.error('[COD RATE CONTROL] Check failed:', error);
+    return { action: 'skip', deliveryRate: 0, reason: 'External check failed' };
   }
 }
 
