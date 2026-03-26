@@ -24,6 +24,26 @@ export interface FraudSignal {
   description: string;
 }
 
+export interface ExternalCourierData {
+  name: string;
+  orders: number;
+  delivered: number;
+  cancelled: number;
+  delivery_rate: string;
+}
+
+export interface ExternalFraudData {
+  phoneNumber: string;
+  totalOrders: number;
+  totalDelivered: number;
+  totalCancelled: number;
+  deliveryRate: number;
+  riskLevel: 'excellent' | 'good' | 'moderate' | 'high' | 'critical';
+  riskMessage: string;
+  riskColor: string;
+  couriers: ExternalCourierData[];
+}
+
 export interface FraudAssessment {
   rawScore: number;
   clampedScore: number;
@@ -90,6 +110,55 @@ export async function calculateRiskScore(input: RiskScoreInput): Promise<FraudAs
     const score = 10;
     totalScore += score;
     signals.push({ name: 'suspicious_ua', score, description: 'Missing or suspicious user agent' });
+  }
+
+  // ============================
+  // SIGNAL 8: External courier data (fraudchecker.link)
+  // ============================
+  if (!input.skipExternalCheck) {
+    const extResp = await fetchExternalFraudData({ phone: input.phone, storeId: input.storeId, db: input.db });
+    const externalData = extResp.data;
+
+    if (externalData && externalData.totalOrders >= 3) {
+      const { deliveryRate, riskLevel, totalOrders, totalDelivered } = externalData;
+
+      if (riskLevel === 'critical' || deliveryRate < 20) {
+        signals.push({
+          name: 'external_critical_risk',
+          score: 40,
+          description: `External data: Critical risk — ${deliveryRate.toFixed(1)}% delivery rate (${totalDelivered}/${totalOrders} delivered)`,
+        });
+        totalScore += 40;
+      } else if (riskLevel === 'high' || deliveryRate < 40) {
+        signals.push({
+          name: 'external_high_risk',
+          score: 25,
+          description: `External data: High risk — ${deliveryRate.toFixed(1)}% delivery rate (${totalDelivered}/${totalOrders} delivered)`,
+        });
+        totalScore += 25;
+      } else if (riskLevel === 'moderate' || deliveryRate < 60) {
+        signals.push({
+          name: 'external_moderate_risk',
+          score: 12,
+          description: `External data: Moderate risk — ${deliveryRate.toFixed(1)}% delivery rate (${totalDelivered}/${totalOrders} delivered)`,
+        });
+        totalScore += 12;
+      } else if (riskLevel === 'excellent' || deliveryRate >= 80) {
+        signals.push({
+          name: 'external_excellent',
+          score: -20,
+          description: `External data: Excellent customer — ${deliveryRate.toFixed(1)}% delivery rate across ${totalOrders} orders`,
+        });
+        totalScore -= 20;
+      } else if (riskLevel === 'good' || deliveryRate >= 65) {
+        signals.push({
+          name: 'external_good',
+          score: -10,
+          description: `External data: Good customer — ${deliveryRate.toFixed(1)}% delivery rate`,
+        });
+        totalScore -= 10;
+      }
+    }
   }
 
   const clampedScore = Math.min(100, Math.max(0, totalScore));
@@ -187,11 +256,37 @@ export async function removeFromBlacklist(params: {
  */
 export async function fetchExternalFraudData(params: {
   phone: string;
-  storeId: number;
-  db: unknown;
-}): Promise<{ found: boolean; data: Record<string, unknown>[] }> {
-  // Stub — real implementation queries external fraud APIs
-  return { found: false, data: [] };
+  storeId?: number;
+  db?: unknown;
+}): Promise<{ found: boolean; data: ExternalFraudData | null }> {
+  const normalized = normalizePhone(params.phone);
+  const url = `https://fraudchecker.link/free-fraud-checker-bd/api/search.php?phone=${normalized}`;
+
+  try {
+    const response = await fetch(url, {
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        Referer: 'https://fraudchecker.link/free-fraud-checker-bd/',
+        Origin: 'https://fraudchecker.link',
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+      },
+      // 5 second timeout
+      signal: AbortSignal.timeout(5000),
+    });
+
+    if (!response.ok) return { found: false, data: null };
+
+    const result = await response.json() as { success: boolean; data: ExternalFraudData };
+    if (!result.success || !result.data) return { found: false, data: null };
+
+    return { found: true, data: result.data };
+  } catch (error) {
+    // Don't fail fraud check if external API is down
+    console.warn('[FRAUD] External fraud check failed:', error);
+    return { found: false, data: null };
+  }
 }
 
 // ============================================================================
