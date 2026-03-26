@@ -1,109 +1,37 @@
 /**
- * Published Page Route (Hybrid)
+ * Published Page Route
  * 
  * Routes: /p/:slug
  * 
- * Supports THREE types of pages:
- * 1. Page Builder v2 (Section-based): From `builderPages` table - checked FIRST
- * 2. Custom Pages (GrapesJS): Renders pre-built HTML/CSS from `landingPages` table.
- * 3. Campaign Pages (Quick Builder): Renders Dynamic Templates from `savedLandingConfigs` table.
- * 
- * Priority: Builder v2 -> Custom Pages -> Campaign Pages -> 404
+ * Renders custom HTML/CSS pages from `landingPages` table.
+ * These are static pages like About, Contact, etc.
  */
 
 import { type LoaderFunctionArgs, type MetaFunction } from 'react-router';
 import { json } from '~/lib/rr7-compat';
 import { useLoaderData } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
-import { eq, and, asc } from 'drizzle-orm';
-import { landingPages, stores, products, productVariants } from '@db/schema';
-import { builderPages, builderSections } from '@db/schema_page_builder';
+import { eq, and } from 'drizzle-orm';
+import { landingPages } from '@db/schema';
 import { useTrackVisit } from '~/hooks/use-track-visit';
-import { SectionRenderer } from '~/components/page-builder/SectionRenderer';
-import { FloatingActionButtons } from '~/components/page-builder/FloatingActionButtons';
 import { OzzylBranding } from '~/components/OzzylBranding';
-import { TemplateLayoutRenderer } from '~/components/page-builder/TemplateLayoutRenderer';
-import { sanitizeHtml } from "~/utils/sanitize";
+import { sanitizeHtml } from '~/utils/sanitize';
 
-// Type Guards
-interface CustomPageData {
-  type: 'custom';
+interface PageData {
   page: typeof landingPages.$inferSelect;
 }
 
-// Page Builder v2 data type
-interface BuilderPageData {
-  type: 'builder';
-  page: {
-    id: string;
-    slug: string;
-    title: string | null;
-    storeId: number;
-    productId?: number | null;
-    seoTitle?: string | null;
-    seoDescription?: string | null;
-    ogImage?: string | null;
-    whatsappEnabled?: number | null;
-    whatsappNumber?: string | null;
-    whatsappMessage?: string | null;
-    callEnabled?: number | null;
-    callNumber?: string | null;
-    orderEnabled?: number | null;
-    orderText?: string | null;
-    orderBgColor?: string | null;
-    orderTextColor?: string | null;
-    buttonPosition?: string | null;
-    templateId?: string | null;
-  };
-  product?: {
-    id: number;
-    title: string;
-    price: number;
-    compareAtPrice?: number | null;
-    images: string[];
-    description?: string | null;
-    variants?: Array<{
-      id: number;
-      name: string;
-      price: number;
-    }>;
-  } | null;
-  sections: Array<{
-    id: string;
-    type: string;
-    enabled: boolean;
-    sortOrder: number;
-    props: Record<string, unknown>;
-  }>;
-}
-
-type LoaderData = CustomPageData | BuilderPageData;
-
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
-  const loaderData = data as LoaderData | undefined;
-  if (!loaderData || 'error' in loaderData) {
+  const loaderData = data as PageData | undefined;
+  if (!loaderData) {
     return [{ title: 'Page Not Found' }];
   }
-
-  if (loaderData.type === 'builder') {
-    const title = loaderData.page.seoTitle || loaderData.page.title || 'Landing Page';
-    const description = loaderData.page.seoDescription || '';
-    return [
-      { title },
-      { name: 'description', content: description },
-      { property: 'og:title', content: title },
-      { property: 'og:description', content: description },
-      ...(loaderData.page.ogImage ? [{ property: 'og:image', content: loaderData.page.ogImage }] : []),
-    ];
-  }
-
-  // Custom page (GrapesJS)
   return [{ title: loaderData.page.name || 'Page' }];
 };
 
-export async function loader({ params, context, request: _request }: LoaderFunctionArgs) {
+export async function loader({ params, context }: LoaderFunctionArgs) {
   const { slug } = params;
-  const storeId = context.storeId; // Assumed injected by middleware
+  const storeId = context.storeId;
 
   if (!storeId) {
     throw new Response('Store not found', { status: 404 });
@@ -115,143 +43,7 @@ export async function loader({ params, context, request: _request }: LoaderFunct
 
   const db = drizzle(context.cloudflare.env.DB);
 
-  // ========== FETCH STORE's homeEntry FOR SEO REDIRECT ==========
-  const [storeInfo] = await db
-    .select({ homeEntry: stores.homeEntry })
-    .from(stores)
-    .where(eq(stores.id, storeId as number))
-    .limit(1);
-
-  // ========== 1. TRY PAGE BUILDER V2 (builder_pages) ==========
-  const [builderPage] = await db
-    .select()
-    .from(builderPages)
-    .where(
-      and(
-        eq(builderPages.slug, slug),
-        eq(builderPages.storeId, storeId as number),
-        eq(builderPages.status, 'published')
-      )
-    )
-    .limit(1);
-
-  if (builderPage) {
-    // ========== SEO: 301 REDIRECT IF THIS PAGE IS HOMEPAGE ==========
-    // Prevents duplicate content on /p/{slug} and / for the same page
-    const homeEntry = storeInfo?.homeEntry || 'store_home';
-    const isHomepage = homeEntry === `page:${builderPage.id}`;
-    
-    if (isHomepage) {
-      return new Response(null, {
-        status: 301,
-        headers: {
-          'Location': '/',
-          'Cache-Control': 'public, max-age=3600', // Cache redirect for 1 hour
-        },
-      });
-    }
-    // Get sections with published props
-    const sections = await db
-      .select()
-      .from(builderSections)
-      .where(eq(builderSections.pageId, builderPage.id))
-      .orderBy(asc(builderSections.sortOrder));
-
-    // Parse sections
-    const parsedSections = sections.map(row => {
-      let props: Record<string, unknown> = {};
-      try {
-        const propsSource = row.publishedPropsJson || row.propsJson || '{}';
-        props = JSON.parse(propsSource);
-      } catch {
-        props = {};
-      }
-      return {
-        id: row.id,
-        type: row.type,
-        enabled: Boolean(row.enabled),
-        sortOrder: row.sortOrder,
-        props,
-      };
-    });
-
-    // Get product data if productId is set
-    let productData: BuilderPageData['product'] = null;
-    const effectiveProductId = builderPage.productId;
-
-    if (effectiveProductId) {
-      const [productRow] = await db
-        .select()
-        .from(products)
-        .where(and(eq(products.id, effectiveProductId), eq(products.storeId, storeId as number)))
-        .limit(1);
-
-      if (productRow) {
-        const variantRows = await db
-          .select()
-          .from(productVariants)
-          .where(eq(productVariants.productId, effectiveProductId));
-
-        let parsedImages: string[] = [];
-        try {
-          if (productRow.images) {
-            parsedImages = typeof productRow.images === 'string'
-              ? JSON.parse(productRow.images)
-              : Array.isArray(productRow.images) ? productRow.images : [];
-          }
-        } catch {
-          parsedImages = [];
-        }
-
-        if (parsedImages.length === 0 && productRow.imageUrl) {
-          parsedImages = [productRow.imageUrl];
-        }
-
-        productData = {
-          id: productRow.id,
-          title: productRow.title,
-          price: productRow.price,
-          compareAtPrice: productRow.compareAtPrice,
-          images: parsedImages,
-          description: productRow.description,
-          variants: variantRows.map(v => ({
-            id: v.id,
-            name: [v.option1Value, v.option2Value, v.option3Value].filter(Boolean).join(' / ') || `Variant ${v.id}`,
-            price: v.price ?? productRow.price,
-          })),
-        };
-      }
-    }
-
-    return json<BuilderPageData>({
-      type: 'builder',
-      page: {
-        id: builderPage.id,
-        slug: builderPage.slug,
-        title: builderPage.title,
-        storeId: builderPage.storeId,
-        productId: builderPage.productId,
-        seoTitle: builderPage.seoTitle,
-        seoDescription: builderPage.seoDescription,
-        ogImage: builderPage.ogImage,
-        whatsappEnabled: builderPage.whatsappEnabled,
-        whatsappNumber: builderPage.whatsappNumber,
-        whatsappMessage: builderPage.whatsappMessage,
-        callEnabled: builderPage.callEnabled,
-        callNumber: builderPage.callNumber,
-        orderEnabled: builderPage.orderEnabled,
-        orderText: builderPage.orderText,
-        orderBgColor: builderPage.orderBgColor,
-        orderTextColor: builderPage.orderTextColor,
-        buttonPosition: builderPage.buttonPosition,
-        templateId: builderPage.templateId,
-      },
-      product: productData,
-      sections: parsedSections,
-    });
-  }
-
-  // ========== 2. TRY CUSTOM PAGE (GrapesJS - landing_pages) ==========
+  // Look up custom page by slug
   const customPage = await db
     .select()
     .from(landingPages)
@@ -265,69 +57,18 @@ export async function loader({ params, context, request: _request }: LoaderFunct
     .limit(1)
     .get();
 
-  if (customPage) {
-    return json({ type: 'custom', page: customPage } as CustomPageData);
+  if (!customPage) {
+    throw new Response('Page not found', { status: 404 });
   }
 
-  // No page found - throw 404
-  throw new Response('Page not found', { status: 404 });
+  return json<PageData>({ page: customPage });
 }
 
 export default function PublishedPageRoute() {
-  const data = useLoaderData<typeof loader>() as LoaderData;
+  const data = useLoaderData<typeof loader>() as PageData;
+  const page = data.page;
 
-  if (data.type === 'builder') {
-    return <BuilderPageRenderer data={data} />;
-  }
-  
-  // Custom page (GrapesJS)
-  return <CustomPageRenderer page={data.page} />;
-}
-
-// Sub-component for Page Builder v2 pages
-function BuilderPageRenderer({ data }: { data: BuilderPageData }) {
-  const { page, sections, product } = data;
-
-  // Filter and sort sections for rendering
-  const visibleSections = sections
-    .filter(s => s.enabled)
-    .sort((a, b) => a.sortOrder - b.sortOrder);
-
-  return (
-    <TemplateLayoutRenderer templateId={page.templateId || 'default'}>
-      {/* Render all visible sections */}
-      <SectionRenderer
-        sections={visibleSections}
-        activeSectionId={null}
-        storeId={page.storeId}
-        productId={page.productId || undefined}
-        product={product}
-      />
-
-      {/* Floating Action Buttons - WhatsApp, Call, Order */}
-      <FloatingActionButtons
-        whatsappEnabled={page.whatsappEnabled === 1}
-        whatsappNumber={page.whatsappNumber || ''}
-        whatsappMessage={page.whatsappMessage || 'হ্যালো! আমি অর্ডার করতে চাই।'}
-        callEnabled={page.callEnabled === 1}
-        callNumber={page.callNumber || ''}
-        orderEnabled={page.orderEnabled === 1 || page.orderEnabled === undefined || page.orderEnabled === null}
-        orderText={page.orderText || 'অর্ডার করুন'}
-        orderBgColor={page.orderBgColor || '#6366F1'}
-        orderTextColor={page.orderTextColor || '#FFFFFF'}
-        position={(page.buttonPosition || 'bottom-right') as 'bottom-right' | 'bottom-left' | 'bottom-center'}
-      />
-
-      {/* Powered by Ozzyl - Non-removable branding */}
-      <OzzylBranding />
-    </TemplateLayoutRenderer>
-  );
-}
-
-// Sub-component for Custom Pages (GrapesJS)
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function CustomPageRenderer({ page }: { page: any }) {
-  // UseTrackVisit hook for client-side unique visitor tracking
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   useTrackVisit(page.storeId);
 
   // Parse theme config for CSS variables

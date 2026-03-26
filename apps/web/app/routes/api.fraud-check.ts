@@ -42,7 +42,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     if (!phone) {
       return json({ error: 'Phone number is required' }, { status: 400 });
     }
-    const data = await fetchExternalFraudData(phone);
+    const { data } = await fetchExternalFraudData({ phone, storeId, db });
     if (!data) {
       return json({ error: 'No data found for this number' }, { status: 404 });
     }
@@ -147,33 +147,22 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
       const settings = parseFraudSettings(storeResult[0]?.fraudSettings);
 
-      if (!settings.enabled) {
-        return json({
-          riskScore: 0,
-          decision: 'allow',
-          signals: [],
-          isBlacklisted: false,
-          message: 'Fraud detection is disabled',
-        });
-      }
-
-      const assessment = await performFraudCheck({
+      const assessmentResult = await performFraudCheck({
         phone,
         storeId,
         orderTotal,
         paymentMethod,
         shippingAddress,
-        isOTPVerified,
         db,
         orderId,
-        settings,
-      });
+        fraudSettings: settings,
+      } as any);
 
       return json({
-        riskScore: assessment.clampedScore,
-        decision: assessment.decision,
-        signals: assessment.signals,
-        isBlacklisted: assessment.isBlacklisted,
+        riskScore: assessmentResult.assessment?.clampedScore || 0,
+        decision: assessmentResult.decision,
+        signals: assessmentResult.assessment?.signals || [],
+        isBlacklisted: false,
       });
     } catch (error) {
       console.error('[FRAUD API] Check error:', error);
@@ -196,7 +185,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     }
 
     try {
-      await addToBlacklist(phone, storeId, reason, 'merchant', db);
+      await addToBlacklist({ phone, storeId, reason, blockedBy: 'merchant', db });
       return json({ success: true, message: `${normalizePhone(phone)} blacklisted` });
     } catch (error) {
       console.error('[FRAUD API] Blacklist add error:', error);
@@ -218,7 +207,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
     }
 
     try {
-      await removeFromBlacklist(phone, storeId, db);
+      await removeFromBlacklist({ phone, storeId, db });
       return json({ success: true, message: `${normalizePhone(phone)} removed from blacklist` });
     } catch (error) {
       console.error('[FRAUD API] Blacklist remove error:', error);
@@ -295,13 +284,13 @@ export async function action({ request, context }: ActionFunctionArgs) {
             )
           );
       } else if (action === 'blacklist') {
-        await addToBlacklist(
-          event[0].phone,
+        await addToBlacklist({
+          phone: event[0].phone,
           storeId,
-          `Blacklisted from fraud review (Event #${eventId})`,
-          'merchant',
+          reason: `Blacklisted from fraud review (Event #${eventId})`,
+          blockedBy: 'merchant',
           db
-        );
+        });
 
         if (event[0].orderId) {
           await db

@@ -10,7 +10,7 @@ enabled: true
 
 # Project
 
-Auto-compiled from **123 real patterns** in **multi-store-saas**. This skill is auto-routed to agents when working on project files.
+Auto-compiled from **126 real patterns** in **multi-store-saas**. This skill is auto-routed to agents when working on project files.
 
 ## ⚠️ Anti-Patterns & Gotchas
 

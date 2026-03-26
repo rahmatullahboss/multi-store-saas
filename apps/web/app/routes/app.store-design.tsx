@@ -84,7 +84,7 @@ export const loader = async ({ request, context }: any) => {
     })),
     storeSubdomain: store[0].subdomain,
     storeName: unifiedSettings.branding.storeName,
-    storeMode: (store[0] as any).mode || 'store',
+    storeMode: 'store',
     storeLogo: unifiedSettings.branding.logo || '',
     businessInfo: { 
       phone: unifiedSettings.business?.phone || '', 
@@ -289,7 +289,6 @@ export default function StoreDesignPage() {
   const [announcementLink, setAnnouncementLink] = useState(themeConfig.announcement?.link || '');
   const [announcementBgColor, setAnnouncementBgColor] = useState(themeConfig.announcement?.bgColor || themeConfig.primaryColor || '#4f46e5');
   const [announcementTextColor, setAnnouncementTextColor] = useState(themeConfig.announcement?.textColor || '#ffffff');
-  const [announcementDismissible, setAnnouncementDismissible] = useState(themeConfig.announcement?.dismissible ?? false);
   
   // Info state
   const [logo, setLogo] = useState(storeLogo);
@@ -835,19 +834,6 @@ export default function StoreDesignPage() {
                     </div>
                   </div>
 
-                  <div>
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={announcementDismissible}
-                        onChange={(e) => setAnnouncementDismissible(e.target.checked)}
-                        className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
-                      />
-                      <span className="text-sm text-gray-700">Allow customers to dismiss (close) the announcement</span>
-                    </label>
-                    <input type="hidden" name="announcementDismissible" value={announcementDismissible.toString()} />
-                  </div>
-
                   {announcementText && announcementEnabled && (
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">{t('preview')}</label>
@@ -856,11 +842,6 @@ export default function StoreDesignPage() {
                         style={{ backgroundColor: announcementBgColor, color: announcementTextColor }}
                       >
                         {announcementText}
-                        {announcementDismissible && (
-                          <div className="absolute right-2 top-1/2 -translate-y-1/2">
-                            <span className="opacity-70 text-xs px-2 py-1">✕</span>
-                          </div>
-                        )}
                       </div>
                     </div>
                   )}

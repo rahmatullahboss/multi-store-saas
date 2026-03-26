@@ -396,12 +396,6 @@ export default function AppLayout() {
     return location.pathname === path || location.pathname.startsWith(path + '/');
   };
 
-  // Check if we're on a full-screen builder route (hide sidebar)
-  const isBuilderRoute =
-    location.pathname.startsWith('/app/new-builder/') ||
-    location.pathname === '/app/page-builder' ||
-    location.pathname.startsWith('/app/page-builder/') ||
-    location.pathname.startsWith('/app/landing-builder');
 
   return (
     <div className="min-h-screen bg-gray-100 transition-colors">
@@ -421,16 +415,16 @@ export default function AppLayout() {
       )}
 
       <div className="flex-1 overflow-hidden flex flex-col md:flex-row relative">
-      {/* Mobile Sidebar Overlay - hide on builder routes */}
-      {!isBuilderRoute && sidebarOpen && (
+      {/* Mobile Sidebar Overlay */}
+      {sidebarOpen && (
         <div
           className="fixed inset-0 bg-black/50 z-40 md:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
-      {/* Sidebar - hide on builder routes */}
-      {!isBuilderRoute && <aside
+      {/* Sidebar */}
+      {<aside
         className={`
           fixed top-0 left-0 z-50 h-full w-64 bg-white/90 backdrop-blur-xl border-r border-white/20
           transform transition-transform duration-200 ease-in-out
@@ -613,10 +607,9 @@ export default function AppLayout() {
         </div>
       </aside>}
 
-      {/* Main Content - no left padding on builder routes */}
-      <div className={`flex-1 overflow-y-auto md:ml-64 ${isBuilderRoute ? 'md:ml-0' : ''}`}>
-        {/* Mobile Header - hide on builder routes */}
-        {!isBuilderRoute && (
+      <div className="flex-1 overflow-y-auto md:ml-64">
+        {/* Mobile Header */}
+        {(
           <header className="lg:hidden sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-white/20 px-4 py-3">
             <div className="flex items-center justify-between">
               <button
@@ -635,8 +628,8 @@ export default function AppLayout() {
           </header>
         )}
 
-        {/* Desktop Header with Language Toggle - hide on builder routes */}
-        {!isBuilderRoute && (
+        {/* Desktop Header with Language Toggle */}
+        {(
           <header className="hidden lg:block sticky top-0 z-30 bg-white/60 backdrop-blur-xl border-b border-white/20 px-8 py-3">
             <div className="flex items-center justify-end gap-3">
               <NotificationBell storeId={store.id} />
@@ -646,8 +639,8 @@ export default function AppLayout() {
           </header>
         )}
 
-        {/* System Notifications - hide on builder routes */}
-        {!isBuilderRoute && visibleNotifications.length > 0 && (
+        {/* System Notifications */}
+        {visibleNotifications.length > 0 && (
           <div className="px-4 md:px-8 pt-4 space-y-2">
             {visibleNotifications.map((notification) => {
               const style = getNotificationStyle(notification.type);
@@ -674,16 +667,16 @@ export default function AppLayout() {
           </div>
         )}
 
-        {/* Page Content - full width on builder routes */}
-        <main className={isBuilderRoute ? '' : 'p-4 md:p-8'}>
-          <div className={isBuilderRoute ? 'w-full h-full' : 'max-w-7xl mx-auto w-full'}>
+        {/* Page Content */}
+        <main className="p-4 md:p-8">
+            <div className="max-w-7xl mx-auto w-full">
             <Outlet />
           </div>
         </main>
       </div>
 
-      {/* AI Co-pilot Widget - hide on builder routes */}
-      {!isBuilderRoute && (
+      {/* AI Co-pilot Widget */}
+      {(
         <DashboardChatWidget
           userName={user.name || undefined}
           storeName={store.name}

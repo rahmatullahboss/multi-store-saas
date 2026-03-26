@@ -1,7 +1,7 @@
 
 
 # Project Memory — multi-store-saas
-> 155 notes | Score threshold: >40
+> 164 notes | Score threshold: >40
 
 ## Safety — Never Run Destructive Commands
 
@@ -27,6 +27,7 @@ Content summary (54 lines):
 
 ## Project Standards
 
+- Fixed null crash in Failed — prevents null/undefined runtime crashes — confirmed 3x
 - Strengthened types index
 - Fixed null crash in Also — reduces initial bundle size with code splitting — confirmed 3x
 - convention in palette.md
@@ -34,7 +35,15 @@ Content summary (54 lines):
 - Use responsive prefixes consistently (sm:, md:, lg:, xl:)
 - Don't use arbitrary values when a utility class exists
 - Use middleware.ts for authentication guards, not client-side checks
-- Use next/image (not img tag) for automatic optimization
+
+## Known Fixes
+
+- ❌ +       console.error('Failed to update unified settings theme:', e); → ✅ Fixed null crash in Failed — prevents null/undefined runtime crashes
+
+## Recent Decisions
+
+- decision in app.store-design.tsx
+- decision in app.store-design.tsx
 
 ## Learned Patterns
 

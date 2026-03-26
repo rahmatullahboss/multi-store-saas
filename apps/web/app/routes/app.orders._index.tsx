@@ -486,7 +486,13 @@ export async function action({ request, context }: ActionFunctionArgs) {
       }
 
       // ── fetchAndCacheGuardData: reads KV first, then fetches live, saves to KV ──
-      const resultObj = await fetchAndCacheGuardData(phoneForCheck, storeId, kv);
+      const resultMap = await fetchAndCacheGuardData({
+        storeId,
+        phones: [phoneForCheck],
+        db,
+        kv
+      });
+      const resultObj = resultMap ? Array.from(resultMap.values())[0] : null;
 
       if (!resultObj) {
         return json({ error: 'ফ্রড চেক ব্যর্থ হয়েছে। কিছুক্ষণ পরে আবার চেষ্টা করুন।' }, { status: 502 });
