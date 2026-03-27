@@ -556,7 +556,13 @@ export default function SharedProductPage({
       if (existingIndex >= 0) {
         cart[existingIndex].quantity += quantity;
       } else {
-        cart.push({ productId: product.id, quantity });
+        cart.push({ 
+          productId: product.id, 
+          quantity,
+          title: product.title,
+          price: selectedVariant?.price || product.price,
+          imageUrl: allImages.length > 0 ? allImages[0] : null
+        });
       }
 
       localStorage.setItem('cart', JSON.stringify(cart));

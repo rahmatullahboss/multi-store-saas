@@ -66,7 +66,7 @@ export function AddToCartButton({
       }
 
       // Update local cart even in preview!
-      updateLocalCart(productId, quantity, storeId, variantId);
+      updateLocalCart(productId, quantity, storeId, variantId, productPrice, productName);
       return;
     }
 
@@ -83,7 +83,7 @@ export function AddToCartButton({
     }
 
     // Update local cart in localStorage
-    updateLocalCart(productId, quantity, storeId, variantId);
+    updateLocalCart(productId, quantity, storeId, variantId, productPrice, productName);
 
     if (mode === 'buy_now') {
       // Redirect to cart/checkout immediately
@@ -156,7 +156,14 @@ export function AddToCartButton({
 }
 
 // Helper to update cart count in header (client-side)
-function updateLocalCart(productId: number, quantity: number, storeId?: number, variantId?: number) {
+function updateLocalCart(
+  productId: number,
+  quantity: number,
+  storeId?: number,
+  variantId?: number,
+  price?: number,
+  title?: string
+) {
   // Store in localStorage for persistence
   try {
     const cart = JSON.parse(localStorage.getItem('cart') || '[]');
@@ -168,7 +175,7 @@ function updateLocalCart(productId: number, quantity: number, storeId?: number, 
     if (existingIndex >= 0) {
       cart[existingIndex].quantity += quantity;
     } else {
-      cart.push({ productId, variantId, quantity, storeId });
+      cart.push({ productId, variantId, quantity, storeId, price, title });
     }
 
     localStorage.setItem('cart', JSON.stringify(cart));

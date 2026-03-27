@@ -1049,8 +1049,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
           try {
             const parsedInfo = JSON.parse(storeData.businessInfo as string);
             if (parsedInfo.phone) contactPhone = parsedInfo.phone;
-          } catch (e) {
-            // Ignore parse errors
+          } catch {
+            // Ignore webhook errors
           }
         }
 

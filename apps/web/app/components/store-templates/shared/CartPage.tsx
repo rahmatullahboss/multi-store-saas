@@ -184,6 +184,8 @@ export default function SharedCartPage({
             ...item,
             id: String(item.productId),
             image: item.image || item.imageUrl,
+            price: Number(item.price) || 0,
+            quantity: Number(item.quantity) || 1,
           }));
           setCartItems(normalizedItems);
 

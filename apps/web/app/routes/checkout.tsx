@@ -799,8 +799,19 @@ export default function Checkout() {
   }, [fetcher, fetcher.data]);
 
   // Reset upazila when district changes
+  // If no upazilas available for this district, auto-set an 'other' value
   useEffect(() => {
-    setSelectedUpazila('');
+    if (!selectedDistrict) {
+      setSelectedUpazila('');
+      return;
+    }
+    const districtUpazilas = UPAZILAS.filter((u) => u.districtId === selectedDistrict);
+    if (districtUpazilas.length === 0) {
+      // No upazila data for this district — auto-assign so form can submit
+      setSelectedUpazila(`other_${selectedDistrict}`);
+    } else {
+      setSelectedUpazila('');
+    }
   }, [selectedDistrict]);
 
   useEffect(() => {
@@ -895,7 +906,7 @@ export default function Checkout() {
       return;
     }
 
-    if (!selectedUpazila) {
+    if (!selectedUpazila && availableUpazilas.length > 0) {
       toast.error(lang === 'bn' ? 'উপজেলা/থানা নির্বাচন করুন' : 'Please select upazila/thana');
       return;
     }

@@ -291,10 +291,16 @@ export function DCProductPage({ product, storeId, isPreview = false, config, the
                         কার্টে যোগ করুন
                       </AddToCartButton>
 
-                      <PreviewSafeLink
-                        to="/cart"
+                      <AddToCartButton
+                        productId={product.id}
+                        storeId={storeId}
+                        productName={product.title}
+                        productPrice={product.price}
+                        quantity={quantity}
+                        currency="BDT"
                         isPreview={isPreview}
-                        className="gap-2 py-3.5 rounded-full font-bold transition-all flex items-center justify-center border-2 hover:bg-amber-50 active:scale-95"
+                        mode="buy_now"
+                        className="gap-2 py-3.5 rounded-full font-bold transition-all flex items-center justify-center border-2 hover:bg-amber-50 active:scale-95 bg-white"
                         style={{ 
                           borderColor: theme.secondary,
                           color: theme.secondary,
@@ -302,7 +308,7 @@ export function DCProductPage({ product, storeId, isPreview = false, config, the
                       >
                         <ShoppingBag className="h-5 w-5" />
                         এখনই কিনুন
-                      </PreviewSafeLink>
+                      </AddToCartButton>
                     </div>
                   </div>
 

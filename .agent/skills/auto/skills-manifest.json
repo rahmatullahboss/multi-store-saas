@@ -1,31 +1,31 @@
 {
   "typescript-react": {
     "enabled": true,
-    "lastGenerated": "2026-03-26T15:24:48.648Z",
-    "observationCount": 34,
+    "lastGenerated": "2026-03-27T01:23:29.531Z",
+    "observationCount": 39,
     "skillCount": 0,
     "domain": "typescript-react",
     "triggerGlobs": [
       "**/*.tsx"
     ],
-    "description": "Typescript React for multi-store-saas. 4 conventions, 7 fixes."
+    "description": "Typescript React for multi-store-saas. 5 conventions, 9 fixes."
   },
   "typescript": {
     "enabled": true,
-    "lastGenerated": "2026-03-26T15:24:48.648Z",
-    "observationCount": 9,
+    "lastGenerated": "2026-03-27T01:23:29.530Z",
+    "observationCount": 12,
     "skillCount": 0,
     "domain": "typescript",
     "triggerGlobs": [
       "**/*.ts",
       "**/*.tsx"
     ],
-    "description": "Typescript for multi-store-saas. 2 fixes."
+    "description": "Typescript for multi-store-saas. 3 fixes."
   },
   "project": {
     "enabled": true,
-    "lastGenerated": "2026-03-26T15:24:48.648Z",
-    "observationCount": 129,
+    "lastGenerated": "2026-03-27T01:23:29.531Z",
+    "observationCount": 137,
     "skillCount": 0,
     "domain": "project",
     "triggerGlobs": [
@@ -35,7 +35,7 @@
   },
   "gotcha": {
     "enabled": true,
-    "lastGenerated": "2026-03-26T15:24:48.648Z",
+    "lastGenerated": "2026-03-27T01:23:29.531Z",
     "observationCount": 0,
     "skillCount": 2,
     "domain": "gotcha",

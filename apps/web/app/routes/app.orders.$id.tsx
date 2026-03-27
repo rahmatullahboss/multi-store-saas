@@ -615,7 +615,8 @@ export default function OrderDetailPage() {
     }).format(price);
   };
 
-  const formatDate = (date: string | Date) => {
+  const formatDate = (date: string | Date | null) => {
+    if (!date) return '—';
     return new Date(date).toLocaleDateString(lang === 'bn' ? 'bn-BD' : 'en-US', {
       year: 'numeric',
       month: 'long',
@@ -633,8 +634,7 @@ export default function OrderDetailPage() {
     });
   };
 
-  // Parse shipping address if it's a JSON string
-  let shippingAddress: { address?: string; city?: string; postalCode?: string } = {};
+  let shippingAddress: { address?: string; city?: string; postalCode?: string, area?: string } = {};
   try {
     if (order.shippingAddress) {
       shippingAddress = typeof order.shippingAddress === 'string' 
@@ -645,13 +645,10 @@ export default function OrderDetailPage() {
     shippingAddress = {};
   }
 
-  const handlePrint = () => {
-    window.print();
-  };
+  const handlePrint = () => window.print();
 
   return (
     <>
-      {/* Print Styles */}
       <style>{`
         @media print {
           body * { visibility: hidden; }
@@ -668,466 +665,375 @@ export default function OrderDetailPage() {
         }
       `}</style>
 
-      <div className="max-w-4xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="no-print">
-          <Link
-            to="/app/orders"
-            className="inline-flex items-center gap-1 text-sm text-gray-600 hover:text-gray-900 mb-2"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            {t('backToOrders')}
-          </Link>
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col h-[calc(100vh-80px)] xl:h-[calc(100vh-64px)] relative -m-4 lg:-m-8 bg-gray-50 no-print">
+        <header className="h-16 border-b border-gray-200 bg-white/90 backdrop-blur-sm flex items-center justify-between px-4 lg:px-6 shrink-0 z-10 sticky top-0 w-full">
+          <div className="flex items-center gap-4">
+            <Link
+              to="/app/orders"
+              className="inline-flex items-center justify-center w-8 h-8 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+              title={t('backToOrders')}
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </Link>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">
-                {t('order')} {order.orderNumber}
-              </h1>
-              <p className="text-gray-600">{formatDate(order.createdAt as unknown as Date)}</p>
-            </div>
-            <div className="flex items-center gap-3">
-              <StatusBadge status={order.status || 'pending'} />
-              <a
-                href={`/resources/order-invoice/${order.id}`}
-                download
-                className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition"
-              >
-                <Download className="w-4 h-4" />
-                {t('downloadPdf')}
-              </a>
-              <button
-                onClick={handleCopyTrackingLink}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-              >
-                {isCopied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                {isCopied ? 'Copied!' : 'Copy Tracking Link'}
-              </button>
-              <button
-                onClick={handlePrint}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition"
-              >
-                <Printer className="w-4 h-4" />
-                {t('printInvoice')}
-              </button>
+              <div className="flex items-center gap-3">
+                <h1 className="text-xl font-bold text-gray-900 tracking-tight flex items-center gap-3">
+                  {t('order')} {order.orderNumber}
+                </h1>
+                <StatusBadge status={order.status || 'pending'} />
+              </div>
+              <p className="text-xs text-gray-500 font-medium tracking-wide hidden sm:block">
+                {formatDate(order.createdAt as unknown as Date)}
+              </p>
             </div>
           </div>
-        </div>
-
-        {/* Status Update - Hidden on Print */}
-        <div className="bg-white rounded-xl border border-gray-200 p-6 no-print">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('updateStatus')}</h2>
-          <Form method="post" className="flex flex-wrap gap-3">
-            {statusOptions.map((option) => (
-              <button
-                key={option.value}
-                type="submit"
-                name="status"
-                value={option.value}
-                disabled={isUpdating || order.status === option.value}
-                className={`
-                  px-4 py-2 rounded-lg border text-sm font-medium transition
-                  ${order.status === option.value 
-                    ? 'bg-emerald-50 border-emerald-500 text-emerald-700 ring-2 ring-emerald-500' 
-                    : 'border-gray-300 hover:bg-gray-50 text-gray-700'}
-                  disabled:opacity-50 disabled:cursor-not-allowed
-                `}
-              >
-                {order.status === option.value && <CheckCircle className="w-4 h-4 inline mr-1" />}
-                {option.label.split(' ')[0]}
-              </button>
-            ))}
-            {isUpdating && <Loader2 className="w-5 h-5 animate-spin text-emerald-600 self-center" />}
-          </Form>
-        </div>
-
-        {/* Printable Invoice */}
-        <div id="invoice-print" className="bg-white rounded-xl border border-gray-200 p-6 sm:p-8">
-          {/* Invoice Header */}
-          <div className="flex justify-between items-start mb-8 border-b border-gray-200 pb-6">
-            <div>
-              {store?.logo ? (
-                <img src={store.logo} alt={store.name} className="h-12 mb-2" />
-              ) : (
-                <h2 className="text-2xl font-bold text-gray-900">{store?.name}</h2>
-              )}
-              <p className="text-sm text-gray-500">{t('invoice')}</p>
-            </div>
-            <div className="text-right">
-              <p className="text-lg font-bold text-gray-900">{order.orderNumber}</p>
-              <p className="text-sm text-gray-500">{formatDateShort(order.createdAt as unknown as Date)}</p>
-              <span className={`inline-block mt-2 px-2 py-1 text-xs font-medium rounded ${
-                order.status === 'delivered' ? 'bg-green-100 text-green-800' :
-                order.status === 'cancelled' ? 'bg-red-100 text-red-800' :
-                'bg-yellow-100 text-yellow-800'
-              }`}>
-                {order.status?.toUpperCase()}
-              </span>
-            </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleCopyTrackingLink}
+              className="inline-flex items-center justify-center w-9 h-9 sm:w-auto sm:px-3 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition shadow-sm"
+              title="Copy Tracking Link"
+            >
+              {isCopied ? <Check className="w-4 h-4 sm:mr-2 text-emerald-600" /> : <Copy className="w-4 h-4 sm:mr-2" />}
+              <span className="hidden sm:inline">{isCopied ? 'Copied' : 'Copy Tracking'}</span>
+            </button>
+            <a
+              href={`/resources/order-invoice/${order.id}`}
+              download
+              className="inline-flex items-center justify-center w-9 h-9 sm:w-auto sm:px-3 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition shadow-sm"
+              title={t('downloadPdf')}
+            >
+              <Download className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">PDF</span>
+            </a>
+            <button
+              onClick={handlePrint}
+              className="inline-flex items-center justify-center w-9 h-9 sm:w-auto sm:px-3 text-sm font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg hover:bg-emerald-100 transition shadow-sm"
+              title={t('printInvoice')}
+            >
+              <Printer className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">{t('print')}</span>
+            </button>
           </div>
+        </header>
 
-          {/* Customer & Shipping Info */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
-            <div>
-              <h3 className="text-sm font-semibold text-gray-500 uppercase mb-2">{t('billTo')}</h3>
-              <p className="font-medium text-gray-900">{order.customerName || 'N/A'}</p>
-              <p className="text-gray-600">{order.customerPhone}</p>
-              {order.customerEmail && <p className="text-gray-600">{order.customerEmail}</p>}
-            </div>
-            <div>
-              <h3 className="text-sm font-semibold text-gray-500 uppercase mb-2">{t('shipTo')}</h3>
-              {shippingAddress.address && <p className="text-gray-600">{shippingAddress.address}</p>}
-              {shippingAddress.city && <p className="text-gray-600">{shippingAddress.city}</p>}
-              {shippingAddress.postalCode && <p className="text-gray-600">Postal: {shippingAddress.postalCode}</p>}
-              {!shippingAddress.address && !shippingAddress.city && <p className="text-gray-400">N/A</p>}
-            </div>
-          </div>
-
-          {/* Items Table */}
-          <table className="w-full mb-8">
-            <thead>
-              <tr className="border-b border-gray-200">
-                <th className="text-left py-3 text-sm font-semibold text-gray-600">{t('item')}</th>
-                <th className="text-center py-3 text-sm font-semibold text-gray-600">{t('quantity')}</th>
-                <th className="text-right py-3 text-sm font-semibold text-gray-600">{t('price')}</th>
-                <th className="text-right py-3 text-sm font-semibold text-gray-600">{t('total')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((item) => (
-                <tr key={item.id} className="border-b border-gray-100">
-                  <td className="py-3">
-                    <p className="font-medium text-gray-900">{item.title}</p>
-                  </td>
-                  <td className="py-3 text-center text-gray-600">{item.quantity}</td>
-                  <td className="py-3 text-right text-gray-600">{formatPrice(item.price)}</td>
-                  <td className="py-3 text-right font-medium text-gray-900">{formatPrice(item.total)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-
-          {/* Totals */}
-          <div className="flex justify-end">
-            <div className="w-64 space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-500">{t('subtotal')}</span>
-                <span className="text-gray-900">{formatPrice(order.subtotal)}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-500">{t('shipping')}</span>
-                <span className="text-gray-900">{formatPrice(order.shipping || 0)}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-500">{t('tax')}</span>
-                <span className="text-gray-900">{formatPrice(order.tax || 0)}</span>
-              </div>
-              <div className="flex justify-between pt-2 border-t border-gray-200 text-lg font-bold">
-                <span>{t('total')}</span>
-                <span className="text-emerald-600">{formatPrice(order.total)}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Notes */}
-          {order.notes && (
-            <div className="mt-8 pt-6 border-t border-gray-200">
-              <h3 className="text-sm font-semibold text-gray-500 uppercase mb-2">Notes</h3>
-              <p className="text-gray-700 whitespace-pre-wrap">{order.notes}</p>
-            </div>
-          )}
-
-          {/* Footer */}
-          <div className="mt-8 pt-6 border-t border-gray-200 text-center text-sm text-gray-500">
-            <p>Thank you for your order!</p>
-            <p className="mt-1">Powered by Ozzyl</p>
-          </div>
-        </div>
-
-        {/* Non-print sections: Customer, Shipping, Summary cards */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 no-print">
-          {/* Customer Info */}
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <User className="w-5 h-5 text-gray-500" />
-              {t('customer')}
-            </h2>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-500">{t('name')}</p>
-                  <p className="font-medium text-gray-900">{order.customerName || 'N/A'}</p>
-                </div>
-                {order.customerPhone && (
-                  <RiskBadge phone={order.customerPhone} showDetails />
-                )}
-              </div>
-              <div className="flex items-start gap-2">
-                <Phone className="w-4 h-4 text-gray-400 mt-1" />
-                <div>
-                  <p className="text-sm text-gray-500">{t('phone')}</p>
-                  <a href={`tel:${order.customerPhone}`} className="font-medium text-emerald-600 hover:underline">
-                    {order.customerPhone || 'N/A'}
-                  </a>
-                </div>
-              </div>
-              {order.customerEmail && (
-                <div>
-                  <p className="text-sm text-gray-500">{t('email')}</p>
-                  <p className="font-medium text-gray-900">{order.customerEmail}</p>
-                </div>
-              )}
+        <div className="flex-1 overflow-y-auto p-4 lg:p-6 pb-20 scroll-smooth">
+          <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 max-w-[1400px] mx-auto">
+            
+            <div className="xl:col-span-8 space-y-6">
               
-              {/* WhatsApp Quick Reply */}
-              {order.customerPhone && (
-                <div className="pt-3 mt-3 border-t border-gray-100">
-                  <a
-                    href={`https://wa.me/${order.customerPhone.replace(/[\s+-]/g, '').startsWith('01') ? '88' + order.customerPhone.replace(/[\s+-]/g, '') : order.customerPhone.replace(/[\s+-]/g, '')}?text=${encodeURIComponent(
-                      `Hi ${order.customerName || 'Customer'}! Your order #${order.orderNumber} has been ${order.status || 'pending'}. Thank you for shopping at ${store?.name || 'our store'}! 🙏`
-                    )}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 bg-[#25D366] text-white font-medium rounded-lg hover:bg-[#128C7E] transition"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 448 512"
-                      className="w-4 h-4 fill-current"
-                    >
-                      <path d="M380.9 97.1C339 55.1 283.2 32 223.9 32c-122.4 0-222 99.6-222 222 0 39.1 10.2 77.3 29.6 111L0 480l117.7-30.9c32.4 17.7 68.9 27 106.1 27h.1c122.3 0 224.1-99.6 224.1-222 0-59.3-25.2-115-67.1-157zm-157 341.6c-33.2 0-65.7-8.9-94-25.7l-6.7-4-69.8 18.3L72 359.2l-4.4-7c-18.5-29.4-28.2-63.3-28.2-98.2 0-101.7 82.8-184.5 184.6-184.5 49.3 0 95.6 19.2 130.4 54.1 34.8 34.9 56.2 81.2 56.1 130.5 0 101.8-84.9 184.6-186.6 184.6zm101.2-138.2c-5.5-2.8-32.8-16.2-37.9-18-5.1-1.9-8.8-2.8-12.5 2.8-3.7 5.6-14.3 18-17.6 21.8-3.2 3.7-6.5 4.2-12 1.4-32.6-16.3-54-29.1-75.5-66-5.7-9.8 5.7-9.1 16.3-30.3 1.8-3.7.9-6.9-.5-9.7-1.4-2.8-12.5-30.1-17.1-41.2-4.5-10.8-9.1-9.3-12.5-9.5-3.2-.2-6.9-.2-10.6-.2-3.7 0-9.7 1.4-14.8 6.9-5.1 5.6-19.4 19-19.4 46.3 0 27.3 19.9 53.7 22.6 57.4 2.8 3.7 39.1 59.7 94.8 83.8 35.2 15.2 49 16.5 66.6 13.9 10.7-1.6 32.8-13.4 37.4-26.4 4.6-13 4.6-24.1 3.2-26.4-1.3-2.5-5-3.9-10.5-6.6z"/>
-                    </svg>
-                    WhatsApp Customer
-                  </a>
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200/60 overflow-hidden">
+                <div className="px-5 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
+                  <h2 className="text-base font-semibold text-gray-900 flex items-center gap-2">
+                    <Package className="w-4 h-4 text-emerald-600" />
+                    Order Items ({items.length})
+                  </h2>
                 </div>
-              )}
-
-              {/* Courier Actions */}
-              <div className="pt-3 mt-3 border-t border-gray-100">
-                {!order.courierConsignmentId ? (
-                  // Not shipped yet - show booking button
-                  connectedCourier === 'steadfast' ? (
-                    <steadfastFetcher.Form method="post" action="/api/courier/steadfast">
-                      <input type="hidden" name="intent" value="BOOK_ORDER" />
-                      <input type="hidden" name="orderId" value={order.id} />
-                      <button
-                        type="submit"
-                        disabled={isBooking || order.status === 'delivered' || order.status === 'cancelled'}
-                        className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 bg-emerald-600 text-white font-medium rounded-lg hover:bg-emerald-700 disabled:opacity-50 transition"
-                      >
-                        {isBooking ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                          <Send className="w-4 h-4" />
-                        )}
-                        Send to Steadfast
-                      </button>
-                    </steadfastFetcher.Form>
-                  ) : (
-                    <Link
-                      to="/app/settings/courier"
-                      className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition"
-                    >
-                      <Truck className="w-4 h-4" />
-                      Connect Courier
-                    </Link>
-                  )
-                ) : (
-                  // Already shipped - show tracking button
-                  <button
-                    type="button"
-                    onClick={() => setIsTrackingOpen(true)}
-                    className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition"
-                  >
-                    <ExternalLink className="w-4 h-4" />
-                    Track Order
-                  </button>
-                )}
-                {(() => {
-                  const data = steadfastFetcher.data as { error?: string; success?: boolean } | undefined;
-                  if (data?.error) {
-                    return <p className="text-sm text-red-600 mt-2">{data.error}</p>;
-                  }
-                  if (data?.success) {
-                    return <p className="text-sm text-emerald-600 mt-2">✓ Shipment booked!</p>;
-                  }
-                  return null;
-                })()}
-              </div>
-            </div>
-          </div>
-
-          {/* Shipping Address */}
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <MapPin className="w-5 h-5 text-gray-500" />
-              Shipping Address
-            </h2>
-            <div className="space-y-1 text-gray-700">
-              {shippingAddress.address && <p>{shippingAddress.address}</p>}
-              {shippingAddress.city && <p>{shippingAddress.city}</p>}
-              {shippingAddress.postalCode && <p>Postal: {shippingAddress.postalCode}</p>}
-              {!shippingAddress.address && !shippingAddress.city && <p className="text-gray-400">No address provided</p>}
-            </div>
-          </div>
-
-          {/* Order Summary */}
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Summary</h2>
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-500">Subtotal</span>
-                <span className="text-gray-900">{formatPrice(order.subtotal)}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-500">Shipping</span>
-                <span className="text-gray-900">{formatPrice(order.shipping || 0)}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-500">Tax</span>
-                <span className="text-gray-900">{formatPrice(order.tax || 0)}</span>
-              </div>
-              <hr className="my-2" />
-              <div className="flex justify-between font-semibold text-lg">
-                <span>Total</span>
-                <span className="text-emerald-600">{formatPrice(order.total)}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Internal Notes & Order Timeline */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 no-print">
-          {/* Internal Notes */}
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <StickyNote className="w-5 h-5 text-gray-500" />
-              📝 Internal Notes
-            </h2>
-
-            <fetcher.Form method="post" className="mb-6">
-              <input type="hidden" name="intent" value="addNote" />
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  name="note"
-                  placeholder="Add a note..."
-                  required
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm"
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      if (e.currentTarget.value.trim()) {
-                        e.currentTarget.form?.requestSubmit();
-                        e.currentTarget.value = '';
-                      }
-                    }
-                  }}
-                />
-                <button
-                  type="submit"
-                  disabled={fetcher.state === 'submitting'}
-                  className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 disabled:opacity-50 transition whitespace-nowrap"
-                  onClick={(e) => {
-                    const form = e.currentTarget.form;
-                    if (form) {
-                      const input = form.querySelector('input[name="note"]') as HTMLInputElement;
-                      if (!input.value.trim()) {
-                        e.preventDefault();
-                        return;
-                      }
-                      setTimeout(() => {
-                        input.value = '';
-                      }, 10);
-                    }
-                  }}
-                >
-                  {fetcher.state === 'submitting' ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    'Add Note'
-                  )}
-                </button>
-              </div>
-            </fetcher.Form>
-
-            <div className="space-y-3">
-              {activityLogs
-                .filter(log => log.action === 'order_note_added')
-                .map((log) => {
-                  let noteContent = '';
-                  try {
-                    const parsed = JSON.parse(log.details || '{}');
-                    noteContent = parsed.note || '';
-                  } catch (e) {
-                    noteContent = log.details || '';
-                  }
-
-                  return (
-                    <div key={log.id} className="flex gap-2 text-sm text-gray-700">
-                      <span className="text-gray-400 mt-0.5">•</span>
-                      <div>
-                        <span>"{noteContent}"</span>
-                        <span className="text-gray-400 ml-2">
-                          - {log.user?.name || log.user?.email || 'System'}, {new Date(log.createdAt || '').toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
-                        </span>
+                <div className="divide-y divide-gray-100">
+                  {items.map((item) => (
+                    <div key={item.id} className="p-5 flex items-start sm:items-center gap-4 hover:bg-gray-50/50 transition-colors">
+                      {item.imageUrl ? (
+                        <div className="relative">
+                          <img
+                            src={item.imageUrl}
+                            alt={item.title}
+                            className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-md border border-gray-200 bg-white"
+                          />
+                          <span className="absolute -top-2 -right-2 bg-gray-900 text-white text-xs font-bold px-2 py-0.5 rounded-full shadow-sm ring-2 ring-white">
+                            {item.quantity}
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="relative">
+                          <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gray-100 rounded-md border border-gray-200 flex items-center justify-center">
+                            <Package className="w-8 h-8 text-gray-300" />
+                          </div>
+                          <span className="absolute -top-2 -right-2 bg-gray-900 text-white text-xs font-bold px-2 py-0.5 rounded-full shadow-sm ring-2 ring-white">
+                            {item.quantity}
+                          </span>
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <div>
+                          <p className="font-semibold text-gray-900 leading-tight truncate">{item.title}</p>
+                          <p className="text-sm text-gray-500 mt-1">
+                            {formatPrice(item.price)} each
+                          </p>
+                        </div>
+                        <div className="text-left sm:text-right">
+                          <p className="font-bold text-gray-900 text-lg">{formatPrice(item.total)}</p>
+                        </div>
                       </div>
                     </div>
-                  );
-                })}
-
-              {activityLogs.filter(log => log.action === 'order_note_added').length === 0 && (
-                <p className="text-sm text-gray-500 italic text-center py-4">No internal notes yet.</p>
-              )}
-            </div>
-          </div>
-
-          {/* Order Timeline */}
-          <div>
-            <OrderTimeline
-              logs={activityLogs}
-              orderId={order.id}
-              isSubmitting={isUpdating}
-            />
-          </div>
-        </div>
-
-        {/* Order Items - Screen only */}
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden no-print">
-          <div className="p-6 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-              <Package className="w-5 h-5 text-gray-500" />
-              Items ({items.length})
-            </h2>
-          </div>
-          <div className="divide-y divide-gray-100">
-            {items.map((item) => (
-              <div key={item.id} className="p-4 flex items-center gap-4">
-                {item.imageUrl ? (
-                  <img
-                    src={item.imageUrl}
-                    alt={item.title}
-                    className="w-16 h-16 object-cover rounded-lg border border-gray-200"
-                  />
-                ) : (
-                  <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center">
-                    <Package className="w-6 h-6 text-gray-400" />
-                  </div>
-                )}
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-gray-900">{item.title}</p>
-                  <p className="text-sm text-gray-500">
-                    {formatPrice(item.price)} × {item.quantity}
-                  </p>
+                  ))}
                 </div>
-                <div className="text-right">
-                  <p className="font-semibold text-gray-900">{formatPrice(item.total)}</p>
+                <div className="bg-gray-50 px-5 py-5 border-t border-gray-100 flex flex-col sm:flex-row justify-between sm:items-end gap-6">
+                  <div className="text-sm text-gray-500">
+                    <p>Subtotal: {formatPrice(order.subtotal)}</p>
+                    <p>Shipping: {formatPrice(order.shipping || 0)}</p>
+                    <p>Tax: {formatPrice(order.tax || 0)}</p>
+                  </div>
+                  <div className="text-right flex items-baseline gap-3">
+                    <span className="text-sm font-medium text-gray-500 uppercase tracking-wider">Total</span>
+                    <span className="text-2xl font-black text-gray-900">{formatPrice(order.total)}</span>
+                  </div>
                 </div>
               </div>
-            ))}
+
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200/60 p-5">
+                <h2 className="text-base font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <StickyNote className="w-4 h-4 text-emerald-600" />
+                  Internal Staff Notes
+                </h2>
+
+                <fetcher.Form method="post" className="mb-6 relative">
+                  <input type="hidden" name="intent" value="addNote" />
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      name="note"
+                      placeholder="Type a note and hit Enter..."
+                      required
+                      className="flex-1 pl-4 pr-24 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 focus:bg-white text-sm transition-all"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          if (e.currentTarget.value.trim()) {
+                            e.currentTarget.form?.requestSubmit();
+                            e.currentTarget.value = '';
+                          }
+                        }
+                      }}
+                    />
+                    <button
+                      type="submit"
+                      disabled={fetcher.state === 'submitting'}
+                      className="absolute right-1 top-1 bottom-1 px-4 bg-gray-900 text-white text-xs font-bold rounded-md hover:bg-gray-800 disabled:opacity-50 transition-colors flex items-center gap-2"
+                      onClick={(e) => {
+                        const form = e.currentTarget.form;
+                        if (form) {
+                          const input = form.querySelector('input[name="note"]') as HTMLInputElement;
+                          if (!input.value.trim()) {
+                            e.preventDefault();
+                            return;
+                          }
+                          setTimeout(() => { input.value = ''; }, 10);
+                        }
+                      }}
+                    >
+                      {fetcher.state === 'submitting' ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Save Note'}
+                    </button>
+                  </div>
+                </fetcher.Form>
+
+                <div className="space-y-4">
+                  {activityLogs
+                    .filter(log => log.action === 'order_note_added')
+                    .map((log) => {
+                      let noteContent = '';
+                      try {
+                        const parsed = JSON.parse(log.details || '{}');
+                        noteContent = parsed.note || '';
+                      } catch (e) { noteContent = log.details || ''; }
+
+                      return (
+                        <div key={log.id} className="flex gap-3 text-sm p-3 bg-yellow-50/50 rounded-lg border border-yellow-100/50">
+                          <div className="w-6 h-6 rounded-full bg-yellow-100 flex items-center justify-center shrink-0 mt-0.5">
+                            <span className="text-yellow-700 text-xs font-bold">{log.user?.name?.[0] || 'S'}</span>
+                          </div>
+                          <div>
+                            <p className="text-gray-900 leading-snug break-words">"{noteContent}"</p>
+                            <p className="text-xs text-gray-500 mt-1">
+                              {log.user?.name || log.user?.email || 'System'} • {new Date(log.createdAt || '').toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  {activityLogs.filter(log => log.action === 'order_note_added').length === 0 && (
+                    <p className="text-sm text-gray-400 italic text-center py-2">No notes added yet.</p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="xl:col-span-4 space-y-6">
+              
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200/60 p-5">
+                <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4 border-b border-gray-100 pb-2">
+                  Update Status
+                </h2>
+                <Form method="post" className="flex flex-col gap-2">
+                  {statusOptions.map((option) => (
+                    <button
+                      key={option.value}
+                      type="submit"
+                      name="status"
+                      value={option.value}
+                      disabled={isUpdating || order.status === option.value}
+                      className={`
+                        w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium transition flex items-center justify-between
+                        ${order.status === option.value 
+                          ? 'bg-emerald-50 text-emerald-800 ring-1 ring-emerald-500' 
+                          : 'bg-white hover:bg-gray-50 text-gray-700 border border-gray-200'}
+                      `}
+                    >
+                      <span className="flex items-center gap-2">
+                        <span className={`w-2 h-2 rounded-full ${order.status === option.value ? 'bg-emerald-500' : 'bg-gray-300'}`} />
+                        {option.label}
+                      </span>
+                      {order.status === option.value && <CheckCircle className="w-4 h-4 text-emerald-600" />}
+                    </button>
+                  ))}
+                  {isUpdating && <div className="flex justify-center mt-2"><Loader2 className="w-5 h-5 animate-spin text-emerald-600" /></div>}
+                </Form>
+              </div>
+
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200/60 overflow-hidden">
+                <div className="p-5 border-b border-gray-100">
+                  <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4 border-b border-gray-100 pb-2 flex justify-between items-center">
+                    Customer Info
+                    {order.customerPhone && <RiskBadge phone={order.customerPhone} />}
+                  </h2>
+                  <div className="space-y-4">
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center shrink-0">
+                        <User className="w-5 h-5 text-emerald-600" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-bold text-gray-900 truncate">{order.customerName || 'No Name Provided'}</p>
+                        <a href={`tel:${order.customerPhone}`} className="text-sm text-gray-500 hover:text-emerald-600 transition truncate block">
+                          {order.customerPhone || 'No Phone'}
+                        </a>
+                        {order.customerEmail && <p className="text-sm text-gray-500 truncate">{order.customerEmail}</p>}
+                      </div>
+                    </div>
+
+                    {order.customerPhone && (
+                      <a
+                        href={`https://wa.me/${order.customerPhone.replace(/[\s+-]/g, '').startsWith('01') ? '88' + order.customerPhone.replace(/[\s+-]/g, '') : order.customerPhone.replace(/[\s+-]/g, '')}?text=${encodeURIComponent(
+                          `Hi ${order.customerName || 'Customer'}! Your order #${order.orderNumber} has been ${order.status || 'pending'}. Thank you for shopping at ${store?.name || 'our store'}! 🙏`
+                        )}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-[#25D366] text-white text-sm font-bold rounded-lg hover:bg-[#1DA851] transition shadow-sm"
+                      >
+                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" className="w-4 h-4 fill-current"><path d="M380.9 97.1C339 55.1 283.2 32 223.9 32c-122.4 0-222 99.6-222 222 0 39.1 10.2 77.3 29.6 111L0 480l117.7-30.9c32.4 17.7 68.9 27 106.1 27h.1c122.3 0 224.1-99.6 224.1-222 0-59.3-25.2-115-67.1-157zm-157 341.6c-33.2 0-65.7-8.9-94-25.7l-6.7-4-69.8 18.3L72 359.2l-4.4-7c-18.5-29.4-28.2-63.3-28.2-98.2 0-101.7 82.8-184.5 184.6-184.5 49.3 0 95.6 19.2 130.4 54.1 34.8 34.9 56.2 81.2 56.1 130.5 0 101.8-84.9 184.6-186.6 184.6zm101.2-138.2c-5.5-2.8-32.8-16.2-37.9-18-5.1-1.9-8.8-2.8-12.5 2.8-3.7 5.6-14.3 18-17.6 21.8-3.2 3.7-6.5 4.2-12 1.4-32.6-16.3-54-29.1-75.5-66-5.7-9.8 5.7-9.1 16.3-30.3 1.8-3.7.9-6.9-.5-9.7-1.4-2.8-12.5-30.1-17.1-41.2-4.5-10.8-9.1-9.3-12.5-9.5-3.2-.2-6.9-.2-10.6-.2-3.7 0-9.7 1.4-14.8 6.9-5.1 5.6-19.4 19-19.4 46.3 0 27.3 19.9 53.7 22.6 57.4 2.8 3.7 39.1 59.7 94.8 83.8 35.2 15.2 49 16.5 66.6 13.9 10.7-1.6 32.8-13.4 37.4-26.4 4.6-13 4.6-24.1 3.2-26.4-1.3-2.5-5-3.9-10.5-6.6z"/></svg>
+                        WhatsApp
+                      </a>
+                    )}
+                  </div>
+                </div>
+
+                <div className="bg-gray-50/50 p-5">
+                  <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Shipping Address</h2>
+                  <div className="flex items-start gap-3">
+                    <MapPin className="w-5 h-5 text-gray-400 shrink-0 mt-0.5" />
+                    <div className="text-sm font-medium text-gray-700 leading-relaxed">
+                      {shippingAddress.address && <span>{shippingAddress.address}<br/></span>}
+                      {order.shippingArea && <span>{order.shippingArea}<br/></span>}
+                      {order.shippingCity && <span>{order.shippingCity}<br/></span>}
+                      {shippingAddress.postalCode && <span>Postal: {shippingAddress.postalCode}</span>}
+                      {!shippingAddress.address && !order.shippingCity && <span className="text-gray-400 italic">No address provided</span>}
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="p-5 border-t border-gray-100">
+                  {!order.courierConsignmentId ? (
+                    connectedCourier === 'steadfast' ? (
+                      <steadfastFetcher.Form method="post" action="/api/courier/steadfast">
+                        <input type="hidden" name="intent" value="BOOK_ORDER" />
+                        <input type="hidden" name="orderId" value={order.id} />
+                        <button
+                          type="submit"
+                          disabled={isBooking || order.status === 'delivered' || order.status === 'cancelled'}
+                          className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-900 text-white text-sm font-bold rounded-lg hover:bg-gray-800 disabled:opacity-50 transition shadow-sm"
+                        >
+                          {isBooking ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                          Book via Steadfast
+                        </button>
+                      </steadfastFetcher.Form>
+                    ) : (
+                      <Link
+                        to="/app/settings/courier"
+                        className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 text-sm font-bold rounded-lg hover:bg-gray-50 transition shadow-sm"
+                      >
+                        <Truck className="w-4 h-4" /> Connect Courier
+                      </Link>
+                    )
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setIsTrackingOpen(true)}
+                      className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 text-white text-sm font-bold rounded-lg hover:bg-emerald-700 transition shadow-sm"
+                    >
+                      <ExternalLink className="w-4 h-4" /> Track Consignment
+                    </button>
+                  )}
+                  {steadfastFetcher.data && (
+                    <div className="mt-2 text-center text-sm font-medium">
+                      {(steadfastFetcher.data as { error?: string }).error 
+                        ? <span className="text-red-500">{(steadfastFetcher.data as { error: string }).error}</span> 
+                        : <span className="text-emerald-600 flex items-center justify-center gap-1"><Check className="w-4 h-4" /> Booking Successful!</span>}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200/60 p-5">
+                <OrderTimeline logs={activityLogs} orderId={order.id} isSubmitting={isUpdating} />
+              </div>
+
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Tracking Timeline Modal */}
+      <div id="invoice-print" className="bg-white p-8 no-print hidden !block">
+        <div className="flex justify-between items-start mb-8 pb-6 border-b border-gray-200">
+          <div>
+            {store?.logo ? <img src={store.logo} alt={store.name} className="h-12 mb-2" /> : <h2 className="text-2xl font-bold text-gray-900">{store?.name}</h2>}
+            <p className="text-sm text-gray-500">{t('invoice')}</p>
+          </div>
+          <div className="text-right">
+            <p className="text-lg font-bold text-gray-900">{order.orderNumber}</p>
+            <p className="text-sm text-gray-500">{formatDateShort(order.createdAt as unknown as Date)}</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-6 mb-8">
+          <div>
+            <h3 className="text-xs font-semibold text-gray-500 uppercase mb-2">{t('billTo')}</h3>
+            <p className="font-semibold">{order.customerName}</p>
+            <p>{order.customerPhone}</p>
+          </div>
+          <div>
+            <h3 className="text-xs font-semibold text-gray-500 uppercase mb-2">{t('shipTo')}</h3>
+             <p>{shippingAddress.address}</p>
+             <p>{order.shippingArea}</p>
+             <p>{order.shippingCity}</p>
+          </div>
+        </div>
+        <table className="w-full mb-8 text-sm">
+          <thead>
+            <tr className="border-b border-gray-200">
+              <th className="text-left py-2">{t('item')}</th>
+              <th className="text-center py-2">{t('quantity')}</th>
+              <th className="text-right py-2">{t('total')}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {items.map(item => (
+              <tr key={item.id} className="border-b border-gray-100">
+                <td className="py-2">{item.title}</td>
+                <td className="py-2 text-center">{item.quantity}</td>
+                <td className="py-2 text-right">{formatPrice(item.total)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <div className="text-right font-bold text-lg pt-4">Total: {formatPrice(order.total)}</div>
+      </div>
+
       {order.courierConsignmentId && (
         <TrackingTimeline
           consignmentId={order.courierConsignmentId}

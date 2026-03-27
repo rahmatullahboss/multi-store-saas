@@ -1,7 +1,7 @@
 
 
 # Project Memory — multi-store-saas
-> 173 notes | Score threshold: >40
+> 189 notes | Score threshold: >40
 
 ## Safety — Never Run Destructive Commands
 
@@ -27,6 +27,7 @@ Content summary (54 lines):
 
 ## Project Standards
 
+- Fixed null crash in LanguageContext — avoids unnecessary re-renders in React — confirmed 3x
 - Fixed null crash in Failed — prevents null/undefined runtime crashes — confirmed 3x
 - Strengthened types index
 - Fixed null crash in Also — reduces initial bundle size with code splitting — confirmed 3x
@@ -34,7 +35,6 @@ Content summary (54 lines):
 - Extract repeated class patterns into components
 - Use responsive prefixes consistently (sm:, md:, lg:, xl:)
 - Don't use arbitrary values when a utility class exists
-- Use middleware.ts for authentication guards, not client-side checks
 
 ## Known Fixes
 
@@ -43,8 +43,8 @@ Content summary (54 lines):
 ## Recent Decisions
 
 - decision in app.orders._index.tsx
+- decision in app.orders._index.tsx
 - decision in storefront-data.server.ts
-- decision in app.store-design.tsx
 - decision in app.store-design.tsx
 
 ## Learned Patterns
