@@ -7,3 +7,8 @@
 **Vulnerability:** The `product.description` field was being sliced using `slice(0, N)` and then rendered via `dangerouslySetInnerHTML` directly in the Eclipse and Luxe Boutique templates. If a user provided HTML with unclosed tags near the slice limit, or included malicious scripts, they would execute without sanitization.
 **Learning:** When slicing user-generated HTML content (like product.description) for previews, always apply `sanitizeHtml` *after* slicing to prevent malformed, unclosed HTML tags from breaking the layout, and to clean malicious input.
 **Prevention:** Avoid rendering raw `product.description` chunks without wrapping the final string in `sanitizeHtml`.
+
+## 2025-03-27 - [HIGH] Recurrence of XSS vulnerability in DC Store product previews
+**Vulnerability:** Similar to previous templates, the DC Store product template (`DCProductPage`) was rendering `product.description` directly into the DOM using `dangerouslySetInnerHTML` without proper sanitization.
+**Learning:** Newly created or migrated templates (like OS2 themes being ported) often re-introduce the same vulnerabilities if security components (`sanitizeHtml`) are not included by default in the template scaffolding.
+**Prevention:** Always verify that newly added store templates use `sanitizeHtml` around user-controlled HTML inputs, especially `product.description`. Ensure any generic template boilerplate enforces this practice.
