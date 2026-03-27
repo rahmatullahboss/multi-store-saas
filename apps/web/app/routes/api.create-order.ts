@@ -411,16 +411,16 @@ export async function action({ request, context }: ActionFunctionArgs) {
     // PROCESS ITEMS (Fetch Prices & Check Inventory)
     // ========================================================================
     const productIds = orderItemsData.map(i => i.productId);
-    const dbProducts = await db.select().from(products)
-      .where(and(eq(products.storeId, input.store_id), inArray(products.id, productIds)));
-
-    // Fetch variants if involved
     const variantIds = orderItemsData.map(i => i.variantId).filter(Boolean) as number[];
-    let dbVariants: any[] = [];
-    if (variantIds.length > 0) {
-      dbVariants = await db.select().from(productVariants)
-        .where(inArray(productVariants.id, variantIds));
-    }
+
+    // ⚡ Bolt: Fetch products and variants concurrently to reduce Cloudflare D1 latency
+    const [dbProducts, dbVariants] = await Promise.all([
+      db.select().from(products)
+        .where(and(eq(products.storeId, input.store_id), inArray(products.id, productIds))),
+      variantIds.length > 0
+        ? db.select().from(productVariants).where(inArray(productVariants.id, variantIds))
+        : Promise.resolve([] as any[])
+    ]);
 
     let subtotal = 0;
     const finalOrderItems = [];
