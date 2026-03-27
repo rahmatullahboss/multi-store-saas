@@ -11,6 +11,7 @@ import { useLoaderData, Link, Form, useNavigation } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
 import { emailAutomations, emailAutomationSteps } from '@db/schema';
 import { eq, desc, and } from 'drizzle-orm';
+import { inArray } from 'drizzle-orm';
 import { requireTenant } from '~/lib/tenant-guard.server';
 import { Plus, Mail, Trash2, Edit2, Play, Pause, Clock, ShoppingCart, UserPlus, Package, TrendingUp } from 'lucide-react';
 
@@ -35,21 +36,33 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     .where(eq(emailAutomations.storeId, storeId))
     .orderBy(desc(emailAutomations.createdAt));
 
-  // Get step counts
-  const automationsWithSteps = await Promise.all(
-    automations.map(async (automation) => {
-      const steps = await db
-        .select()
-        .from(emailAutomationSteps)
-        .where(eq(emailAutomationSteps.automationId, automation.id));
-      
-      return {
-        ...automation,
-        stepCount: steps.length,
-        steps: steps,
-      };
-    })
-  );
+  // Get step counts (Optimized N+1 query)
+  const automationIds = automations.map(a => a.id);
+
+  let stepsByAutomationId: Record<number, typeof emailAutomationSteps.$inferSelect[]> = {};
+  if (automationIds.length > 0) {
+    const allSteps = await db
+      .select()
+      .from(emailAutomationSteps)
+      .where(inArray(emailAutomationSteps.automationId, automationIds));
+
+    stepsByAutomationId = allSteps.reduce((acc, step) => {
+      if (!acc[step.automationId]) {
+        acc[step.automationId] = [];
+      }
+      acc[step.automationId].push(step);
+      return acc;
+    }, {} as Record<number, typeof emailAutomationSteps.$inferSelect[]>);
+  }
+
+  const automationsWithSteps = automations.map(automation => {
+    const steps = stepsByAutomationId[automation.id] || [];
+    return {
+      ...automation,
+      stepCount: steps.length,
+      steps: steps,
+    };
+  });
 
   return json({ automations: automationsWithSteps });
 }
