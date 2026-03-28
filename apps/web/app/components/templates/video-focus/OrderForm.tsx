@@ -1,4 +1,4 @@
-import { useFetcher } from 'react-router';
+import { useFetcher } from '@remix-run/react';
 import { useState, useEffect } from 'react';
 import { CheckCircle2, ArrowRight, ShieldCheck, Zap } from 'lucide-react';
 import { calculateShipping, DEFAULT_SHIPPING_CONFIG, type DivisionValue } from '~/utils/shipping';
@@ -147,6 +147,7 @@ export function VideoFocusOrderForm({
                     <div className="flex items-center gap-4 bg-gray-800 rounded p-1">
                       <button
                         type="button"
+                        aria-label="Decrease quantity"
                         onClick={() => setFormData({...formData, quantity: Math.max(1, formData.quantity - 1)})}
                         className="w-8 h-8 rounded bg-gray-700 flex items-center justify-center hover:bg-blue-600 text-white transition"
                       >
@@ -155,6 +156,7 @@ export function VideoFocusOrderForm({
                       <span className="w-8 text-center text-lg text-white">{formData.quantity}</span>
                       <button
                         type="button"
+                        aria-label="Increase quantity"
                         onClick={() => setFormData({...formData, quantity: formData.quantity + 1})}
                         className="w-8 h-8 rounded bg-gray-700 flex items-center justify-center hover:bg-blue-600 text-white transition"
                       >

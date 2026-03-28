@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useFetcher } from 'react-router';
+import { useFetcher } from '@remix-run/react';
 import { CheckCircle, Truck, ShoppingCart, Loader2, ShieldCheck, PhoneCall } from 'lucide-react';
 import type { SectionProps } from '../_core/types';
 import { calculateShipping, DEFAULT_SHIPPING_CONFIG, type DivisionValue } from '~/utils/shipping';
@@ -208,6 +208,7 @@ export function OrderForm({ config, product, theme, formatPrice, productVariants
                      <div className="flex items-center gap-0 h-[104px]">
                         <button 
                           type="button"
+                          aria-label="পরিমাণ কমান"
                           onClick={() => setFormData({...formData, quantity: Math.max(1, formData.quantity - 1)})}
                           className="w-16 h-full flex items-center justify-center bg-gray-100 border-y-2 border-l-2 border-gray-200 rounded-l-xl text-2xl font-bold hover:bg-gray-200 transition-colors"
                         >-</button>
@@ -219,6 +220,7 @@ export function OrderForm({ config, product, theme, formatPrice, productVariants
                         />
                         <button 
                           type="button"
+                          aria-label="পরিমাণ বাড়ান"
                           onClick={() => setFormData({...formData, quantity: formData.quantity + 1})}
                           className="w-16 h-full flex items-center justify-center bg-gray-100 border-y-2 border-r-2 border-gray-200 rounded-r-xl text-2xl font-bold hover:bg-gray-200 transition-colors"
                         >+</button>
