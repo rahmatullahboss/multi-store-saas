@@ -1,6 +1,6 @@
 /**
  * Orders API Routes
- * 
+ *
  * Order management with automatic store_id filtering.
  */
 
@@ -9,7 +9,11 @@ import { eq, and, desc } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
 import { orders, orderItems, products, type NewOrder, type NewOrderItem } from '@db/schema';
 import type { TenantEnv, TenantContext } from '../middleware/tenant';
-import { parseShippingConfig, calculateShipping, type DivisionValue } from '../../app/utils/shipping';
+import {
+  parseShippingConfig,
+  calculateShipping,
+  type DivisionValue,
+} from '../../app/utils/shipping';
 import { checkLowStockAfterOrder } from '../../app/services/inventory.server';
 
 type OrdersContext = {
@@ -22,7 +26,10 @@ export const ordersApi = new Hono<OrdersContext>();
 // Generate unique order number
 function generateOrderNumber(): string {
   const timestamp = Date.now().toString(36).toUpperCase();
-  const random = Math.random().toString(36).substring(2, 6).toUpperCase();
+  const array = new Uint32Array(1);
+  crypto.getRandomValues(array);
+  const randomStr = array[0].toString(36).toUpperCase();
+  const random = randomStr.length >= 4 ? randomStr.slice(-4) : randomStr.padStart(4, '0');
   return `ORD-${timestamp}-${random}`;
 }
 
@@ -33,24 +40,29 @@ function generateOrderNumber(): string {
 ordersApi.get('/', async (c) => {
   const storeId = c.get('storeId');
   const db = drizzle(c.env.DB);
-  
+
   const status = c.req.query('status');
   const limit = parseInt(c.req.query('limit') || '50', 10);
   const offset = parseInt(c.req.query('offset') || '0', 10);
-  
+
   const result = await db
     .select()
     .from(orders)
     .where(
       and(
         eq(orders.storeId, storeId),
-        status ? eq(orders.status, status as 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled') : undefined
+        status
+          ? eq(
+              orders.status,
+              status as 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled'
+            )
+          : undefined
       )
     )
     .orderBy(desc(orders.createdAt))
     .limit(limit)
     .offset(offset);
-  
+
   return c.json({
     orders: result,
     pagination: { limit, offset, hasMore: result.length === limit },
@@ -65,27 +77,19 @@ ordersApi.get('/:id', async (c) => {
   const storeId = c.get('storeId');
   const orderId = parseInt(c.req.param('id'), 10);
   const db = drizzle(c.env.DB);
-  
+
   const orderResult = await db
     .select()
     .from(orders)
-    .where(
-      and(
-        eq(orders.id, orderId),
-        eq(orders.storeId, storeId)
-      )
-    )
+    .where(and(eq(orders.id, orderId), eq(orders.storeId, storeId)))
     .limit(1);
-  
+
   if (!orderResult[0]) {
     return c.json({ error: 'Order not found' }, 404);
   }
-  
-  const items = await db
-    .select()
-    .from(orderItems)
-    .where(eq(orderItems.orderId, orderId));
-  
+
+  const items = await db.select().from(orderItems).where(eq(orderItems.orderId, orderId));
+
   return c.json({
     order: orderResult[0],
     items,
@@ -99,12 +103,12 @@ ordersApi.get('/:id', async (c) => {
 ordersApi.post('/', async (c) => {
   const storeId = c.get('storeId');
   const db = drizzle(c.env.DB);
-  
+
   interface CartItem {
     productId: number;
     quantity: number;
   }
-  
+
   interface OrderBody {
     customerEmail: string;
     customerName?: string;
@@ -114,35 +118,31 @@ ordersApi.post('/', async (c) => {
     items: CartItem[];
     notes?: string;
   }
-  
+
   const body = await c.req.json<OrderBody>();
-  
+
   // Validate items exist and belong to this store
-  const productIds = body.items.map(item => item.productId);
+  const productIds = body.items.map((item) => item.productId);
   const storeProducts = await db
     .select()
     .from(products)
-    .where(
-      and(
-        eq(products.storeId, storeId)
-      )
-    );
-  
-  const productMap = new Map(storeProducts.map(p => [p.id, p]));
-  
+    .where(and(eq(products.storeId, storeId)));
+
+  const productMap = new Map(storeProducts.map((p) => [p.id, p]));
+
   // Calculate totals
   let subtotal = 0;
   const orderItemsData: Omit<NewOrderItem, 'orderId'>[] = [];
-  
+
   for (const item of body.items) {
     const product = productMap.get(item.productId);
     if (!product) {
       return c.json({ error: `Product ${item.productId} not found` }, 400);
     }
-    
+
     const itemTotal = product.price * item.quantity;
     subtotal += itemTotal;
-    
+
     orderItemsData.push({
       productId: product.id,
       title: product.title,
@@ -151,7 +151,7 @@ ordersApi.post('/', async (c) => {
       total: itemTotal,
     });
   }
-  
+
   // Calculate tax and shipping based on store settings
   const store = c.get('store');
   const shippingConfig = parseShippingConfig(store?.shippingConfig);
@@ -161,7 +161,7 @@ ordersApi.post('/', async (c) => {
   // Tax logic is skipped since there's no native taxRate column on store
   const tax = 0;
   const total = subtotal + tax + shipping;
-  
+
   // Create order
   const orderResult = await db
     .insert(orders)
@@ -181,14 +181,14 @@ ordersApi.post('/', async (c) => {
       paymentStatus: 'pending',
     })
     .returning();
-  
+
   const order = orderResult[0];
-  
+
   // Create order items
   const items = await db
     .insert(orderItems)
     .values(
-      orderItemsData.map(item => ({
+      orderItemsData.map((item) => ({
         ...item,
         orderId: order.id,
       }))
@@ -211,7 +211,7 @@ ordersApi.post('/', async (c) => {
       await checkLowStockAfterOrder(db, storeId, item.productId, newStockLevel);
     }
   }
-  
+
   return c.json({ order, items }, 201);
 });
 
@@ -223,26 +223,21 @@ ordersApi.patch('/:id/status', async (c) => {
   const storeId = c.get('storeId');
   const orderId = parseInt(c.req.param('id'), 10);
   const db = drizzle(c.env.DB);
-  
+
   const { status } = await c.req.json<{ status: string }>();
-  
+
   const result = await db
     .update(orders)
     .set({
       status: status as 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled',
       updatedAt: new Date(),
     })
-    .where(
-      and(
-        eq(orders.id, orderId),
-        eq(orders.storeId, storeId)
-      )
-    )
+    .where(and(eq(orders.id, orderId), eq(orders.storeId, storeId)))
     .returning();
-  
+
   if (!result[0]) {
     return c.json({ error: 'Order not found' }, 404);
   }
-  
+
   return c.json({ order: result[0] });
 });
