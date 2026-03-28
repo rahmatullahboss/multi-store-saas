@@ -10,10 +10,10 @@ import { json } from '~/lib/rr7-compat';
 import { useLoaderData, Link, Form, useNavigation } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
 import { abTests, abTestVariants } from '@db/schema';
-import { eq, desc, and, sql } from 'drizzle-orm';
+import { eq, desc, and, inArray } from 'drizzle-orm';
 import { requireTenant } from '~/lib/tenant-guard.server';
 import { calculateSignificance } from '~/utils/ab-testing.server';
-import { Plus, Play, Pause, BarChart3, Trash2, Trophy, Eye, TrendingUp, CheckCircle } from 'lucide-react';
+import { Plus, Play, Pause, BarChart3, Trash2, Trophy, Eye, CheckCircle } from 'lucide-react';
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const { storeId } = await requireTenant(request, context, {
@@ -32,13 +32,29 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     .where(eq(abTests.storeId, storeId))
     .orderBy(desc(abTests.createdAt));
 
-  // Fetch variants for each test
-  const testsWithVariants = await Promise.all(
-    tests.map(async (test) => {
-      const variants = await db
-        .select()
-        .from(abTestVariants)
-        .where(eq(abTestVariants.testId, test.id));
+  // Fetch variants for all tests efficiently
+  const testIds = tests.map(t => t.id);
+
+  let allVariants: typeof abTestVariants.$inferSelect[] = [];
+  if (testIds.length > 0) {
+    allVariants = await db
+      .select()
+      .from(abTestVariants)
+      .where(inArray(abTestVariants.testId, testIds));
+  }
+
+  const variantsByTestId = allVariants.reduce((acc, variant) => {
+    if (variant.testId !== null) {
+      if (!acc[variant.testId]) {
+        acc[variant.testId] = [];
+      }
+      acc[variant.testId].push(variant);
+    }
+    return acc;
+  }, {} as Record<number, typeof abTestVariants.$inferSelect[]>);
+
+  const testsWithVariants = tests.map((test) => {
+      const variants = variantsByTestId[test.id] || [];
 
       // Calculate stats
       const totalVisitors = variants.reduce((sum, v) => sum + (v.visitors || 0), 0);
@@ -84,14 +100,13 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
           significance,
         },
       };
-    })
-  );
+    });
 
   return json({ tests: testsWithVariants });
 }
 
 export async function action({ request, context }: ActionFunctionArgs) {
-  const { storeId, userId } = await requireTenant(request, context, {
+  const { storeId } = await requireTenant(request, context, {
     requirePermission: 'analytics',
   });
   if (!storeId) {
@@ -118,7 +133,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   }
 
   if (intent === 'complete') {
-    const winningVariantId = Number(formData.get('winningVariantId'));
+      const _winningVariantId = formData.get('winningVariantId');
     await db.update(abTests)
       // Remove winningVariantId because schema doesn't have it
       .set({ status: 'concluded', endedAt: new Date() }) 
@@ -136,7 +151,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 }
 
 export default function ABTestsPage() {
-  const { tests } = useLoaderData<typeof loader>();
+  const { tests } = useLoaderData<{ tests: any[] }>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
 
@@ -248,7 +263,7 @@ export default function ABTestsPage() {
 
                   {/* Variants Summary */}
                   <div className="flex flex-wrap gap-3 mt-3">
-                    {test.variants.map(v => {
+                    {test.variants.map((v: any) => {
                       const cr = v.visitors ? ((v.conversions || 0) / v.visitors * 100).toFixed(1) : '0';
                       const isWinner = test.stats.bestVariantId === v.id;
                       return (
