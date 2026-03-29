@@ -1,6 +1,6 @@
 /**
  * SectionWrapper Component
- * 
+ *
  * Wraps each section in preview mode to provide interactive editing controls:
  * - Hover to show toolbar (Edit, Remove, Copy, Move Up/Down)
  * - Click to select and open editor panel
@@ -8,7 +8,16 @@
  */
 
 import { useState, useCallback } from 'react';
-import { Edit2, Trash2, Copy, ChevronUp, ChevronDown, GripVertical, Eye, EyeOff } from 'lucide-react';
+import {
+  Edit2,
+  Trash2,
+  Copy,
+  ChevronUp,
+  ChevronDown,
+  GripVertical,
+  Eye,
+  EyeOff,
+} from 'lucide-react';
 
 interface SectionWrapperProps {
   sectionId: string;
@@ -42,69 +51,105 @@ export function SectionWrapper({
   const [isHovered, setIsHovered] = useState(false);
 
   // Handle section click - send message to parent editor
-  const handleClick = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    window.parent.postMessage({
-      type: 'SECTION_CLICKED',
-      sectionId,
-    }, '*');
-  }, [sectionId]);
+  const handleClick = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      window.parent.postMessage(
+        {
+          type: 'SECTION_CLICKED',
+          sectionId,
+        },
+        '*'
+      );
+    },
+    [sectionId]
+  );
 
   // Handle edit button click
-  const handleEdit = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    window.parent.postMessage({
-      type: 'SECTION_EDIT',
-      sectionId,
-    }, '*');
-  }, [sectionId]);
+  const handleEdit = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      window.parent.postMessage(
+        {
+          type: 'SECTION_EDIT',
+          sectionId,
+        },
+        '*'
+      );
+    },
+    [sectionId]
+  );
 
   // Handle remove/hide section
-  const handleRemove = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (isRequired) return; // Don't allow removing required sections
-    window.parent.postMessage({
-      type: 'SECTION_TOGGLE_VISIBILITY',
-      sectionId,
-      visible: false,
-    }, '*');
-  }, [sectionId, isRequired]);
+  const handleRemove = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (isRequired) return; // Don't allow removing required sections
+      window.parent.postMessage(
+        {
+          type: 'SECTION_TOGGLE_VISIBILITY',
+          sectionId,
+          visible: false,
+        },
+        '*'
+      );
+    },
+    [sectionId, isRequired]
+  );
 
   // Handle duplicate section
-  const handleDuplicate = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    window.parent.postMessage({
-      type: 'SECTION_DUPLICATE',
-      sectionId,
-    }, '*');
-  }, [sectionId]);
+  const handleDuplicate = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      window.parent.postMessage(
+        {
+          type: 'SECTION_DUPLICATE',
+          sectionId,
+        },
+        '*'
+      );
+    },
+    [sectionId]
+  );
 
   // Handle move up
-  const handleMoveUp = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    window.parent.postMessage({
-      type: 'SECTION_MOVE',
-      sectionId,
-      direction: 'up',
-    }, '*');
-  }, [sectionId]);
+  const handleMoveUp = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      window.parent.postMessage(
+        {
+          type: 'SECTION_MOVE',
+          sectionId,
+          direction: 'up',
+        },
+        '*'
+      );
+    },
+    [sectionId]
+  );
 
   // Handle move down
-  const handleMoveDown = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    window.parent.postMessage({
-      type: 'SECTION_MOVE',
-      sectionId,
-      direction: 'down',
-    }, '*');
-  }, [sectionId]);
+  const handleMoveDown = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      window.parent.postMessage(
+        {
+          type: 'SECTION_MOVE',
+          sectionId,
+          direction: 'down',
+        },
+        '*'
+      );
+    },
+    [sectionId]
+  );
 
   // If not in preview mode, just render children
   if (!isPreview) {
     return <>{children}</>;
   }
 
-  const displayName = lang === 'bn' ? sectionName : (sectionNameEn || sectionName);
+  const displayName = lang === 'bn' ? sectionName : sectionNameEn || sectionName;
 
   return (
     <div
@@ -114,11 +159,7 @@ export function SectionWrapper({
       onMouseLeave={() => setIsHovered(false)}
       onClick={handleClick}
       style={{
-        outline: isSelected 
-          ? '3px solid #10b981' 
-          : isHovered 
-            ? '2px dashed #6366f1' 
-            : 'none',
+        outline: isSelected ? '3px solid #10b981' : isHovered ? '2px dashed #6366f1' : 'none',
         outlineOffset: isSelected ? '-3px' : '-2px',
         cursor: 'pointer',
         position: 'relative',
@@ -126,7 +167,7 @@ export function SectionWrapper({
     >
       {/* Section Toolbar - Shows on hover */}
       {(isHovered || isSelected) && (
-        <div 
+        <div
           className="absolute top-2 left-1/2 transform -translate-x-1/2 z-50 flex items-center gap-1 bg-white rounded-lg shadow-xl border border-gray-200 px-2 py-1.5"
           onClick={(e) => e.stopPropagation()}
         >
@@ -148,6 +189,7 @@ export function SectionWrapper({
               onClick={handleMoveUp}
               className="p-1.5 hover:bg-gray-100 rounded transition-colors"
               title={lang === 'bn' ? 'উপরে সরান' : 'Move Up'}
+              aria-label={lang === 'bn' ? 'উপরে সরান' : 'Move Up'}
             >
               <ChevronUp className="w-4 h-4 text-gray-600" />
             </button>
@@ -159,6 +201,7 @@ export function SectionWrapper({
               onClick={handleMoveDown}
               className="p-1.5 hover:bg-gray-100 rounded transition-colors"
               title={lang === 'bn' ? 'নিচে সরান' : 'Move Down'}
+              aria-label={lang === 'bn' ? 'নিচে সরান' : 'Move Down'}
             >
               <ChevronDown className="w-4 h-4 text-gray-600" />
             </button>
@@ -172,6 +215,7 @@ export function SectionWrapper({
             onClick={handleEdit}
             className="p-1.5 hover:bg-emerald-100 rounded transition-colors"
             title={lang === 'bn' ? 'এডিট করুন' : 'Edit'}
+            aria-label={lang === 'bn' ? 'এডিট করুন' : 'Edit'}
           >
             <Edit2 className="w-4 h-4 text-emerald-600" />
           </button>
@@ -182,6 +226,7 @@ export function SectionWrapper({
               onClick={handleDuplicate}
               className="p-1.5 hover:bg-blue-100 rounded transition-colors"
               title={lang === 'bn' ? 'কপি করুন' : 'Duplicate'}
+              aria-label={lang === 'bn' ? 'কপি করুন' : 'Duplicate'}
             >
               <Copy className="w-4 h-4 text-blue-600" />
             </button>
@@ -193,6 +238,7 @@ export function SectionWrapper({
               onClick={handleRemove}
               className="p-1.5 hover:bg-red-100 rounded transition-colors"
               title={lang === 'bn' ? 'লুকান' : 'Hide'}
+              aria-label={lang === 'bn' ? 'লুকান' : 'Hide'}
             >
               <EyeOff className="w-4 h-4 text-red-500" />
             </button>
@@ -214,25 +260,28 @@ export function SectionWrapper({
 }
 
 // Helper to get section name from LANDING_SECTIONS
-export function getSectionDisplayName(sectionId: string, lang: string = 'bn'): { name: string; nameEn: string } {
+export function getSectionDisplayName(
+  sectionId: string,
+  lang: string = 'bn'
+): { name: string; nameEn: string } {
   const SECTION_NAMES: Record<string, { name: string; nameEn: string }> = {
-    'hero': { name: 'হেডার', nameEn: 'Header' },
-    'trust': { name: 'বিশ্বাসযোগ্যতা', nameEn: 'Trust Badges' },
-    'features': { name: 'বৈশিষ্ট্য', nameEn: 'Features' },
-    'gallery': { name: 'ফটো গ্যালারি', nameEn: 'Photo Gallery' },
-    'video': { name: 'ভিডিও', nameEn: 'Video' },
-    'benefits': { name: 'কেন কিনবেন', nameEn: 'Why Buy Us' },
-    'comparison': { name: 'তুলনা', nameEn: 'Comparison' },
-    'testimonials': { name: 'টেস্টিমোনিয়াল', nameEn: 'Testimonials' },
-    'social': { name: 'সোশ্যাল প্রুফ', nameEn: 'Social Proof' },
-    'delivery': { name: 'ডেলিভারি', nameEn: 'Delivery Info' },
-    'faq': { name: 'FAQ', nameEn: 'FAQ' },
-    'guarantee': { name: 'গ্যারান্টি', nameEn: 'Guarantee' },
-    'cta': { name: 'অর্ডার ফর্ম', nameEn: 'Order Form' },
+    hero: { name: 'হেডার', nameEn: 'Header' },
+    trust: { name: 'বিশ্বাসযোগ্যতা', nameEn: 'Trust Badges' },
+    features: { name: 'বৈশিষ্ট্য', nameEn: 'Features' },
+    gallery: { name: 'ফটো গ্যালারি', nameEn: 'Photo Gallery' },
+    video: { name: 'ভিডিও', nameEn: 'Video' },
+    benefits: { name: 'কেন কিনবেন', nameEn: 'Why Buy Us' },
+    comparison: { name: 'তুলনা', nameEn: 'Comparison' },
+    testimonials: { name: 'টেস্টিমোনিয়াল', nameEn: 'Testimonials' },
+    social: { name: 'সোশ্যাল প্রুফ', nameEn: 'Social Proof' },
+    delivery: { name: 'ডেলিভারি', nameEn: 'Delivery Info' },
+    faq: { name: 'FAQ', nameEn: 'FAQ' },
+    guarantee: { name: 'গ্যারান্টি', nameEn: 'Guarantee' },
+    cta: { name: 'অর্ডার ফর্ম', nameEn: 'Order Form' },
     'order-form': { name: 'অর্ডার ফর্ম', nameEn: 'Order Form' },
-    'pricing': { name: 'প্রাইসিং', nameEn: 'Pricing' },
+    pricing: { name: 'প্রাইসিং', nameEn: 'Pricing' },
     'how-to-order': { name: 'অর্ডার প্রক্রিয়া', nameEn: 'How to Order' },
-    'showcase': { name: 'প্রোডাক্ট ডিটেইলস', nameEn: 'Product Details' },
+    showcase: { name: 'প্রোডাক্ট ডিটেইলস', nameEn: 'Product Details' },
     'problem-solution': { name: 'সমস্যা ও সমাধান', nameEn: 'Problem & Solution' },
   };
 
