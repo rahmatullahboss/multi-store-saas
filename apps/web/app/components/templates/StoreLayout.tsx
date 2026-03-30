@@ -157,6 +157,7 @@ export function StoreLayout({
               <Link
                 to="/cart"
                 className="relative p-2 text-gray-600 hover:text-gray-900 transition"
+                aria-label={t('cart') || 'Cart'}
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
@@ -180,6 +181,8 @@ export function StoreLayout({
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 className="md:hidden p-2 text-gray-600"
+                aria-label={mobileMenuOpen ? t('closeMenu') || 'বন্ধ করুন' : t('openMenu') || 'প্যানেল খুলুন'}
+                aria-expanded={mobileMenuOpen}
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   {mobileMenuOpen ? (
