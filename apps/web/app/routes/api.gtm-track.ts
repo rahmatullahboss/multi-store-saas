@@ -13,6 +13,7 @@ import {
   getGtmEventStats,
   getGtmFunnelData,
   getStoreGtmContainerId,
+  getGtmEvents,
 } from '~/services/gtm-tracking.server';
 import { gtmTrackSchema } from '~/lib/validations';
 
@@ -28,10 +29,11 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
       const startDate = new Date(url.searchParams.get('startDate') || Date.now() - 30 * 24 * 60 * 60 * 1000);
       const endDate = new Date(url.searchParams.get('endDate') || Date.now());
 
-      const [stats, funnel] = await Promise.all([
-        getGtmEventStats(db, storeId, startDate, endDate),
-        getGtmFunnelData(db, storeId, startDate, endDate),
-      ]);
+      // ⚡ Bolt: Fetch GTM events exactly once to eliminate duplicate data loading
+      const events = await getGtmEvents(db, storeId, { startDate, endDate });
+
+      const stats = await getGtmEventStats(events);
+      const funnel = await getGtmFunnelData(events);
 
       return json({
         success: true,

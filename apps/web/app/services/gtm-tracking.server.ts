@@ -169,10 +169,7 @@ export async function getGtmEvents(
  * Get GTM event statistics for analytics
  */
 export async function getGtmEventStats(
-  db: Database,
-  storeId: number,
-  startDate: Date,
-  endDate: Date
+  events: (typeof gtmEvents.$inferSelect)[]
 ): Promise<{
   totalEvents: number;
   eventsByType: Record<string, number>;
@@ -180,8 +177,6 @@ export async function getGtmEventStats(
   uniqueSessions: number;
   conversionRate: number;
 }> {
-  const events = await getGtmEvents(db, storeId, { startDate, endDate });
-
   const eventsByType: Record<string, number> = {};
   const uniqueSessions = new Set<string>();
   let totalRevenue = 0;
@@ -217,10 +212,7 @@ export async function getGtmEventStats(
  * Get GTM funnel conversion data
  */
 export async function getGtmFunnelData(
-  db: Database,
-  storeId: number,
-  startDate: Date,
-  endDate: Date
+  events: (typeof gtmEvents.$inferSelect)[]
 ): Promise<{
   pageViews: number;
   viewItems: number;
@@ -232,8 +224,6 @@ export async function getGtmFunnelData(
   cartToCheckoutRate: number;
   checkoutToPurchaseRate: number;
 }> {
-  const events = await getGtmEvents(db, storeId, { startDate, endDate });
-
   const counts: Record<string, number> = {
     page_view: 0,
     view_item: 0,
