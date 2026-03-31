@@ -1,0 +1,3 @@
+## 2024-05-18 - Elements hidden with opacity-0 are keyboard traps
+**Learning:** Elements hidden with `opacity-0` and revealed on hover (e.g., `group-hover:opacity-100`) become invisible traps for keyboard users unless explicitly paired with `focus-visible:opacity-100` and clear visual focus rings (e.g., `focus-visible:ring-2`).
+**Action:** Always include `focus-visible:opacity-100`, `focus-visible:outline-none`, and `focus-visible:ring-*` styles to reveal and highlight hidden interactive elements when they receive keyboard focus. Ensure such icon-only buttons also have clear `aria-label`s.
