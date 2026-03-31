@@ -6,7 +6,8 @@ interface LanguageToggleProps {
 }
 
 export function LanguageToggle({ className = '' }: LanguageToggleProps) {
-  const { lang, toggleLang } = useTranslation();
+  const { lang, toggleLang, t } = useTranslation();
+  const label = t('toggleLanguage') || 'Toggle language';
 
   return (
     <button
@@ -16,7 +17,8 @@ export function LanguageToggle({ className = '' }: LanguageToggleProps) {
         bg-white hover:bg-gray-50 transition-colors font-medium
         text-sm px-3 py-2 ${className}
       `}
-      title="Toggle language"
+      title={label}
+      aria-label={label}
     >
       <Globe className="w-4 h-4 text-gray-500" />
       <span className="font-medium">
