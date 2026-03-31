@@ -10,7 +10,7 @@ import { json } from '~/lib/rr7-compat';
 import { useLoaderData, Link, Form, useNavigation } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
 import { emailAutomations, emailAutomationSteps } from '@db/schema';
-import { eq, desc, and } from 'drizzle-orm';
+import { eq, desc, and, inArray } from 'drizzle-orm';
 import { requireTenant } from '~/lib/tenant-guard.server';
 import { Plus, Mail, Trash2, Edit2, Play, Pause, Clock, ShoppingCart, UserPlus, Package, TrendingUp } from 'lucide-react';
 
@@ -35,21 +35,32 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     .where(eq(emailAutomations.storeId, storeId))
     .orderBy(desc(emailAutomations.createdAt));
 
-  // Get step counts
-  const automationsWithSteps = await Promise.all(
-    automations.map(async (automation) => {
-      const steps = await db
-        .select()
-        .from(emailAutomationSteps)
-        .where(eq(emailAutomationSteps.automationId, automation.id));
-      
-      return {
-        ...automation,
-        stepCount: steps.length,
-        steps: steps,
-      };
-    })
-  );
+  // ⚡ Bolt: Performance optimization to prevent N+1 query.
+  // We extract IDs and fetch all relevant steps in one bulk query,
+  // drastically reducing Cloudflare D1 network roundtrips.
+  const automationIds = automations.map(a => a.id);
+  const allSteps = automationIds.length > 0 ? await db
+    .select()
+    .from(emailAutomationSteps)
+    .where(inArray(emailAutomationSteps.automationId, automationIds)) : [];
+
+  // ⚡ Bolt: Group the bulk results in-memory (O(n) pass) to easily map them back to automations.
+  const stepsByAutomationId = allSteps.reduce((acc, step) => {
+    if (!acc[step.automationId]) {
+      acc[step.automationId] = [];
+    }
+    acc[step.automationId].push(step);
+    return acc;
+  }, {} as Record<number, typeof allSteps>);
+
+  const automationsWithSteps = automations.map((automation) => {
+    const steps = stepsByAutomationId[automation.id] || [];
+    return {
+      ...automation,
+      stepCount: steps.length,
+      steps: steps,
+    };
+  });
 
   return json({ automations: automationsWithSteps });
 }
