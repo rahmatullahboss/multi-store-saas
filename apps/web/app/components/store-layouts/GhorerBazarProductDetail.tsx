@@ -178,8 +178,9 @@ export function GhorerBazarProductDetail({
                   onClick={() => handleQuantityChange(-1)}
                   className="p-3 hover:bg-gray-100 transition"
                   disabled={quantity <= 1}
+                  aria-label="Decrease quantity"
                 >
-                  <Minus className="h-4 w-4" />
+                  <Minus className="h-4 w-4" aria-hidden="true" />
                 </button>
                 <span className="px-6 py-3 text-center font-medium min-w-[60px]">
                   {quantity}
@@ -187,8 +188,9 @@ export function GhorerBazarProductDetail({
                 <button
                   onClick={() => handleQuantityChange(1)}
                   className="p-3 hover:bg-gray-100 transition"
+                  aria-label="Increase quantity"
                 >
-                  <Plus className="h-4 w-4" />
+                  <Plus className="h-4 w-4" aria-hidden="true" />
                 </button>
               </div>
             </div>
