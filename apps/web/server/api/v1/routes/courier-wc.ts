@@ -130,19 +130,42 @@ courierWc.post('/sync', requireScope('courier'), async (c) => {
     const storeId = c.var.apiKey.storeId;
 
     // Fetch status for each order from D1 (production: call courier APIs)
-    const results = await Promise.all(orders.map(async (order) => {
-      const row = await c.env.DB.prepare(
-        `SELECT status, updated_at FROM courier_bookings WHERE consignment_id = ? AND store_id = ? LIMIT 1`
-      ).bind(order.consignment_id, storeId).first<{ status: string; updated_at: string }>();
+    // ⚡ Bolt: Fixed N+1 D1 queries by batching them into a single IN query
+    let results: Array<{
+      wc_order_id: string;
+      consignment_id: string;
+      courier: 'pathao' | 'steadfast' | 'redx';
+      status: string;
+      updated_at: string;
+    }> = [];
 
-      return {
-        wc_order_id: order.wc_order_id,
-        consignment_id: order.consignment_id,
-        courier: order.courier,
-        status: row?.status ?? 'unknown',
-        updated_at: row?.updated_at ?? new Date().toISOString(),
-      };
-    }));
+    if (orders.length > 0) {
+      // Chunk the array to prevent SQLite limit errors (D1 limit is 100 parameters, we use max 50 chunks)
+      const chunkSize = 50;
+      for (let i = 0; i < orders.length; i += chunkSize) {
+        const chunk = orders.slice(i, i + chunkSize);
+        const consignmentIds = chunk.map((o) => o.consignment_id);
+        const placeholders = consignmentIds.map(() => '?').join(',');
+
+        const { results: dbRows } = await c.env.DB.prepare(
+          `SELECT consignment_id, status, updated_at FROM courier_bookings WHERE store_id = ? AND consignment_id IN (${placeholders})`
+        ).bind(storeId, ...consignmentIds).all<{ consignment_id: string; status: string; updated_at: string }>();
+
+        const rowMap = new Map(dbRows.map((row) => [row.consignment_id, row]));
+
+        const chunkResults = chunk.map((order) => {
+          const row = rowMap.get(order.consignment_id);
+          return {
+            wc_order_id: order.wc_order_id,
+            consignment_id: order.consignment_id,
+            courier: order.courier,
+            status: row?.status ?? 'unknown',
+            updated_at: row?.updated_at ?? new Date().toISOString(),
+          };
+        });
+        results.push(...chunkResults);
+      }
+    }
 
     return c.json({ results });
   } catch (err) {
