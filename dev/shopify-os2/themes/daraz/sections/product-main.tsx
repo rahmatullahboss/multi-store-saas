@@ -32,7 +32,7 @@ import type {
   SerializedProduct,
   ProductVariant,
 } from '~/lib/theme-engine/types';
-import { formatPrice } from '~/lib/theme-engine';
+import { formatPrice, sanitizeHtml } from '~/lib/theme-engine';
 
 // ============================================================================
 // SCHEMA
@@ -613,7 +613,7 @@ export default function DarazProductMain({
                   <h3 className="text-lg font-medium mb-2 text-gray-800">Description</h3>
                   <div
                     className="text-gray-600 text-sm leading-relaxed"
-                    dangerouslySetInnerHTML={{ __html: product.description }}
+                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(product.description || "") }}
                   />
                 </div>
               );

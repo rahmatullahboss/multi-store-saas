@@ -28,7 +28,7 @@ import type {
   SerializedProduct,
   ProductVariant,
 } from '~/lib/theme-engine/types';
-import { formatPrice } from '~/lib/theme-engine';
+import { formatPrice, sanitizeHtml } from '~/lib/theme-engine';
 
 // ============================================================================
 // THEME COLORS
@@ -425,7 +425,7 @@ export default function NovaLuxProductMain({
           className="mb-6 prose-sm"
           style={{ color: THEME.muted }}
           dangerouslySetInnerHTML={{
-            __html: product.description.slice(0, 300),
+            __html: sanitizeHtml(product.description.slice(0, 300)),
           }}
         />
       )}
@@ -583,7 +583,7 @@ export default function NovaLuxProductMain({
                   <div
                     className="text-sm leading-relaxed prose-sm"
                     style={{ color: THEME.muted }}
-                    dangerouslySetInnerHTML={{ __html: product.description }}
+                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(product.description || "") }}
                   />
                 </div>
               );

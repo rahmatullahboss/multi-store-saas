@@ -24,7 +24,7 @@ import type {
   SerializedProduct,
   ProductVariant,
 } from '~/lib/theme-engine/types';
-import { formatPrice } from '~/lib/theme-engine';
+import { formatPrice, sanitizeHtml } from '~/lib/theme-engine';
 
 // ============================================================================
 // SCHEMA
@@ -620,7 +620,7 @@ export default function ProductMain({ section, context, settings, blocks }: Sect
                   <h3 className="text-lg font-bold mb-2">বিবরণ</h3>
                   <div
                     style={{ color: mutedColor }}
-                    dangerouslySetInnerHTML={{ __html: product.description }}
+                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(product.description || "") }}
                   />
                 </div>
               );
