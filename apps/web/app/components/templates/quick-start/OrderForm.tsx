@@ -209,18 +209,22 @@ export function OrderForm({ config, product, theme, formatPrice, productVariants
                         <button 
                           type="button"
                           onClick={() => setFormData({...formData, quantity: Math.max(1, formData.quantity - 1)})}
-                          className="w-16 h-full flex items-center justify-center bg-gray-100 border-y-2 border-l-2 border-gray-200 rounded-l-xl text-2xl font-bold hover:bg-gray-200 transition-colors"
+                          disabled={formData.quantity <= 1}
+                          aria-label="Decrease quantity"
+                          className="w-16 h-full flex items-center justify-center bg-gray-100 border-y-2 border-l-2 border-gray-200 rounded-l-xl text-2xl font-bold hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-gray-100 focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-[#1D3557] focus-visible:z-10"
                         >-</button>
                         <input 
                           type="number" 
                           value={formData.quantity}
                           readOnly
+                          aria-label="Quantity"
                           className="w-full h-full text-center text-3xl font-bold border-2 border-gray-200 text-[#1D3557]"
                         />
                         <button 
                           type="button"
                           onClick={() => setFormData({...formData, quantity: formData.quantity + 1})}
-                          className="w-16 h-full flex items-center justify-center bg-gray-100 border-y-2 border-r-2 border-gray-200 rounded-r-xl text-2xl font-bold hover:bg-gray-200 transition-colors"
+                          aria-label="Increase quantity"
+                          className="w-16 h-full flex items-center justify-center bg-gray-100 border-y-2 border-r-2 border-gray-200 rounded-r-xl text-2xl font-bold hover:bg-gray-200 transition-colors focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-[#1D3557] focus-visible:z-10"
                         >+</button>
                      </div>
                    </div>
