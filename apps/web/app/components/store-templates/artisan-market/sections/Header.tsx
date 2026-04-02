@@ -68,6 +68,7 @@ export function ArtisanMarketHeader({
           <button 
             className="lg:hidden p-2 -ml-2 rounded-full hover:bg-amber-50 transition-colors"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label={mobileMenuOpen ? t('closeMenu') || 'Close menu' : t('openMenu') || 'Open menu'}
           >
             {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
@@ -118,10 +119,10 @@ export function ArtisanMarketHeader({
             <div className="hidden lg:block">
               <LanguageSelector />
             </div>
-            <button className="p-2.5 rounded-full transition-colors hover:bg-amber-50">
+            <button className="p-2.5 rounded-full transition-colors hover:bg-amber-50" aria-label={t('search') || 'Search'}>
               <Search className="w-5 h-5" style={{ color: theme.text }} />
             </button>
-            <button className="hidden sm:block p-2.5 rounded-full transition-colors hover:bg-amber-50">
+            <button className="hidden sm:block p-2.5 rounded-full transition-colors hover:bg-amber-50" aria-label={t('wishlist') || 'Wishlist'}>
               <Heart className="w-5 h-5" style={{ color: theme.text }} />
             </button>
             <Link 
