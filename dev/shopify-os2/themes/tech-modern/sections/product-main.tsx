@@ -31,7 +31,7 @@ import type {
   SerializedProduct,
   ProductVariant,
 } from '~/lib/theme-engine/types';
-import { formatPrice } from '~/lib/theme-engine';
+import { formatPrice, sanitizeHtml } from '~/lib/theme-engine';
 
 // ============================================================================
 // THEME COLORS
@@ -450,7 +450,7 @@ export default function TechModernProductMain({
           className="mb-6 prose-sm"
           style={{ color: THEME.muted }}
           dangerouslySetInnerHTML={{
-            __html: product.description.slice(0, 400),
+            __html: sanitizeHtml(product.description.slice(0, 400)),
           }}
         />
       )}
@@ -628,7 +628,7 @@ export default function TechModernProductMain({
                   <div
                     className="text-sm leading-relaxed prose-sm"
                     style={{ color: THEME.muted }}
-                    dangerouslySetInnerHTML={{ __html: product.description }}
+                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(product.description || "") }}
                   />
                 </div>
               );
