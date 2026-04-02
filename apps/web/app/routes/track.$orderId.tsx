@@ -42,17 +42,28 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
 
   const order = orderResult[0];
 
-  // Fetch store info
-  const storeResult = await db
-    .select({
-      name: stores.name,
-      logo: stores.logo,
-      currency: stores.currency,
-      socialLinks: stores.socialLinks,
-    })
-    .from(stores)
-    .where(eq(stores.id, order.storeId))
-    .limit(1);
+  // ⚡ Bolt Optimization: Batch D1 queries to reduce network latency overhead.
+  // Combines sequential lookups for store info and order items into a single HTTP request.
+  // Expected Impact: Reduces database latency overhead by ~50% for this route's data fetching.
+  const [storeResult, items] = await db.batch([
+    db.select({
+        name: stores.name,
+        logo: stores.logo,
+        currency: stores.currency,
+        socialLinks: stores.socialLinks,
+      })
+      .from(stores)
+      .where(eq(stores.id, order.storeId))
+      .limit(1),
+    db.select({
+        title: orderItems.title,
+        quantity: orderItems.quantity,
+        imageUrl: products.imageUrl,
+      })
+      .from(orderItems)
+      .leftJoin(products, eq(orderItems.productId, products.id))
+      .where(eq(orderItems.orderId, order.id))
+  ]);
 
   const store = storeResult[0];
 
@@ -66,17 +77,6 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
       // Ignore parse error
     }
   }
-
-  // Fetch order items with product imagery
-  const items = await db
-    .select({
-      title: orderItems.title,
-      quantity: orderItems.quantity,
-      imageUrl: products.imageUrl,
-    })
-    .from(orderItems)
-    .leftJoin(products, eq(orderItems.productId, products.id))
-    .where(eq(orderItems.orderId, order.id));
 
   return {
     order: {
