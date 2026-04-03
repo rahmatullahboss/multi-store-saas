@@ -111,6 +111,7 @@ export function DarazPageWrapper({
               <button 
                 className="h-9 md:h-10 px-4 md:px-6 rounded-r font-medium text-white transition hover:opacity-90"
                 style={{ backgroundColor: DARAZ_ORANGE_HOVER }}
+                aria-label="Search"
               >
                 <Search className="w-4 h-4 md:w-5 md:h-5" />
               </button>
@@ -131,7 +132,10 @@ export function DarazPageWrapper({
                 {count}
               </span>
             </Link>
-            <button className="hidden md:flex p-2 text-white hover:bg-white/10 rounded transition">
+            <button
+              className="hidden md:flex p-2 text-white hover:bg-white/10 rounded transition"
+              aria-label="Wishlist"
+            >
               <Heart className="h-6 w-6" />
             </button>
           </div>
