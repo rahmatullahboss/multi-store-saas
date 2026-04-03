@@ -10,7 +10,7 @@ import { json } from '~/lib/rr7-compat';
 import { useLoaderData, Link, Form, useNavigation } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
 import { abTests, abTestVariants } from '@db/schema';
-import { eq, desc, and, sql } from 'drizzle-orm';
+import { eq, desc, and, sql, inArray } from 'drizzle-orm';
 import { requireTenant } from '~/lib/tenant-guard.server';
 import { calculateSignificance } from '~/utils/ab-testing.server';
 import { Plus, Play, Pause, BarChart3, Trash2, Trophy, Eye, TrendingUp, CheckCircle } from 'lucide-react';
@@ -32,13 +32,22 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     .where(eq(abTests.storeId, storeId))
     .orderBy(desc(abTests.createdAt));
 
-  // Fetch variants for each test
-  const testsWithVariants = await Promise.all(
-    tests.map(async (test) => {
-      const variants = await db
-        .select()
-        .from(abTestVariants)
-        .where(eq(abTestVariants.testId, test.id));
+  // Fetch variants for each test efficiently (avoid N+1)
+  const testIds = tests.map(t => t.id);
+  const allVariants = testIds.length > 0
+    ? await db.select().from(abTestVariants).where(inArray(abTestVariants.testId, testIds))
+    : [];
+
+  const variantsByTestId = allVariants.reduce<Record<number, typeof allVariants>>((acc, variant) => {
+    if (!acc[variant.testId!]) {
+      acc[variant.testId!] = [];
+    }
+    acc[variant.testId!].push(variant);
+    return acc;
+  }, {});
+
+  const testsWithVariants = tests.map((test) => {
+      const variants = variantsByTestId[test.id] || [];
 
       // Calculate stats
       const totalVisitors = variants.reduce((sum, v) => sum + (v.visitors || 0), 0);
@@ -84,8 +93,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
           significance,
         },
       };
-    })
-  );
+    });
 
   return json({ tests: testsWithVariants });
 }
