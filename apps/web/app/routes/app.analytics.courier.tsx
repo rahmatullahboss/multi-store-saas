@@ -55,11 +55,11 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const currency = storeData[0]?.currency || 'BDT';
 
   try {
-    // Get courier performance summary
-    const summary = await getCourierPerformanceSummary(db, storeId);
-
-    // Get detailed metrics
-    const metrics = await getCourierPerformance(db, { storeId });
+    // Get summary and detailed metrics in parallel
+    const [summary, metrics] = await Promise.all([
+      getCourierPerformanceSummary(db, storeId),
+      getCourierPerformance(db, { storeId })
+    ]);
 
     return json({
       success: true,

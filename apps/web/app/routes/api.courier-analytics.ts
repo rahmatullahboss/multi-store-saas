@@ -26,14 +26,16 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const courier = url.searchParams.get('courier');
 
   try {
-    const summary = await getCourierPerformanceSummary(db, storeId);
-    const metrics = await getCourierPerformance(db, {
-      storeId,
-      startDate: startDate ? new Date(startDate) : undefined,
-      endDate: endDate ? new Date(endDate) : undefined,
-      courier: courier || undefined,
-    });
-    const trends = await getCourierPerformanceTrends(db, storeId, 30);
+    const [summary, metrics, trends] = await Promise.all([
+      getCourierPerformanceSummary(db, storeId),
+      getCourierPerformance(db, {
+        storeId,
+        startDate: startDate ? new Date(startDate) : undefined,
+        endDate: endDate ? new Date(endDate) : undefined,
+        courier: courier || undefined,
+      }),
+      getCourierPerformanceTrends(db, storeId, 30),
+    ]);
 
     return json({
       success: true,
