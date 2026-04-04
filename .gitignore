@@ -51,3 +51,4 @@ CLAUDE.md
 
 # Auto-generated agent rules (personalized per developer)
 .brainsync/agent-rules.md
+apps/web/.react-router
