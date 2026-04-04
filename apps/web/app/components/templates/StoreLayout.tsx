@@ -180,6 +180,7 @@ export function StoreLayout({
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 className="md:hidden p-2 text-gray-600"
+                aria-label={mobileMenuOpen ? (t('closeMenu') || 'বন্ধ করুন') : (t('openMenu') || 'মেনু খুলুন')}
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   {mobileMenuOpen ? (
