@@ -238,3 +238,6 @@ export {
 export { ThemeBridge, getThemeBridge, resetThemeBridge } from './ThemeBridge';
 
 export type { ThemeMetadata, LoadedTheme, EditorSection } from './ThemeBridge';
+
+// Sanitization Utilities
+export { sanitizeHtml } from './utils/sanitize';

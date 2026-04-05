@@ -3,7 +3,7 @@ import sanitizeHtmlLib from 'sanitize-html';
 /**
  * A wrapper around sanitize-html to prevent XSS.
  * Allows specific safe tags and attributes.
- * 
+ *
  * NOTE: This should NOT be used on intentional raw injection fields like
  * customHeadCode, customBodyCode, customCSS — those are merchant-controlled
  * script/style injections that need to remain executable.
