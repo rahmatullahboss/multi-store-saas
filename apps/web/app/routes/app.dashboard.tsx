@@ -12,7 +12,7 @@
  */
 
 import type { LoaderFunctionArgs, MetaFunction } from 'react-router';
-import { Suspense } from 'react';
+import { Suspense, useMemo } from 'react';
 import { defer } from '~/lib/rr7-compat';
 import { useNavigate, useLoaderData, Link, Await } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
@@ -232,13 +232,15 @@ export default function DashboardPage() {
   const { t, lang } = useTranslation();
   const navigate = useNavigate();
 
-  const formatPrice = (price: number) => {
+  const priceFormatter = useMemo(() => {
     return new Intl.NumberFormat(lang === 'bn' ? 'bn-BD' : 'en-BD', {
       style: 'currency',
       currency,
       minimumFractionDigits: 0,
-    }).format(price);
-  };
+    });
+  }, [lang, currency]);
+
+  const formatPrice = (price: number) => priceFormatter.format(price);
 
   // Get translated greeting
   const getGreeting = () => {

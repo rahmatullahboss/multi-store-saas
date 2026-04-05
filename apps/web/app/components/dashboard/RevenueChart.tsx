@@ -47,18 +47,24 @@ export function RevenueChart({ data, currency = 'BDT' }: RevenueChartProps) {
     });
   }, [data, period]);
 
-  const formatPrice = (price: number) => {
+  const priceFormatter = useMemo(() => {
     return new Intl.NumberFormat(lang === 'bn' ? 'bn-BD' : 'en-BD', {
       style: 'currency',
       currency,
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
-    }).format(price);
-  };
+    });
+  }, [lang, currency]);
+
+  const formatPrice = (price: number) => priceFormatter.format(price);
+
+  const dateFormatter = useMemo(() => {
+    return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' });
+  }, []);
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
-    return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(date);
+    return dateFormatter.format(date);
   };
 
   const CustomTooltip = ({ active, payload, label }: any) => {
