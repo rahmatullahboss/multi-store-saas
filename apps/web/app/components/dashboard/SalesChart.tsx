@@ -3,7 +3,7 @@
  * No external library dependency - lightweight and fast
  */
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useTranslation } from '~/contexts/LanguageContext';
 
 interface SalesDataPoint {
@@ -35,14 +35,16 @@ export function SalesChart({ data, currency = 'BDT' }: SalesChartProps) {
   const barWidth = chartWidth / data.length;
   // padding = 2 (gap between bars, applied via gap-1 class)
 
-  const formatPrice = (price: number) => {
+  const priceFormatter = useMemo(() => {
     return new Intl.NumberFormat('en-BD', {
       style: 'currency',
       currency,
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
-    }).format(price);
-  };
+    });
+  }, [currency]);
+
+  const formatPrice = (price: number) => priceFormatter.format(price);
 
   return (
     <div className="relative">
