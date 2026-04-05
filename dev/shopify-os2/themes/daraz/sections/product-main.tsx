@@ -13,6 +13,7 @@
 
 import { useState } from 'react';
 import { Link, useFetcher } from '@remix-run/react';
+import { sanitizeHtml } from '~/lib/theme-engine';
 import {
   ShoppingCart,
   Heart,
@@ -613,7 +614,7 @@ export default function DarazProductMain({
                   <h3 className="text-lg font-medium mb-2 text-gray-800">Description</h3>
                   <div
                     className="text-gray-600 text-sm leading-relaxed"
-                    dangerouslySetInnerHTML={{ __html: product.description }}
+                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(product.description) }}
                   />
                 </div>
               );
