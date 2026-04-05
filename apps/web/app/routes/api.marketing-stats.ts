@@ -73,8 +73,8 @@ export async function loader({ context }: LoaderFunctionArgs): Promise<Response>
   const db = drizzle(cloudflare.env.DB);
   
   try {
-    // Fetch counts in parallel
-    const [userCountResult, storeCountResult, recentUsersResult] = await Promise.all([
+    // Fetch counts in a single batch request to Cloudflare D1
+    const [userCountResult, storeCountResult, recentUsersResult] = await db.batch([
       // Total users
       db.select({ count: count() }).from(users),
       // Total stores
