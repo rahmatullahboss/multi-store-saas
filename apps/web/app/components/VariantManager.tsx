@@ -259,7 +259,9 @@ export function VariantManager({ variants, onChange, basePrice, category }: Vari
             <button
               type="button"
               onClick={() => setShowAddForm(false)}
-              className="text-gray-400 hover:text-gray-600"
+              className="text-gray-400 hover:text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 rounded"
+              aria-label="Close"
+              title="Close"
             >
               <X className="w-5 h-5" />
             </button>
@@ -472,7 +474,9 @@ export function VariantManager({ variants, onChange, basePrice, category }: Vari
                     <button
                       type="button"
                       onClick={() => removeVariant(index)}
-                      className="p-1 text-red-500 hover:text-red-700"
+                      className="p-1 text-red-500 hover:text-red-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 rounded"
+                      aria-label="Remove variant"
+                      title="Remove variant"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
