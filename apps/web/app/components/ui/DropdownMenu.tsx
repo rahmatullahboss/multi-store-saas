@@ -112,7 +112,10 @@ const DropdownMenuTrigger = React.forwardRef<HTMLButtonElement, DropdownMenuTrig
         aria-haspopup="menu"
         aria-expanded={open}
         onClick={() => setOpen(!open)}
-        className={cn('inline-flex items-center justify-center', className)}
+        className={cn(
+          'inline-flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-1',
+          className
+        )}
         {...props}
       >
         {children}
@@ -180,7 +183,7 @@ const DropdownMenuItem = React.forwardRef<HTMLDivElement, DropdownMenuItemProps>
 
     const baseClassName = cn(
       'relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors',
-      'hover:bg-gray-100 focus:bg-gray-100',
+      'hover:bg-gray-100 focus:bg-gray-100 focus-visible:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-1 z-10',
       disabled && 'pointer-events-none opacity-50',
       inset && 'pl-8',
       className
