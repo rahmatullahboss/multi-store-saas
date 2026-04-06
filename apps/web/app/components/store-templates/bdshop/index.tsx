@@ -283,7 +283,7 @@ function PreviewHeader({
                 autoFocus
                 className="flex-1 px-4 py-3 rounded-lg bg-white"
               />
-              <button type="button" onClick={() => setSearchOpen(false)} className="p-3 text-white">
+              <button type="button" aria-label="Close search" onClick={() => setSearchOpen(false)} className="p-3 text-white">
                 <X className="w-5 h-5" />
               </button>
             </form>
