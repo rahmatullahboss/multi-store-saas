@@ -84,7 +84,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   }
 
   // Execute Queries (Parallel)
-  const [leadResults, stats] = await Promise.all([
+  const [leadResults, stats] = await db.batch([
     // 1. Leads
     db
       .select()
