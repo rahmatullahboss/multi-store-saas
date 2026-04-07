@@ -115,13 +115,13 @@ export function MinimalCleanOrderForm({
                 type="button"
                 onClick={() => setFormData({...formData, quantity: Math.max(1, formData.quantity - 1)})}
                 className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center hover:border-black transition-colors"
-              >-</button>
+               aria-label="Decrease quantity">-</button>
               <span className="text-xl font-medium w-6 text-center">{formData.quantity}</span>
               <button
                 type="button"
                 onClick={() => setFormData({...formData, quantity: formData.quantity + 1})}
                 className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center hover:border-black transition-colors"
-              >+</button>
+               aria-label="Increase quantity">+</button>
             </div>
           </div>
 

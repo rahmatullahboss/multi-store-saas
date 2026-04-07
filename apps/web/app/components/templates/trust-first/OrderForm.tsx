@@ -168,13 +168,13 @@ export function TrustFirstOrderForm({
                       type="button"
                       onClick={() => setFormData({...formData, quantity: Math.max(1, formData.quantity - 1)})}
                       className="w-10 h-10 rounded-lg bg-white border border-emerald-200 flex items-center justify-center hover:bg-emerald-100"
-                    >-</button>
+                     aria-label="Decrease quantity">-</button>
                     <span className="text-xl font-bold w-8 text-center">{formData.quantity}</span>
                     <button
                       type="button"
                       onClick={() => setFormData({...formData, quantity: formData.quantity + 1})}
                       className="w-10 h-10 rounded-lg bg-white border border-emerald-200 flex items-center justify-center hover:bg-emerald-100"
-                    >+</button>
+                     aria-label="Increase quantity">+</button>
                   </div>
                 </div>
 

@@ -210,7 +210,7 @@ export function OrderForm({ config, product, theme, formatPrice, productVariants
                           type="button"
                           onClick={() => setFormData({...formData, quantity: Math.max(1, formData.quantity - 1)})}
                           className="w-16 h-full flex items-center justify-center bg-gray-100 border-y-2 border-l-2 border-gray-200 rounded-l-xl text-2xl font-bold hover:bg-gray-200 transition-colors"
-                        >-</button>
+                         aria-label="Decrease quantity">-</button>
                         <input 
                           type="number" 
                           value={formData.quantity}
@@ -221,7 +221,7 @@ export function OrderForm({ config, product, theme, formatPrice, productVariants
                           type="button"
                           onClick={() => setFormData({...formData, quantity: formData.quantity + 1})}
                           className="w-16 h-full flex items-center justify-center bg-gray-100 border-y-2 border-r-2 border-gray-200 rounded-r-xl text-2xl font-bold hover:bg-gray-200 transition-colors"
-                        >+</button>
+                         aria-label="Increase quantity">+</button>
                      </div>
                    </div>
                 </div>

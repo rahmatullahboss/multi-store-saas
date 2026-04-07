@@ -146,7 +146,7 @@ export function ModernPremiumOrderForm({
                         type="button"
                         onClick={() => setFormData({...formData, quantity: Math.max(1, formData.quantity - 1)})}
                         className="w-8 h-8 rounded-md bg-white/5 flex items-center justify-center hover:bg-amber-500 hover:text-white text-gray-400 transition"
-                      >
+                       aria-label="Decrease quantity">
                         -
                       </button>
                       <span className="w-8 text-center text-lg font-bold text-white">{formData.quantity}</span>
@@ -154,7 +154,7 @@ export function ModernPremiumOrderForm({
                         type="button"
                         onClick={() => setFormData({...formData, quantity: formData.quantity + 1})}
                         className="w-8 h-8 rounded-md bg-white/5 flex items-center justify-center hover:bg-amber-500 hover:text-white text-gray-400 transition"
-                      >
+                       aria-label="Increase quantity">
                         +
                       </button>
                     </div>

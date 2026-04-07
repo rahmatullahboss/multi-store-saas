@@ -147,13 +147,13 @@ export function StoryDrivenOrderForm({
                   type="button"
                   onClick={() => setFormData({...formData, quantity: Math.max(1, formData.quantity - 1)})}
                   className="w-10 h-10 rounded-full bg-white border-2 border-amber-200 flex items-center justify-center hover:bg-amber-100 font-bold text-amber-700"
-                >-</button>
+                 aria-label="Decrease quantity">-</button>
                 <span className="text-2xl font-bold text-amber-700 w-8 text-center">{formData.quantity}</span>
                 <button
                   type="button"
                   onClick={() => setFormData({...formData, quantity: formData.quantity + 1})}
                   className="w-10 h-10 rounded-full bg-white border-2 border-amber-200 flex items-center justify-center hover:bg-amber-100 font-bold text-amber-700"
-                >+</button>
+                 aria-label="Increase quantity">+</button>
               </div>
             </div>
 

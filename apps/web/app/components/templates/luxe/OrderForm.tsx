@@ -154,7 +154,7 @@ export function LuxeOrderForm({
                     type="button"
                     onClick={() => setFormData({...formData, quantity: Math.max(1, formData.quantity - 1)})}
                     className="w-12 h-12 rounded-full border border-white/10 text-white font-light flex items-center justify-center hover:border-amber-500 hover:text-amber-500 transition-all"
-                  >
+                   aria-label="Decrease quantity">
                     -
                   </button>
                   <span className="text-white text-2xl font-light w-6 text-center">{formData.quantity}</span>
@@ -162,7 +162,7 @@ export function LuxeOrderForm({
                     type="button"
                     onClick={() => setFormData({...formData, quantity: formData.quantity + 1})}
                     className="w-12 h-12 rounded-full border border-white/10 text-white font-light flex items-center justify-center hover:border-amber-500 hover:text-amber-500 transition-all"
-                  >
+                   aria-label="Increase quantity">
                     +
                   </button>
                 </div>

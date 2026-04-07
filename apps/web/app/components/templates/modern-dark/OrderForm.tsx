@@ -134,7 +134,7 @@ export function ModernDarkOrderForm({
                         type="button"
                         onClick={() => setFormData({...formData, quantity: Math.max(1, formData.quantity - 1)})}
                         className="w-10 h-10 rounded-xl bg-zinc-900 border border-zinc-800 text-white font-bold flex items-center justify-center hover:bg-orange-500 hover:border-orange-500 transition-all active:scale-90"
-                      >
+                       aria-label="Decrease quantity">
                         -
                       </button>
                       <span className="text-white text-2xl font-black w-4 text-center">{formData.quantity}</span>
@@ -142,7 +142,7 @@ export function ModernDarkOrderForm({
                         type="button"
                         onClick={() => setFormData({...formData, quantity: formData.quantity + 1})}
                         className="w-10 h-10 rounded-xl bg-zinc-900 border border-zinc-800 text-white font-bold flex items-center justify-center hover:bg-orange-500 hover:border-orange-500 transition-all active:scale-90"
-                      >
+                       aria-label="Increase quantity">
                         +
                       </button>
                     </div>
