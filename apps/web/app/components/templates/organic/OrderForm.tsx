@@ -136,7 +136,7 @@ export function OrganicOrderForm({
                         type="button"
                         onClick={() => setFormData({...formData, quantity: Math.max(1, formData.quantity - 1)})}
                         className="w-8 h-8 rounded-md bg-stone-100 flex items-center justify-center hover:bg-emerald-100 hover:text-emerald-700 transition"
-                      >
+                       aria-label="Decrease quantity">
                         -
                       </button>
                       <span className="w-8 text-center text-lg text-gray-900">{formData.quantity}</span>
@@ -144,7 +144,7 @@ export function OrganicOrderForm({
                         type="button"
                         onClick={() => setFormData({...formData, quantity: formData.quantity + 1})}
                         className="w-8 h-8 rounded-md bg-stone-100 flex items-center justify-center hover:bg-emerald-100 hover:text-emerald-700 transition"
-                      >
+                       aria-label="Increase quantity">
                         +
                       </button>
                     </div>

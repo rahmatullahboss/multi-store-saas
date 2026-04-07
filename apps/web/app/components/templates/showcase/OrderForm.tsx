@@ -148,7 +148,7 @@ export function ShowcaseOrderForm({
                         type="button"
                         onClick={() => setFormData({...formData, quantity: Math.max(1, formData.quantity - 1)})}
                         className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center hover:border-blue-600 hover:text-blue-600 transition-colors"
-                      >
+                       aria-label="Decrease quantity">
                         -
                       </button>
                       <span className="text-xl font-bold w-8 text-center">{formData.quantity}</span>
@@ -156,7 +156,7 @@ export function ShowcaseOrderForm({
                         type="button"
                         onClick={() => setFormData({...formData, quantity: formData.quantity + 1})}
                         className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center hover:border-blue-600 hover:text-blue-600 transition-colors"
-                      >
+                       aria-label="Increase quantity">
                         +
                       </button>
                     </div>

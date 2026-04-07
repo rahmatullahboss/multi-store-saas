@@ -153,13 +153,13 @@ export function SocialProofOrderForm({
                     type="button"
                     onClick={() => setFormData({...formData, quantity: Math.max(1, formData.quantity - 1)})}
                     className="w-8 h-8 rounded-full bg-white border border-gray-300 flex items-center justify-center hover:bg-gray-100"
-                  >-</button>
+                   aria-label="Decrease quantity">-</button>
                   <span className="text-xl font-bold text-[#1877F2] w-8 text-center">{formData.quantity}</span>
                   <button
                     type="button"
                     onClick={() => setFormData({...formData, quantity: formData.quantity + 1})}
                     className="w-8 h-8 rounded-full bg-white border border-gray-300 flex items-center justify-center hover:bg-gray-100"
-                  >+</button>
+                   aria-label="Increase quantity">+</button>
                 </div>
               </div>
             </div>

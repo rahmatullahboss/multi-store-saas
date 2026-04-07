@@ -164,13 +164,13 @@ export function UrgencyScarcityOrderForm({
                   type="button"
                   onClick={() => setFormData({...formData, quantity: Math.max(1, formData.quantity - 1)})}
                   className="w-10 h-10 rounded-lg bg-gray-800 border border-gray-700 flex items-center justify-center hover:bg-yellow-500 hover:text-black text-white font-bold transition-colors"
-                >-</button>
+                 aria-label="Decrease quantity">-</button>
                 <span className="text-2xl font-black text-yellow-400 w-8 text-center">{formData.quantity}</span>
                 <button
                   type="button"
                   onClick={() => setFormData({...formData, quantity: formData.quantity + 1})}
                   className="w-10 h-10 rounded-lg bg-gray-800 border border-gray-700 flex items-center justify-center hover:bg-yellow-500 hover:text-black text-white font-bold transition-colors"
-                >+</button>
+                 aria-label="Increase quantity">+</button>
               </div>
             </div>
 

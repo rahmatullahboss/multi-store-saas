@@ -149,7 +149,7 @@ export function VideoFocusOrderForm({
                         type="button"
                         onClick={() => setFormData({...formData, quantity: Math.max(1, formData.quantity - 1)})}
                         className="w-8 h-8 rounded bg-gray-700 flex items-center justify-center hover:bg-blue-600 text-white transition"
-                      >
+                       aria-label="Decrease quantity">
                         -
                       </button>
                       <span className="w-8 text-center text-lg text-white">{formData.quantity}</span>
@@ -157,7 +157,7 @@ export function VideoFocusOrderForm({
                         type="button"
                         onClick={() => setFormData({...formData, quantity: formData.quantity + 1})}
                         className="w-8 h-8 rounded bg-gray-700 flex items-center justify-center hover:bg-blue-600 text-white transition"
-                      >
+                       aria-label="Increase quantity">
                         +
                       </button>
                     </div>
