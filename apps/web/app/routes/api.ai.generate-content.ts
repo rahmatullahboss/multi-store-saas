@@ -10,6 +10,7 @@
 import { type ActionFunctionArgs } from 'react-router';
 import { json } from '~/lib/rr7-compat';
 import { callAIWithSystemPrompt } from '~/services/ai.server';
+import { requireUserId } from '~/services/auth.server';
 
 // Content generation types
 type ContentType =
@@ -148,6 +149,8 @@ export async function action({ request, context }: ActionFunctionArgs) {
   if (request.method !== 'POST') {
     return json({ error: 'Method not allowed' }, { status: 405 });
   }
+
+  await requireUserId(request, context.cloudflare.env);
 
   try {
     const body = (await request.json()) as GenerateContentRequest;
