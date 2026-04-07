@@ -30,6 +30,19 @@ const LOCALE_MAP: Record<SupportedLocale, string> = {
   bn: 'bn-BD-u-nu-latn', // Bengali locale with Latin numerals
 };
 
+// ⚡ Bolt: Cache Intl.NumberFormat instances to prevent massive instantiation latency in loops
+const numberFormatCache = new Map<string, Intl.NumberFormat>();
+
+function getNumberFormat(locale: string, options: Intl.NumberFormatOptions): Intl.NumberFormat {
+  const key = `${locale}-${JSON.stringify(options)}`;
+  let formatter = numberFormatCache.get(key);
+  if (!formatter) {
+    formatter = new Intl.NumberFormat(locale, options);
+    numberFormatCache.set(key, formatter);
+  }
+  return formatter;
+}
+
 /**
  * Format a price with the specified locale and currency
  * Always displays Latin numerals (0-9) regardless of locale
@@ -47,7 +60,7 @@ export function formatPrice(price: number, options: FormatPriceOptions = {}): st
       // For BDT, use simple ৳ symbol instead of "BDT" text from Intl
       // Use Intl explicitly so we can force Latin numerals via `numberingSystem`,
       // even in environments where `toLocaleString()` may ignore Unicode extensions.
-      const formattedNumber = new Intl.NumberFormat(intlLocale, {
+      const formattedNumber = getNumberFormat(intlLocale, {
         minimumFractionDigits: 0,
         maximumFractionDigits: 0,
         numberingSystem: 'latn',
@@ -55,7 +68,7 @@ export function formatPrice(price: number, options: FormatPriceOptions = {}): st
       return `৳${formattedNumber}`;
     }
 
-    const formatted = new Intl.NumberFormat(intlLocale, {
+    const formatted = getNumberFormat(intlLocale, {
       style: showSymbol ? 'currency' : 'decimal',
       currency: currency,
       minimumFractionDigits: 0,
@@ -86,7 +99,7 @@ export function getCurrencySymbol(currency: SupportedCurrency): string {
  * Uses English locale with Latin numerals by default
  */
 export function formatPriceSimple(price: number, currency: string = 'USD'): string {
-  return new Intl.NumberFormat('en-US', {
+  return getNumberFormat('en-US', {
     style: 'currency',
     currency,
     minimumFractionDigits: 0,
