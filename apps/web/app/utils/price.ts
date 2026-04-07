@@ -6,12 +6,25 @@ export function calculateDiscountPercentage(price: number, compareAtPrice: numbe
   return Math.round(((compareAtPrice - price) / compareAtPrice) * 100);
 }
 
+// ⚡ Bolt: Cache Intl.NumberFormat instances to prevent massive instantiation latency in loops
+const numberFormatCache = new Map<string, Intl.NumberFormat>();
+
+function getNumberFormat(locale: string, options: Intl.NumberFormatOptions): Intl.NumberFormat {
+  const key = `${locale}-${JSON.stringify(options)}`;
+  let formatter = numberFormatCache.get(key);
+  if (!formatter) {
+    formatter = new Intl.NumberFormat(locale, options);
+    numberFormatCache.set(key, formatter);
+  }
+  return formatter;
+}
+
 /**
  * Format currency (simple fallback if context not used)
  */
 export function formatCurrency(amount: number, currency = 'BDT'): string {
   const isBDT = currency === 'BDT';
-  return new Intl.NumberFormat('en-BD', {
+  return getNumberFormat('en-BD', {
     style: 'currency',
     currency: currency,
     minimumFractionDigits: isBDT ? 0 : 2,
