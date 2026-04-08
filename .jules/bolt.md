@@ -7,3 +7,7 @@
 **Action:** Always extract IDs from a parent array and use a single batch `inArray()` Drizzle DB fetch to gather relations. Group and process the results in-memory rather than relying on thousands of simultaneous asynchronous connections.## 2026-03-19 - [Combine Drizzle SQL lookups on same table]
 **Learning:** When retrieving different attributes from the same record across different utility queries (e.g., pulling `planType` in one function and `monthlyVisitorCount` in another), sequential queries compound Cloudflare D1 latency.
 **Action:** Always inspect sequential backend fetches to see if they target the exact same table and same `where` clause. If they do, combine them into a single Drizzle `select` to radically reduce database network latency.
+
+## 2026-03-26 - [Use inArray for Exact DB lookups instead of Full Table Scan]
+**Learning:** When fetching products associated with an order, fetching all products for the store using `eq(products.storeId, storeId)` results in fetching massive amounts of unnecessary data and causes memory bloat.
+**Action:** Always filter DB queries to the minimum required dataset by utilizing Drizzle ORM's `inArray` to match the exact related IDs.
