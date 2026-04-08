@@ -10,7 +10,7 @@ import { json } from '~/lib/rr7-compat';
 import { useLoaderData, Link, Form, useNavigation } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
 import { emailAutomations, emailAutomationSteps } from '@db/schema';
-import { eq, desc, and } from 'drizzle-orm';
+import { eq, desc, and, inArray } from 'drizzle-orm';
 import { requireTenant } from '~/lib/tenant-guard.server';
 import { Plus, Mail, Trash2, Edit2, Play, Pause, Clock, ShoppingCart, UserPlus, Package, TrendingUp } from 'lucide-react';
 
@@ -35,21 +35,35 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     .where(eq(emailAutomations.storeId, storeId))
     .orderBy(desc(emailAutomations.createdAt));
 
-  // Get step counts
-  const automationsWithSteps = await Promise.all(
-    automations.map(async (automation) => {
-      const steps = await db
-        .select()
-        .from(emailAutomationSteps)
-        .where(eq(emailAutomationSteps.automationId, automation.id));
-      
-      return {
-        ...automation,
-        stepCount: steps.length,
-        steps: steps,
-      };
-    })
-  );
+  // ⚡ Bolt: Fixed N+1 query problem by batching emailAutomationSteps fetching
+  let automationsWithSteps = automations.map((automation) => ({
+    ...automation,
+    stepCount: 0,
+    steps: [] as typeof emailAutomationSteps.$inferSelect[],
+  }));
+
+  if (automations.length > 0) {
+    const automationIds = automations.map(a => a.id);
+    const allSteps = await db
+      .select()
+      .from(emailAutomationSteps)
+      .where(inArray(emailAutomationSteps.automationId, automationIds));
+
+    // Group steps by automationId
+    const stepsByAutomationId = allSteps.reduce((acc, step) => {
+      if (!acc[step.automationId!]) {
+        acc[step.automationId!] = [];
+      }
+      acc[step.automationId!].push(step);
+      return acc;
+    }, {} as Record<number, typeof emailAutomationSteps.$inferSelect[]>);
+
+    automationsWithSteps = automationsWithSteps.map(automation => ({
+      ...automation,
+      stepCount: stepsByAutomationId[automation.id]?.length || 0,
+      steps: stepsByAutomationId[automation.id] || [],
+    }));
+  }
 
   return json({ automations: automationsWithSteps });
 }
@@ -82,7 +96,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
 }
 
 export default function AutomationsPage() {
-  const { automations } = useLoaderData<typeof loader>();
+  const { automations } = useLoaderData<{ automations: any[] }>();
   const navigation = useNavigation();
   const isSubmitting = navigation.state === 'submitting';
 
@@ -207,7 +221,7 @@ export default function AutomationsPage() {
                     {/* Steps Preview */}
                     {automation.steps && automation.steps.length > 0 && (
                       <div className="mt-3 flex flex-wrap gap-2">
-                        {automation.steps.slice(0, 3).map((step, idx) => (
+                        {automation.steps.slice(0, 3).map((step: any, idx: number) => (
                           <span
                             key={step.id}
                             className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 text-xs rounded"
