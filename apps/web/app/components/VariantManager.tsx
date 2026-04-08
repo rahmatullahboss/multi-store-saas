@@ -1,9 +1,9 @@
 /**
  * Variant Manager Component
- * 
+ *
  * Reusable component for managing product variants (size, color, etc.)
  * Used in both product creation and editing forms.
- * 
+ *
  * Features:
  * - Category-based dynamic variant suggestions
  * - All variant options available with Bengali translations
@@ -35,11 +35,11 @@ interface VariantManagerProps {
 // CATEGORY-BASED VARIANT OPTIONS MAPPING
 // ============================================================================
 const CATEGORY_VARIANT_MAP: Record<string, { primary: string[]; secondary: string[] }> = {
-  'Electronics': {
+  Electronics: {
     primary: ['Model', 'Color', 'Storage', 'Memory'],
     secondary: ['Color', 'Type', 'Size'],
   },
-  'Clothing': {
+  Clothing: {
     primary: ['Size', 'Color'],
     secondary: ['Color', 'Material', 'Style', 'Pattern'],
   },
@@ -47,15 +47,15 @@ const CATEGORY_VARIANT_MAP: Record<string, { primary: string[]; secondary: strin
     primary: ['Size', 'Color', 'Material'],
     secondary: ['Color', 'Style', 'Pattern'],
   },
-  'Sports': {
+  Sports: {
     primary: ['Size', 'Color'],
     secondary: ['Color', 'Material', 'Type'],
   },
-  'Books': {
+  Books: {
     primary: ['Type', 'Language'],
     secondary: ['Format'],
   },
-  'Toys': {
+  Toys: {
     primary: ['Size', 'Color', 'Type'],
     secondary: ['Color', 'Type'],
   },
@@ -67,11 +67,11 @@ const CATEGORY_VARIANT_MAP: Record<string, { primary: string[]; secondary: strin
     primary: ['Weight', 'Flavor', 'Pack Size'],
     secondary: ['Flavor', 'Volume', 'Pack Size'],
   },
-  'Automotive': {
+  Automotive: {
     primary: ['Size', 'Model', 'Type'],
     secondary: ['Color', 'Material'],
   },
-  'Other': {
+  Other: {
     primary: ['Size', 'Color', 'Type'],
     secondary: ['Color', 'Material', 'Weight'],
   },
@@ -100,7 +100,7 @@ const ALL_VARIANT_OPTIONS = [
 
 // Helper function to get option label
 const getOptionLabel = (value: string): string => {
-  const option = ALL_VARIANT_OPTIONS.find(opt => opt.value === value);
+  const option = ALL_VARIANT_OPTIONS.find((opt) => opt.value === value);
   return option?.label || value;
 };
 
@@ -128,7 +128,7 @@ export function VariantManager({ variants, onChange, basePrice, category }: Vari
   useEffect(() => {
     if (category && CATEGORY_VARIANT_MAP[category]) {
       const suggested = CATEGORY_VARIANT_MAP[category];
-      setNewVariant(prev => ({
+      setNewVariant((prev) => ({
         ...prev,
         option1Name: suggested.primary[0] || 'Size',
         option2Name: suggested.secondary[0] || '',
@@ -138,7 +138,7 @@ export function VariantManager({ variants, onChange, basePrice, category }: Vari
 
   const addVariant = () => {
     if (!newVariant.option1Value.trim()) return;
-    
+
     onChange([...variants, { ...newVariant }]);
     setNewVariant({
       option1Name: newVariant.option1Name,
@@ -157,7 +157,7 @@ export function VariantManager({ variants, onChange, basePrice, category }: Vari
   };
 
   const updateVariant = (index: number, updates: Partial<Variant>) => {
-    onChange(variants.map((v, i) => i === index ? { ...v, ...updates } : v));
+    onChange(variants.map((v, i) => (i === index ? { ...v, ...updates } : v)));
   };
 
   const getVariantTitle = (variant: Variant): string => {
@@ -172,12 +172,12 @@ export function VariantManager({ variants, onChange, basePrice, category }: Vari
   const quickAddSizes = () => {
     const sizes = ['S', 'M', 'L', 'XL', 'XXL'];
     const existingSizes = variants
-      .filter(v => v.option1Name === 'Size')
-      .map(v => v.option1Value.toUpperCase());
-    
+      .filter((v) => v.option1Name === 'Size')
+      .map((v) => v.option1Value.toUpperCase());
+
     const newVariants = sizes
-      .filter(size => !existingSizes.includes(size))
-      .map(size => ({
+      .filter((size) => !existingSizes.includes(size))
+      .map((size) => ({
         option1Name: 'Size',
         option1Value: size,
         option2Name: newVariant.option2Name || '',
@@ -186,7 +186,7 @@ export function VariantManager({ variants, onChange, basePrice, category }: Vari
         sku: '',
         inventory: 10, // Default stock per size
       }));
-    
+
     if (newVariants.length > 0) {
       onChange([...variants, ...newVariants]);
     }
@@ -245,7 +245,7 @@ export function VariantManager({ variants, onChange, basePrice, category }: Vari
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-start gap-2">
           <Sparkles className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
           <div className="text-sm text-blue-700">
-            <span className="font-medium">{category}</span> ক্যাটাগরির জন্য সাজেস্টেড: {' '}
+            <span className="font-medium">{category}</span> ক্যাটাগরির জন্য সাজেস্টেড:{' '}
             <span className="font-medium">{suggestedPrimary.join(', ')}</span>
           </div>
         </div>
@@ -260,17 +260,16 @@ export function VariantManager({ variants, onChange, basePrice, category }: Vari
               type="button"
               onClick={() => setShowAddForm(false)}
               className="text-gray-400 hover:text-gray-600"
+              aria-label="Close"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
-          
+
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {/* Option 1 */}
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">
-                Option 1 Name
-              </label>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Option 1 Name</label>
               <select
                 value={newVariant.option1Name}
                 onChange={(e) => setNewVariant({ ...newVariant, option1Name: e.target.value })}
@@ -279,25 +278,27 @@ export function VariantManager({ variants, onChange, basePrice, category }: Vari
                 {/* Suggested options first (if category selected) */}
                 {suggestedPrimary.length > 0 && (
                   <optgroup label="✨ সাজেস্টেড (Suggested)">
-                    {suggestedPrimary.map(opt => (
-                      <option key={`suggested-${opt}`} value={opt}>{getOptionLabel(opt)}</option>
+                    {suggestedPrimary.map((opt) => (
+                      <option key={`suggested-${opt}`} value={opt}>
+                        {getOptionLabel(opt)}
+                      </option>
                     ))}
                   </optgroup>
                 )}
                 {/* All other options */}
-                <optgroup label={suggestedPrimary.length > 0 ? "📋 সব অপশন (All Options)" : ""}>
-                  {ALL_VARIANT_OPTIONS
-                    .filter(opt => !suggestedPrimary.includes(opt.value))
-                    .map(opt => (
-                      <option key={opt.value} value={opt.value}>{opt.label}</option>
-                    ))}
+                <optgroup label={suggestedPrimary.length > 0 ? '📋 সব অপশন (All Options)' : ''}>
+                  {ALL_VARIANT_OPTIONS.filter((opt) => !suggestedPrimary.includes(opt.value)).map(
+                    (opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    )
+                  )}
                 </optgroup>
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">
-                Option 1 Value
-              </label>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Option 1 Value</label>
               <input
                 type="text"
                 placeholder={getPlaceholder(newVariant.option1Name)}
@@ -309,9 +310,7 @@ export function VariantManager({ variants, onChange, basePrice, category }: Vari
 
             {/* Option 2 */}
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">
-                Option 2 Name
-              </label>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Option 2 Name</label>
               <select
                 value={newVariant.option2Name || ''}
                 onChange={(e) => setNewVariant({ ...newVariant, option2Name: e.target.value })}
@@ -321,28 +320,34 @@ export function VariantManager({ variants, onChange, basePrice, category }: Vari
                 {/* Suggested options first (if category selected) */}
                 {suggestedSecondary.length > 0 && (
                   <optgroup label="✨ সাজেস্টেড (Suggested)">
-                    {suggestedSecondary.map(opt => (
-                      <option key={`suggested2-${opt}`} value={opt}>{getOptionLabel(opt)}</option>
+                    {suggestedSecondary.map((opt) => (
+                      <option key={`suggested2-${opt}`} value={opt}>
+                        {getOptionLabel(opt)}
+                      </option>
                     ))}
                   </optgroup>
                 )}
                 {/* All other options */}
-                <optgroup label={suggestedSecondary.length > 0 ? "📋 সব অপশন (All Options)" : ""}>
-                  {ALL_VARIANT_OPTIONS
-                    .filter(opt => !suggestedSecondary.includes(opt.value))
-                    .map(opt => (
-                      <option key={opt.value} value={opt.value}>{opt.label}</option>
-                    ))}
+                <optgroup label={suggestedSecondary.length > 0 ? '📋 সব অপশন (All Options)' : ''}>
+                  {ALL_VARIANT_OPTIONS.filter((opt) => !suggestedSecondary.includes(opt.value)).map(
+                    (opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    )
+                  )}
                 </optgroup>
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">
-                Option 2 Value
-              </label>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Option 2 Value</label>
               <input
                 type="text"
-                placeholder={newVariant.option2Name ? getPlaceholder(newVariant.option2Name) : 'Select option first'}
+                placeholder={
+                  newVariant.option2Name
+                    ? getPlaceholder(newVariant.option2Name)
+                    : 'Select option first'
+                }
                 value={newVariant.option2Value || ''}
                 onChange={(e) => setNewVariant({ ...newVariant, option2Value: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
@@ -360,14 +365,17 @@ export function VariantManager({ variants, onChange, basePrice, category }: Vari
                 type="number"
                 placeholder={`Default: ${basePrice}`}
                 value={newVariant.price || ''}
-                onChange={(e) => setNewVariant({ ...newVariant, price: e.target.value ? parseFloat(e.target.value) : undefined })}
+                onChange={(e) =>
+                  setNewVariant({
+                    ...newVariant,
+                    price: e.target.value ? parseFloat(e.target.value) : undefined,
+                  })
+                }
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">
-                SKU (optional)
-              </label>
+              <label className="block text-xs font-medium text-gray-600 mb-1">SKU (optional)</label>
               <input
                 type="text"
                 placeholder="SKU-001"
@@ -377,14 +385,14 @@ export function VariantManager({ variants, onChange, basePrice, category }: Vari
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">
-                Stock
-              </label>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Stock</label>
               <input
                 type="number"
                 placeholder="0"
                 value={newVariant.inventory || ''}
-                onChange={(e) => setNewVariant({ ...newVariant, inventory: parseInt(e.target.value) || 0 })}
+                onChange={(e) =>
+                  setNewVariant({ ...newVariant, inventory: parseInt(e.target.value) || 0 })
+                }
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
               />
             </div>
@@ -431,7 +439,11 @@ export function VariantManager({ variants, onChange, basePrice, category }: Vari
                       type="number"
                       value={variant.price || ''}
                       placeholder={basePrice.toString()}
-                      onChange={(e) => updateVariant(index, { price: e.target.value ? parseFloat(e.target.value) : undefined })}
+                      onChange={(e) =>
+                        updateVariant(index, {
+                          price: e.target.value ? parseFloat(e.target.value) : undefined,
+                        })
+                      }
                       className="w-24 px-2 py-1 border border-gray-300 rounded text-sm"
                     />
                   </td>
@@ -464,7 +476,9 @@ export function VariantManager({ variants, onChange, basePrice, category }: Vari
                     <input
                       type="number"
                       value={variant.inventory || 0}
-                      onChange={(e) => updateVariant(index, { inventory: parseInt(e.target.value) || 0 })}
+                      onChange={(e) =>
+                        updateVariant(index, { inventory: parseInt(e.target.value) || 0 })
+                      }
                       className="w-20 px-2 py-1 border border-gray-300 rounded text-sm"
                     />
                   </td>
@@ -473,6 +487,7 @@ export function VariantManager({ variants, onChange, basePrice, category }: Vari
                       type="button"
                       onClick={() => removeVariant(index)}
                       className="p-1 text-red-500 hover:text-red-700"
+                      aria-label="Remove variant"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -485,11 +500,7 @@ export function VariantManager({ variants, onChange, basePrice, category }: Vari
       )}
 
       {/* Hidden input to store variants as JSON */}
-      <input
-        type="hidden"
-        name="variants"
-        value={JSON.stringify(variants)}
-      />
+      <input type="hidden" name="variants" value={JSON.stringify(variants)} />
     </div>
   );
 }
@@ -499,23 +510,23 @@ export function VariantManager({ variants, onChange, basePrice, category }: Vari
 // ============================================================================
 function getPlaceholder(optionName: string): string {
   const placeholders: Record<string, string> = {
-    'Size': 'e.g., S, M, L, XL, XXL',
-    'Color': 'e.g., Red, Blue, Black',
-    'Weight': 'e.g., 250g, 500g, 1kg',
-    'Flavor': 'e.g., Chocolate, Vanilla, Mango',
+    Size: 'e.g., S, M, L, XL, XXL',
+    Color: 'e.g., Red, Blue, Black',
+    Weight: 'e.g., 250g, 500g, 1kg',
+    Flavor: 'e.g., Chocolate, Vanilla, Mango',
     'Pack Size': 'e.g., 1 Pack, 3 Pack, 6 Pack',
-    'Volume': 'e.g., 100ml, 250ml, 1L',
-    'Length': 'e.g., 1m, 2m, 5m',
-    'Material': 'e.g., Cotton, Polyester, Leather',
-    'Model': 'e.g., Pro, Max, Lite',
-    'Type': 'e.g., Regular, Premium, Deluxe',
-    'Style': 'e.g., Classic, Modern, Vintage',
-    'Scent': 'e.g., Lavender, Rose, Jasmine',
-    'Pattern': 'e.g., Striped, Solid, Printed',
-    'Storage': 'e.g., 64GB, 128GB, 256GB',
-    'Memory': 'e.g., 4GB, 8GB, 16GB',
-    'Language': 'e.g., Bengali, English, Arabic',
-    'Format': 'e.g., Paperback, Hardcover, eBook',
+    Volume: 'e.g., 100ml, 250ml, 1L',
+    Length: 'e.g., 1m, 2m, 5m',
+    Material: 'e.g., Cotton, Polyester, Leather',
+    Model: 'e.g., Pro, Max, Lite',
+    Type: 'e.g., Regular, Premium, Deluxe',
+    Style: 'e.g., Classic, Modern, Vintage',
+    Scent: 'e.g., Lavender, Rose, Jasmine',
+    Pattern: 'e.g., Striped, Solid, Printed',
+    Storage: 'e.g., 64GB, 128GB, 256GB',
+    Memory: 'e.g., 4GB, 8GB, 16GB',
+    Language: 'e.g., Bengali, English, Arabic',
+    Format: 'e.g., Paperback, Hardcover, eBook',
   };
   return placeholders[optionName] || 'Enter value';
 }
