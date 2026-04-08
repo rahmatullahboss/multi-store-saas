@@ -522,11 +522,14 @@ export async function action({ request, context }: ActionFunctionArgs) {
         }
 
         // Update stats
-        context.cloudflare.ctx.waitUntil(
-          Promise.all(input.bump_ids!.map(bumpId =>
-            context.cloudflare.env.DB.prepare('UPDATE order_bumps SET conversions = conversions + 1 WHERE id = ?').bind(bumpId).run()
-          )).catch(e => console.error('Failed to update bump conversions:', e))
-        );
+        // ⚡ Bolt: Replaced Promise.all raw query loop with a single parameterized IN query
+        if (input.bump_ids && input.bump_ids.length > 0) {
+          context.cloudflare.ctx.waitUntil(
+            context.cloudflare.env.DB.prepare(
+              `UPDATE order_bumps SET conversions = conversions + 1 WHERE id IN (${input.bump_ids.map(() => '?').join(',')})`
+            ).bind(...input.bump_ids).run().catch(e => console.error('Failed to update bump conversions:', e))
+          );
+        }
       }
     }
 
