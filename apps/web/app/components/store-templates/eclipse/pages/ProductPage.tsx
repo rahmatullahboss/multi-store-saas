@@ -303,13 +303,10 @@ export function EclipseProductPage({
             {/* Description */}
             {product.description && (
               <div
-                className="text-base leading-relaxed prose prose-invert max-w-none"
+                className="text-base leading-relaxed prose prose-invert max-w-none line-clamp-6"
                 style={{ color: theme.textMuted }}
                 dangerouslySetInnerHTML={{
-                  __html: sanitizeHtml(
-                    product.description.slice(0, 300) +
-                      (product.description.length > 300 ? '...' : '')
-                  ),
+                  __html: sanitizeHtml(product.description),
                 }}
               />
             )}

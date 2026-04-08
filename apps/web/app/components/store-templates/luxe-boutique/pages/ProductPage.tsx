@@ -296,13 +296,10 @@ export function LuxeBoutiqueProductPage({
             {/* Description */}
             {product.description && (
               <p
-                className="text-sm leading-relaxed"
+                className="text-sm leading-relaxed line-clamp-4"
                 style={{ color: theme.muted }}
                 dangerouslySetInnerHTML={{
-                  __html: sanitizeHtml(
-                    product.description.slice(0, 200) +
-                      (product.description.length > 200 ? '...' : '')
-                  ),
+                  __html: sanitizeHtml(product.description),
                 }}
               />
             )}
