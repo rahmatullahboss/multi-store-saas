@@ -53,6 +53,9 @@ interface FormatMoneyOptions {
   decimals?: number;
 }
 
+// Cache for Intl.NumberFormat instances to avoid expensive re-instantiation
+const formatterCache = new Map<string, Intl.NumberFormat>();
+
 /**
  * Format money for display
  * @example formatMoney(1500.5) => "৳1,500.50"
@@ -80,10 +83,18 @@ export function formatMoney(
   const rounded = roundMoney(amount, decimals);
 
   // Format with locale
-  const formatted = new Intl.NumberFormat(locale, {
-    minimumFractionDigits: decimals,
-    maximumFractionDigits: decimals,
-  }).format(rounded);
+  const cacheKey = `${locale}-${decimals}`;
+  let formatter = formatterCache.get(cacheKey);
+
+  if (!formatter) {
+    formatter = new Intl.NumberFormat(locale, {
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals,
+    });
+    formatterCache.set(cacheKey, formatter);
+  }
+
+  const formatted = formatter.format(rounded);
 
   if (showSymbol) {
     const symbol = symbols[currency] || currency;
