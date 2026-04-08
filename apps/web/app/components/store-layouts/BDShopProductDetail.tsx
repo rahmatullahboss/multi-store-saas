@@ -161,6 +161,7 @@ export function BDShopProductDetail({
                     <button
                       key={i}
                       onClick={() => setSelectedImage(i)}
+                      aria-label={`View image ${i + 1}`}
                       className={`w-16 h-16 md:w-20 md:h-20 rounded-lg overflow-hidden border-2 shrink-0 transition-colors ${
                         selectedImage === i 
                           ? 'border-blue-500' 
@@ -189,6 +190,7 @@ export function BDShopProductDetail({
                   <button 
                     onClick={copyProductId}
                     className="p-1 hover:bg-gray-200 rounded transition"
+                    aria-label="Copy Product ID"
                   >
                     {copied ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5 text-gray-400" />}
                   </button>
@@ -272,6 +274,7 @@ export function BDShopProductDetail({
                 <div className="flex items-center border border-gray-300 rounded-lg">
                   <button
                     onClick={() => handleQuantityChange(-1)}
+                    aria-label="Decrease quantity"
                     className="w-10 h-10 flex items-center justify-center hover:bg-gray-100 transition"
                     disabled={quantity <= 1}
                   >
@@ -280,6 +283,7 @@ export function BDShopProductDetail({
                   <span className="w-12 text-center font-medium">{quantity}</span>
                   <button
                     onClick={() => handleQuantityChange(1)}
+                    aria-label="Increase quantity"
                     className="w-10 h-10 flex items-center justify-center hover:bg-gray-100 transition"
                   >
                     <Plus className="w-4 h-4" />
