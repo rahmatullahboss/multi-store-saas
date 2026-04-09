@@ -146,16 +146,19 @@ export function ShowcaseOrderForm({
                     <div className="flex items-center gap-6">
                       <button
                         type="button"
+                        aria-label="Decrease quantity"
+                        disabled={formData.quantity <= 1}
                         onClick={() => setFormData({...formData, quantity: Math.max(1, formData.quantity - 1)})}
-                        className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center hover:border-blue-600 hover:text-blue-600 transition-colors"
+                        className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center hover:border-blue-600 hover:text-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-gray-200 disabled:hover:text-inherit focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600"
                       >
                         -
                       </button>
-                      <span className="text-xl font-bold w-8 text-center">{formData.quantity}</span>
+                      <span className="text-xl font-bold w-8 text-center" aria-live="polite">{formData.quantity}</span>
                       <button
                         type="button"
+                        aria-label="Increase quantity"
                         onClick={() => setFormData({...formData, quantity: formData.quantity + 1})}
-                        className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center hover:border-blue-600 hover:text-blue-600 transition-colors"
+                        className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center hover:border-blue-600 hover:text-blue-600 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600"
                       >
                         +
                       </button>
