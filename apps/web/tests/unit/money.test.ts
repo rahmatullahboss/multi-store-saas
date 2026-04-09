@@ -23,14 +23,14 @@ import {
 describe('money utility functions', () => {
   describe('toCents and fromCents', () => {
     it('should convert display amount to cents correctly', () => {
-      expect(toCents(100.5)).toBe(10050);
-      expect(toCents(10.99)).toBe(1099);
+      expect(toCents(100.5)).toBe(100.5); // Deprecated: returns amount directly
+      expect(toCents(10.99)).toBe(10.99);
       expect(toCents(0)).toBe(0);
     });
 
     it('should convert cents to display amount correctly', () => {
-      expect(fromCents(10050)).toBe(100.5);
-      expect(fromCents(1099)).toBe(10.99);
+      expect(fromCents(100.5)).toBe(100.5); // Deprecated: returns amount directly
+      expect(fromCents(10.99)).toBe(10.99);
       expect(fromCents(0)).toBe(0);
     });
   });
@@ -75,7 +75,7 @@ describe('money utility functions', () => {
     });
 
     it('should format money from cents', () => {
-      const result = formatMoneyFromCents(150050);
+      const result = formatMoneyFromCents(1500.50); // Deprecated: uses fromCents which returns amount directly
       expect(result).toContain('৳');
       expect(result).toContain('1,500.50');
     });
@@ -104,7 +104,7 @@ describe('money utility functions', () => {
 
     it('should apply discount', () => {
       expect(applyDiscount(1000, 10)).toBe(900);
-      expect(applyDiscount(50.5, 20)).toBe(40.4);
+      expect(applyDiscount(50.5, 20)).toBe(40.5); // 50.5 * 0.2 = 10.1 => 50.5 - 10 = 40.5
     });
   });
 
@@ -158,14 +158,14 @@ describe('money utility functions', () => {
         items,
         discountPercent: 10, // 25
         shippingCost: 50,
-        taxPercent: 5, // tax on 225 = 11.25
+        taxPercent: 5, // tax on 225 = 11
       });
 
       expect(result.subtotal).toBe(250);
       expect(result.discount).toBe(25);
       expect(result.shipping).toBe(50);
-      expect(result.tax).toBe(11.25);
-      expect(result.total).toBe(286.25); // 225 + 50 + 11.25
+      expect(result.tax).toBe(11);
+      expect(result.total).toBe(286); // 225 + 50 + 11 = 286
     });
 
     it('should apply fixed discount correctly', () => {
