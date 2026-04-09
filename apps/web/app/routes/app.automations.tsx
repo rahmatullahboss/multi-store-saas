@@ -10,7 +10,7 @@ import { json } from '~/lib/rr7-compat';
 import { useLoaderData, Link, Form, useNavigation } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
 import { emailAutomations, emailAutomationSteps } from '@db/schema';
-import { eq, desc, and } from 'drizzle-orm';
+import { eq, desc, and, inArray } from 'drizzle-orm';
 import { requireTenant } from '~/lib/tenant-guard.server';
 import { Plus, Mail, Trash2, Edit2, Play, Pause, Clock, ShoppingCart, UserPlus, Package, TrendingUp } from 'lucide-react';
 
@@ -35,21 +35,36 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     .where(eq(emailAutomations.storeId, storeId))
     .orderBy(desc(emailAutomations.createdAt));
 
-  // Get step counts
-  const automationsWithSteps = await Promise.all(
-    automations.map(async (automation) => {
-      const steps = await db
-        .select()
-        .from(emailAutomationSteps)
-        .where(eq(emailAutomationSteps.automationId, automation.id));
-      
+  // ⚡ Bolt: Optimizing DB latency by extracting IDs and using a single batch `inArray` query
+  // instead of N+1 database queries in Promise.all() loop
+  const automationIds = automations.map(a => a.id);
+  let automationsWithSteps = automations.map(a => ({ ...a, stepCount: 0, steps: [] as typeof allSteps }));
+  let allSteps: { id: number; automationId: number; delayMinutes: number; templateId: string; subject: string; body: string; createdAt: Date; updatedAt: Date; }[] = [];
+
+  if (automationIds.length > 0) {
+    allSteps = await db
+      .select()
+      .from(emailAutomationSteps)
+      .where(inArray(emailAutomationSteps.automationId, automationIds));
+
+    // Group steps by automationId in memory
+    const stepsByAutomationId = allSteps.reduce((acc, step) => {
+      if (!acc[step.automationId]) {
+        acc[step.automationId] = [];
+      }
+      acc[step.automationId].push(step);
+      return acc;
+    }, {} as Record<number, typeof allSteps>);
+
+    automationsWithSteps = automations.map((automation) => {
+      const steps = stepsByAutomationId[automation.id] || [];
       return {
         ...automation,
         stepCount: steps.length,
         steps: steps,
       };
-    })
-  );
+    });
+  }
 
   return json({ automations: automationsWithSteps });
 }
