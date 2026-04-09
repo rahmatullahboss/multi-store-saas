@@ -7,3 +7,7 @@
 **Action:** Always extract IDs from a parent array and use a single batch `inArray()` Drizzle DB fetch to gather relations. Group and process the results in-memory rather than relying on thousands of simultaneous asynchronous connections.## 2026-03-19 - [Combine Drizzle SQL lookups on same table]
 **Learning:** When retrieving different attributes from the same record across different utility queries (e.g., pulling `planType` in one function and `monthlyVisitorCount` in another), sequential queries compound Cloudflare D1 latency.
 **Action:** Always inspect sequential backend fetches to see if they target the exact same table and same `where` clause. If they do, combine them into a single Drizzle `select` to radically reduce database network latency.
+
+## 2026-03-20 - [Combine Conditional Aggregations in Drizzle ORM]
+**Learning:** Multiple independent Drizzle aggregate queries (like `count()` or `sum()`) targeting the same table but with different `where` conditions (e.g., getting total orders, pending orders, and total revenue) result in redundant network roundtrips and table scans, even if parallelized with `Promise.all()`.
+**Action:** Consolidate multiple aggregate queries on the same table into a single Drizzle query by using conditional SQL aggregations (e.g., `sql\`sum(case when condition then value else 0 end)\`` or `sql\`count(case when condition then 1 end)\``). This reduces both database payload size and network latency.

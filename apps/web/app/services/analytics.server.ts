@@ -30,25 +30,28 @@ export async function getStoreStats(db: Database, storeId: number) {
   last7Days.setDate(last7Days.getDate() - 7);
 
   // Execute all DB queries concurrently for performance
+  // ⚡ Bolt: Consolidated 9 queries into 4 by grouping identical table reads with conditional aggregates
   const [
-    [productCount],
-    [lowStockCount],
-    [orderCount],
-    [pendingOrders],
+    [productsStats],
+    [ordersStats],
     [abandonedCartsCount],
-    revenueResult,
-    todayResult,
-    yesterdayResult,
     salesDataRaw,
   ] = await Promise.all([
-    db.select({ count: count() }).from(products).where(and(eq(products.storeId, storeId), eq(products.isPublished, true))),
-    db.select({ count: count() }).from(products).where(and(eq(products.storeId, storeId), sql`inventory <= 5`)),
-    db.select({ count: count() }).from(orders).where(eq(orders.storeId, storeId)),
-    db.select({ count: count() }).from(orders).where(and(eq(orders.storeId, storeId), eq(orders.status, 'pending'))),
+    db.select({
+      publishedCount: sql<number>`count(case when ${products.isPublished} = true then 1 end)`,
+      lowStockCount: sql<number>`count(case when inventory <= 5 then 1 end)`,
+    }).from(products).where(eq(products.storeId, storeId)),
+
+    db.select({
+      totalCount: count(),
+      pendingCount: sql<number>`count(case when ${orders.status} = 'pending' then 1 end)`,
+      revenue: sql<number>`sum(case when status != 'cancelled' then total else 0 end)`,
+      todaySales: sql<number>`sum(case when status != 'cancelled' and created_at >= ${today.getTime()/1000} then total else 0 end)`,
+      yesterdaySales: sql<number>`sum(case when status != 'cancelled' and created_at >= ${yesterday.getTime()/1000} and created_at < ${today.getTime()/1000} then total else 0 end)`,
+    }).from(orders).where(eq(orders.storeId, storeId)),
+
     db.select({ count: count() }).from(abandonedCarts).where(and(eq(abandonedCarts.storeId, storeId), eq(abandonedCarts.status, 'abandoned'))),
-    db.select({ total: sql<number>`sum(total)` }).from(orders).where(and(eq(orders.storeId, storeId), sql`status != 'cancelled'`)),
-    db.select({ total: sql<number>`sum(total)` }).from(orders).where(and(eq(orders.storeId, storeId), gte(orders.createdAt, today), sql`status != 'cancelled'`)),
-    db.select({ total: sql<number>`sum(total)` }).from(orders).where(and(eq(orders.storeId, storeId), gte(orders.createdAt, yesterday), sql`created_at < ${today.getTime()/1000}`, sql`status != 'cancelled'`)),
+
     db.select({
         date: sql<string>`date(created_at, 'unixepoch')`,
         amount: sql<number>`sum(total)`
@@ -59,11 +62,11 @@ export async function getStoreStats(db: Database, storeId: number) {
     .orderBy(sql`date(created_at, 'unixepoch')`),
   ]);
 
-  const revenue = revenueResult[0]?.total || 0;
-  const todaySales = todayResult[0]?.total || 0;
+  const revenue = ordersStats?.revenue || 0;
+  const todaySales = ordersStats?.todaySales || 0;
 
   // Sales Trend Calculation
-  const yesterdaySales = yesterdayResult[0]?.total || 0;
+  const yesterdaySales = ordersStats?.yesterdaySales || 0;
   let salesTrend = 0;
   if (yesterdaySales > 0) {
       salesTrend = ((todaySales - yesterdaySales) / yesterdaySales) * 100;
@@ -88,13 +91,13 @@ export async function getStoreStats(db: Database, storeId: number) {
   });
 
   return {
-      products: productCount.count,
-      lowStock: lowStockCount.count,
-      orders: orderCount.count,
+      products: productsStats?.publishedCount || 0,
+      lowStock: productsStats?.lowStockCount || 0,
+      orders: ordersStats?.totalCount || 0,
       revenue,
       todaySales,
       salesTrend,
-      pendingOrders: pendingOrders.count,
+      pendingOrders: ordersStats?.pendingCount || 0,
       abandonedCarts: abandonedCartsCount.count,
       salesData
   };
