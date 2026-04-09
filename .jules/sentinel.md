@@ -7,3 +7,8 @@
 **Vulnerability:** The `product.description` field was being sliced using `slice(0, N)` and then rendered via `dangerouslySetInnerHTML` directly in the Eclipse and Luxe Boutique templates. If a user provided HTML with unclosed tags near the slice limit, or included malicious scripts, they would execute without sanitization.
 **Learning:** When slicing user-generated HTML content (like product.description) for previews, always apply `sanitizeHtml` *after* slicing to prevent malformed, unclosed HTML tags from breaking the layout, and to clean malicious input.
 **Prevention:** Avoid rendering raw `product.description` chunks without wrapping the final string in `sanitizeHtml`.
+
+## 2025-03-22 - [HIGH] Ensure sanitizeHtml follows truncation
+**Vulnerability:** The `product.description` was being rendered without sanitization in the `dc-store` template. In other templates, truncating `product.description` (e.g., `slice(0, 300)`) before sanitizing can leave unclosed tags if a tag is split by the truncation.
+**Learning:** When truncating user-generated HTML content, always apply `sanitizeHtml` *after* the truncation operation to ensure any broken tags at the boundary are properly handled and closed, preventing layout breakage and XSS.
+**Prevention:** Always wrap the final, sliced string in `sanitizeHtml` before passing it to `dangerouslySetInnerHTML`.
