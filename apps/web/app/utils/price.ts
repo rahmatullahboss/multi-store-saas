@@ -1,3 +1,5 @@
+import { getFormatter } from './intl-cache';
+
 /**
  * Calculate discount percentage from price and compareAtPrice
  */
@@ -11,7 +13,7 @@ export function calculateDiscountPercentage(price: number, compareAtPrice: numbe
  */
 export function formatCurrency(amount: number, currency = 'BDT'): string {
   const isBDT = currency === 'BDT';
-  return new Intl.NumberFormat('en-BD', {
+  return getFormatter('en-BD', {
     style: 'currency',
     currency: currency,
     minimumFractionDigits: isBDT ? 0 : 2,
