@@ -2,7 +2,7 @@ import type { LoaderFunctionArgs, MetaFunction } from 'react-router';
 import { json } from '~/lib/rr7-compat';
 import { useLoaderData, Link, useSearchParams } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
-import { desc, sql, eq } from 'drizzle-orm';
+import { desc, sql, eq, inArray } from 'drizzle-orm';
 import { visitors, visitorMessages } from '@db/schema';
 import { requireSuperAdmin } from '~/services/auth.server';
 import { MessageCircle, User, Phone, Clock, Search, ChevronRight } from 'lucide-react';
@@ -15,7 +15,7 @@ export const meta: MetaFunction = () => {
 export async function loader({ request, context }: LoaderFunctionArgs) {
   const { env } = context.cloudflare;
   const db = drizzle(env.DB);
-  
+
   // Require Super Admin
   await requireSuperAdmin(request, env, env.DB);
 
@@ -23,54 +23,66 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   // Note: D1/SQLite doesn't support complex joins with counts easily in Drizzle significantly without raw SQL or subqueries.
   // We'll fetch visitors and their messages. For a large app, we'd paginate and optimize.
 
-  const allVisitors = await db
-    .select()
-    .from(visitors)
-    .orderBy(desc(visitors.createdAt))
-    .limit(50); // Limit to last 50 for now
+  const allVisitors = await db.select().from(visitors).orderBy(desc(visitors.createdAt)).limit(50); // Limit to last 50 for now
 
   // Fetch messages for these visitors to get counts and preview
-  // This is a naive N+1 approach but okay for low volume admin panel. 
-  // Optimization: Use a single query with grouping if Drizzle supported it better for SQLite.
-  
-  const visitorsWithData = await Promise.all(allVisitors.map(async (v) => {
-    const messages = await db
-        .select()
-        .from(visitorMessages)
-        .where(eq(visitorMessages.visitorId, v.id))
-        .orderBy(desc(visitorMessages.createdAt))
-        .limit(1); // Just get last message
+  // Optimization: Use a single query with grouping to prevent N+1 queries.
 
-    const countResult = await db
-        .select({ count: sql<number>`count(*)` })
-        .from(visitorMessages)
-        .where(eq(visitorMessages.visitorId, v.id));
+  const visitorIds = allVisitors.map((v) => v.id);
 
+  let groupedMessages: Record<
+    number,
+    { count: number; maxTime: Date | null; content: string | null }
+  > = {};
+
+  if (visitorIds.length > 0) {
+    const aggregatedStats = await db
+      .select({
+        visitorId: visitorMessages.visitorId,
+        count: sql<number>`count(${visitorMessages.id})`,
+        maxTime: sql<Date>`max(${visitorMessages.createdAt})`,
+        content: sql<string>`(SELECT content FROM visitor_messages m2 WHERE m2.visitor_id = ${visitorMessages.visitorId} ORDER BY created_at DESC LIMIT 1)`,
+      })
+      .from(visitorMessages)
+      .where(inArray(visitorMessages.visitorId, visitorIds))
+      .groupBy(visitorMessages.visitorId);
+
+    groupedMessages = aggregatedStats.reduce(
+      (acc, stat) => {
+        acc[stat.visitorId] = stat;
+        return acc;
+      },
+      {} as typeof groupedMessages
+    );
+  }
+
+  const visitorsWithData = allVisitors.map((v) => {
+    const stats = groupedMessages[v.id];
     return {
-        ...v,
-        lastMessage: messages[0]?.content || 'No messages',
-        lastActive: messages[0]?.createdAt || v.createdAt,
-        messageCount: countResult[0]?.count || 0
+      ...v,
+      lastMessage: stats?.content || 'No messages',
+      lastActive: stats?.maxTime || v.createdAt,
+      messageCount: stats?.count || 0,
     };
-  }));
+  });
 
   // Sort by last active
   visitorsWithData.sort((a, b) => {
-      const dateA = a.lastActive ? new Date(a.lastActive).getTime() : 0;
-      const dateB = b.lastActive ? new Date(b.lastActive).getTime() : 0;
-      return dateB - dateA;
+    const dateA = a.lastActive ? new Date(a.lastActive).getTime() : 0;
+    const dateB = b.lastActive ? new Date(b.lastActive).getTime() : 0;
+    return dateB - dateA;
   });
 
   // Handle selected chat fetch
   const url = new URL(request.url);
   const chatId = url.searchParams.get('chatId');
-  let selectedMessages: typeof visitorMessages.$inferSelect[] = [];
+  let selectedMessages: (typeof visitorMessages.$inferSelect)[] = [];
   let selectedVisitor = null;
 
   if (chatId) {
     const visitorIdNum = Number(chatId);
     if (!isNaN(visitorIdNum)) {
-      selectedVisitor = visitorsWithData.find(v => v.id === visitorIdNum) || null;
+      selectedVisitor = visitorsWithData.find((v) => v.id === visitorIdNum) || null;
       selectedMessages = await db
         .select()
         .from(visitorMessages)
@@ -82,7 +94,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   return json({
     visitors: visitorsWithData,
     selectedMessages,
-    selectedVisitor
+    selectedVisitor,
   });
 }
 
@@ -92,10 +104,13 @@ export default function VisitorChats() {
   const chatId = searchParams.get('chatId');
 
   const handleCloseModal = () => {
-    setSearchParams((prev) => {
-      prev.delete('chatId');
-      return prev;
-    }, { replace: true, preventScrollReset: true });
+    setSearchParams(
+      (prev) => {
+        prev.delete('chatId');
+        return prev;
+      },
+      { replace: true, preventScrollReset: true }
+    );
   };
 
   return (
@@ -185,13 +200,17 @@ export default function VisitorChats() {
 
       <ChatViewModal
         isOpen={!!chatId && !!selectedVisitor}
-        visitor={selectedVisitor ? {
-          ...selectedVisitor,
-          createdAt: new Date(selectedVisitor.createdAt)
-        } : null}
-        messages={selectedMessages.map(msg => ({
+        visitor={
+          selectedVisitor
+            ? {
+                ...selectedVisitor,
+                createdAt: new Date(selectedVisitor.createdAt),
+              }
+            : null
+        }
+        messages={selectedMessages.map((msg) => ({
           ...msg,
-          createdAt: new Date(msg.createdAt)
+          createdAt: new Date(msg.createdAt),
         }))}
         onClose={handleCloseModal}
       />
