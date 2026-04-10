@@ -227,12 +227,14 @@ export default function SavedBlocksPanel({ editor }: SavedBlocksPanelProps) {
                         handleDeleteBlock(block.id, block.name);
                       }}
                       disabled={deletingId === block.id}
-                      className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition opacity-0 group-hover:opacity-100"
+                      aria-label={`${block.name} ডিলিট করুন`}
+                      title={`${block.name} ডিলিট করুন`}
+                      className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition opacity-0 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-red-500 focus:outline-none"
                     >
                       {deletingId === block.id ? (
-                        <Loader2 size={14} className="animate-spin" />
+                        <Loader2 size={14} className="animate-spin" aria-hidden="true" />
                       ) : (
-                        <Trash2 size={14} />
+                        <Trash2 size={14} aria-hidden="true" />
                       )}
                     </button>
                   </div>
