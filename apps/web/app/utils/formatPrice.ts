@@ -30,6 +30,19 @@ const LOCALE_MAP: Record<SupportedLocale, string> = {
   bn: 'bn-BD-u-nu-latn', // Bengali locale with Latin numerals
 };
 
+// Cache for Intl.NumberFormat to improve rendering performance
+const numberFormatCache = new Map<string, Intl.NumberFormat>();
+
+function getCachedNumberFormat(locale: string, options: Intl.NumberFormatOptions): Intl.NumberFormat {
+  const cacheKey = `${locale}-${JSON.stringify(options)}`;
+  let formatter = numberFormatCache.get(cacheKey);
+  if (!formatter) {
+    formatter = new Intl.NumberFormat(locale, options);
+    numberFormatCache.set(cacheKey, formatter);
+  }
+  return formatter;
+}
+
 /**
  * Format a price with the specified locale and currency
  * Always displays Latin numerals (0-9) regardless of locale
@@ -47,22 +60,24 @@ export function formatPrice(price: number, options: FormatPriceOptions = {}): st
       // For BDT, use simple ৳ symbol instead of "BDT" text from Intl
       // Use Intl explicitly so we can force Latin numerals via `numberingSystem`,
       // even in environments where `toLocaleString()` may ignore Unicode extensions.
-      const formattedNumber = new Intl.NumberFormat(intlLocale, {
+      const formatter = getCachedNumberFormat(intlLocale, {
         minimumFractionDigits: 0,
         maximumFractionDigits: 0,
         numberingSystem: 'latn',
-      }).format(priceInUnits);
+      });
+      const formattedNumber = formatter.format(priceInUnits);
       return `৳${formattedNumber}`;
     }
 
-    const formatted = new Intl.NumberFormat(intlLocale, {
+    const formatter = getCachedNumberFormat(intlLocale, {
       style: showSymbol ? 'currency' : 'decimal',
       currency: currency,
       minimumFractionDigits: 0,
       maximumFractionDigits: isBDT ? 0 : 2,
       // Force Latin numerals
       numberingSystem: 'latn',
-    }).format(priceInUnits);
+    });
+    const formatted = formatter.format(priceInUnits);
 
     return formatted;
   } catch {
@@ -86,7 +101,7 @@ export function getCurrencySymbol(currency: SupportedCurrency): string {
  * Uses English locale with Latin numerals by default
  */
 export function formatPriceSimple(price: number, currency: string = 'USD'): string {
-  return new Intl.NumberFormat('en-US', {
+  return getCachedNumberFormat('en-US', {
     style: 'currency',
     currency,
     minimumFractionDigits: 0,
