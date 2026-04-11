@@ -401,7 +401,7 @@ function TemplateHeader({
           {/* Actions */}
           <div className="flex items-center gap-4">
             {/* Search */}
-            <button className="p-2 hover:opacity-70 transition-opacity">
+            <button className="p-2 hover:opacity-70 transition-opacity" aria-label="Search">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
