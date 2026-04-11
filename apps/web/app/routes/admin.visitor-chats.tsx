@@ -2,7 +2,7 @@ import type { LoaderFunctionArgs, MetaFunction } from 'react-router';
 import { json } from '~/lib/rr7-compat';
 import { useLoaderData, Link, useSearchParams } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
-import { desc, sql, eq } from 'drizzle-orm';
+import { desc, sql, eq, inArray, and } from 'drizzle-orm';
 import { visitors, visitorMessages } from '@db/schema';
 import { requireSuperAdmin } from '~/services/auth.server';
 import { MessageCircle, User, Phone, Clock, Search, ChevronRight } from 'lucide-react';
@@ -33,25 +33,54 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   // This is a naive N+1 approach but okay for low volume admin panel. 
   // Optimization: Use a single query with grouping if Drizzle supported it better for SQLite.
   
-  const visitorsWithData = await Promise.all(allVisitors.map(async (v) => {
-    const messages = await db
-        .select()
-        .from(visitorMessages)
-        .where(eq(visitorMessages.visitorId, v.id))
-        .orderBy(desc(visitorMessages.createdAt))
-        .limit(1); // Just get last message
+  // ⚡ Bolt: Fixed N+1 query problem. Replaced Promise.all map with a single batched
+  // execution containing two aggregated queries. This reduces query count from 2N
+  // down to 1 HTTP request, dramatically improving Cloudflare D1 latency.
+  const visitorIds = allVisitors.map(v => v.id);
 
-    const countResult = await db
-        .select({ count: sql<number>`count(*)` })
-        .from(visitorMessages)
-        .where(eq(visitorMessages.visitorId, v.id));
+  let countsResult: { visitorId: number, count: number }[] = [];
+  let latestMessagesResult: { visitorId: number, content: string, createdAt: string }[] = [];
 
-    return {
-        ...v,
-        lastMessage: messages[0]?.content || 'No messages',
-        lastActive: messages[0]?.createdAt || v.createdAt,
-        messageCount: countResult[0]?.count || 0
-    };
+  if (visitorIds.length > 0) {
+    const sq = db.select({
+      visitorId: visitorMessages.visitorId,
+      maxDate: sql<string>`MAX(${visitorMessages.createdAt})`.as('max_date')
+    }).from(visitorMessages)
+      .where(inArray(visitorMessages.visitorId, visitorIds))
+      .groupBy(visitorMessages.visitorId).as('sq');
+
+    const batchResults = await db.batch([
+      db.select({
+        visitorId: visitorMessages.visitorId,
+        count: sql<number>`count(*)`.mapWith(Number)
+      }).from(visitorMessages)
+        .where(inArray(visitorMessages.visitorId, visitorIds))
+        .groupBy(visitorMessages.visitorId),
+
+      db.select({
+        visitorId: visitorMessages.visitorId,
+        content: visitorMessages.content,
+        createdAt: visitorMessages.createdAt
+      })
+      .from(visitorMessages)
+      .innerJoin(sq, and(
+        eq(visitorMessages.visitorId, sq.visitorId),
+        eq(visitorMessages.createdAt, sq.maxDate)
+      ))
+    ]);
+
+    countsResult = batchResults[0] as unknown as { visitorId: number, count: number }[];
+    latestMessagesResult = batchResults[1] as unknown as { visitorId: number, content: string, createdAt: string }[];
+  }
+
+  const countsMap = Object.fromEntries(countsResult.map(c => [c.visitorId, c.count]));
+  const latestMessageMap = Object.fromEntries(latestMessagesResult.map(m => [m.visitorId, m]));
+
+  const visitorsWithData = allVisitors.map((v) => ({
+    ...v,
+    lastMessage: latestMessageMap[v.id]?.content || 'No messages',
+    lastActive: latestMessageMap[v.id]?.createdAt || v.createdAt,
+    messageCount: countsMap[v.id] || 0
   }));
 
   // Sort by last active
