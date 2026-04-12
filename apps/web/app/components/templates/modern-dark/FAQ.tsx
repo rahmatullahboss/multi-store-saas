@@ -32,7 +32,7 @@ export function ModernDarkFAQ({
                 <button
                   onClick={() => setOpenIndex(openIndex === i ? null : i)}
                   className="w-full p-8 flex items-center justify-between text-left group"
-                >
+                 aria-expanded={openIndex === i} aria-controls={`faq-answer-${i}`}>
                   <span className="text-white font-bold text-lg group-hover:text-orange-500 transition-colors">
                     {item.question}
                   </span>
@@ -42,7 +42,7 @@ export function ModernDarkFAQ({
                 </button>
                 
                 {openIndex === i && (
-                  <div className="px-8 pb-8 animate-in fade-in slide-in-from-top-4 duration-500">
+                  <div id={`faq-answer-${i}`} className="px-8 pb-8 animate-in fade-in slide-in-from-top-4 duration-500">
                     <p className="text-zinc-400 leading-relaxed text-lg">
                       {item.answer}
                     </p>

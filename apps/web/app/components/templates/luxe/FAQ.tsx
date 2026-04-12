@@ -35,7 +35,7 @@ export function LuxeFAQ({
                 <button
                   onClick={() => setOpenIndex(openIndex === i ? null : i)}
                   className="w-full p-8 flex items-center justify-between text-left group"
-                >
+                 aria-expanded={openIndex === i} aria-controls={`faq-answer-${i}`}>
                   <span className="text-white font-serif-display tracking-widest uppercase text-sm group-hover:text-amber-200 transition-colors">
                     {item.question}
                   </span>
@@ -45,7 +45,7 @@ export function LuxeFAQ({
                 </button>
                 
                 {openIndex === i && (
-                  <div className="px-8 pb-8 animate-in fade-in slide-in-from-top-2 duration-700">
+                  <div id={`faq-answer-${i}`} className="px-8 pb-8 animate-in fade-in slide-in-from-top-2 duration-700">
                     <p className="text-zinc-500 font-light leading-relaxed text-sm max-w-2xl">
                       {item.answer}
                     </p>

@@ -36,7 +36,7 @@ export function FlashSaleFAQ({
                 <button
                   onClick={() => setOpenIndex(openIndex === i ? null : i)}
                   className="w-full p-6 flex items-center justify-between text-left group"
-                >
+                 aria-expanded={openIndex === i} aria-controls={`faq-answer-${i}`}>
                   <span className="font-bold text-gray-900 group-hover:text-red-600 transition-colors">
                     {item.question}
                   </span>
@@ -46,7 +46,7 @@ export function FlashSaleFAQ({
                 </button>
                 
                 {openIndex === i && (
-                  <div className="px-6 pb-6 animate-in slide-in-from-top-2 duration-300">
+                  <div id={`faq-answer-${i}`} className="px-6 pb-6 animate-in slide-in-from-top-2 duration-300">
                     <p className="text-gray-600 leading-relaxed">
                       {item.answer}
                     </p>
