@@ -147,7 +147,7 @@ export function ThemeSelector({ currentTheme, isSubmitting }: ThemeSelectorProps
           {AVAILABLE_THEMES.map((theme) => (
             <label
               key={theme.id}
-              className={`relative cursor-pointer rounded-lg border-2 p-4 transition-all hover:border-purple-300 ${
+              className={`relative cursor-pointer rounded-lg border-2 p-4 transition-all hover:border-purple-300 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-purple-500 has-[:focus-visible]:ring-offset-2 ${
                 selectedTheme === theme.id ? 'border-purple-500 bg-purple-50' : 'border-gray-200'
               }`}
             >
@@ -179,7 +179,7 @@ export function ThemeSelector({ currentTheme, isSubmitting }: ThemeSelectorProps
           <button
             type="submit"
             disabled={isSubmitting}
-            className="px-6 py-2 bg-purple-600 text-white font-medium rounded-md hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-6 py-2 bg-purple-600 text-white font-medium rounded-md hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2"
           >
             {isSubmitting ? 'Saving...' : 'Save Theme'}
           </button>
