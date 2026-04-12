@@ -32,7 +32,7 @@ export function ModernPremiumFAQ({
                 <button
                   onClick={() => setOpenIndex(openIndex === i ? null : i)}
                   className="w-full p-10 flex items-center justify-between text-left group"
-                >
+                 aria-expanded={openIndex === i} aria-controls={`faq-answer-${i}`}>
                   <span className={`font-black text-xl md:text-2xl transition-all uppercase italic tracking-tight ${openIndex === i ? 'text-gray-950' : 'text-gray-400 group-hover:text-gray-700'}`}>
                     {item.question}
                   </span>
@@ -42,7 +42,7 @@ export function ModernPremiumFAQ({
                 </button>
                 
                 {openIndex === i && (
-                  <div className="px-10 pb-10 animate-in fade-in slide-in-from-top-4 duration-700">
+                  <div id={`faq-answer-${i}`} className="px-10 pb-10 animate-in fade-in slide-in-from-top-4 duration-700">
                     <p className="text-gray-500 text-lg leading-relaxed font-medium">
                       {item.answer}
                     </p>

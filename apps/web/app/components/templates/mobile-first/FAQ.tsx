@@ -33,7 +33,7 @@ export function MobileFirstFAQ({
                 <button
                   onClick={() => setOpenIndex(openIndex === i ? null : i)}
                   className="w-full p-5 flex items-center justify-between text-left group"
-                >
+                 aria-expanded={openIndex === i} aria-controls={`faq-answer-${i}`}>
                   <span className="font-bold text-gray-800 text-base group-hover:text-indigo-600 transition-colors">
                     {item.question}
                   </span>
@@ -43,7 +43,7 @@ export function MobileFirstFAQ({
                 </button>
                 
                 {openIndex === i && (
-                  <div className="px-5 pb-5 animate-in fade-in slide-in-from-top-2 duration-300">
+                  <div id={`faq-answer-${i}`} className="px-5 pb-5 animate-in fade-in slide-in-from-top-2 duration-300">
                     <p className="text-gray-600 leading-relaxed font-medium text-sm">
                       {item.answer}
                     </p>

@@ -30,7 +30,7 @@ export function MinimalLightFAQ({
                 <button
                   onClick={() => setOpenIndex(openIndex === i ? null : i)}
                   className="w-full py-8 flex items-center justify-between text-left group"
-                >
+                 aria-expanded={openIndex === i} aria-controls={`faq-answer-${i}`}>
                   <span className={`text-lg font-bold transition-all ${openIndex === i ? 'text-gray-950' : 'text-gray-500 hover:text-gray-900'}`}>
                     {item.question}
                   </span>
@@ -40,7 +40,7 @@ export function MinimalLightFAQ({
                 </button>
                 
                 {openIndex === i && (
-                  <div className="pb-8 animate-in fade-in slide-in-from-top-2 duration-500">
+                  <div id={`faq-answer-${i}`} className="pb-8 animate-in fade-in slide-in-from-top-2 duration-500">
                     <p className="text-gray-500 leading-relaxed font-medium">
                       {item.answer}
                     </p>
