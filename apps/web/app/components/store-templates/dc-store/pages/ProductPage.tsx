@@ -15,6 +15,7 @@ import { ShoppingCart, ShoppingBag, Heart, Share2, Truck, ShieldCheck, RotateCcw
 import type { SerializedProduct } from '~/templates/store-registry';
 import { PreviewSafeLink } from '~/components/PreviewSafeLink';
 import { AddToCartButton } from '~/components/AddToCartButton';
+import { sanitizeHtml } from '~/utils/sanitize';
 import { resolveDCStoreTheme } from '../theme';
 import { buildProxyImageUrl } from '~/utils/imageOptimization';
 
@@ -156,7 +157,7 @@ export function DCProductPage({ product, storeId, isPreview = false, config, the
                   </p>
                   <div 
                     className="text-base leading-relaxed text-gray-600 line-clamp-4 [&_p]:mb-2 [&_strong]:font-semibold [&_br]:hidden"
-                    dangerouslySetInnerHTML={{ __html: product.description }}
+                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(product.description || '') }}
                   />
                   <div className="flex flex-wrap gap-3 text-sm text-gray-500">
                     {averageRating > 0 && (
@@ -354,7 +355,7 @@ export function DCProductPage({ product, storeId, isPreview = false, config, the
               </h2>
               <div 
                 className="text-base leading-relaxed text-gray-600 [&_p]:mb-3 [&_strong]:font-semibold [&_br]:block"
-                dangerouslySetInnerHTML={{ __html: product.description }}
+                dangerouslySetInnerHTML={{ __html: sanitizeHtml(product.description || '') }}
               />
             </section>
           )}
