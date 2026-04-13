@@ -87,10 +87,10 @@ export default function CollectionsIndexPage() {
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-1">
-                                    <Link to={`/app/collections/${c.id}`} className="p-2 text-gray-500 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg"><Pencil className="w-4 h-4" /></Link>
+                                    <Link to={`/app/collections/${c.id}`} aria-label="Edit collection" className="p-2 text-gray-500 hover:text-emerald-600 hover:bg-emerald-50 focus-visible:ring-2 focus-visible:ring-emerald-500 rounded-lg"><Pencil aria-hidden="true" className="w-4 h-4" /></Link>
                                     <Form method="post" onSubmit={(e) => { if (!confirm('Delete this collection?')) e.preventDefault(); }}>
                                         <input type="hidden" name="intent" value="delete" /><input type="hidden" name="id" value={c.id} />
-                                        <button type="submit" disabled={isSubmitting} className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg"><Trash2 className="w-4 h-4" /></button>
+                                        <button type="submit" aria-label="Delete collection" disabled={isSubmitting} className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 focus-visible:ring-2 focus-visible:ring-red-500 rounded-lg"><Trash2 aria-hidden="true" className="w-4 h-4" /></button>
                                     </Form>
                                 </div>
                             </div>
@@ -119,10 +119,10 @@ export default function CollectionsIndexPage() {
                                     <td className="px-6 py-4"><span className={`px-2.5 py-0.5 text-xs font-medium rounded-full ${c.isActive ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-800'}`}>{c.isActive ? 'Active' : 'Draft'}</span></td>
                                     <td className="px-6 py-4 text-right">
                                         <div className="flex items-center justify-end gap-2">
-                                            <Link to={`/app/collections/${c.id}`} className="p-1.5 text-gray-500 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg"><Pencil className="w-4 h-4" /></Link>
+                                            <Link to={`/app/collections/${c.id}`} aria-label="Edit collection" className="p-1.5 text-gray-500 hover:text-emerald-600 hover:bg-emerald-50 focus-visible:ring-2 focus-visible:ring-emerald-500 rounded-lg"><Pencil aria-hidden="true" className="w-4 h-4" /></Link>
                                             <Form method="post" onSubmit={(e) => { if (!confirm('Delete this collection?')) e.preventDefault(); }}>
                                                 <input type="hidden" name="intent" value="delete" /><input type="hidden" name="id" value={c.id} />
-                                                <button type="submit" disabled={isSubmitting} className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg"><Trash2 className="w-4 h-4" /></button>
+                                                <button type="submit" aria-label="Delete collection" disabled={isSubmitting} className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 focus-visible:ring-2 focus-visible:ring-red-500 rounded-lg"><Trash2 aria-hidden="true" className="w-4 h-4" /></button>
                                             </Form>
                                         </div>
                                     </td>
