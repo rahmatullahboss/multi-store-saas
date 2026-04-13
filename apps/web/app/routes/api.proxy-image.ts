@@ -34,7 +34,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
     const referer = request.headers.get('referer') || '';
     const origin = request.headers.get('origin') || '';
-    const allowedRefererPattern = /^https?:\/\/(.*\.)?ozzyl\.com/;
+    const allowedRefererPattern = /^https?:\/\/(?:[a-zA-Z0-9-]+\.)*ozzyl\.com(?:\/|$)/;
     // Require at least one of referer or origin to be from a trusted source.
     // Empty referer alone is not sufficient — origin must also be absent (e.g. same-origin navigations).
     const hasReferer = referer.length > 0;
