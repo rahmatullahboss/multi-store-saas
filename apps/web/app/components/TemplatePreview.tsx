@@ -193,6 +193,7 @@ export function TemplatePreviewModal({
           
           <button
             onClick={onClose}
+            aria-label="Close preview"
             className="p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition"
           >
             <X className="w-5 h-5" />
