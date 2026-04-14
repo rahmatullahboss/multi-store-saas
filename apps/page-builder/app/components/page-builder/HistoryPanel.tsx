@@ -102,8 +102,8 @@ export default function HistoryPanel({ isOpen, onClose, pageId, editor }: Histor
             <Clock size={16} className="text-gray-600" />
             <h3 className="text-sm font-semibold">Revision History</h3>
           </div>
-          <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded">
-            <X size={16} />
+          <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded" aria-label="Close">
+            <X size={16} aria-hidden="true" />
           </button>
         </div>
 

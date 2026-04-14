@@ -417,30 +417,36 @@ export default function EditorToolbar({
           onClick={() => handleDeviceChange('Desktop')}
           className="p-1.5 md:p-2 hover:bg-gray-100 rounded-lg transition group"
           title={t('desktopView')}
+          aria-label={t('desktopView')}
         >
           <Monitor
             size={16}
             className="md:w-[18px] md:h-[18px] text-gray-500 group-hover:text-emerald-600"
+            aria-hidden="true"
           />
         </button>
         <button
           onClick={() => handleDeviceChange('Tablet')}
           className="p-1.5 md:p-2 hover:bg-gray-100 rounded-lg transition group hidden sm:flex"
           title={t('tabletView')}
+          aria-label={t('tabletView')}
         >
           <Tablet
             size={16}
             className="md:w-[18px] md:h-[18px] text-gray-500 group-hover:text-emerald-600"
+            aria-hidden="true"
           />
         </button>
         <button
           onClick={() => handleDeviceChange('Mobile')}
           className="p-1.5 md:p-2 hover:bg-gray-100 rounded-lg transition group"
           title={t('mobileView')}
+          aria-label={t('mobileView')}
         >
           <Smartphone
             size={16}
             className="md:w-[18px] md:h-[18px] text-gray-500 group-hover:text-emerald-600"
+            aria-hidden="true"
           />
         </button>
         <div className="w-[1px] h-5 md:h-6 bg-gray-200 mx-0.5 md:mx-1 hidden sm:block" />
@@ -448,15 +454,17 @@ export default function EditorToolbar({
           onClick={() => editor.UndoManager.undo()}
           className="p-1.5 md:p-2 hover:bg-gray-100 rounded-lg transition group disabled:opacity-30"
           title={t('undo')}
+          aria-label={t('undo')}
         >
-          <Undo size={14} className="md:w-4 md:h-4 text-gray-500 group-hover:text-emerald-600" />
+          <Undo size={14} className="md:w-4 md:h-4 text-gray-500 group-hover:text-emerald-600" aria-hidden="true" />
         </button>
         <button
           onClick={() => editor.UndoManager.redo()}
           className="p-1.5 md:p-2 hover:bg-gray-100 rounded-lg transition group disabled:opacity-30"
           title={t('redo')}
+          aria-label={t('redo')}
         >
-          <Redo size={14} className="md:w-4 md:h-4 text-gray-500 group-hover:text-emerald-600" />
+          <Redo size={14} className="md:w-4 md:h-4 text-gray-500 group-hover:text-emerald-600" aria-hidden="true" />
         </button>
       </div>
 
@@ -470,8 +478,9 @@ export default function EditorToolbar({
           }}
           className="p-2 hover:bg-red-50 rounded-lg transition group"
           title={t('clearCanvas')}
+          aria-label={t('clearCanvas')}
         >
-          <Trash2 size={16} className="text-gray-500 group-hover:text-red-600" />
+          <Trash2 size={16} className="text-gray-500 group-hover:text-red-600" aria-hidden="true" />
         </button>
         <button
           onClick={onOpenLibrary}
@@ -488,8 +497,9 @@ export default function EditorToolbar({
           onClick={() => setIsHistoryOpen(true)}
           className="p-2 hover:bg-gray-100 rounded-lg transition group"
           title="Revision History"
+          aria-label="Revision History"
         >
-          <Clock size={16} className="text-gray-500 group-hover:text-emerald-600" />
+          <Clock size={16} className="text-gray-500 group-hover:text-emerald-600" aria-hidden="true" />
         </button>
 
         {selectedComponent ? (
@@ -640,8 +650,10 @@ export default function EditorToolbar({
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           className="p-2 hover:bg-gray-100 rounded-lg transition md:hidden"
           title="Menu"
+          aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
+          aria-expanded={isMobileMenuOpen}
         >
-          {isMobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
+          {isMobileMenuOpen ? <X size={18} aria-hidden="true" /> : <Menu size={18} aria-hidden="true" />}
         </button>
 
         <button
@@ -776,8 +788,9 @@ export default function EditorToolbar({
               <button
                 onClick={() => setIsCodeModalOpen(false)}
                 className="p-2 hover:bg-white rounded-xl transition text-gray-400 hover:text-gray-600"
+                aria-label="Close code editor"
               >
-                <X size={20} />
+                <X size={20} aria-hidden="true" />
               </button>
             </div>
 
