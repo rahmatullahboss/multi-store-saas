@@ -140,8 +140,9 @@ export function BDShopPageWrapper({
               <button 
                 className="absolute right-0 top-0 h-full px-3 md:px-4 rounded-r-lg text-white transition hover:opacity-90"
                 style={{ backgroundColor: BDSHOP_NAVY }}
+                aria-label="Search"
               >
-                <Search className="w-4 h-4 md:w-5 md:h-5" />
+                <Search className="w-4 h-4 md:w-5 md:h-5" aria-hidden="true" />
               </button>
             </div>
           </div>
