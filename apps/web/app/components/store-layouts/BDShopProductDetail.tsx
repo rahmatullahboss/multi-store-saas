@@ -274,15 +274,17 @@ export function BDShopProductDetail({
                     onClick={() => handleQuantityChange(-1)}
                     className="w-10 h-10 flex items-center justify-center hover:bg-gray-100 transition"
                     disabled={quantity <= 1}
+                    aria-label="Decrease quantity"
                   >
-                    <Minus className="w-4 h-4" />
+                    <Minus className="w-4 h-4" aria-hidden="true" />
                   </button>
                   <span className="w-12 text-center font-medium">{quantity}</span>
                   <button
                     onClick={() => handleQuantityChange(1)}
                     className="w-10 h-10 flex items-center justify-center hover:bg-gray-100 transition"
+                    aria-label="Increase quantity"
                   >
-                    <Plus className="w-4 h-4" />
+                    <Plus className="w-4 h-4" aria-hidden="true" />
                   </button>
                 </div>
               </div>

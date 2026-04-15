@@ -111,8 +111,9 @@ export function DarazPageWrapper({
               <button 
                 className="h-9 md:h-10 px-4 md:px-6 rounded-r font-medium text-white transition hover:opacity-90"
                 style={{ backgroundColor: DARAZ_ORANGE_HOVER }}
+                aria-label="Search"
               >
-                <Search className="w-4 h-4 md:w-5 md:h-5" />
+                <Search className="w-4 h-4 md:w-5 md:h-5" aria-hidden="true" />
               </button>
             </div>
           </div>
@@ -122,8 +123,9 @@ export function DarazPageWrapper({
             <Link
               to="/cart"
               className="relative p-2 text-white hover:bg-white/10 rounded transition flex items-center gap-1"
+              aria-label="Cart"
             >
-              <ShoppingCart className="h-5 w-5 md:h-6 md:w-6" />
+              <ShoppingCart className="h-5 w-5 md:h-6 md:w-6" aria-hidden="true" />
               <span 
                 className="absolute -top-0.5 -right-0.5 md:-top-1 md:-right-1 h-4 w-4 md:h-5 md:w-5 rounded-full flex items-center justify-center text-[10px] md:text-xs font-bold"
                 style={{ backgroundColor: '#FFD700', color: DARAZ_TEXT }}
@@ -131,8 +133,8 @@ export function DarazPageWrapper({
                 {count}
               </span>
             </Link>
-            <button className="hidden md:flex p-2 text-white hover:bg-white/10 rounded transition">
-              <Heart className="h-6 w-6" />
+            <button className="hidden md:flex p-2 text-white hover:bg-white/10 rounded transition" aria-label="Wishlist">
+              <Heart className="h-6 w-6" aria-hidden="true" />
             </button>
           </div>
         </div>
