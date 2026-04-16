@@ -1,3 +1,5 @@
+import { getCachedNumberFormat } from './number-format-cache';
+
 /**
  * Money Utilities
  *
@@ -58,16 +60,8 @@ interface FormatMoneyOptions {
  * @example formatMoney(1500.5) => "৳1,500.50"
  * @example formatMoney(1500.5, { currency: 'USD' }) => "$1,500.50"
  */
-export function formatMoney(
-  amount: number,
-  options: FormatMoneyOptions = {}
-): string {
-  const {
-    currency = 'BDT',
-    locale = 'en-BD',
-    showSymbol = true,
-    decimals = 2,
-  } = options;
+export function formatMoney(amount: number, options: FormatMoneyOptions = {}): string {
+  const { currency = 'BDT', locale = 'en-BD', showSymbol = true, decimals = 2 } = options;
 
   const symbols: Record<string, string> = {
     BDT: '৳',
@@ -80,7 +74,7 @@ export function formatMoney(
   const rounded = roundMoney(amount, decimals);
 
   // Format with locale
-  const formatted = new Intl.NumberFormat(locale, {
+  const formatted = getCachedNumberFormat(locale, {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
   }).format(rounded);
@@ -101,15 +95,18 @@ export function formatMoney(
  * Currency configuration for multi-currency support
  * subunits: How many smallest units in 1 main unit (e.g., 100 paisa = 1 taka)
  */
-export const CURRENCY_CONFIG: Record<string, {
-  symbol: string;
-  code: string;
-  subunits: number; // 100 for most currencies
-  locale: string;
-  decimals: number;
-  name: string;
-  nameBn?: string;
-}> = {
+export const CURRENCY_CONFIG: Record<
+  string,
+  {
+    symbol: string;
+    code: string;
+    subunits: number; // 100 for most currencies
+    locale: string;
+    decimals: number;
+    name: string;
+    nameBn?: string;
+  }
+> = {
   BDT: {
     symbol: '৳',
     code: 'BDT',
@@ -172,7 +169,7 @@ export function formatCurrency(
 ): string {
   const config = getCurrencyConfig(currencyCode);
   const displayAmount = amount; // Always use amount directly, no cents conversion
-  
+
   return formatMoney(displayAmount, {
     currency: currencyCode,
     locale: config.locale,
@@ -185,10 +182,7 @@ export function formatCurrency(
  * Format money from cents
  * @example formatMoneyFromCents(150050) => "৳1,500.50"
  */
-export function formatMoneyFromCents(
-  cents: number,
-  options: FormatMoneyOptions = {}
-): string {
+export function formatMoneyFromCents(cents: number, options: FormatMoneyOptions = {}): string {
   return formatMoney(fromCents(cents), options);
 }
 
@@ -279,12 +273,7 @@ export function meetsMinimum(amount: number, minimum: number): boolean {
  * Check if value is a valid money amount
  */
 export function isValidMoney(value: unknown): value is number {
-  return (
-    typeof value === 'number' &&
-    !isNaN(value) &&
-    isFinite(value) &&
-    value >= 0
-  );
+  return typeof value === 'number' && !isNaN(value) && isFinite(value) && value >= 0;
 }
 
 /**
@@ -325,13 +314,7 @@ export function calculateOrderTotals(params: {
   shippingCost: number;
   taxPercent?: number;
 }): OrderCalculation {
-  const {
-    items,
-    discountPercent = 0,
-    discountFixed = 0,
-    shippingCost,
-    taxPercent = 0,
-  } = params;
+  const { items, discountPercent = 0, discountFixed = 0, shippingCost, taxPercent = 0 } = params;
 
   // Calculate subtotal
   const subtotal = items.reduce(
@@ -352,11 +335,7 @@ export function calculateOrderTotals(params: {
   const tax = percentOfMoney(taxableAmount, taxPercent);
 
   // Calculate total
-  const total = addMoney(
-    subtractMoney(subtotal, discount),
-    shippingCost,
-    tax
-  );
+  const total = addMoney(subtractMoney(subtotal, discount), shippingCost, tax);
 
   return {
     subtotal: roundMoney(subtotal),
