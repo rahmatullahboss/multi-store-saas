@@ -13,6 +13,7 @@
 import { useState } from 'react';
 import { ShoppingCart, ShoppingBag, Heart, Share2, Truck, ShieldCheck, RotateCcw, CheckCircle, ArrowLeft, Star, StarHalf, Package } from 'lucide-react';
 import type { SerializedProduct } from '~/templates/store-registry';
+import { sanitizeHtml } from '~/utils/sanitize';
 import { PreviewSafeLink } from '~/components/PreviewSafeLink';
 import { AddToCartButton } from '~/components/AddToCartButton';
 import { resolveDCStoreTheme } from '../theme';
@@ -154,9 +155,10 @@ export function DCProductPage({ product, storeId, isPreview = false, config, the
                   <p className="text-sm font-semibold uppercase tracking-[0.24em]" style={{ color: theme.primary }}>
                     বিশেষ বিবরণ
                   </p>
+                  {/* SECURITY: Sanitize product description to prevent XSS */}
                   <div 
                     className="text-base leading-relaxed text-gray-600 line-clamp-4 [&_p]:mb-2 [&_strong]:font-semibold [&_br]:hidden"
-                    dangerouslySetInnerHTML={{ __html: product.description }}
+                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(product.description || '') }}
                   />
                   <div className="flex flex-wrap gap-3 text-sm text-gray-500">
                     {averageRating > 0 && (
@@ -352,9 +354,10 @@ export function DCProductPage({ product, storeId, isPreview = false, config, the
               <h2 className="text-xl font-bold mb-4" style={{ color: theme.text }}>
                 পণ্যের বিবরণ
               </h2>
+              {/* SECURITY: Sanitize product description to prevent XSS */}
               <div 
                 className="text-base leading-relaxed text-gray-600 [&_p]:mb-3 [&_strong]:font-semibold [&_br]:block"
-                dangerouslySetInnerHTML={{ __html: product.description }}
+                dangerouslySetInnerHTML={{ __html: sanitizeHtml(product.description || '') }}
               />
             </section>
           )}
