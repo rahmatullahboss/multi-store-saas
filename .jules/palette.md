@@ -1,0 +1,3 @@
+## 2024-05-19 - Invisible Interactive Elements for Keyboard Users
+**Learning:** Found that elements wrapped in `opacity-0 group-hover:opacity-100` create an accessibility trap. Even though the elements are hidden from sighted users, keyboard users can still tab into the invisible buttons. If the elements only appear on hover, keyboard users won't know what they are focused on.
+**Action:** Pair `group-hover:opacity-100` with `focus-within:opacity-100` on the parent container. This ensures that when a keyboard user tabs into any interactive element inside that container, the entire group becomes visible, revealing the buttons and their visual focus indicators.
