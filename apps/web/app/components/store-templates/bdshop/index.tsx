@@ -196,7 +196,7 @@ function PreviewHeader({
         <div className="max-w-7xl mx-auto px-4 py-3">
           <div className="flex items-center gap-4">
             {/* Logo */}
-            <button onClick={() => onNavigate({ type: 'home' })} className="flex-shrink-0">
+            <button aria-label="Go to homepage" onClick={() => onNavigate({ type: 'home' })} className="flex-shrink-0">
               {logo ? (
                 <img src={logo} alt={storeName} className="h-8 w-auto" />
               ) : (
@@ -216,6 +216,7 @@ function PreviewHeader({
                 />
                 <button
                   type="submit"
+                  aria-label="Search"
                   className="px-6 py-2 rounded-r-md"
                   style={{ backgroundColor: BDSHOP_THEME.accent }}
                 >
@@ -226,10 +227,11 @@ function PreviewHeader({
 
             {/* Right Actions */}
             <div className="flex items-center gap-3 ml-auto">
-              <button onClick={() => setSearchOpen(true)} className="md:hidden p-2 text-white">
+              <button aria-label="Open search" onClick={() => setSearchOpen(true)} className="md:hidden p-2 text-white">
                 <Search className="w-5 h-5" />
               </button>
               <button
+                aria-label="View cart"
                 onClick={() => onNavigate({ type: 'cart' })}
                 className="relative p-2 text-white"
               >
@@ -283,7 +285,7 @@ function PreviewHeader({
                 autoFocus
                 className="flex-1 px-4 py-3 rounded-lg bg-white"
               />
-              <button type="button" onClick={() => setSearchOpen(false)} className="p-3 text-white">
+              <button aria-label="Close search" type="button" onClick={() => setSearchOpen(false)} className="p-3 text-white">
                 <X className="w-5 h-5" />
               </button>
             </form>
@@ -332,6 +334,7 @@ function PreviewProductCard({
           </span>
         )}
         <button
+          aria-label={`Add ${product.title} to cart`}
           onClick={(e) => {
             e.stopPropagation();
             cart.addItem(product);
