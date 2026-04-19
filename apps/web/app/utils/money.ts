@@ -10,6 +10,8 @@
  * NEW features should use integer cents where possible.
  */
 
+import { getCachedNumberFormat } from '~/utils/number-format-cache';
+
 // ============================================================================
 // CONVERSION FUNCTIONS
 // ============================================================================
@@ -80,7 +82,7 @@ export function formatMoney(
   const rounded = roundMoney(amount, decimals);
 
   // Format with locale
-  const formatted = new Intl.NumberFormat(locale, {
+  const formatted = getCachedNumberFormat(locale, {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
   }).format(rounded);
