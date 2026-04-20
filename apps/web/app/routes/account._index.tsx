@@ -160,7 +160,7 @@ function MobileDashboard() {
             <h1 className="text-xl font-bold text-slate-900">{t('welcomeUser', { name: user.name?.split(' ')[0] }) || `Welcome, ${user.name}`}!</h1>
           </div>
         </div>
-        <button className="relative p-2.5 rounded-full bg-white shadow-soft border border-slate-100 hover:scale-105 transition-transform">
+        <button aria-label={t('notifications') || 'Notifications'} className="relative p-2.5 rounded-full bg-white shadow-soft border border-slate-100 hover:scale-105 transition-transform">
           <Link to="/account/notifications">
             <span className="sr-only">Notifications</span> 
             <span className="material-icons-round text-slate-600">notifications_none</span>
@@ -567,10 +567,10 @@ export default function AccountDashboard() {
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-bold text-slate-800">{t('popularProducts') || 'Popular Products'}</h2>
             <div className="flex gap-2">
-              <button className="p-1.5 rounded-full border border-slate-200 hover:bg-slate-100 text-slate-500 transition-colors">
+              <button aria-label={t('previous') || 'Previous'} className="p-1.5 rounded-full border border-slate-200 hover:bg-slate-100 text-slate-500 transition-colors">
                 <ChevronRight className="w-5 h-5 rotate-180" />
               </button>
-              <button className="p-1.5 rounded-full border border-slate-200 hover:bg-slate-100 text-slate-500 transition-colors">
+              <button aria-label={t('next') || 'Next'} className="p-1.5 rounded-full border border-slate-200 hover:bg-slate-100 text-slate-500 transition-colors">
                 <ChevronRight className="w-5 h-5" />
               </button>
             </div>
@@ -593,9 +593,9 @@ export default function AccountDashboard() {
                         <ShoppingBag className="w-12 h-12 opacity-20" />
                       </div>
                     )}
-                    <div className="absolute top-2 right-2 p-1.5 bg-white/80 backdrop-blur-sm rounded-full text-slate-400 hover:text-red-500 transition-colors shadow-sm">
+                    <button aria-label={t('addToFavorites') || 'Add to favorites'} className="absolute top-2 right-2 p-1.5 bg-white/80 backdrop-blur-sm rounded-full text-slate-400 hover:text-red-500 transition-colors shadow-sm">
                       <Heart className="w-4 h-4" />
-                    </div>
+                    </button>
                   </div>
                   <h3 className="font-medium text-slate-800 text-sm mb-1 truncate">
                     {product.title}
@@ -605,7 +605,7 @@ export default function AccountDashboard() {
                     <span className="font-bold text-primary">
                       {storeCurrency === 'BDT' ? '৳' : '$'}{product.price}
                     </span>
-                    <button className="w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center hover:bg-primary hover:text-white transition-colors">
+                    <button aria-label={t('add') || 'Add'} className="w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center hover:bg-primary hover:text-white transition-colors">
                       <Plus className="w-5 h-5" />
                     </button>
                   </div>
