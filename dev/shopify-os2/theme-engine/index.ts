@@ -234,6 +234,11 @@ export {
   formatNumber,
 } from './utils/formatting';
 
+// Sanitization Utilities
+export {
+  sanitizeHtml,
+} from './utils/sanitize';
+
 // Theme Bridge (Shopify OS 2.0 Theme Integration)
 export { ThemeBridge, getThemeBridge, resetThemeBridge } from './ThemeBridge';
 
