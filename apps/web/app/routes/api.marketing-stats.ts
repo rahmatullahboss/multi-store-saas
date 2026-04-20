@@ -73,8 +73,8 @@ export async function loader({ context }: LoaderFunctionArgs): Promise<Response>
   const db = drizzle(cloudflare.env.DB);
   
   try {
-    // Fetch counts in parallel
-    const [userCountResult, storeCountResult, recentUsersResult] = await Promise.all([
+    // ⚡ Bolt: Using db.batch() instead of Promise.all() to send a single HTTP request to D1, reducing latency.
+    const [userCountResult, storeCountResult, recentUsersResult] = await db.batch([
       // Total users
       db.select({ count: count() }).from(users),
       // Total stores

@@ -7,3 +7,6 @@
 **Action:** Always extract IDs from a parent array and use a single batch `inArray()` Drizzle DB fetch to gather relations. Group and process the results in-memory rather than relying on thousands of simultaneous asynchronous connections.## 2026-03-19 - [Combine Drizzle SQL lookups on same table]
 **Learning:** When retrieving different attributes from the same record across different utility queries (e.g., pulling `planType` in one function and `monthlyVisitorCount` in another), sequential queries compound Cloudflare D1 latency.
 **Action:** Always inspect sequential backend fetches to see if they target the exact same table and same `where` clause. If they do, combine them into a single Drizzle `select` to radically reduce database network latency.
+## 2025-04-20 - Batch D1 Queries for Better Analytics Loader Performance
+**Learning:** The loader in `api.marketing-stats.ts` was executing three parallel Drizzle select queries using `Promise.all()`. While concurrent, this still meant three separate HTTP trips to Cloudflare D1. Drizzle ORM supports `db.batch()`, which rolls multiple queries into a single HTTP round-trip.
+**Action:** Use `db.batch()` to combine independent, read-heavy Drizzle queries (like those for dashboard metrics) into a single payload, effectively cutting D1 API round-trips to one without changing downstream typings.
