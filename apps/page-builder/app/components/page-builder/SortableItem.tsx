@@ -107,38 +107,41 @@ export function SortableItem({
       <button
         {...attributes}
         {...listeners}
-        className="p-1 text-gray-400 hover:text-gray-600 cursor-grab active:cursor-grabbing"
+        className="p-1 text-gray-400 hover:text-gray-600 cursor-grab active:cursor-grabbing focus-visible:ring-2 focus-visible:ring-indigo-500 outline-none rounded"
+        aria-label="Drag to reorder section"
       >
-        <GripVertical size={16} />
+        <GripVertical size={16} aria-hidden="true" />
       </button>
       
       {/* Icon */}
       {IconComponent && (
         <span className="text-gray-500">
-          <IconComponent size={16} />
+          <IconComponent size={16} aria-hidden="true" />
         </span>
       )}
       
       {/* Name */}
       <button
         onClick={onSelect}
-        className="flex-1 text-left text-sm font-medium text-gray-700 truncate"
+        className="flex-1 text-left text-sm font-medium text-gray-700 truncate focus-visible:ring-2 focus-visible:ring-indigo-500 outline-none rounded"
+        aria-label={`Select section: ${meta?.name || section.type}`}
       >
         {meta?.name || section.type}
       </button>
       
       {/* Actions */}
-      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
         {/* Toggle visibility */}
         <button
           onClick={(e) => {
             e.stopPropagation();
             onToggle(!section.enabled);
           }}
-          className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
+          className="p-1 text-gray-400 hover:text-gray-600 transition-colors focus-visible:ring-2 focus-visible:ring-indigo-500 outline-none rounded"
           title={section.enabled ? 'Hide' : 'Show'}
+          aria-label={section.enabled ? 'Hide section' : 'Show section'}
         >
-          {section.enabled ? <Eye size={14} /> : <EyeOff size={14} />}
+          {section.enabled ? <Eye size={14} aria-hidden="true" /> : <EyeOff size={14} aria-hidden="true" />}
         </button>
         
         {/* Duplicate */}
@@ -147,10 +150,11 @@ export function SortableItem({
             e.stopPropagation();
             onDuplicate();
           }}
-          className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
+          className="p-1 text-gray-400 hover:text-gray-600 transition-colors focus-visible:ring-2 focus-visible:ring-indigo-500 outline-none rounded"
           title="Duplicate"
+          aria-label="Duplicate section"
         >
-          <Copy size={14} />
+          <Copy size={14} aria-hidden="true" />
         </button>
         
         {/* Delete */}
@@ -159,10 +163,11 @@ export function SortableItem({
             e.stopPropagation();
             onDelete();
           }}
-          className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+          className="p-1 text-gray-400 hover:text-red-500 transition-colors focus-visible:ring-2 focus-visible:ring-red-500 outline-none rounded"
           title="Delete"
+          aria-label="Delete section"
         >
-          <Trash2 size={14} />
+          <Trash2 size={14} aria-hidden="true" />
         </button>
       </div>
     </div>
