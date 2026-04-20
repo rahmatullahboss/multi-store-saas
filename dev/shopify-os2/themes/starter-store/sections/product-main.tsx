@@ -24,7 +24,7 @@ import type {
   SerializedProduct,
   ProductVariant,
 } from '~/lib/theme-engine/types';
-import { formatPrice } from '~/lib/theme-engine';
+import { formatPrice, sanitizeHtml } from '~/lib/theme-engine';
 
 // ============================================================================
 // SCHEMA
@@ -462,10 +462,10 @@ export default function ProductMain({ section, context, settings, blocks }: Sect
       {/* Short Description */}
       {product.description && (
         <div
-          className="mb-6 prose-sm"
+          className="mb-6 prose-sm line-clamp-4"
           style={{ color: mutedColor }}
           dangerouslySetInnerHTML={{
-            __html: product.description.slice(0, 500),
+            __html: sanitizeHtml(product.description),
           }}
         />
       )}
@@ -620,7 +620,7 @@ export default function ProductMain({ section, context, settings, blocks }: Sect
                   <h3 className="text-lg font-bold mb-2">বিবরণ</h3>
                   <div
                     style={{ color: mutedColor }}
-                    dangerouslySetInnerHTML={{ __html: product.description }}
+                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(product.description) }}
                   />
                 </div>
               );
