@@ -182,23 +182,23 @@ export function ThemePreview({
           <div className="flex items-center gap-2 bg-gray-800 rounded-lg p-1">
             <button
               onClick={() => setDeviceView('desktop')}
-              className={`p-2 rounded-md transition ${
+              className={`p-2 rounded-md transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
                 deviceView === 'desktop' 
                   ? 'bg-emerald-600 text-white' 
                   : 'text-gray-400 hover:text-white'
               }`}
-              title="Desktop View"
+              title="Desktop View" aria-label="Desktop View"
             >
               <Monitor className="w-5 h-5" />
             </button>
             <button
               onClick={() => setDeviceView('mobile')}
-              className={`p-2 rounded-md transition ${
+              className={`p-2 rounded-md transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
                 deviceView === 'mobile' 
                   ? 'bg-emerald-600 text-white' 
                   : 'text-gray-400 hover:text-white'
               }`}
-              title="Mobile View"
+              title="Mobile View" aria-label="Mobile View"
             >
               <Smartphone className="w-5 h-5" />
             </button>
@@ -206,7 +206,7 @@ export function ThemePreview({
           
           <button
             onClick={onClose}
-            className="p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition"
+            className="p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500" aria-label="Close Preview"
           >
             <X className="w-5 h-5" />
           </button>
