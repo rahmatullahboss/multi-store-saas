@@ -472,9 +472,10 @@ export function VariantManager({ variants, onChange, basePrice, category }: Vari
                     <button
                       type="button"
                       onClick={() => removeVariant(index)}
-                      className="p-1 text-red-500 hover:text-red-700"
+                      className="p-1 text-red-500 hover:text-red-700 focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:outline-none rounded"
+                      aria-label="Remove variant"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="w-4 h-4" aria-hidden="true" />
                     </button>
                   </td>
                 </tr>
