@@ -155,6 +155,7 @@ export function StoreDeleteWarningModal({
               <button
                 onClick={onClose}
                 className="absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-white/50 transition"
+                aria-label={t('closeMenu') || 'বন্ধ করুন'}
               >
                 <X className="w-5 h-5" />
               </button>

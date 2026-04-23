@@ -198,6 +198,7 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ storeId }) =
                               onClick={(e) => handleMarkAsRead(notification.id, e)}
                               className="text-gray-400 hover:text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity"
                               title="Mark as read"
+                              aria-label="Mark as read"
                             >
                               <X className="w-3 h-3" />
                             </button>

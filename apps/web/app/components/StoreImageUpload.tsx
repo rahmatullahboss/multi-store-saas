@@ -145,6 +145,7 @@ export function StoreImageUpload({
             type="button"
             onClick={handleRemove}
             className="absolute top-2 right-2 p-1.5 bg-red-500 hover:bg-red-600 text-white rounded-full shadow-lg transition"
+            aria-label="Remove image"
           >
             <X className="w-4 h-4" />
           </button>
