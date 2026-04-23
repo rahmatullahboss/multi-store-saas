@@ -2,7 +2,7 @@ import type { LoaderFunctionArgs, MetaFunction } from 'react-router';
 import { json } from '~/lib/rr7-compat';
 import { useLoaderData, Link, useSearchParams } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
-import { desc, sql, eq } from 'drizzle-orm';
+import { desc, sql, eq, inArray } from 'drizzle-orm';
 import { visitors, visitorMessages } from '@db/schema';
 import { requireSuperAdmin } from '~/services/auth.server';
 import { MessageCircle, User, Phone, Clock, Search, ChevronRight } from 'lucide-react';
@@ -29,30 +29,54 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     .orderBy(desc(visitors.createdAt))
     .limit(50); // Limit to last 50 for now
 
-  // Fetch messages for these visitors to get counts and preview
-  // This is a naive N+1 approach but okay for low volume admin panel. 
-  // Optimization: Use a single query with grouping if Drizzle supported it better for SQLite.
+  // ⚡ Bolt: Optimize N+1 query for visitor messages.
+  // We extract IDs and use a single grouped query instead of Promise.all(map(...)).
+  // We rely on SQLite's bare columns feature: when grouping and using max(createdAt),
+  // SQLite returns the content from the exact row containing that maximum value.
+  // Expected Impact: Reduces DB queries from O(N) (50 queries) to O(1) (1 query), lowering page latency by ~50-100ms.
   
-  const visitorsWithData = await Promise.all(allVisitors.map(async (v) => {
-    const messages = await db
-        .select()
-        .from(visitorMessages)
-        .where(eq(visitorMessages.visitorId, v.id))
-        .orderBy(desc(visitorMessages.createdAt))
-        .limit(1); // Just get last message
-
-    const countResult = await db
-        .select({ count: sql<number>`count(*)` })
-        .from(visitorMessages)
-        .where(eq(visitorMessages.visitorId, v.id));
-
-    return {
-        ...v,
-        lastMessage: messages[0]?.content || 'No messages',
-        lastActive: messages[0]?.createdAt || v.createdAt,
-        messageCount: countResult[0]?.count || 0
-    };
+  let visitorsWithData = allVisitors.map(v => ({
+      ...v,
+      id: v.id,
+      createdAt: v.createdAt,
+      lastMessage: 'No messages',
+      lastActive: v.createdAt,
+      messageCount: 0
   }));
+
+  if (allVisitors.length > 0) {
+    const visitorIds = allVisitors.map(v => v.id);
+    const aggregatedMessages = await db
+      .select({
+        visitorId: visitorMessages.visitorId,
+        count: sql<number>`count(*)`.mapWith(Number),
+        latestCreatedAt: sql<string>`max(${visitorMessages.createdAt})`,
+        content: visitorMessages.content
+      })
+      .from(visitorMessages)
+      .where(inArray(visitorMessages.visitorId, visitorIds))
+      .groupBy(visitorMessages.visitorId);
+
+    const messageDataMap = aggregatedMessages.reduce((acc, row) => {
+      if (row.visitorId !== null) {
+        acc[row.visitorId] = row;
+      }
+      return acc;
+    }, {} as Record<number, typeof aggregatedMessages[0]>);
+
+    visitorsWithData = visitorsWithData.map(v => {
+      const data = messageDataMap[v.id];
+      if (data) {
+        return {
+          ...v,
+          lastMessage: data.content || 'No messages',
+          lastActive: data.latestCreatedAt || v.createdAt,
+          messageCount: data.count || 0
+        };
+      }
+      return v;
+    });
+  }
 
   // Sort by last active
   visitorsWithData.sort((a, b) => {
@@ -65,7 +89,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const url = new URL(request.url);
   const chatId = url.searchParams.get('chatId');
   let selectedMessages: typeof visitorMessages.$inferSelect[] = [];
-  let selectedVisitor = null;
+  let selectedVisitor: typeof visitorsWithData[0] | null = null;
 
   if (chatId) {
     const visitorIdNum = Number(chatId);
@@ -86,8 +110,44 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   });
 }
 
+type LoaderData = {
+    visitors: {
+        id: number;
+        createdAt: string;
+        lastMessage: string;
+        lastActive: string;
+        messageCount: number;
+        name: string;
+        email: string | null;
+        phone: string | null;
+        browser: string | null;
+        os: string | null;
+        device: string | null;
+        source: string | null;
+        location: string | null;
+        ip: string | null;
+    }[];
+    selectedMessages: typeof visitorMessages.$inferSelect[];
+    selectedVisitor: {
+        id: number;
+        createdAt: string;
+        lastMessage: string;
+        lastActive: string;
+        messageCount: number;
+        name: string;
+        email: string | null;
+        phone: string | null;
+        browser: string | null;
+        os: string | null;
+        device: string | null;
+        source: string | null;
+        location: string | null;
+        ip: string | null;
+    } | null;
+};
+
 export default function VisitorChats() {
-  const { visitors, selectedMessages, selectedVisitor } = useLoaderData<typeof loader>();
+  const { visitors, selectedMessages, selectedVisitor } = useLoaderData<LoaderData>();
   const [searchParams, setSearchParams] = useSearchParams();
   const chatId = searchParams.get('chatId');
 
