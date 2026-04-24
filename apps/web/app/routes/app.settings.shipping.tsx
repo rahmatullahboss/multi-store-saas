@@ -1,3 +1,4 @@
+import { getCachedNumberFormat } from "~/utils/number-format-cache";
 /**
  * Shipping Zones Management
  *
@@ -214,7 +215,7 @@ export default function ShippingZonesPage() {
   const [editingZone, setEditingZone] = useState<(typeof zones)[0] | null>(null);
 
   const formatPrice = (amount: number) => {
-    return new Intl.NumberFormat(lang === 'bn' ? 'bn-BD' : 'en-US', {
+    return getCachedNumberFormat(lang === 'bn' ? 'bn-BD' : 'en-US', {
       style: 'currency',
       currency,
       minimumFractionDigits: 0,

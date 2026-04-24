@@ -1,3 +1,4 @@
+import { getCachedNumberFormat } from "~/utils/number-format-cache";
 /**
  * DC Store Checkout Page
  * 
@@ -56,7 +57,7 @@ export function DCCheckoutPage({
 
   // Format Price
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('bn-BD', {
+    return getCachedNumberFormat('bn-BD', {
       style: 'currency',
       currency: 'BDT',
       minimumFractionDigits: 0,

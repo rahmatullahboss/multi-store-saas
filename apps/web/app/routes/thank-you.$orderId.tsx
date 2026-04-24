@@ -1,3 +1,4 @@
+import { getCachedNumberFormat } from "~/utils/number-format-cache";
 /**
  * Thank You Page
  *
@@ -138,7 +139,7 @@ export default function ThankYouPage() {
 
   const formatPrice = (price: number) => {
     // Prices are stored in Taka (not cents)
-    return new Intl.NumberFormat('bn-BD', {
+    return getCachedNumberFormat('bn-BD', {
       style: 'currency',
       currency,
       minimumFractionDigits: 0,

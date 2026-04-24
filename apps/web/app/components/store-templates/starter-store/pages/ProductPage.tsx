@@ -1,3 +1,4 @@
+import { getCachedNumberFormat } from "~/utils/number-format-cache";
 import { useState, useEffect, useMemo } from 'react';
 import {
   ShoppingBag,
@@ -161,7 +162,7 @@ export function StarterProductPage({
 
   // Format Price
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US', {
+    return getCachedNumberFormat('en-US', {
       style: 'currency',
       currency: currency,
       minimumFractionDigits: 0,

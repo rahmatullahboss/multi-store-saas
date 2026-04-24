@@ -1,3 +1,4 @@
+import { getCachedNumberFormat } from "~/utils/number-format-cache";
 /**
  * Language & Currency Context
  * 
@@ -170,7 +171,7 @@ export function useFormatPrice() {
   
   return (price: number): string => {
     const locale = lang === 'bn' ? 'bn-BD' : 'en-US';
-    return new Intl.NumberFormat(locale, {
+    return getCachedNumberFormat(locale, {
       style: 'currency',
       currency: currency,
       minimumFractionDigits: 0,

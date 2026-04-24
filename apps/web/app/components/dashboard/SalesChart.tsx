@@ -1,3 +1,4 @@
+import { getCachedNumberFormat } from "~/utils/number-format-cache";
 /**
  * SalesChart - Simple SVG-based sales chart
  * No external library dependency - lightweight and fast
@@ -36,7 +37,7 @@ export function SalesChart({ data, currency = 'BDT' }: SalesChartProps) {
   // padding = 2 (gap between bars, applied via gap-1 class)
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-BD', {
+    return getCachedNumberFormat('en-BD', {
       style: 'currency',
       currency,
       minimumFractionDigits: 0,

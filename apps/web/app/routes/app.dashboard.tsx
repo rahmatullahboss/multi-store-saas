@@ -1,3 +1,4 @@
+import { getCachedNumberFormat } from "~/utils/number-format-cache";
 /**
  * Dashboard Overview Page - Shopify-Inspired Design
  * 
@@ -233,7 +234,7 @@ export default function DashboardPage() {
   const navigate = useNavigate();
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat(lang === 'bn' ? 'bn-BD' : 'en-BD', {
+    return getCachedNumberFormat(lang === 'bn' ? 'bn-BD' : 'en-BD', {
       style: 'currency',
       currency,
       minimumFractionDigits: 0,
