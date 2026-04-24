@@ -1,0 +1,3 @@
+## 2023-10-27 - Fixing Invisible Keyboard Traps on Hover Reveals
+**Learning:** Elements hidden with `opacity-0` and revealed on hover (like `group-hover:opacity-100`) become invisible keyboard traps if focused via keyboard navigation because the hover state isn't triggered.
+**Action:** Always pair `group-hover:opacity-100` with `focus-visible:opacity-100` on the element itself, or `focus-within:opacity-100` on a parent wrapper if the interactive element is nested, to ensure it becomes visible when receiving keyboard focus. Also ensure visual focus rings are present (e.g. `focus-visible:ring-2`).
