@@ -1,3 +1,4 @@
+import { getCachedNumberFormat } from "~/utils/number-format-cache";
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import {
@@ -144,7 +145,7 @@ export function LiveLuxeBoutiqueHomepage({
   const featuredProducts = products?.slice(0, 8) || [];
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US', {
+    return getCachedNumberFormat('en-US', {
       style: 'currency',
       currency: currency || 'BDT',
       minimumFractionDigits: 0,

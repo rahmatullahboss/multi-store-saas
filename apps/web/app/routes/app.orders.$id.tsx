@@ -1,3 +1,4 @@
+import { getCachedNumberFormat } from "~/utils/number-format-cache";
 /**
  * Order Detail Page
  * 
@@ -608,7 +609,7 @@ export default function OrderDetailPage() {
   const { t, lang } = useTranslation();
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat(lang === 'bn' ? 'bn-BD' : 'en-US', {
+    return getCachedNumberFormat(lang === 'bn' ? 'bn-BD' : 'en-US', {
       style: 'currency',
       currency,
       minimumFractionDigits: 0,

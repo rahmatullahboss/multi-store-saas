@@ -1,3 +1,4 @@
+import { getCachedNumberFormat } from "~/utils/number-format-cache";
 /**
  * Full Store Template
  * 
@@ -53,7 +54,7 @@ export function FullStoreTemplate({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US', {
+    return getCachedNumberFormat('en-US', {
       style: 'currency',
       currency,
     }).format(price);

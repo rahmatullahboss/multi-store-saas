@@ -1,3 +1,4 @@
+import { getCachedNumberFormat } from "~/utils/number-format-cache";
 import { PreviewSafeLink } from '~/components/PreviewSafeLink';
 import { AddToCartButton } from '~/components/AddToCartButton';
 import { ShoppingCart, Star } from 'lucide-react';
@@ -30,7 +31,7 @@ export function StarterProductCard({
 
   // Format Price
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US', {
+    return getCachedNumberFormat('en-US', {
       style: 'currency',
       currency: currency,
       minimumFractionDigits: 0,

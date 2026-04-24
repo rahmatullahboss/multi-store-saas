@@ -1,3 +1,4 @@
+import { getCachedNumberFormat } from "~/utils/number-format-cache";
 /**
  * P&L Report Server Service
  *
@@ -397,7 +398,7 @@ export async function getProductMargins(
  * e.g., 123456.78 → "৳1,23,456.78"  (BD lakh notation)
  */
 export function formatBDT(amount: number): string {
-  return new Intl.NumberFormat('en-BD', {
+  return getCachedNumberFormat('en-BD', {
     style: 'currency',
     currency: 'BDT',
     minimumFractionDigits: 0,

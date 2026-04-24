@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { formatPrice, getCurrencySymbol, formatPriceSimple } from '~/utils/formatPrice';
+import { formatPrice, getCurrencySymbol, formatPriceSimple } from '../../app/utils/formatPrice';
 
 describe('formatPrice utility function', () => {
   describe('formatPrice', () => {

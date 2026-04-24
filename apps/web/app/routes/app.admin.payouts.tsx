@@ -1,3 +1,4 @@
+import { getCachedNumberFormat } from "~/utils/number-format-cache";
 /**
  * Admin Payouts Page
  * 
@@ -175,7 +176,7 @@ export default function AdminPayoutsPage() {
   };
   
   const formatPrice = (amount: number) => {
-    return new Intl.NumberFormat(lang === 'bn' ? 'bn-BD' : 'en-US', {
+    return getCachedNumberFormat(lang === 'bn' ? 'bn-BD' : 'en-US', {
       style: 'currency',
       currency: 'BDT',
       minimumFractionDigits: 0,

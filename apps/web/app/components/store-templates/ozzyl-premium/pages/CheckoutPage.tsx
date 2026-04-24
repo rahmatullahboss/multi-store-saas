@@ -1,3 +1,4 @@
+import { getCachedNumberFormat } from "~/utils/number-format-cache";
 import { useState } from 'react';
 import { Link } from 'react-router';
 import {
@@ -20,7 +21,7 @@ import { OzzylPremiumFooter } from '../sections/Footer';
 const THEME = OZZYL_PREMIUM_THEME;
 
 function formatPrice(price: number, currency = 'BDT') {
-  return new Intl.NumberFormat('en-BD', {
+  return getCachedNumberFormat('en-BD', {
     style: 'currency',
     currency,
     maximumFractionDigits: 0,

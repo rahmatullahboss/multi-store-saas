@@ -1,3 +1,4 @@
+import { getCachedNumberFormat } from "~/utils/number-format-cache";
 /**
  * DC Store Product Card Component
  * 
@@ -38,7 +39,7 @@ export function DCProductCard({
     
   // Format Price
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('bn-BD', {
+    return getCachedNumberFormat('bn-BD', {
       style: 'currency',
       currency: currency,
       minimumFractionDigits: 0,

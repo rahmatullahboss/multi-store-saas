@@ -1,3 +1,4 @@
+import { getCachedNumberFormat } from "~/utils/number-format-cache";
 /**
  * Merchant Dashboard - Customers List
  * 
@@ -106,7 +107,7 @@ export default function CustomersListPage() {
   }, [allCustomers, searchQuery]);
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat(lang === 'bn' ? 'bn-BD' : 'en-BD', {
+    return getCachedNumberFormat(lang === 'bn' ? 'bn-BD' : 'en-BD', {
       style: 'currency',
       currency,
       minimumFractionDigits: 0,

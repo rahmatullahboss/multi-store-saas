@@ -1,3 +1,4 @@
+import { getCachedNumberFormat } from "~/utils/number-format-cache";
 import { useState, useMemo } from 'react';
 import {
   AreaChart,
@@ -48,7 +49,7 @@ export function RevenueChart({ data, currency = 'BDT' }: RevenueChartProps) {
   }, [data, period]);
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat(lang === 'bn' ? 'bn-BD' : 'en-BD', {
+    return getCachedNumberFormat(lang === 'bn' ? 'bn-BD' : 'en-BD', {
       style: 'currency',
       currency,
       minimumFractionDigits: 0,

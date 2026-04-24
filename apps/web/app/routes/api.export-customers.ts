@@ -1,3 +1,4 @@
+import { getCachedNumberFormat } from "~/utils/number-format-cache";
 import { type LoaderFunctionArgs } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
 import { customers } from '@db/schema';
@@ -51,7 +52,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     // The memory states: "money is internally stored and calculated as integer cents". So totalSpent / 100 is likely correct. Wait, we should check utils/money.ts to be sure.
     // However, looking at the customer page: `formatPrice(customer.totalSpent || 0)` is used directly without dividing by 100 in `app.customers._index.tsx`.
     // Ah, wait! The memory says "money is internally stored and calculated as integer cents" but `customers._index.tsx` does:
-    // `const formatPrice = (price: number) => { return new Intl.NumberFormat(...).format(price); };`
+    // `const formatPrice = (price: number) => { return getCachedNumberFormat(...).format(price); };`
     // And uses `formatPrice(customer.totalSpent || 0)`.
     // Let's just output `customer.totalSpent || 0` directly as it's done in the UI.
     const totalSpent = customer.totalSpent || 0;

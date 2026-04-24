@@ -1,3 +1,4 @@
+import { getCachedNumberFormat } from "~/utils/number-format-cache";
 /**
  * Products Listing Page (Storefront)
  *
@@ -643,7 +644,7 @@ function ProductCard({
   const borderColor = isDark ? 'border-gray-700' : 'border-gray-200';
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US', {
+    return getCachedNumberFormat('en-US', {
       style: 'currency',
       currency,
     }).format(price);
@@ -734,7 +735,7 @@ function ProductListItem({
   const borderColor = isDark ? 'border-gray-700' : 'border-gray-200';
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US', {
+    return getCachedNumberFormat('en-US', {
       style: 'currency',
       currency,
     }).format(price);

@@ -1,3 +1,4 @@
+import { getCachedNumberFormat } from "~/utils/number-format-cache";
 /**
  * Upsell Offer Page
  * 
@@ -200,7 +201,7 @@ export default function UpsellPage() {
   const isSubmitting = acceptFetcher.state === 'submitting' || declineFetcher.state === 'submitting';
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('bn-BD', {
+    return getCachedNumberFormat('bn-BD', {
       style: 'currency',
       currency: store?.currency || 'BDT',
       minimumFractionDigits: 0,
