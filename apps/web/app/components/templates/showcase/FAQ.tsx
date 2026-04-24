@@ -35,6 +35,8 @@ export function ShowcaseFAQ({
                 <button
                   onClick={() => setOpenIndex(openIndex === i ? null : i)}
                   className="w-full py-8 border-b border-white/10 flex items-center justify-between text-left transition-all"
+                  aria-expanded={openIndex === i}
+                  aria-controls={`faq-answer-${i}`}
                 >
                   <span className={`text-xl font-bold transition-all ${openIndex === i ? 'text-rose-500 pl-4' : 'text-white pl-0'}`}>
                     {item.question}
@@ -45,7 +47,10 @@ export function ShowcaseFAQ({
                 </button>
                 
                 {openIndex === i && (
-                  <div className="py-8 px-4 bg-zinc-900/30 rounded-b-3xl animate-in slide-in-from-top-4 duration-500">
+                  <div
+                    id={`faq-answer-${i}`}
+                    className="py-8 px-4 bg-zinc-900/30 rounded-b-3xl animate-in slide-in-from-top-4 duration-500"
+                  >
                     <p className="text-zinc-500 font-medium leading-relaxed text-lg max-w-3xl">
                       {item.answer}
                     </p>
