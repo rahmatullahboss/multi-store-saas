@@ -128,14 +128,14 @@ export function SortableItem({
       </button>
       
       {/* Actions */}
-      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
         {/* Toggle visibility */}
         <button
           onClick={(e) => {
             e.stopPropagation();
             onToggle(!section.enabled);
           }}
-          className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
+          className="p-1 text-gray-400 hover:text-gray-600 transition-colors focus-visible:opacity-100 focus-visible:ring-2 focus-visible:outline-none rounded"
           title={section.enabled ? 'Hide' : 'Show'}
         >
           {section.enabled ? <Eye size={14} /> : <EyeOff size={14} />}
@@ -147,7 +147,7 @@ export function SortableItem({
             e.stopPropagation();
             onDuplicate();
           }}
-          className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
+          className="p-1 text-gray-400 hover:text-gray-600 transition-colors focus-visible:opacity-100 focus-visible:ring-2 focus-visible:outline-none rounded"
           title="Duplicate"
         >
           <Copy size={14} />
@@ -159,7 +159,7 @@ export function SortableItem({
             e.stopPropagation();
             onDelete();
           }}
-          className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+          className="p-1 text-gray-400 hover:text-red-500 transition-colors focus-visible:opacity-100 focus-visible:ring-2 focus-visible:outline-none rounded"
           title="Delete"
         >
           <Trash2 size={14} />
