@@ -61,6 +61,7 @@ export function ChatViewModal({ isOpen, visitor, messages, onClose }: ChatViewMo
           <div className="flex items-center gap-2">
             <button
               onClick={onClose}
+              aria-label="Close chat"
               className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
             >
               <X size={20} />
