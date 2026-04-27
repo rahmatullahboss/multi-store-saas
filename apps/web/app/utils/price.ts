@@ -1,3 +1,4 @@
+import { getCachedNumberFormat } from "./number-format-cache";
 /**
  * Calculate discount percentage from price and compareAtPrice
  */
@@ -6,12 +7,13 @@ export function calculateDiscountPercentage(price: number, compareAtPrice: numbe
   return Math.round(((compareAtPrice - price) / compareAtPrice) * 100);
 }
 
+
 /**
  * Format currency (simple fallback if context not used)
  */
 export function formatCurrency(amount: number, currency = 'BDT'): string {
   const isBDT = currency === 'BDT';
-  return new Intl.NumberFormat('en-BD', {
+  return getCachedNumberFormat('en-BD', {
     style: 'currency',
     currency: currency,
     minimumFractionDigits: isBDT ? 0 : 2,

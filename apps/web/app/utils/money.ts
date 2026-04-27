@@ -1,3 +1,4 @@
+import { getCachedNumberFormat } from "./number-format-cache";
 /**
  * Money Utilities
  *
@@ -46,6 +47,7 @@ export function roundMoney(amount: number, decimals: number = 2): number {
 // FORMATTING FUNCTIONS
 // ============================================================================
 
+
 interface FormatMoneyOptions {
   currency?: string;
   locale?: string;
@@ -80,7 +82,7 @@ export function formatMoney(
   const rounded = roundMoney(amount, decimals);
 
   // Format with locale
-  const formatted = new Intl.NumberFormat(locale, {
+  const formatted = getCachedNumberFormat(locale, {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
   }).format(rounded);
