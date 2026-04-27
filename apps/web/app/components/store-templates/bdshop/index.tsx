@@ -226,12 +226,13 @@ function PreviewHeader({
 
             {/* Right Actions */}
             <div className="flex items-center gap-3 ml-auto">
-              <button onClick={() => setSearchOpen(true)} className="md:hidden p-2 text-white">
+              <button onClick={() => setSearchOpen(true)} className="md:hidden p-2 text-white" aria-label="Open search">
                 <Search className="w-5 h-5" />
               </button>
               <button
                 onClick={() => onNavigate({ type: 'cart' })}
                 className="relative p-2 text-white"
+                aria-label="View cart"
               >
                 <ShoppingCart className="w-6 h-6" />
                 {cart.itemCount > 0 && (
@@ -283,7 +284,7 @@ function PreviewHeader({
                 autoFocus
                 className="flex-1 px-4 py-3 rounded-lg bg-white"
               />
-              <button type="button" onClick={() => setSearchOpen(false)} className="p-3 text-white">
+              <button type="button" onClick={() => setSearchOpen(false)} className="p-3 text-white" aria-label="Close search">
                 <X className="w-5 h-5" />
               </button>
             </form>
