@@ -11,6 +11,7 @@
 
 import { useState } from 'react';
 import { useFetcher } from '@remix-run/react';
+import DOMPurify from 'isomorphic-dompurify';
 import {
   ShoppingBag,
   Heart,
@@ -422,10 +423,10 @@ export default function NovaLuxProductMain({
       {/* Short Description */}
       {product.description && (
         <div
-          className="mb-6 prose-sm"
+          className="mb-6 prose-sm line-clamp-4"
           style={{ color: THEME.muted }}
           dangerouslySetInnerHTML={{
-            __html: product.description.slice(0, 300),
+            __html: DOMPurify.sanitize(product.description),
           }}
         />
       )}
@@ -583,7 +584,7 @@ export default function NovaLuxProductMain({
                   <div
                     className="text-sm leading-relaxed prose-sm"
                     style={{ color: THEME.muted }}
-                    dangerouslySetInnerHTML={{ __html: product.description }}
+                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(product.description) }}
                   />
                 </div>
               );
