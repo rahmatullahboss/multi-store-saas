@@ -109,6 +109,7 @@ export function LanguageSelector({
         `}
         aria-label="Select language"
         aria-expanded={isOpen}
+        aria-controls="language-selector-menu"
       >
         <Globe className="w-4 h-4 text-gray-500" />
         {showFlag && currentLanguage?.flag}
@@ -122,7 +123,10 @@ export function LanguageSelector({
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-50 animate-fade-in">
+        <div
+          id="language-selector-menu"
+          className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-50 animate-fade-in"
+        >
           {availableLanguages.map((language) => (
             <button
               key={language.code}
