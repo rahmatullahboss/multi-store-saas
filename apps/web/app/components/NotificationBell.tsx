@@ -160,7 +160,7 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ storeId }) =
                     <li
                       key={notification.id}
                       className={cn(
-                        "p-4 hover:bg-gray-50 transition-colors flex gap-3 group relative",
+                        "p-4 hover:bg-gray-50 focus-within:bg-gray-50 transition-colors flex gap-3 group relative",
                         isRead ? "opacity-75" : "bg-blue-50/30"
                       )}
                       onClick={(e) => {
@@ -196,8 +196,9 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ storeId }) =
                             <span className="w-2 h-2 bg-blue-500 rounded-full" />
                             <button
                               onClick={(e) => handleMarkAsRead(notification.id, e)}
-                              className="text-gray-400 hover:text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                              className="text-gray-400 hover:text-gray-600 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none transition-opacity rounded-full p-0.5"
                               title="Mark as read"
+                              aria-label="Mark as read"
                             >
                               <X className="w-3 h-3" />
                             </button>
