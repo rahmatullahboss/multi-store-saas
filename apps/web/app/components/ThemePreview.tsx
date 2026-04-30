@@ -188,6 +188,7 @@ export function ThemePreview({
                   : 'text-gray-400 hover:text-white'
               }`}
               title="Desktop View"
+              aria-label="Desktop View"
             >
               <Monitor className="w-5 h-5" />
             </button>
@@ -199,6 +200,7 @@ export function ThemePreview({
                   : 'text-gray-400 hover:text-white'
               }`}
               title="Mobile View"
+              aria-label="Mobile View"
             >
               <Smartphone className="w-5 h-5" />
             </button>
@@ -207,6 +209,7 @@ export function ThemePreview({
           <button
             onClick={onClose}
             className="p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition"
+            aria-label="Close preview"
           >
             <X className="w-5 h-5" />
           </button>
