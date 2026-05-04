@@ -34,7 +34,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
   const origin = request.headers.get('origin') || request.headers.get('referer') || '';
   const saasDomain = (context.cloudflare.env as unknown as Record<string, string>).SAAS_DOMAIN || 'ozzyl.com';
   const allowedOrigins = [`https://app.${saasDomain}`, `https://${saasDomain}`];
-  const isValidOrigin = allowedOrigins.some((allowed) => origin.startsWith(allowed));
+  const isValidOrigin = allowedOrigins.some((allowed) => origin === allowed || origin.startsWith(`${allowed}/`) || origin.startsWith(`${allowed}?`) || origin.startsWith(`${allowed}#`));
   if (!isValidOrigin) {
     console.error('[create-store] CSRF check failed. Origin:', origin);
     return json({ error: 'Forbidden' }, { status: 403 });
