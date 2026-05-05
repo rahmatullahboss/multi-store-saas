@@ -115,9 +115,12 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ storeId }) =
   return (
     <div className="relative" ref={dropdownRef}>
       <button
+        id="notification-bell-button"
         onClick={() => setIsOpen(!isOpen)}
         className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg relative transition-colors focus:outline-none focus:ring-2 focus:ring-primary/50"
         aria-label="Notifications"
+        aria-expanded={isOpen}
+        aria-controls="notification-dropdown"
       >
         {unreadCount > 0 ? (
           <>
@@ -133,7 +136,11 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ storeId }) =
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-xl shadow-xl border border-gray-100 z-50 overflow-hidden flex flex-col max-h-[80vh]">
+        <div
+          id="notification-dropdown"
+          role="region"
+          aria-labelledby="notification-bell-button"
+          className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-xl shadow-xl border border-gray-100 z-50 overflow-hidden flex flex-col max-h-[80vh]">
           <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-gray-50/50 shrink-0">
             <h3 className="font-semibold text-gray-900">Notifications</h3>
             {unreadCount > 0 && (
@@ -198,6 +205,7 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ storeId }) =
                               onClick={(e) => handleMarkAsRead(notification.id, e)}
                               className="text-gray-400 hover:text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity"
                               title="Mark as read"
+                              aria-label="Mark as read"
                             >
                               <X className="w-3 h-3" />
                             </button>
