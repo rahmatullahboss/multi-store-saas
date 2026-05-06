@@ -522,11 +522,16 @@ export async function action({ request, context }: ActionFunctionArgs) {
         }
 
         // Update stats
-        context.cloudflare.ctx.waitUntil(
-          Promise.all(input.bump_ids!.map(bumpId =>
-            context.cloudflare.env.DB.prepare('UPDATE order_bumps SET conversions = conversions + 1 WHERE id = ?').bind(bumpId).run()
-          )).catch(e => console.error('Failed to update bump conversions:', e))
-        );
+        // ⚡ Bolt: Batch database updates. Instead of iterating in a Promise.all() mapping, we use a single `inArray()` Drizzle DB update to change the conversions in bulk without sequential database overhead.
+        if (input.bump_ids!.length > 0) {
+          context.cloudflare.ctx.waitUntil(
+            db.update(orderBumps)
+              .set({ conversions: sql`${orderBumps.conversions} + 1` })
+              .where(inArray(orderBumps.id, input.bump_ids!))
+              .execute()
+              .catch(e => console.error('Failed to update bump conversions:', e))
+          );
+        }
       }
     }
 
