@@ -7,3 +7,7 @@
 **Action:** Always extract IDs from a parent array and use a single batch `inArray()` Drizzle DB fetch to gather relations. Group and process the results in-memory rather than relying on thousands of simultaneous asynchronous connections.## 2026-03-19 - [Combine Drizzle SQL lookups on same table]
 **Learning:** When retrieving different attributes from the same record across different utility queries (e.g., pulling `planType` in one function and `monthlyVisitorCount` in another), sequential queries compound Cloudflare D1 latency.
 **Action:** Always inspect sequential backend fetches to see if they target the exact same table and same `where` clause. If they do, combine them into a single Drizzle `select` to radically reduce database network latency.
+
+## 2024-05-06 - [Drizzle ORM & SQLite Bare Columns]
+**Learning:** In Drizzle ORM and SQLite (Cloudflare D1), you can efficiently solve N+1 "latest record + count" queries by leveraging SQLite's bare columns feature. A single query using `inArray()`, `groupBy()`, and `max(createdAt)` will correctly return the corresponding text `content` from the exact row where `createdAt` is maximum.
+**Action:** Replace `Promise.all` loops fetching independent latest records and counts with a single grouped aggregation query leveraging SQLite bare columns to prevent cold-start latency and N+1 database queries. Ensure you handle Drizzle's integer date output correctly by multiplying it by 1000 before parsing with `new Date()`.
