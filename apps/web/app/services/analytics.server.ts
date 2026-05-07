@@ -30,25 +30,32 @@ export async function getStoreStats(db: Database, storeId: number) {
   last7Days.setDate(last7Days.getDate() - 7);
 
   // Execute all DB queries concurrently for performance
+  // ⚡ Bolt Optimization: Group multiple sequential Drizzle queries on the same table
+  // into single select queries using conditional aggregations.
   const [
-    [productCount],
-    [lowStockCount],
-    [orderCount],
-    [pendingOrders],
+    productStatsResult,
+    orderStatsResult,
     [abandonedCartsCount],
-    revenueResult,
-    todayResult,
-    yesterdayResult,
     salesDataRaw,
   ] = await Promise.all([
-    db.select({ count: count() }).from(products).where(and(eq(products.storeId, storeId), eq(products.isPublished, true))),
-    db.select({ count: count() }).from(products).where(and(eq(products.storeId, storeId), sql`inventory <= 5`)),
-    db.select({ count: count() }).from(orders).where(eq(orders.storeId, storeId)),
-    db.select({ count: count() }).from(orders).where(and(eq(orders.storeId, storeId), eq(orders.status, 'pending'))),
+    // Combined products query
+    db.select({
+      publishedCount: sql<number>`sum(case when ${products.isPublished} = 1 then 1 else 0 end)`,
+      lowStockCount: sql<number>`sum(case when inventory <= 5 then 1 else 0 end)`
+    }).from(products).where(eq(products.storeId, storeId)),
+
+    // Combined orders query
+    db.select({
+      totalCount: sql<number>`count(*)`,
+      pendingCount: sql<number>`sum(case when ${orders.status} = 'pending' then 1 else 0 end)`,
+      revenue: sql<number>`sum(case when ${orders.status} != 'cancelled' then total else 0 end)`,
+      todaySales: sql<number>`sum(case when ${orders.status} != 'cancelled' and created_at >= ${today.getTime()/1000} then total else 0 end)`,
+      yesterdaySales: sql<number>`sum(case when ${orders.status} != 'cancelled' and created_at >= ${yesterday.getTime()/1000} and created_at < ${today.getTime()/1000} then total else 0 end)`
+    }).from(orders).where(eq(orders.storeId, storeId)),
+
+    // Unchanged single queries
     db.select({ count: count() }).from(abandonedCarts).where(and(eq(abandonedCarts.storeId, storeId), eq(abandonedCarts.status, 'abandoned'))),
-    db.select({ total: sql<number>`sum(total)` }).from(orders).where(and(eq(orders.storeId, storeId), sql`status != 'cancelled'`)),
-    db.select({ total: sql<number>`sum(total)` }).from(orders).where(and(eq(orders.storeId, storeId), gte(orders.createdAt, today), sql`status != 'cancelled'`)),
-    db.select({ total: sql<number>`sum(total)` }).from(orders).where(and(eq(orders.storeId, storeId), gte(orders.createdAt, yesterday), sql`created_at < ${today.getTime()/1000}`, sql`status != 'cancelled'`)),
+
     db.select({
         date: sql<string>`date(created_at, 'unixepoch')`,
         amount: sql<number>`sum(total)`
@@ -59,11 +66,11 @@ export async function getStoreStats(db: Database, storeId: number) {
     .orderBy(sql`date(created_at, 'unixepoch')`),
   ]);
 
-  const revenue = revenueResult[0]?.total || 0;
-  const todaySales = todayResult[0]?.total || 0;
+  const revenue = orderStatsResult[0]?.revenue || 0;
+  const todaySales = orderStatsResult[0]?.todaySales || 0;
 
   // Sales Trend Calculation
-  const yesterdaySales = yesterdayResult[0]?.total || 0;
+  const yesterdaySales = orderStatsResult[0]?.yesterdaySales || 0;
   let salesTrend = 0;
   if (yesterdaySales > 0) {
       salesTrend = ((todaySales - yesterdaySales) / yesterdaySales) * 100;
@@ -88,13 +95,13 @@ export async function getStoreStats(db: Database, storeId: number) {
   });
 
   return {
-      products: productCount.count,
-      lowStock: lowStockCount.count,
-      orders: orderCount.count,
+      products: productStatsResult[0]?.publishedCount || 0,
+      lowStock: productStatsResult[0]?.lowStockCount || 0,
+      orders: orderStatsResult[0]?.totalCount || 0,
       revenue,
       todaySales,
       salesTrend,
-      pendingOrders: pendingOrders.count,
+      pendingOrders: orderStatsResult[0]?.pendingCount || 0,
       abandonedCarts: abandonedCartsCount.count,
       salesData
   };
