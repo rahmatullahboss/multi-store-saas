@@ -166,7 +166,11 @@ export function TemplatePreviewModal({
           </div>
           
           {/* Device Toggle */}
-          <div className="flex items-center gap-2 bg-gray-800 rounded-lg p-1">
+          <div
+            className="flex items-center gap-2 bg-gray-800 rounded-lg p-1"
+            role="group"
+            aria-label="Device view toggle"
+          >
             <button
               onClick={() => setDeviceView('desktop')}
               className={`p-2 rounded-md transition ${
@@ -175,6 +179,8 @@ export function TemplatePreviewModal({
                   : 'text-gray-400 hover:text-white'
               }`}
               title="Desktop View"
+              aria-label="Desktop View"
+              aria-pressed={deviceView === 'desktop'}
             >
               <Monitor className="w-5 h-5" />
             </button>
@@ -186,6 +192,8 @@ export function TemplatePreviewModal({
                   : 'text-gray-400 hover:text-white'
               }`}
               title="Mobile View"
+              aria-label="Mobile View"
+              aria-pressed={deviceView === 'mobile'}
             >
               <Smartphone className="w-5 h-5" />
             </button>
@@ -194,6 +202,7 @@ export function TemplatePreviewModal({
           <button
             onClick={onClose}
             className="p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition"
+            aria-label="Close preview"
           >
             <X className="w-5 h-5" />
           </button>
