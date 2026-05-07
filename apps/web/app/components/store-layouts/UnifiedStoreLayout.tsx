@@ -401,7 +401,7 @@ function TemplateHeader({
           {/* Actions */}
           <div className="flex items-center gap-4">
             {/* Search */}
-            <button className="p-2 hover:opacity-70 transition-opacity">
+            <button aria-label="Search" className="p-2 hover:opacity-70 transition-opacity">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
@@ -413,7 +413,7 @@ function TemplateHeader({
             </button>
 
             {/* Cart */}
-            <a href="/cart" className="p-2 hover:opacity-70 transition-opacity relative">
+            <a href="/cart" aria-label="Cart" className="p-2 hover:opacity-70 transition-opacity relative">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
@@ -438,7 +438,7 @@ function TemplateHeader({
                 <span className="text-sm font-medium">{customer.name || 'Account'}</span>
               </a>
             ) : (
-              <a href="/account/login" className="p-2 hover:opacity-70 transition-opacity">
+              <a href="/account/login" aria-label="Login" className="p-2 hover:opacity-70 transition-opacity">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
@@ -598,6 +598,7 @@ function TemplateFooter({
                     href={socialLinks.facebook}
                     target="_blank"
                     rel="noopener noreferrer"
+                    aria-label="Facebook"
                     className="hover:opacity-70"
                   >
                     <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
@@ -610,6 +611,7 @@ function TemplateFooter({
                     href={socialLinks.instagram}
                     target="_blank"
                     rel="noopener noreferrer"
+                    aria-label="Instagram"
                     className="hover:opacity-70"
                   >
                     <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
@@ -622,6 +624,7 @@ function TemplateFooter({
                     href={`https://wa.me/${socialLinks.whatsapp}`}
                     target="_blank"
                     rel="noopener noreferrer"
+                    aria-label="WhatsApp"
                     className="hover:opacity-70"
                   >
                     <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
