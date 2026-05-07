@@ -1,0 +1,3 @@
+## 2026-05-07 - Improve Modal Toggle & Close Accessibility
+**Learning:** The custom device view toggles (desktop/mobile) in preview modals were functioning as radio groups but lacked `role="group"` and `aria-pressed` states, making them difficult for screen reader users to navigate. Additionally, the top-right modal close buttons were icon-only without an `aria-label`.
+**Action:** When building custom toggle groups, wrap them in a container with `role="group"` and an `aria-label`, and use `aria-pressed={condition}` on the individual buttons. Always provide `aria-label` for icon-only buttons like modal close `X` icons.
