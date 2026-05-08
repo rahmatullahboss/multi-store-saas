@@ -1,0 +1,6 @@
+## 2024-05-08 - Missing aria-label on interactive icons in generic layout
+**Learning:** Found multiple icon-only interactive elements (Search, Cart, User login, Social Media Links) in `UnifiedStoreLayout.tsx` without `aria-label`s, which makes them inaccessible for screen readers.
+**Action:** When adding new icon-only buttons or links, always remember to add descriptive `aria-label` to ensure accessibility, specifically checking layout template components.
+## 2024-05-08 - Over-applying aria-label overriding visible text
+**Learning:** I initially added `aria-label="Account"` to a logged-in user link that contained `{customer.name || 'Account'}` visually. Because `aria-label` overrides the element's content for screen readers, visually impaired users wouldn't hear their actual name, and it violated WCAG 2.5.3 (Label in Name). I also added `aria-label="Cart"` to a link displaying a dynamic cart count badge, hiding the item count from screen readers.
+**Action:** When adding `aria-label`s, verify if the element contains any visible text or dynamic data (like badges or usernames). If it does, either incorporate that dynamic data into the `aria-label` (e.g. `aria-label={\`Cart, \${cartCount} items\`}`) or do not use `aria-label` if the visible text is already sufficiently descriptive.
