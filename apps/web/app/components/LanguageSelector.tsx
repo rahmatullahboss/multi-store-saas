@@ -10,7 +10,7 @@
  * - pills: Horizontal pill buttons
  */
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useId } from 'react';
 import { Globe, ChevronDown, Check } from 'lucide-react';
 import { useLanguage } from '~/contexts/LanguageContext';
 
@@ -32,6 +32,8 @@ export function LanguageSelector({
   const { lang, setLang, currentLanguage, availableLanguages, toggleLang } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const dropdownId = useId();
+  const buttonId = useId();
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -101,6 +103,7 @@ export function LanguageSelector({
   return (
     <div ref={dropdownRef} className={`relative inline-block ${className}`}>
       <button
+        id={buttonId}
         onClick={() => setIsOpen(!isOpen)}
         className={`
           inline-flex items-center gap-2 rounded-lg border border-gray-200 
@@ -109,6 +112,7 @@ export function LanguageSelector({
         `}
         aria-label="Select language"
         aria-expanded={isOpen}
+        aria-controls={isOpen ? dropdownId : undefined}
       >
         <Globe className="w-4 h-4 text-gray-500" />
         {showFlag && currentLanguage?.flag}
@@ -122,7 +126,12 @@ export function LanguageSelector({
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-50 animate-fade-in">
+        <div
+          id={dropdownId}
+          role="region"
+          aria-labelledby={buttonId}
+          className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-50 animate-fade-in"
+        >
           {availableLanguages.map((language) => (
             <button
               key={language.code}
