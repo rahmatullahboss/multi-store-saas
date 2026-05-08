@@ -401,7 +401,7 @@ function TemplateHeader({
           {/* Actions */}
           <div className="flex items-center gap-4">
             {/* Search */}
-            <button className="p-2 hover:opacity-70 transition-opacity">
+            <button className="p-2 hover:opacity-70 transition-opacity" aria-label="Search">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
@@ -413,7 +413,7 @@ function TemplateHeader({
             </button>
 
             {/* Cart */}
-            <a href="/cart" className="p-2 hover:opacity-70 transition-opacity relative">
+            <a href="/cart" className="p-2 hover:opacity-70 transition-opacity relative" aria-label={`Cart, ${cartCount} items`}>
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
@@ -438,7 +438,7 @@ function TemplateHeader({
                 <span className="text-sm font-medium">{customer.name || 'Account'}</span>
               </a>
             ) : (
-              <a href="/account/login" className="p-2 hover:opacity-70 transition-opacity">
+              <a href="/account/login" className="p-2 hover:opacity-70 transition-opacity" aria-label="Log in">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
@@ -599,6 +599,7 @@ function TemplateFooter({
                     target="_blank"
                     rel="noopener noreferrer"
                     className="hover:opacity-70"
+                    aria-label="Facebook"
                   >
                     <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M18.77,7.46H14.5v-1.9c0-.9.6-1.1,1-1.1h3V.5h-4.33C10.24.5,9.5,3.44,9.5,5.32v2.15h-3v4h3v12h5v-12h3.85l.42-4Z" />
@@ -611,6 +612,7 @@ function TemplateFooter({
                     target="_blank"
                     rel="noopener noreferrer"
                     className="hover:opacity-70"
+                    aria-label="Instagram"
                   >
                     <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M12,2.16c3.2,0,3.58.01,4.85.07,3.25.15,4.77,1.69,4.92,4.92.06,1.27.07,1.65.07,4.85s-.01,3.58-.07,4.85c-.15,3.23-1.66,4.77-4.92,4.92-1.27.06-1.65.07-4.85.07s-3.58-.01-4.85-.07c-3.26-.15-4.77-1.7-4.92-4.92-.06-1.27-.07-1.65-.07-4.85s.01-3.58.07-4.85C2.38,3.92,3.9,2.38,7.15,2.23,8.42,2.17,8.8,2.16,12,2.16ZM12,0C8.74,0,8.33.01,7.05.07c-4.27.2-6.78,2.71-6.98,6.98C.01,8.33,0,8.74,0,12s.01,3.67.07,4.95c.2,4.27,2.71,6.78,6.98,6.98,1.28.06,1.69.07,4.95.07s3.67-.01,4.95-.07c4.27-.2,6.78-2.71,6.98-6.98.06-1.28.07-1.69.07-4.95s-.01-3.67-.07-4.95c-.2-4.27-2.71-6.78-6.98-6.98C15.67.01,15.26,0,12,0Zm0,5.84A6.16,6.16,0,1,0,18.16,12,6.16,6.16,0,0,0,12,5.84ZM12,16a4,4,0,1,1,4-4A4,4,0,0,1,12,16ZM18.41,4.15a1.44,1.44,0,1,0,1.44,1.44A1.44,1.44,0,0,0,18.41,4.15Z" />
@@ -623,6 +625,7 @@ function TemplateFooter({
                     target="_blank"
                     rel="noopener noreferrer"
                     className="hover:opacity-70"
+                    aria-label="WhatsApp"
                   >
                     <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M17.47,14.38c-.29-.15-1.7-.84-1.97-.93s-.46-.15-.65.15-.74.93-.91,1.12-.34.22-.63.07a7.91,7.91,0,0,1-2.32-1.43,8.71,8.71,0,0,1-1.6-2c-.17-.29,0-.45.13-.59s.29-.34.43-.51a1.94,1.94,0,0,0,.29-.49.54.54,0,0,0,0-.51c-.07-.15-.65-1.56-.89-2.14s-.47-.49-.65-.5-.36,0-.55,0a1.06,1.06,0,0,0-.77.36,3.22,3.22,0,0,0-1,2.39,5.59,5.59,0,0,0,1.17,2.97,12.79,12.79,0,0,0,4.91,4.34,15.33,15.33,0,0,0,1.64.61,3.93,3.93,0,0,0,1.81.11,2.95,2.95,0,0,0,1.93-1.36,2.39,2.39,0,0,0,.17-1.36C17.94,14.53,17.76,14.45,17.47,14.38Zm-5.36,7.34h0a9.87,9.87,0,0,1-5-1.37l-.36-.21L2.91,21.27l1.15-4.21-.23-.37a9.91,9.91,0,1,1,8.28,5Z" />
