@@ -1,0 +1,3 @@
+## 2026-05-08 - [Dropdown Menu Accessibility]
+**Learning:** Custom dropdown components, such as Language Selectors, often lack the proper screen reader linkages when their content visibility is toggled conditionally. Specifically, toggle buttons need an `id` to serve as the label for their dropdown content container via `aria-labelledby`, and the button must control the dropdown via `aria-controls`.
+**Action:** When creating or fixing custom dropdown menus or toggle buttons with dynamic content, generate unique IDs using React's `useId()` and ensure you link the toggle `<button>` to the dropdown container using `aria-controls` on the button and `role="region"` with `aria-labelledby` on the content container.
