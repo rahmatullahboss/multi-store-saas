@@ -7,3 +7,8 @@
 **Vulnerability:** The `product.description` field was being sliced using `slice(0, N)` and then rendered via `dangerouslySetInnerHTML` directly in the Eclipse and Luxe Boutique templates. If a user provided HTML with unclosed tags near the slice limit, or included malicious scripts, they would execute without sanitization.
 **Learning:** When slicing user-generated HTML content (like product.description) for previews, always apply `sanitizeHtml` *after* slicing to prevent malformed, unclosed HTML tags from breaking the layout, and to clean malicious input.
 **Prevention:** Avoid rendering raw `product.description` chunks without wrapping the final string in `sanitizeHtml`.
+
+## 2025-03-24 - [HIGH] Fix CSRF bypass vulnerability in store creation
+**Vulnerability:** The application was using `origin.startsWith(allowed)` to validate the Origin/Referer header against an allowed SaaS domain list in `apps/web/app/routes/api.create-store-for-existing-user.ts`. This implementation was vulnerable to domain spoofing, as an attacker could host a malicious site on a subdomain that starts with the allowed domain (e.g., `https://ozzyl.com.evil.com`) and bypass the CSRF check.
+**Learning:** When using `String.prototype.startsWith()` to validate origins, ensure you check for an exact match or append URL delimiters like `/` to prevent domain suffix spoofing.
+**Prevention:** Always validate domains using exact matching (`origin === allowed`) or by ensuring the next character is a valid separator (`origin.startsWith(allowed + '/')`).
