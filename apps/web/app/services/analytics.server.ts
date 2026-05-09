@@ -30,6 +30,10 @@ export async function getStoreStats(db: Database, storeId: number) {
   last7Days.setDate(last7Days.getDate() - 7);
 
   // Execute all DB queries concurrently for performance
+  // ⚡ Bolt Optimization: Replaced Promise.all() + .select() with db.batch().
+  // This executes all queries in a single HTTP request to Cloudflare D1 instead
+  // of making 9 concurrent HTTP calls, eliminating N+1 network latency.
+  // We use `as any` because Drizzle's D1 batch typing can struggle with large heterogeneous tuples.
   const [
     [productCount],
     [lowStockCount],
@@ -40,7 +44,7 @@ export async function getStoreStats(db: Database, storeId: number) {
     todayResult,
     yesterdayResult,
     salesDataRaw,
-  ] = await Promise.all([
+  ] = await db.batch([
     db.select({ count: count() }).from(products).where(and(eq(products.storeId, storeId), eq(products.isPublished, true))),
     db.select({ count: count() }).from(products).where(and(eq(products.storeId, storeId), sql`inventory <= 5`)),
     db.select({ count: count() }).from(orders).where(eq(orders.storeId, storeId)),
@@ -57,7 +61,7 @@ export async function getStoreStats(db: Database, storeId: number) {
     .where(and(eq(orders.storeId, storeId), gte(orders.createdAt, last7Days), sql`status != 'cancelled'`))
     .groupBy(sql`date(created_at, 'unixepoch')`)
     .orderBy(sql`date(created_at, 'unixepoch')`),
-  ]);
+  ] as any);
 
   const revenue = revenueResult[0]?.total || 0;
   const todaySales = todayResult[0]?.total || 0;
@@ -191,7 +195,8 @@ export async function getAbandonedCartRecoveryStats(db: Database, storeId?: numb
 }
 
 export async function getStoreFunnelMetrics(db: Database, storeId: number) {
-  const [views, cartsCount, checkouts, ordersCount] = await Promise.all([
+  // ⚡ Bolt Optimization: Execute funnel metrics in a single DB roundtrip using db.batch()
+  const [views, cartsCount, checkouts, ordersCount] = await db.batch([
     db
       .select({ count: sql<number>`count(distinct ${pageViews.visitorId})` })
       .from(pageViews)
@@ -208,7 +213,7 @@ export async function getStoreFunnelMetrics(db: Database, storeId: number) {
       .select({ count: sql<number>`count(distinct ${orders.id})` })
       .from(orders)
       .where(and(eq(orders.storeId, storeId), sql`status != 'cancelled'`)),
-  ]);
+  ] as any);
 
   const viewCount = Number(views[0]?.count || 0);
   const cartCount = Number(cartsCount[0]?.count || 0);
