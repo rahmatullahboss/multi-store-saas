@@ -189,6 +189,8 @@ export function BDShopProductDetail({
                   <button 
                     onClick={copyProductId}
                     className="p-1 hover:bg-gray-200 rounded transition"
+                    aria-label="Copy Product ID"
+                    title="Copy Product ID"
                   >
                     {copied ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5 text-gray-400" />}
                   </button>
@@ -272,15 +274,19 @@ export function BDShopProductDetail({
                 <div className="flex items-center border border-gray-300 rounded-lg">
                   <button
                     onClick={() => handleQuantityChange(-1)}
-                    className="w-10 h-10 flex items-center justify-center hover:bg-gray-100 transition"
+                    className="w-10 h-10 flex items-center justify-center hover:bg-gray-100 transition focus-visible:ring-2 focus-visible:ring-blue-500 outline-none"
                     disabled={quantity <= 1}
+                    aria-label="Decrease quantity"
+                    title="Decrease quantity"
                   >
                     <Minus className="w-4 h-4" />
                   </button>
                   <span className="w-12 text-center font-medium">{quantity}</span>
                   <button
                     onClick={() => handleQuantityChange(1)}
-                    className="w-10 h-10 flex items-center justify-center hover:bg-gray-100 transition"
+                    className="w-10 h-10 flex items-center justify-center hover:bg-gray-100 transition focus-visible:ring-2 focus-visible:ring-blue-500 outline-none"
+                    aria-label="Increase quantity"
+                    title="Increase quantity"
                   >
                     <Plus className="w-4 h-4" />
                   </button>
