@@ -40,22 +40,23 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   const db = drizzle(context.cloudflare.env.DB);
 
-  // Fetch store info for currency
-  const storeResult = await db
-    .select()
-    .from(stores)
-    .where(eq(stores.id, storeId))
-    .limit(1);
+  // Fetch store info and products concurrently
+  const [storeResult, storeProducts] = await Promise.all([
+    db
+      .select()
+      .from(stores)
+      .where(eq(stores.id, storeId))
+      .limit(1),
+
+    db
+      .select()
+      .from(products)
+      .where(eq(products.storeId, storeId))
+      .orderBy(desc(products.createdAt))
+      .limit(200)
+  ]);
 
   const store = storeResult[0];
-
-  // Fetch products for this store
-  const storeProducts = await db
-    .select()
-    .from(products)
-    .where(eq(products.storeId, storeId))
-    .orderBy(desc(products.createdAt))
-    .limit(200);
 
   // Calculate stats
   const totalProducts = storeProducts.length;

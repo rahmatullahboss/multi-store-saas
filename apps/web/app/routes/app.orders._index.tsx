@@ -59,18 +59,18 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   const db = drizzle(context.cloudflare.env.DB);
 
-  // Fetch store info
-  const storeResult = await db.select().from(stores).where(eq(stores.id, storeId)).limit(1);
+  // Fetch store info and orders concurrently
+  const [storeResult, storeOrders] = await Promise.all([
+    db.select().from(stores).where(eq(stores.id, storeId)).limit(1),
+    db
+      .select()
+      .from(orders)
+      .where(eq(orders.storeId, storeId))
+      .orderBy(desc(orders.createdAt))
+      .limit(200)
+  ]);
 
   const store = storeResult[0];
-
-  // Fetch orders for this store, newest first
-  const storeOrders = await db
-    .select()
-    .from(orders)
-    .where(eq(orders.storeId, storeId))
-    .orderBy(desc(orders.createdAt))
-    .limit(200);
 
   // Parse shippingAddress for each order to get display-friendly address
   const ordersWithAddress = storeOrders.map((o) => {

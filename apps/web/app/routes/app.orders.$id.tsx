@@ -48,40 +48,68 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
 
   const db = drizzle(context.cloudflare.env.DB);
 
-  // Fetch store info for invoice header
-  const storeResult = await db
-    .select({ name: stores.name, logo: stores.logo, currency: stores.currency, courierSettings: stores.courierSettings })
-    .from(stores)
-    .where(eq(stores.id, storeId))
-    .limit(1);
-  
-  const store = storeResult[0];
+  // Fetch data concurrently to reduce Cloudflare D1 network latency
+  const [storeResult, orderResult, items, logsResult, teamMembers] = await Promise.all([
+    // Fetch store info for invoice header
+    db
+      .select({ name: stores.name, logo: stores.logo, currency: stores.currency, courierSettings: stores.courierSettings })
+      .from(stores)
+      .where(eq(stores.id, storeId))
+      .limit(1),
 
-  // Fetch order
-  const orderResult = await db
-    .select()
-    .from(orders)
-    .where(and(eq(orders.id, orderId), eq(orders.storeId, storeId)))
-    .limit(1);
+    // Fetch order
+    db
+      .select()
+      .from(orders)
+      .where(and(eq(orders.id, orderId), eq(orders.storeId, storeId)))
+      .limit(1),
+
+    // Fetch order items with product info
+    db
+      .select({
+        id: orderItems.id,
+        title: orderItems.title,
+        quantity: orderItems.quantity,
+        price: orderItems.price,
+        total: orderItems.total,
+        productId: orderItems.productId,
+      })
+      .from(orderItems)
+      .where(eq(orderItems.orderId, orderId)),
+
+    // Fetch activity logs for this order
+    db
+      .select({
+        id: activityLogs.id,
+        userId: activityLogs.userId,
+        action: activityLogs.action,
+        entityType: activityLogs.entityType,
+        entityId: activityLogs.entityId,
+        details: activityLogs.details,
+        createdAt: activityLogs.createdAt,
+      })
+      .from(activityLogs)
+      .where(and(
+        eq(activityLogs.storeId, storeId),
+        eq(activityLogs.entityType, 'order'),
+        eq(activityLogs.entityId, orderId)
+      ))
+      .orderBy(desc(activityLogs.createdAt))
+      .limit(50),
+
+    // Fetch all team members for user lookup
+    db
+      .select({ id: users.id, name: users.name, email: users.email })
+      .from(users)
+      .where(eq(users.storeId, storeId))
+  ]);
 
   if (orderResult.length === 0) {
     throw new Response('Order not found', { status: 404 });
   }
 
+  const store = storeResult[0];
   const order = orderResult[0];
-
-  // Fetch order items with product info
-  const items = await db
-    .select({
-      id: orderItems.id,
-      title: orderItems.title,
-      quantity: orderItems.quantity,
-      price: orderItems.price,
-      total: orderItems.total,
-      productId: orderItems.productId,
-    })
-    .from(orderItems)
-    .where(eq(orderItems.orderId, orderId));
 
   // Get product images for items (Optimized N+1 query)
   const productIds = Array.from(new Set(items.map((i) => i.productId).filter((id): id is number => id !== null)));
@@ -118,32 +146,6 @@ export async function loader({ request, params, context }: LoaderFunctionArgs) {
       // Invalid JSON
     }
   }
-
-  // Fetch activity logs for this order
-  const logsResult = await db
-    .select({
-      id: activityLogs.id,
-      userId: activityLogs.userId,
-      action: activityLogs.action,
-      entityType: activityLogs.entityType,
-      entityId: activityLogs.entityId,
-      details: activityLogs.details,
-      createdAt: activityLogs.createdAt,
-    })
-    .from(activityLogs)
-    .where(and(
-      eq(activityLogs.storeId, storeId),
-      eq(activityLogs.entityType, 'order'),
-      eq(activityLogs.entityId, orderId)
-    ))
-    .orderBy(desc(activityLogs.createdAt))
-    .limit(50);
-
-  // Fetch all team members for user lookup
-  const teamMembers = await db
-    .select({ id: users.id, name: users.name, email: users.email })
-    .from(users)
-    .where(eq(users.storeId, storeId));
 
   // Enrich logs with user info
   const userMap = new Map(teamMembers.map(u => [u.id, u]));
