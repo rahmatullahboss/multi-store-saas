@@ -333,7 +333,7 @@ export default function LandingSettingsPage() {
                 </div>
               </div>
               <div className="space-y-3">
-                <label className={`relative flex flex-col p-4 border-2 rounded-xl cursor-pointer transition ${
+                <label className={`relative flex flex-col p-4 border-2 rounded-xl cursor-pointer transition has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-emerald-500 has-[:focus-visible]:ring-offset-2 ${
                   !checkoutModalEnabled ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200'
                 }`}>
                   <input type="radio" name="checkoutModalEnabled" value="false" checked={!checkoutModalEnabled}
@@ -343,7 +343,7 @@ export default function LandingSettingsPage() {
                   <span className="text-sm text-gray-500">আলাদা চেকআউট পেইজে নিয়ে যাবে</span>
                   {!checkoutModalEnabled && <CheckCircle className="absolute top-2 right-2 w-5 h-5 text-emerald-600" />}
                 </label>
-                <label className={`relative flex flex-col p-4 border-2 rounded-xl cursor-pointer transition ${
+                <label className={`relative flex flex-col p-4 border-2 rounded-xl cursor-pointer transition has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-emerald-500 has-[:focus-visible]:ring-offset-2 ${
                   checkoutModalEnabled ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200'
                 }`}>
                   <input type="radio" name="checkoutModalEnabled" value="true" checked={checkoutModalEnabled}
@@ -593,7 +593,7 @@ export default function LandingSettingsPage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <label
-                  className={`relative flex flex-col p-4 border-2 rounded-xl cursor-pointer transition ${
+                  className={`relative flex flex-col p-4 border-2 rounded-xl cursor-pointer transition has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-emerald-500 has-[:focus-visible]:ring-offset-2 ${
                     !checkoutModalEnabled
                       ? 'border-emerald-500 bg-emerald-50'
                       : 'border-gray-200 hover:border-gray-300'
@@ -616,7 +616,7 @@ export default function LandingSettingsPage() {
                 </label>
 
                 <label
-                  className={`relative flex flex-col p-4 border-2 rounded-xl cursor-pointer transition ${
+                  className={`relative flex flex-col p-4 border-2 rounded-xl cursor-pointer transition has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-emerald-500 has-[:focus-visible]:ring-offset-2 ${
                     checkoutModalEnabled
                       ? 'border-emerald-500 bg-emerald-50'
                       : 'border-gray-200 hover:border-gray-300'
