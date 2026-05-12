@@ -2,7 +2,7 @@ import type { LoaderFunctionArgs, MetaFunction } from 'react-router';
 import { json } from '~/lib/rr7-compat';
 import { useLoaderData, Link, useSearchParams } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
-import { desc, sql, eq } from 'drizzle-orm';
+import { desc, sql, eq, inArray } from 'drizzle-orm';
 import { visitors, visitorMessages } from '@db/schema';
 import { requireSuperAdmin } from '~/services/auth.server';
 import { MessageCircle, User, Phone, Clock, Search, ChevronRight } from 'lucide-react';
@@ -29,30 +29,51 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     .orderBy(desc(visitors.createdAt))
     .limit(50); // Limit to last 50 for now
 
-  // Fetch messages for these visitors to get counts and preview
-  // This is a naive N+1 approach but okay for low volume admin panel. 
-  // Optimization: Use a single query with grouping if Drizzle supported it better for SQLite.
+  // Fetch messages stats and latest message for these visitors using batched queries to prevent N+1 latency
+  let latestMessages: typeof visitorMessages.$inferSelect[] = [];
+  let statsByVisitor: Record<number, { count: number; latestId: number }> = {};
   
-  const visitorsWithData = await Promise.all(allVisitors.map(async (v) => {
-    const messages = await db
+  if (allVisitors.length > 0) {
+    const visitorIds = allVisitors.map(v => v.id);
+
+    // 1. Get the count and the ID of the latest message for each visitor
+    const stats = await db
+      .select({
+        visitorId: visitorMessages.visitorId,
+        count: sql<number>`count(*)`,
+        latestId: sql<number>`max(${visitorMessages.id})`
+      })
+      .from(visitorMessages)
+      .where(inArray(visitorMessages.visitorId, visitorIds))
+      .groupBy(visitorMessages.visitorId);
+
+    const latestMsgIds = stats.map(s => s.latestId).filter(Boolean);
+
+    // 2. Fetch only the actual latest messages
+    if (latestMsgIds.length > 0) {
+      latestMessages = await db
         .select()
         .from(visitorMessages)
-        .where(eq(visitorMessages.visitorId, v.id))
-        .orderBy(desc(visitorMessages.createdAt))
-        .limit(1); // Just get last message
+        .where(inArray(visitorMessages.id, latestMsgIds));
+    }
 
-    const countResult = await db
-        .select({ count: sql<number>`count(*)` })
-        .from(visitorMessages)
-        .where(eq(visitorMessages.visitorId, v.id));
+    statsByVisitor = stats.reduce((acc, curr) => {
+      acc[curr.visitorId] = { count: curr.count, latestId: curr.latestId };
+      return acc;
+    }, {} as Record<number, { count: number; latestId: number }>);
+  }
+
+  const visitorsWithData = allVisitors.map((v) => {
+    const stat = statsByVisitor[v.id];
+    const latestMsg = stat ? latestMessages.find(m => m.id === stat.latestId) : null;
 
     return {
         ...v,
-        lastMessage: messages[0]?.content || 'No messages',
-        lastActive: messages[0]?.createdAt || v.createdAt,
-        messageCount: countResult[0]?.count || 0
+        lastMessage: latestMsg?.content || 'No messages',
+        lastActive: latestMsg?.createdAt || v.createdAt,
+        messageCount: stat?.count || 0
     };
-  }));
+  });
 
   // Sort by last active
   visitorsWithData.sort((a, b) => {
