@@ -147,7 +147,7 @@ export function ThemeSelector({ currentTheme, isSubmitting }: ThemeSelectorProps
           {AVAILABLE_THEMES.map((theme) => (
             <label
               key={theme.id}
-              className={`relative cursor-pointer rounded-lg border-2 p-4 transition-all hover:border-purple-300 ${
+              className={`relative cursor-pointer rounded-lg border-2 p-4 transition-all hover:border-purple-300 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-purple-500 has-[:focus-visible]:ring-offset-2 ${
                 selectedTheme === theme.id ? 'border-purple-500 bg-purple-50' : 'border-gray-200'
               }`}
             >
