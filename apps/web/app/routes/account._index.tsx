@@ -68,31 +68,20 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   const user = await getCustomer(request, env, env.DB);
   if (!user) throw redirect('/account/login');
 
-  // Fetch recent orders with images
-  const recentOrders = await getCustomerRecentOrdersWithImages(customerId, storeId, db, 5);
-  
-  // Calculate stats
-  // getCustomerStats returns totalOrders, totalSpent, loyaltyPoints
-  const customerStats = await getCustomerStats(customerId, storeId, db);
-  
-  // We need rough active count - fetching 100 latest orders to check status 
-  const allOrders = await getCustomerOrders(customerId, storeId, db, 100, 0);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const activeOrdersCount = allOrders.filter((o: any) => 
-    o.paymentStatus !== 'paid' && 
-    o.paymentStatus !== 'refunded' && 
-    o.paymentStatus !== 'reversed' &&
-    o.status !== 'delivered' && 
-    o.status !== 'cancelled' &&
-    o.status !== 'returned'
-  ).length;
-  
-  // Wishlist count
-  const wishlistCount = await getWishlistCount(customerId, storeId, db);
-
-  // Fetch Recommended Products (Latest 2 for now)
-  const recommendedProducts = await db
-    .select({
+  // Execute independent dashboard queries in parallel to minimize Cloudflare D1 max latency
+  const [
+    recentOrders,
+    customerStats,
+    allOrders,
+    wishlistCount,
+    recommendedProducts,
+    popularProducts
+  ] = await Promise.all([
+    getCustomerRecentOrdersWithImages(customerId, storeId, db, 5),
+    getCustomerStats(customerId, storeId, db),
+    getCustomerOrders(customerId, storeId, db, 100, 0),
+    getWishlistCount(customerId, storeId, db),
+    db.select({
       id: products.id,
       title: products.title,
       price: products.price,
@@ -104,11 +93,8 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     .from(products)
     .where(and(eq(products.storeId, storeId), eq(products.isPublished, true)))
     .orderBy(desc(products.createdAt))
-    .limit(2);
-
-  // Fetch Popular Products (Next 10)
-  const popularProducts = await db
-    .select({
+    .limit(2),
+    db.select({
       id: products.id,
       title: products.title,
       price: products.price,
@@ -119,8 +105,20 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     })
     .from(products)
     .where(and(eq(products.storeId, storeId), eq(products.isPublished, true)))
-    .orderBy(desc(products.updatedAt)) 
-    .limit(10);
+    .orderBy(desc(products.updatedAt))
+    .limit(10)
+  ]);
+
+  // We need rough active count - fetching 100 latest orders to check status
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const activeOrdersCount = allOrders.filter((o: any) =>
+    o.paymentStatus !== 'paid' &&
+    o.paymentStatus !== 'refunded' &&
+    o.paymentStatus !== 'reversed' &&
+    o.status !== 'delivered' &&
+    o.status !== 'cancelled' &&
+    o.status !== 'returned'
+  ).length;
 
   return json({
     user,
