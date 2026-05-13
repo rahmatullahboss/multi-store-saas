@@ -401,7 +401,7 @@ function TemplateHeader({
           {/* Actions */}
           <div className="flex items-center gap-4">
             {/* Search */}
-            <button className="p-2 hover:opacity-70 transition-opacity">
+            <button className="p-2 hover:opacity-70 transition-opacity" aria-label="Search">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
@@ -413,7 +413,7 @@ function TemplateHeader({
             </button>
 
             {/* Cart */}
-            <a href="/cart" className="p-2 hover:opacity-70 transition-opacity relative">
+            <a href="/cart" className="p-2 hover:opacity-70 transition-opacity relative" aria-label="Cart">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
@@ -438,7 +438,7 @@ function TemplateHeader({
                 <span className="text-sm font-medium">{customer.name || 'Account'}</span>
               </a>
             ) : (
-              <a href="/account/login" className="p-2 hover:opacity-70 transition-opacity">
+              <a href="/account/login" className="p-2 hover:opacity-70 transition-opacity" aria-label="Account login">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
