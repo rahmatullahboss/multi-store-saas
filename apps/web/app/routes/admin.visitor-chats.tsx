@@ -2,7 +2,7 @@ import type { LoaderFunctionArgs, MetaFunction } from 'react-router';
 import { json } from '~/lib/rr7-compat';
 import { useLoaderData, Link, useSearchParams } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
-import { desc, sql, eq } from 'drizzle-orm';
+import { desc, sql, eq, inArray } from 'drizzle-orm';
 import { visitors, visitorMessages } from '@db/schema';
 import { requireSuperAdmin } from '~/services/auth.server';
 import { MessageCircle, User, Phone, Clock, Search, ChevronRight } from 'lucide-react';
@@ -33,26 +33,40 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   // This is a naive N+1 approach but okay for low volume admin panel. 
   // Optimization: Use a single query with grouping if Drizzle supported it better for SQLite.
   
-  const visitorsWithData = await Promise.all(allVisitors.map(async (v) => {
-    const messages = await db
-        .select()
-        .from(visitorMessages)
-        .where(eq(visitorMessages.visitorId, v.id))
-        .orderBy(desc(visitorMessages.createdAt))
-        .limit(1); // Just get last message
+  // ⚡ Bolt: Fix N+1 query by using a single inArray query with GROUP BY
+  const visitorIds = allVisitors.map((v) => v.id);
+  const messagesData: Record<number, { content: string; lastActive: Date | null; count: number }> = {};
 
-    const countResult = await db
-        .select({ count: sql<number>`count(*)` })
-        .from(visitorMessages)
-        .where(eq(visitorMessages.visitorId, v.id));
+  if (visitorIds.length > 0) {
+    const aggregateData = await db
+      .select({
+        visitorId: visitorMessages.visitorId,
+        content: visitorMessages.content,
+        latestCreatedAt: sql<number>`max(${visitorMessages.createdAt})`,
+        count: sql<number>`count(*)`,
+      })
+      .from(visitorMessages)
+      .where(inArray(visitorMessages.visitorId, visitorIds))
+      .groupBy(visitorMessages.visitorId);
 
+    for (const row of aggregateData) {
+      messagesData[row.visitorId] = {
+        content: row.content,
+        lastActive: row.latestCreatedAt ? new Date(row.latestCreatedAt) : null,
+        count: row.count,
+      };
+    }
+  }
+
+  const visitorsWithData = allVisitors.map((v) => {
+    const data = messagesData[v.id];
     return {
         ...v,
-        lastMessage: messages[0]?.content || 'No messages',
-        lastActive: messages[0]?.createdAt || v.createdAt,
-        messageCount: countResult[0]?.count || 0
+        lastMessage: data?.content || 'No messages',
+        lastActive: data?.lastActive || v.createdAt,
+        messageCount: data?.count || 0
     };
-  }));
+  });
 
   // Sort by last active
   visitorsWithData.sort((a, b) => {
@@ -86,8 +100,22 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   });
 }
 
+type LoaderData = {
+  visitors: (typeof visitors.$inferSelect & {
+    lastMessage: string;
+    lastActive: Date | string;
+    messageCount: number;
+  })[];
+  selectedMessages: typeof visitorMessages.$inferSelect[];
+  selectedVisitor: (typeof visitors.$inferSelect & {
+    lastMessage: string;
+    lastActive: Date | string;
+    messageCount: number;
+  }) | null;
+};
+
 export default function VisitorChats() {
-  const { visitors, selectedMessages, selectedVisitor } = useLoaderData<typeof loader>();
+  const { visitors, selectedMessages, selectedVisitor } = useLoaderData<LoaderData>();
   const [searchParams, setSearchParams] = useSearchParams();
   const chatId = searchParams.get('chatId');
 
