@@ -1,3 +1,5 @@
+import { getCachedNumberFormat } from "./number-format-cache";
+
 /**
  * Centralized Price Formatting Utility
  *
@@ -47,7 +49,7 @@ export function formatPrice(price: number, options: FormatPriceOptions = {}): st
       // For BDT, use simple ৳ symbol instead of "BDT" text from Intl
       // Use Intl explicitly so we can force Latin numerals via `numberingSystem`,
       // even in environments where `toLocaleString()` may ignore Unicode extensions.
-      const formattedNumber = new Intl.NumberFormat(intlLocale, {
+      const formattedNumber = getCachedNumberFormat(intlLocale, {
         minimumFractionDigits: 0,
         maximumFractionDigits: 0,
         numberingSystem: 'latn',
@@ -55,7 +57,7 @@ export function formatPrice(price: number, options: FormatPriceOptions = {}): st
       return `৳${formattedNumber}`;
     }
 
-    const formatted = new Intl.NumberFormat(intlLocale, {
+    const formatted = getCachedNumberFormat(intlLocale, {
       style: showSymbol ? 'currency' : 'decimal',
       currency: currency,
       minimumFractionDigits: 0,
@@ -86,7 +88,7 @@ export function getCurrencySymbol(currency: SupportedCurrency): string {
  * Uses English locale with Latin numerals by default
  */
 export function formatPriceSimple(price: number, currency: string = 'USD'): string {
-  return new Intl.NumberFormat('en-US', {
+  return getCachedNumberFormat('en-US', {
     style: 'currency',
     currency,
     minimumFractionDigits: 0,

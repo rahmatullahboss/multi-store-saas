@@ -7,3 +7,6 @@
 **Action:** Always extract IDs from a parent array and use a single batch `inArray()` Drizzle DB fetch to gather relations. Group and process the results in-memory rather than relying on thousands of simultaneous asynchronous connections.## 2026-03-19 - [Combine Drizzle SQL lookups on same table]
 **Learning:** When retrieving different attributes from the same record across different utility queries (e.g., pulling `planType` in one function and `monthlyVisitorCount` in another), sequential queries compound Cloudflare D1 latency.
 **Action:** Always inspect sequential backend fetches to see if they target the exact same table and same `where` clause. If they do, combine them into a single Drizzle `select` to radically reduce database network latency.
+## 2026-03-20 - [Cache Intl.NumberFormat Instantiation]
+**Learning:** Instantiating `Intl.NumberFormat` repeatedly within formatting utilities (`formatPrice.ts`, `money.ts`) causes significant main-thread bottlenecks, especially when invoked repeatedly in loops (like rendering long product catalogs or charts).
+**Action:** Always create and use a centralized memoization utility (e.g., `getCachedNumberFormat` utilizing a `Map`) to cache and reuse `Intl.NumberFormat` instances based on locale and option permutations, achieving O(1) retrieval instead of O(n) instantiations.
