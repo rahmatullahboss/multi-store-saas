@@ -2,7 +2,7 @@ import type { LoaderFunctionArgs, MetaFunction } from 'react-router';
 import { json } from '~/lib/rr7-compat';
 import { useLoaderData, Link, useSearchParams } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
-import { desc, sql, eq } from 'drizzle-orm';
+import { desc, sql, eq, inArray, max } from 'drizzle-orm';
 import { visitors, visitorMessages } from '@db/schema';
 import { requireSuperAdmin } from '~/services/auth.server';
 import { MessageCircle, User, Phone, Clock, Search, ChevronRight } from 'lucide-react';
@@ -30,29 +30,40 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     .limit(50); // Limit to last 50 for now
 
   // Fetch messages for these visitors to get counts and preview
-  // This is a naive N+1 approach but okay for low volume admin panel. 
-  // Optimization: Use a single query with grouping if Drizzle supported it better for SQLite.
+  // Use grouped query to avoid N+1 problem
+  const visitorIds = allVisitors.map(v => v.id);
+  const messageStats: Record<number, { lastMessage: string | null; lastActive: Date | null; messageCount: number }> = {};
   
-  const visitorsWithData = await Promise.all(allVisitors.map(async (v) => {
-    const messages = await db
-        .select()
-        .from(visitorMessages)
-        .where(eq(visitorMessages.visitorId, v.id))
-        .orderBy(desc(visitorMessages.createdAt))
-        .limit(1); // Just get last message
+  if (visitorIds.length > 0) {
+    const stats = await db
+      .select({
+        visitorId: visitorMessages.visitorId,
+        lastMessage: visitorMessages.content,
+        lastActive: max(visitorMessages.createdAt),
+        messageCount: sql<number>`count(*)`,
+      })
+      .from(visitorMessages)
+      .where(inArray(visitorMessages.visitorId, visitorIds))
+      .groupBy(visitorMessages.visitorId);
 
-    const countResult = await db
-        .select({ count: sql<number>`count(*)` })
-        .from(visitorMessages)
-        .where(eq(visitorMessages.visitorId, v.id));
+    for (const stat of stats) {
+      messageStats[stat.visitorId] = {
+        lastMessage: stat.lastMessage,
+        lastActive: stat.lastActive ? new Date(stat.lastActive as any) : null,
+        messageCount: stat.messageCount,
+      };
+    }
+  }
 
+  const visitorsWithData = allVisitors.map((v) => {
+    const stats = messageStats[v.id];
     return {
-        ...v,
-        lastMessage: messages[0]?.content || 'No messages',
-        lastActive: messages[0]?.createdAt || v.createdAt,
-        messageCount: countResult[0]?.count || 0
+      ...v,
+      lastMessage: stats?.lastMessage || 'No messages',
+      lastActive: stats?.lastActive || v.createdAt,
+      messageCount: stats?.messageCount || 0
     };
-  }));
+  });
 
   // Sort by last active
   visitorsWithData.sort((a, b) => {
