@@ -9,6 +9,8 @@ import {
   ResponsiveContainer
 } from 'recharts';
 import { useTranslation } from '~/contexts/LanguageContext';
+import { getCachedNumberFormat } from '~/utils/number-format-cache';
+import { getCachedDateTimeFormat } from '~/utils/datetime-format-cache';
 
 interface RevenueDataPoint {
   date: string;
@@ -48,7 +50,7 @@ export function RevenueChart({ data, currency = 'BDT' }: RevenueChartProps) {
   }, [data, period]);
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat(lang === 'bn' ? 'bn-BD' : 'en-BD', {
+    return getCachedNumberFormat(lang === 'bn' ? 'bn-BD' : 'en-BD', {
       style: 'currency',
       currency,
       minimumFractionDigits: 0,
@@ -58,7 +60,7 @@ export function RevenueChart({ data, currency = 'BDT' }: RevenueChartProps) {
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
-    return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(date);
+    return getCachedDateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(date);
   };
 
   const CustomTooltip = ({ active, payload, label }: any) => {
