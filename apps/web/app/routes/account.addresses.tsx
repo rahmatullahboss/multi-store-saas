@@ -9,7 +9,7 @@ import {
   deleteCustomerAddress,
 } from '~/services/customer-account.server';
 import { Button } from '~/components/ui/button';
-import { Plus, Trash2, MapPin, Check, Loader2 } from 'lucide-react';
+import { Plus, Trash2, MapPin, Check } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -341,12 +341,9 @@ export default function AccountAddresses() {
                   >
                     {t('cancel') || 'Cancel'}
                   </Button>
-                  <Button type="submit" disabled={isSubmitting} className="bg-primary text-white hover:bg-primary/90 px-8">
+                  <Button type="submit" isLoading={isSubmitting} className="bg-primary text-white hover:bg-primary/90 px-8">
                      {isSubmitting ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          {t('saving') || 'Saving...'}
-                        </>
+                        t('saving') || 'Saving...'
                      ) : (
                         t('saveAddress') || 'Save Address'
                      )}
