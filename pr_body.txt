@@ -1,0 +1,15 @@
+## 💡 What
+Optimized the `loader` function in `apps/web/app/routes/admin.visitor-chats.tsx` by replacing the `.map` with individual `await db.select()...` queries inside a `Promise.all` with a batched N+1 DB query strategy using Drizzle's `inArray` and `groupBy` operations.
+
+## 🎯 Why
+The previous code resulted in an N+1 query bottleneck because it was dispatching two independent database lookups per visitor in the map (one for the latest message, one for the total message count). When fetching up to 50 visitors, this caused up to 100 simultaneous network roundtrips to Cloudflare D1 which incurs significant sum-latency and high connection overhead.
+
+## 📊 Impact
+* Eliminates the N+1 database queries.
+* Replaces up to 100 Cloudflare D1 queries with exactly 2 batched queries.
+* Greatly reduces the execution time of the loader and lowers Cloudflare D1 load and operations overhead.
+
+## 🔬 Measurement
+1. Navigate to `/admin/visitor-chats` in the frontend app.
+2. In the Network tab, observe the drastically reduced document fetch time and server latency (TTFB).
+3. (Optional) Check local database transaction logs to confirm only two queries are dispatched for message data instead of 2 queries per user.
