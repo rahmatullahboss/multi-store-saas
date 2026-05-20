@@ -336,8 +336,9 @@ function PreviewProductCard({
             e.stopPropagation();
             cart.addItem(product);
           }}
-          className="absolute bottom-2 right-2 p-2.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity text-white"
+          className="absolute bottom-2 right-2 p-2.5 rounded-full opacity-0 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-offset-2 transition-opacity text-white"
           style={{ backgroundColor: BDSHOP_THEME.primary }}
+          aria-label="Add to cart"
         >
           <ShoppingCart className="w-4 h-4" />
         </button>
