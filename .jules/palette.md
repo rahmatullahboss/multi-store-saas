@@ -1,0 +1,3 @@
+## 2024-05-20 - Make hover-only UI elements keyboard accessible
+**Learning:** Found multiple instances where interactive UI elements (like "Add to Cart" icon buttons) were hidden by default (`opacity-0`) and only revealed on hover (`group-hover:opacity-100`). This makes them completely invisible to keyboard users who navigate via Tab.
+**Action:** Always pair `opacity-0 group-hover:opacity-100` with `focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-offset-2` to ensure the element becomes visible and clearly indicates focus when a keyboard user tabs to it. Also ensure these icon-only buttons have an `aria-label`.
