@@ -1,5 +1,5 @@
 import { ChevronRight } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useId } from 'react';
 import { MagicSectionWrapper } from '~/components/editor';
 import type { SectionProps } from '../_core/types';
 
@@ -10,6 +10,7 @@ export function ShowcaseFAQ({
   theme,
 }: SectionProps) {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
+  const baseId = useId();
   if (!config.faq || config.faq.length === 0) return null;
 
   return (
@@ -35,6 +36,9 @@ export function ShowcaseFAQ({
                 <button
                   onClick={() => setOpenIndex(openIndex === i ? null : i)}
                   className="w-full py-8 border-b border-white/10 flex items-center justify-between text-left transition-all"
+                  aria-expanded={openIndex === i}
+                  aria-controls={`${baseId}-content-${i}`}
+                  id={`${baseId}-button-${i}`}
                 >
                   <span className={`text-xl font-bold transition-all ${openIndex === i ? 'text-rose-500 pl-4' : 'text-white pl-0'}`}>
                     {item.question}
@@ -45,7 +49,12 @@ export function ShowcaseFAQ({
                 </button>
                 
                 {openIndex === i && (
-                  <div className="py-8 px-4 bg-zinc-900/30 rounded-b-3xl animate-in slide-in-from-top-4 duration-500">
+                  <div
+                    id={`${baseId}-content-${i}`}
+                    role="region"
+                    aria-labelledby={`${baseId}-button-${i}`}
+                    className="py-8 px-4 bg-zinc-900/30 rounded-b-3xl animate-in slide-in-from-top-4 duration-500"
+                  >
                     <p className="text-zinc-500 font-medium leading-relaxed text-lg max-w-3xl">
                       {item.answer}
                     </p>
