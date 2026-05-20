@@ -1,3 +1,4 @@
+import { getCachedNumberFormat } from '~/utils/intl-cache';
 /**
  * RecentOrders - Compact recent orders list
  * Shows last 5 orders with quick actions
@@ -60,7 +61,7 @@ const statusConfig = {
 
 export function RecentOrders({ orders, currency = 'BDT' }: RecentOrdersProps) {
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-BD', {
+    return getCachedNumberFormat('en-BD', {
       style: 'currency',
       currency,
       minimumFractionDigits: 0,
