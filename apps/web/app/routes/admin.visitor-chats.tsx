@@ -27,32 +27,37 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     .select()
     .from(visitors)
     .orderBy(desc(visitors.createdAt))
-    .limit(50); // Limit to last 50 for now
+    .limit(50); // Warning: Do not increase past 50. D1 db.batch has a hard limit of 100 statements. 50 visitors * 2 queries = 100 statements max.
 
   // Fetch messages for these visitors to get counts and preview
-  // This is a naive N+1 approach but okay for low volume admin panel. 
-  // Optimization: Use a single query with grouping if Drizzle supported it better for SQLite.
+  // ⚡ Bolt Optimization: Use a single HTTP call to D1 with db.batch instead of N+1 sequential requests
+  // Cloudflare D1 HTTP overhead is high, so grouping the Drizzle queries into a batch prevents severe latency
   
-  const visitorsWithData = await Promise.all(allVisitors.map(async (v) => {
-    const messages = await db
-        .select()
-        .from(visitorMessages)
-        .where(eq(visitorMessages.visitorId, v.id))
-        .orderBy(desc(visitorMessages.createdAt))
-        .limit(1); // Just get last message
+  const visitorsWithData: Array<typeof allVisitors[0] & { lastMessage: string, lastActive: Date | number | null, messageCount: number }> = [];
 
-    const countResult = await db
-        .select({ count: sql<number>`count(*)` })
-        .from(visitorMessages)
-        .where(eq(visitorMessages.visitorId, v.id));
+  if (allVisitors.length > 0) {
+    // Generate queries for batch execution
+    const batchQueries = allVisitors.flatMap((v) => [
+      db.select().from(visitorMessages).where(eq(visitorMessages.visitorId, v.id)).orderBy(desc(visitorMessages.createdAt)).limit(1),
+      db.select({ count: sql<number>`count(*)` }).from(visitorMessages).where(eq(visitorMessages.visitorId, v.id))
+    ]);
 
-    return {
+    // Perform one batched DB HTTP request
+    const batchResults = await db.batch(batchQueries as any);
+
+    // Rehydrate results mapping back to respective visitor
+    allVisitors.forEach((v, index) => {
+      const messages = batchResults[index * 2] as typeof visitorMessages.$inferSelect[];
+      const countResult = batchResults[(index * 2) + 1] as { count: number }[];
+
+      visitorsWithData.push({
         ...v,
         lastMessage: messages[0]?.content || 'No messages',
         lastActive: messages[0]?.createdAt || v.createdAt,
         messageCount: countResult[0]?.count || 0
-    };
-  }));
+      });
+    });
+  }
 
   // Sort by last active
   visitorsWithData.sort((a, b) => {
@@ -86,8 +91,14 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   });
 }
 
+type LoaderData = {
+  visitors: Array<typeof visitors.$inferSelect & { lastMessage: string, lastActive: Date | number | null, messageCount: number }>;
+  selectedMessages: typeof visitorMessages.$inferSelect[];
+  selectedVisitor: (typeof visitors.$inferSelect & { lastMessage: string, lastActive: Date | number | null, messageCount: number }) | null;
+};
+
 export default function VisitorChats() {
-  const { visitors, selectedMessages, selectedVisitor } = useLoaderData<typeof loader>();
+  const { visitors, selectedMessages, selectedVisitor } = useLoaderData<LoaderData>();
   const [searchParams, setSearchParams] = useSearchParams();
   const chatId = searchParams.get('chatId');
 
@@ -187,11 +198,11 @@ export default function VisitorChats() {
         isOpen={!!chatId && !!selectedVisitor}
         visitor={selectedVisitor ? {
           ...selectedVisitor,
-          createdAt: new Date(selectedVisitor.createdAt)
+          createdAt: selectedVisitor.createdAt ? new Date(selectedVisitor.createdAt) : new Date()
         } : null}
         messages={selectedMessages.map(msg => ({
           ...msg,
-          createdAt: new Date(msg.createdAt)
+          createdAt: msg.createdAt ? new Date(msg.createdAt) : new Date()
         }))}
         onClose={handleCloseModal}
       />
