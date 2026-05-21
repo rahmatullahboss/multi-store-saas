@@ -90,7 +90,10 @@ export async function action({ request, context }: ActionFunctionArgs) {
 
     // Generate unique key
     const timestamp = Date.now();
-    const random = Math.random().toString(36).substring(2, 8);
+    const array = new Uint32Array(1);
+    crypto.getRandomValues(array);
+    const randomStr = array[0].toString(36);
+    const random = randomStr.length >= 6 ? randomStr.slice(-6) : randomStr.padStart(6, '0');
     const extensionByType: Record<string, string> = {
       'image/jpeg': 'jpg',
       'image/jpg': 'jpg',
