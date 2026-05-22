@@ -98,7 +98,7 @@ export function UnifiedProductCard({
       </Link>
 
       <button
-        className={`absolute top-2 right-2 w-8 h-8 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-white cursor-pointer z-10 ${isLuxury ? 'top-4 right-4 p-2.5 hover:scale-110' : ''}`}
+        className={`absolute top-2 right-2 w-8 h-8 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none transition-all hover:bg-white cursor-pointer z-10 ${isLuxury ? 'top-4 right-4 p-2.5 hover:scale-110' : ''}`}
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
