@@ -30,21 +30,31 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     .limit(50); // Limit to last 50 for now
 
   // Fetch messages for these visitors to get counts and preview
-  // This is a naive N+1 approach but okay for low volume admin panel. 
-  // Optimization: Use a single query with grouping if Drizzle supported it better for SQLite.
+  // ⚡ Bolt: Using db.batch to avoid N+1 query performance bottleneck
   
-  const visitorsWithData = await Promise.all(allVisitors.map(async (v) => {
-    const messages = await db
+  const queryArray: any[] = [];
+  allVisitors.forEach(v => {
+    queryArray.push(
+      db
         .select()
         .from(visitorMessages)
         .where(eq(visitorMessages.visitorId, v.id))
         .orderBy(desc(visitorMessages.createdAt))
-        .limit(1); // Just get last message
-
-    const countResult = await db
+        .limit(1)
+    );
+    queryArray.push(
+      db
         .select({ count: sql<number>`count(*)` })
         .from(visitorMessages)
-        .where(eq(visitorMessages.visitorId, v.id));
+        .where(eq(visitorMessages.visitorId, v.id))
+    );
+  });
+
+  const batchResults = queryArray.length > 0 ? await db.batch(queryArray as any) : [];
+
+  const visitorsWithData = allVisitors.map((v, i) => {
+    const messages = batchResults[i * 2] as typeof visitorMessages.$inferSelect[];
+    const countResult = batchResults[i * 2 + 1] as { count: number }[];
 
     return {
         ...v,
@@ -52,7 +62,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
         lastActive: messages[0]?.createdAt || v.createdAt,
         messageCount: countResult[0]?.count || 0
     };
-  }));
+  });
 
   // Sort by last active
   visitorsWithData.sort((a, b) => {
