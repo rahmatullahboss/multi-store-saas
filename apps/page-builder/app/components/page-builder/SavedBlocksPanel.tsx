@@ -227,7 +227,7 @@ export default function SavedBlocksPanel({ editor }: SavedBlocksPanelProps) {
                         handleDeleteBlock(block.id, block.name);
                       }}
                       disabled={deletingId === block.id}
-                      className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition opacity-0 group-hover:opacity-100"
+                      className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition opacity-0 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
                     >
                       {deletingId === block.id ? (
                         <Loader2 size={14} className="animate-spin" />
