@@ -1,0 +1,3 @@
+## 2024-06-25 - Accessibility of group-hover driven action buttons
+**Learning:** Interactive elements nested within containers that rely exclusively on `opacity-0 group-hover:opacity-100` become invisible focus traps for keyboard users. While they receive focus naturally through standard HTML button usage, they remain hidden visually when tabbed to, breaking accessibility and WCAG standards.
+**Action:** When creating hidden hover action menus (like on lists or cards), always explicitly pair the container visibility state with `focus-within:opacity-100` and ensure individual actionable items have standard keyboard focus states like `focus-visible:outline-none focus-visible:ring-2` to guarantee keyboard accessibility matches the mouse interaction model.
