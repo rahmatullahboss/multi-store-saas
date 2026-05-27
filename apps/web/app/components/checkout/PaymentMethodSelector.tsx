@@ -112,7 +112,8 @@ export function PaymentMethodSelector({
             <button 
               type="button"
               onClick={() => handleCopy(number, 'number')}
-              className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1"
+              aria-label={lang === 'bn' ? `নম্বর কপি করুন` : `Copy number`}
+              className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 rounded px-1"
             >
               <Copy className="w-3 h-3" />
               {copied === 'number' ? (lang === 'bn' ? 'কপি হয়েছে' : 'Copied') : (lang === 'bn' ? 'কপি করুন' : 'Copy')}
@@ -165,11 +166,14 @@ export function PaymentMethodSelector({
           const isSelected = selectedMethod === method.id;
           
           return (
-            <div 
+            <button
+              type="button"
               key={method.id}
               onClick={() => onMethodChange(method.id)}
+              aria-pressed={isSelected}
               className={`
-                relative flex items-center p-3 cursor-pointer rounded-lg border transition-all
+                w-full text-left relative flex items-center p-3 cursor-pointer rounded-lg border transition-all
+                focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1
                 ${isSelected 
                   ? 'border-blue-500 ring-1 ring-blue-500 bg-blue-50/50' 
                   : 'border-gray-200 hover:border-gray-300 bg-white'}
@@ -189,7 +193,7 @@ export function PaymentMethodSelector({
               `}>
                 {isSelected && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
               </div>
-            </div>
+            </button>
           );
         })}
       </div>
