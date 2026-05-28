@@ -507,7 +507,10 @@ function PreviewProductCard({
           </span>
         )}
 
-        <button className="absolute top-2 right-2 p-2 rounded-full transition-colors bg-black/50 text-white hover:bg-cyan-500 hover:text-black opacity-0 group-hover:opacity-100">
+        <button
+          className="absolute top-2 right-2 p-2 rounded-full transition-colors bg-black/50 text-white hover:bg-cyan-500 hover:text-black opacity-0 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:outline-none"
+          aria-label="Add to wishlist"
+        >
           <Heart size={16} />
         </button>
       </div>

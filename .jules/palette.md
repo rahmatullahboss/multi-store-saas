@@ -1,0 +1,3 @@
+## 2024-05-29 - Missing Focus-Visible on Hover-Only Actions
+**Learning:** In interactive elements that rely heavily on hover states (like "Quick Add" or "Add to Wishlist" buttons in product cards with `opacity-0 group-hover:opacity-100`), keyboard users are completely blind to these actions because they don't appear on focus. They become "invisible traps".
+**Action:** Always explicitly pair `opacity-0 group-hover:opacity-100` with `focus-visible` utility classes (e.g., `focus-within:opacity-100` on the container or `focus-visible:opacity-100` on the button itself) to ensure keyboard navigation reveals the hidden interactive elements.
