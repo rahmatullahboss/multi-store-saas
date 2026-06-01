@@ -123,14 +123,14 @@ export default function AccountWishlist() {
                    )}
                    
                    {/* Remove Button (Hover visible) */}
-                   <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                   <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-300">
                       <fetcher.Form method="post">
                          <input type="hidden" name="itemId" value={item.id} />
                          <button 
                            type="submit" 
                            name="intent" 
                            value="delete"
-                           className="p-2 bg-white/90 backdrop-blur-sm rounded-full text-slate-400 hover:text-red-500 hover:bg-red-50 shadow-sm transition-colors"
+                           className="p-2 bg-white/90 backdrop-blur-sm rounded-full text-slate-400 hover:text-red-500 hover:bg-red-50 shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-500"
                            title={t('removeFromWishlist') || "Remove"}
                          >
                             <Trash2 className="w-4 h-4" />
