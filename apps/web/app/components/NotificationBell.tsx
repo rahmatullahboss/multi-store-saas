@@ -116,7 +116,7 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ storeId }) =
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg relative transition-colors focus:outline-none focus:ring-2 focus:ring-primary/50"
+        className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg relative transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
         aria-label="Notifications"
       >
         {unreadCount > 0 ? (
@@ -139,7 +139,8 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ storeId }) =
             {unreadCount > 0 && (
               <button
                 onClick={handleMarkAllAsRead}
-                className="text-xs text-primary hover:text-primary-dark font-medium flex items-center gap-1 transition-colors"
+                className="text-xs text-primary hover:text-primary-dark font-medium flex items-center gap-1 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 rounded-sm px-1 py-0.5 -mx-1 -my-0.5"
+                aria-label="Mark all as read"
               >
                 <Check className="w-3 h-3" />
                 Mark all read
@@ -196,8 +197,9 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ storeId }) =
                             <span className="w-2 h-2 bg-blue-500 rounded-full" />
                             <button
                               onClick={(e) => handleMarkAsRead(notification.id, e)}
-                              className="text-gray-400 hover:text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                              className="text-gray-400 hover:text-gray-600 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 rounded-sm transition-opacity"
                               title="Mark as read"
+                              aria-label="Mark as read"
                             >
                               <X className="w-3 h-3" />
                             </button>
