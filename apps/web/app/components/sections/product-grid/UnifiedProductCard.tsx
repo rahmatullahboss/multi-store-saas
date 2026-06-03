@@ -98,7 +98,7 @@ export function UnifiedProductCard({
       </Link>
 
       <button
-        className={`absolute top-2 right-2 w-8 h-8 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-white cursor-pointer z-10 ${isLuxury ? 'top-4 right-4 p-2.5 hover:scale-110' : ''}`}
+        className={`absolute top-2 right-2 w-8 h-8 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 transition-all hover:bg-white cursor-pointer z-10 ${isLuxury ? 'top-4 right-4 p-2.5 hover:scale-110' : ''}`}
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
@@ -111,7 +111,7 @@ export function UnifiedProductCard({
 
       {/* Luxury Add to Cart overlay */}
       {isLuxury && showAddToCart && (
-        <div className="absolute bottom-4 left-4 right-4 opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-300 z-10 pointer-events-none">
+        <div className="absolute bottom-4 left-4 right-4 opacity-0 group-hover:opacity-100 focus-within:opacity-100 translate-y-4 group-hover:translate-y-0 focus-within:translate-y-0 transition-all duration-300 z-10 pointer-events-none">
           <div className="pointer-events-auto">
             <AddToCartButton
               productId={product.id}
