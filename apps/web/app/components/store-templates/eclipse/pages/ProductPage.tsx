@@ -307,8 +307,8 @@ export function EclipseProductPage({
                 style={{ color: theme.textMuted }}
                 dangerouslySetInnerHTML={{
                   __html: sanitizeHtml(
-                    product.description.slice(0, 300) +
-                      (product.description.length > 300 ? '...' : '')
+                    (product.description || '').slice(0, 300) +
+                      ((product.description || '').length > 300 ? '...' : '')
                   ),
                 }}
               />
