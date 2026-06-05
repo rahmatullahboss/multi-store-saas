@@ -300,8 +300,8 @@ export function LuxeBoutiqueProductPage({
                 style={{ color: theme.muted }}
                 dangerouslySetInnerHTML={{
                   __html: sanitizeHtml(
-                    product.description.slice(0, 200) +
-                      (product.description.length > 200 ? '...' : '')
+                    (product.description || '').slice(0, 200) +
+                      ((product.description || '').length > 200 ? '...' : '')
                   ),
                 }}
               />

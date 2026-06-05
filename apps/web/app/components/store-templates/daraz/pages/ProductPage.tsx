@@ -276,7 +276,7 @@ export function DarazProductPage({
             <div 
               className="prose prose-sm max-w-none"
               style={{ color: DARAZ_THEME.textSecondary }}
-              dangerouslySetInnerHTML={{ __html: sanitizeHtml(product.description) }}
+              dangerouslySetInnerHTML={{ __html: sanitizeHtml(product.description || '') }}
             />
           </div>
         )}
