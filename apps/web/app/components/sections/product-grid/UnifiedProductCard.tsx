@@ -78,7 +78,7 @@ export function UnifiedProductCard({
         {/* Luxury gradient overlay */}
         {isLuxury && (
           <div
-            className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+            className="absolute inset-0 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-500"
             style={{ background: 'linear-gradient(180deg, rgba(0,0,0,0) 60%, rgba(0,0,0,0.3) 100%)' }}
           />
         )}
@@ -98,7 +98,7 @@ export function UnifiedProductCard({
       </Link>
 
       <button
-        className={`absolute top-2 right-2 w-8 h-8 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-white cursor-pointer z-10 ${isLuxury ? 'top-4 right-4 p-2.5 hover:scale-110' : ''}`}
+        className={`absolute top-2 right-2 w-8 h-8 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-black transition-all hover:bg-white cursor-pointer z-10 ${isLuxury ? 'top-4 right-4 p-2.5 hover:scale-110 focus-visible:scale-110' : ''}`}
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
@@ -111,14 +111,14 @@ export function UnifiedProductCard({
 
       {/* Luxury Add to Cart overlay */}
       {isLuxury && showAddToCart && (
-        <div className="absolute bottom-4 left-4 right-4 opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-300 z-10 pointer-events-none">
+        <div className="absolute bottom-4 left-4 right-4 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 translate-y-4 group-hover:translate-y-0 group-focus-within:translate-y-0 transition-all duration-300 z-10 pointer-events-none">
           <div className="pointer-events-auto">
             <AddToCartButton
               productId={product.id}
               storeId={storeId}
               productPrice={product.price}
               productName={product.name}
-              className="w-full px-6 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 hover:scale-105"
+              className="w-full px-6 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 hover:scale-105 focus-visible:scale-105 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-black"
               style={{
                 background: 'rgba(255,255,255,0.95)',
                 color: theme.primary,
