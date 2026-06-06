@@ -1,0 +1,3 @@
+## 2026-06-06 - Keyboard Accessibility on Hover-revealed Controls
+**Learning:** Interactive elements that are hidden by default and only revealed on `group-hover` (like quick-action buttons overlaying a product card image) become completely inaccessible to keyboard users unless explicitly paired with `focus-within` or `focus-visible` states.
+**Action:** Always append `group-focus-within:opacity-100` to the wrapper/container elements that reveal inner contents, and `focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-black` on the interactive buttons themselves to ensure proper visual feedback and tab navigation order.
