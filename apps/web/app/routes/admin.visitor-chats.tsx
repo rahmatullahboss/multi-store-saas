@@ -2,7 +2,7 @@ import type { LoaderFunctionArgs, MetaFunction } from 'react-router';
 import { json } from '~/lib/rr7-compat';
 import { useLoaderData, Link, useSearchParams } from 'react-router';
 import { drizzle } from 'drizzle-orm/d1';
-import { desc, sql, eq } from 'drizzle-orm';
+import { desc, sql, eq, inArray } from 'drizzle-orm';
 import { visitors, visitorMessages } from '@db/schema';
 import { requireSuperAdmin } from '~/services/auth.server';
 import { MessageCircle, User, Phone, Clock, Search, ChevronRight } from 'lucide-react';
@@ -30,29 +30,50 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     .limit(50); // Limit to last 50 for now
 
   // Fetch messages for these visitors to get counts and preview
-  // This is a naive N+1 approach but okay for low volume admin panel. 
-  // Optimization: Use a single query with grouping if Drizzle supported it better for SQLite.
+  // ⚡ Bolt: Batch queries to avoid N+1 problem and network latency on Cloudflare D1
   
-  const visitorsWithData = await Promise.all(allVisitors.map(async (v) => {
-    const messages = await db
-        .select()
-        .from(visitorMessages)
-        .where(eq(visitorMessages.visitorId, v.id))
-        .orderBy(desc(visitorMessages.createdAt))
-        .limit(1); // Just get last message
+  const visitorIds = allVisitors.map(v => v.id);
 
-    const countResult = await db
-        .select({ count: sql<number>`count(*)` })
+  let counts: { visitorId: number; count: number }[] = [];
+  let lastMessages: { visitorId: number; content: string; createdAt: Date | number }[] = [];
+
+  if (visitorIds.length > 0) {
+    [counts, lastMessages] = await Promise.all([
+      db
+        .select({
+            visitorId: visitorMessages.visitorId,
+            count: sql<number>`count(*)`
+        })
         .from(visitorMessages)
-        .where(eq(visitorMessages.visitorId, v.id));
+        .where(inArray(visitorMessages.visitorId, visitorIds))
+        .groupBy(visitorMessages.visitorId),
+      db
+        .select({
+            visitorId: visitorMessages.visitorId,
+            content: visitorMessages.content,
+            createdAt: sql<number>`max(${visitorMessages.createdAt})`
+        })
+        .from(visitorMessages)
+        .where(inArray(visitorMessages.visitorId, visitorIds))
+        .groupBy(visitorMessages.visitorId)
+    ]);
+  }
+
+  const countsMap = new Map(counts.map(c => [c.visitorId, c.count]));
+  const messagesMap = new Map(lastMessages.map(m => [m.visitorId, m]));
+
+  const visitorsWithData = allVisitors.map(v => {
+    const msg = messagesMap.get(v.id);
+    // Drizzle returns aggregate timestamps as epoch numbers, so we must rehydrate to Date
+    const lastActiveDate = msg?.createdAt ? new Date(msg.createdAt) : v.createdAt;
 
     return {
         ...v,
-        lastMessage: messages[0]?.content || 'No messages',
-        lastActive: messages[0]?.createdAt || v.createdAt,
-        messageCount: countResult[0]?.count || 0
+        lastMessage: msg?.content || 'No messages',
+        lastActive: lastActiveDate,
+        messageCount: countsMap.get(v.id) || 0
     };
-  }));
+  });
 
   // Sort by last active
   visitorsWithData.sort((a, b) => {
