@@ -1,0 +1,3 @@
+## $(date +%Y-%m-%d) - Make interactive list elements keyboard accessible
+**Learning:** Interactive elements in lists (like payment method selection items) shouldn't be built with clickable `div`s. While they might have click handlers and hover states, they lack native keyboard navigation (tab focus) and semantics out of the box, trapping keyboard users or making navigation confusing.
+**Action:** Always replace clickable `div`s functioning as interactive selections with semantic `<button type="button">` elements. Apply `w-full text-left` to maintain their block layout alongside existing styling, and ensure explicit `focus-visible` utilities (e.g., `focus-visible:ring-2`) are added for clear focus states during keyboard navigation.
