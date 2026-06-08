@@ -227,7 +227,8 @@ export default function SavedBlocksPanel({ editor }: SavedBlocksPanelProps) {
                         handleDeleteBlock(block.id, block.name);
                       }}
                       disabled={deletingId === block.id}
-                      className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition opacity-0 group-hover:opacity-100"
+                      aria-label="Delete saved block"
+                      className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-red-500 outline-none rounded-lg transition opacity-0 group-hover:opacity-100"
                     >
                       {deletingId === block.id ? (
                         <Loader2 size={14} className="animate-spin" />
@@ -240,7 +241,7 @@ export default function SavedBlocksPanel({ editor }: SavedBlocksPanelProps) {
                   {/* Insert Button */}
                   <button
                     onClick={() => handleInsertBlock(block)}
-                    className="w-full mt-2 px-3 py-1.5 bg-primary/10 text-primary text-[10px] font-semibold rounded-lg hover:bg-primary hover:text-white transition flex items-center justify-center gap-1"
+                    className="w-full mt-2 px-3 py-1.5 bg-primary/10 text-primary text-[10px] font-semibold rounded-lg hover:bg-primary hover:text-white focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 outline-none transition flex items-center justify-center gap-1"
                   >
                     <Plus size={12} />
                     যোগ করুন
