@@ -1029,31 +1029,31 @@ export default function DashboardOrdersPage() {
           {/* Mobile Stats Summary — visible only on mobile */}
           {/* Mobile KPI — compact 2-col grid */}
           <div className="md:hidden px-3 pt-2 pb-1.5 grid grid-cols-4 gap-1.5">
-            <div className="flex flex-col gap-0.5 p-2 rounded-lg bg-white border border-slate-100 shadow-sm cursor-pointer active:scale-95 col-span-2" onClick={() => handleStatusChange('all')}>
+            <button type="button" className="w-full text-left flex flex-col gap-0.5 p-2 rounded-lg bg-white border border-slate-100 shadow-sm cursor-pointer active:scale-95 col-span-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary" onClick={() => handleStatusChange('all')}>
               <span className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider">{t('dashboard:totalRevenue')}</span>
               <span className="text-base font-bold text-slate-900 tabular-nums leading-tight">{formatPrice(stats.revenue)}</span>
               <span className="text-[9px] text-emerald-600 font-medium">{t('dashboard:active')}</span>
-            </div>
-            <div className="flex flex-col gap-0.5 p-2 rounded-lg bg-white border border-slate-100 shadow-sm cursor-pointer active:scale-95 col-span-2" onClick={() => handleStatusChange('all')}>
+            </button>
+            <button type="button" className="w-full text-left flex flex-col gap-0.5 p-2 rounded-lg bg-white border border-slate-100 shadow-sm cursor-pointer active:scale-95 col-span-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary" onClick={() => handleStatusChange('all')}>
               <span className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider">{t('dashboard:totalOrders')}</span>
               <span className="text-base font-bold text-slate-900 tabular-nums leading-tight">{stats.total}</span>
               <span className="text-[9px] text-emerald-600 font-medium">{t('dashboard:allTime')}</span>
-            </div>
-            <div className="flex flex-col gap-0.5 p-2 rounded-lg bg-orange-50 border border-orange-100 shadow-sm cursor-pointer active:scale-95" onClick={() => handleStatusChange('pending')}>
+            </button>
+            <button type="button" className="w-full text-left flex flex-col gap-0.5 p-2 rounded-lg bg-orange-50 border border-orange-100 shadow-sm cursor-pointer active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-orange-500" onClick={() => handleStatusChange('pending')}>
               <span className="text-[9px] font-semibold text-orange-400 uppercase tracking-wider flex items-center gap-0.5">
                 {stats.pending > 0 && <span className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse inline-block"></span>}
                 {t('dashboard:pending')}
               </span>
               <span className="text-base font-bold text-slate-900 tabular-nums leading-tight">{stats.pending}</span>
-            </div>
-            <div className="flex flex-col gap-0.5 p-2 rounded-lg bg-blue-50 border border-blue-100 shadow-sm cursor-pointer active:scale-95" onClick={() => handleStatusChange('shipped')}>
+            </button>
+            <button type="button" className="w-full text-left flex flex-col gap-0.5 p-2 rounded-lg bg-blue-50 border border-blue-100 shadow-sm cursor-pointer active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500" onClick={() => handleStatusChange('shipped')}>
               <span className="text-[9px] font-semibold text-blue-400 uppercase tracking-wider">Shipped</span>
               <span className="text-base font-bold text-slate-900 tabular-nums leading-tight">{stats.shipped}</span>
-            </div>
-            <div className="flex flex-col gap-0.5 p-2 rounded-lg bg-red-50 border border-red-100 shadow-sm cursor-pointer active:scale-95 col-span-2" onClick={() => handleStatusChange('returned')}>
+            </button>
+            <button type="button" className="w-full text-left flex flex-col gap-0.5 p-2 rounded-lg bg-red-50 border border-red-100 shadow-sm cursor-pointer active:scale-95 col-span-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-500" onClick={() => handleStatusChange('returned')}>
               <span className="text-[9px] font-semibold text-red-400 uppercase tracking-wider">{t('dashboard:issuesAndReturns')}</span>
               <span className="text-base font-bold text-slate-900 tabular-nums leading-tight">{stats.cancelled + stats.returned}</span>
-            </div>
+            </button>
           </div>
 
           {/* Mobile Status Pills — horizontal scroll, no scrollbar */}
