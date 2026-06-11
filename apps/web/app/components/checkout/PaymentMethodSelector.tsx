@@ -112,7 +112,8 @@ export function PaymentMethodSelector({
             <button 
               type="button"
               onClick={() => handleCopy(number, 'number')}
-              className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1"
+              className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1 rounded px-1"
+              aria-label={lang === 'bn' ? 'নম্বর কপি করুন' : 'Copy number'}
             >
               <Copy className="w-3 h-3" />
               {copied === 'number' ? (lang === 'bn' ? 'কপি হয়েছে' : 'Copied') : (lang === 'bn' ? 'কপি করুন' : 'Copy')}
@@ -122,10 +123,11 @@ export function PaymentMethodSelector({
 
         <div className="space-y-3">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="sender-number" className="block text-sm font-medium text-gray-700 mb-1">
               {lang === 'bn' ? 'যে নম্বর থেকে টাকা পাঠিয়েছেন' : 'Sender Number'}
             </label>
             <input
+              id="sender-number"
               type="tel"
               placeholder="01XXXXXXXXX"
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
@@ -134,10 +136,11 @@ export function PaymentMethodSelector({
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="transaction-id" className="block text-sm font-medium text-gray-700 mb-1">
               {lang === 'bn' ? 'Transaction ID (TrxID)' : 'Transaction ID'}
             </label>
             <input
+              id="transaction-id"
               type="text"
               placeholder="e.g. 9G7SH..."
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono uppercase text-base"
@@ -155,21 +158,24 @@ export function PaymentMethodSelector({
 
   return (
     <div className="space-y-3">
-      <label className="block text-sm font-medium text-gray-700 mb-2">
+      <label id="payment-method-label" className="block text-sm font-medium text-gray-700 mb-2">
         {lang === 'bn' ? 'পেমেন্ট মেথড নির্বাচন করুন' : 'Select Payment Method'}
       </label>
       
-      <div className="grid grid-cols-1 gap-2">
+      <div className="grid grid-cols-1 gap-2" role="radiogroup" aria-labelledby="payment-method-label">
         {methods.map((method) => {
           const Icon = method.icon;
           const isSelected = selectedMethod === method.id;
           
           return (
-            <div 
+            <button
+              type="button"
+              role="radio"
+              aria-checked={isSelected}
               key={method.id}
               onClick={() => onMethodChange(method.id)}
               className={`
-                relative flex items-center p-3 cursor-pointer rounded-lg border transition-all
+                w-full text-left relative flex items-center p-3 cursor-pointer rounded-lg border transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1
                 ${isSelected 
                   ? 'border-blue-500 ring-1 ring-blue-500 bg-blue-50/50' 
                   : 'border-gray-200 hover:border-gray-300 bg-white'}
@@ -189,7 +195,7 @@ export function PaymentMethodSelector({
               `}>
                 {isSelected && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
               </div>
-            </div>
+            </button>
           );
         })}
       </div>
