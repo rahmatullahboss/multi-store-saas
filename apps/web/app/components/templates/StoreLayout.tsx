@@ -156,7 +156,8 @@ export function StoreLayout({
               {/* <LanguageSelector variant="toggle" size="sm" className="hidden sm:flex" /> */} {/* Temporarily disabled - Bengali is default */}
               <Link
                 to="/cart"
-                className="relative p-2 text-gray-600 hover:text-gray-900 transition"
+                className="relative p-2 text-gray-600 hover:text-gray-900 transition rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+                aria-label={`Cart ${cartCount > 0 ? `with ${cartCount} items` : ''}`}
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
@@ -179,7 +180,9 @@ export function StoreLayout({
               {/* Mobile Menu Button */}
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="md:hidden p-2 text-gray-600"
+                className="md:hidden p-2 text-gray-600 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+                aria-label={mobileMenuOpen ? "Close mobile menu" : "Open mobile menu"}
+                aria-expanded={mobileMenuOpen}
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   {mobileMenuOpen ? (
