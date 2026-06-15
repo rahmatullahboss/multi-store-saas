@@ -12,4 +12,12 @@ export default defineConfig({
         }),
         tsconfigPaths(),
     ],
+    ssr: {
+        resolve: {
+            conditions: ['workerd', 'worker', 'browser'],
+        },
+    },
+    resolve: {
+        dedupe: ['react', 'react-dom'],
+    },
 });
