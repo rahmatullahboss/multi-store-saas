@@ -352,7 +352,7 @@ export function CheckoutModal({
                           type="button"
                           onClick={() => setSelectedVariant(v.id)}
                           className={cn(
-                            'px-3 py-1.5 text-sm rounded-lg border transition-colors',
+                            'px-3 py-1.5 text-sm rounded-lg border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500',
                             selectedVariant === v.id
                               ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
                               : 'border-gray-200 hover:border-emerald-300'
