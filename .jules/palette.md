@@ -1,0 +1,3 @@
+## 2025-06-16 - Make Interactive Hover Elements Accessible
+**Learning:** Interactive elements relying on hover states (e.g., `opacity-0` revealed via `group-hover:opacity-100`) become invisible traps for keyboard users.
+**Action:** Explicitly pair direct interactive elements with `focus-visible` classes (e.g., `focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-offset-2`) and use `group-focus-within` classes (e.g., `group-focus-within:opacity-100 group-focus-within:translate-y-0`) for their container/wrapper elements to ensure proper accessibility and visibility during keyboard navigation.
