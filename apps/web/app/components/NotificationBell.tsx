@@ -118,6 +118,9 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ storeId }) =
         onClick={() => setIsOpen(!isOpen)}
         className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg relative transition-colors focus:outline-none focus:ring-2 focus:ring-primary/50"
         aria-label="Notifications"
+        aria-expanded={isOpen}
+        aria-haspopup="menu"
+        aria-controls="notifications-menu"
       >
         {unreadCount > 0 ? (
           <>
@@ -133,7 +136,12 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ storeId }) =
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-xl shadow-xl border border-gray-100 z-50 overflow-hidden flex flex-col max-h-[80vh]">
+        <div
+          id="notifications-menu"
+          role="menu"
+          aria-label="Notifications menu"
+          className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-xl shadow-xl border border-gray-100 z-50 overflow-hidden flex flex-col max-h-[80vh]"
+        >
           <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-gray-50/50 shrink-0">
             <h3 className="font-semibold text-gray-900">Notifications</h3>
             {unreadCount > 0 && (
