@@ -114,7 +114,8 @@ export function MagicEditor({
           </div>
           <button
             onClick={onClose}
-            className="p-1 hover:bg-white/20 rounded-lg transition-colors"
+            aria-label="Close"
+            className="p-1 hover:bg-white/20 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
           >
             <X className="w-5 h-5" />
           </button>
@@ -135,7 +136,8 @@ export function MagicEditor({
             <button
               type="submit"
               disabled={!prompt.trim() || isLoading}
-              className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              aria-label="Send prompt"
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 focus-visible:ring-offset-1"
             >
               {isLoading ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -160,7 +162,7 @@ export function MagicEditor({
                 key={i}
                 onClick={() => setPrompt(example)}
                 disabled={isLoading}
-                className="px-3 py-1.5 text-xs bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-full transition-colors disabled:opacity-50"
+                className="px-3 py-1.5 text-xs bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-full transition-colors disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 focus-visible:ring-offset-1"
               >
                 {example}
               </button>
@@ -202,7 +204,7 @@ export function MagicEditButton({ onClick, className = '' }: MagicEditButtonProp
         e.stopPropagation();
         onClick();
       }}
-      className={`flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-purple-600 to-pink-500 text-white text-sm font-medium rounded-full shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200 ${className}`}
+      className={`flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-purple-600 to-pink-500 text-white text-sm font-medium rounded-full shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 focus-visible:ring-offset-2 ${className}`}
     >
       <Sparkles className="w-4 h-4" />
       Magic Edit
@@ -236,7 +238,6 @@ export function EditableSection({
   children,
 }: EditableSectionProps) {
   const sectionRef = useRef<HTMLDivElement>(null);
-  const [isHovered, setIsHovered] = useState(false);
 
   if (!isEditMode) {
     return <>{children}</>;
@@ -255,30 +256,22 @@ export function EditableSection({
   return (
     <div
       ref={sectionRef}
-      className="relative group"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      className="relative group focus-within:ring-2 focus-within:ring-purple-400 focus-within:ring-offset-2 rounded-2xl"
     >
       {/* Hover Outline */}
       <div 
-        className={`absolute inset-0 border-2 border-dashed rounded-2xl pointer-events-none transition-all duration-200 z-10 ${
-          isHovered ? 'border-purple-400 bg-purple-50/10' : 'border-transparent'
-        }`}
+        className="absolute inset-0 border-2 border-dashed border-transparent rounded-2xl pointer-events-none transition-all duration-200 z-10 group-hover:border-purple-400 group-hover:bg-purple-50/10 group-focus-within:border-purple-400 group-focus-within:bg-purple-50/10"
       />
       
       {/* Edit Button */}
-      {isHovered && (
-        <div className="absolute top-4 right-4 z-20">
-          <MagicEditButton onClick={handleEditClick} />
-        </div>
-      )}
+      <div className="absolute top-4 right-4 z-20 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-200">
+        <MagicEditButton onClick={handleEditClick} />
+      </div>
       
       {/* Section Label */}
-      {isHovered && (
-        <div className="absolute top-4 left-4 z-20 px-2 py-1 bg-purple-600 text-white text-xs font-medium rounded-md">
-          {sectionLabel}
-        </div>
-      )}
+      <div className="absolute top-4 left-4 z-20 px-2 py-1 bg-purple-600 text-white text-xs font-medium rounded-md opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-200">
+        {sectionLabel}
+      </div>
 
       {children}
     </div>
