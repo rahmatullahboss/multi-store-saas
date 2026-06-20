@@ -34,7 +34,7 @@ import {
   Package,
   RefreshCcw
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { ClientChart } from '~/components/charts/ClientCharts';
 import { formatCurrency as formatCurrencyUtil } from '~/utils/money';
 
@@ -419,17 +419,19 @@ export default function AdminAnalytics() {
   const [filterPlan, setFilterPlan] = useState<string>('all');
   
   // Sort and filter stores
-  const filteredStores = storeAnalytics
-    .filter(s => filterPlan === 'all' || s.planType === filterPlan)
-    .sort((a, b) => {
-      switch (sortBy) {
-        case 'revenue': return b.totalRevenue - a.totalRevenue;
-        case 'orders': return b.totalOrders - a.totalOrders;
-        case 'visitors': return b.visitors - a.visitors;
-        case 'products': return b.productCount - a.productCount;
-        default: return 0;
-      }
-    });
+  const filteredStores = useMemo(() => {
+    return storeAnalytics
+      .filter(s => filterPlan === 'all' || s.planType === filterPlan)
+      .sort((a, b) => {
+        switch (sortBy) {
+          case 'revenue': return b.totalRevenue - a.totalRevenue;
+          case 'orders': return b.totalOrders - a.totalOrders;
+          case 'visitors': return b.visitors - a.visitors;
+          case 'products': return b.productCount - a.productCount;
+          default: return 0;
+        }
+      });
+  }, [storeAnalytics, filterPlan, sortBy]);
   
   const formatCurrency = (amountInCents: number) => {
     return formatCurrencyUtil(amountInCents, 'BDT', { fromCents: true });
