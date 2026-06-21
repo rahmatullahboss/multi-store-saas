@@ -284,7 +284,7 @@ export function GhorerBazarProductDetail({
               <div className="px-6 pb-6">
                 <div 
                   className="prose prose-sm max-w-none text-gray-600"
-                  dangerouslySetInnerHTML={{ __html: sanitizeHtml(product.description) }}
+                  dangerouslySetInnerHTML={{ __html: sanitizeHtml(product.description || '') }}
                 />
               </div>
             )}
