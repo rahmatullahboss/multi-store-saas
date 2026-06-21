@@ -371,7 +371,7 @@ export function BDShopProductDetail({
             {activeTab === 'description' && (
               <div className="prose prose-sm max-w-none" style={{ color: BDSHOP_THEME.text }}>
                 {product.description ? (
-                  <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(product.description.replace(/\n/g, '<br/>')) }} />
+                  <div dangerouslySetInnerHTML={{ __html: sanitizeHtml((product.description || '').replace(/\n/g, '<br/>')) }} />
                 ) : (
                   <p className="text-gray-500">No description available.</p>
                 )}

@@ -304,7 +304,7 @@ export function BDShopProductPage({
             <div 
               className="prose prose-sm max-w-none"
               style={{ color: BDSHOP_THEME.textSecondary }}
-              dangerouslySetInnerHTML={{ __html: sanitizeHtml(product.description) }}
+              dangerouslySetInnerHTML={{ __html: sanitizeHtml(product.description || '') }}
             />
           </div>
         )}

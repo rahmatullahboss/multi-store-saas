@@ -7,3 +7,7 @@
 **Vulnerability:** The `product.description` field was being sliced using `slice(0, N)` and then rendered via `dangerouslySetInnerHTML` directly in the Eclipse and Luxe Boutique templates. If a user provided HTML with unclosed tags near the slice limit, or included malicious scripts, they would execute without sanitization.
 **Learning:** When slicing user-generated HTML content (like product.description) for previews, always apply `sanitizeHtml` *after* slicing to prevent malformed, unclosed HTML tags from breaking the layout, and to clean malicious input.
 **Prevention:** Avoid rendering raw `product.description` chunks without wrapping the final string in `sanitizeHtml`.
+## 2025-03-22 - [HIGH] Missing HTML sanitization and undefined handling in product descriptions
+**Vulnerability:** Several product templates (DC Store, Daraz, BDShop, Ghorer Bazar) were rendering `product.description` directly via `dangerouslySetInnerHTML` either without `sanitizeHtml` entirely, or without a fallback string causing potential crashes on undefined input and allowing XSS attacks.
+**Learning:** Raw or unsanitized string values passed to React's `dangerouslySetInnerHTML` are a critical vector for XSS. Additionally, if the input is `undefined`, functions like `replace` or `sanitizeHtml` might throw errors, bringing down the application.
+**Prevention:** Always wrap `product.description` and similar text with `sanitizeHtml` and provide an empty string fallback, e.g. `sanitizeHtml(product.description || '')`.
