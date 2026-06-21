@@ -56,7 +56,8 @@ export function FreshnessHeader({
       <div className="container mx-auto px-4 h-20 flex items-center justify-between gap-4">
         {/* Mobile Menu Toggle */}
         <button
-          className="lg:hidden text-gray-800 cursor-pointer"
+          aria-label="Toggle mobile menu"
+          className="lg:hidden text-gray-800 cursor-pointer hover:bg-gray-100 focus-visible:ring-2 focus-visible:outline-none rounded-lg p-1"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
         >
           <Menu className="w-8 h-8" />
@@ -213,7 +214,11 @@ export function FreshnessHeader({
           <div className="absolute left-0 top-0 bottom-0 w-[80%] max-w-[300px] bg-white shadow-xl overflow-y-auto">
             <div className="p-4 border-b flex items-center justify-between">
               <span className="font-bold text-lg text-gray-800">{storeName}</span>
-               <button onClick={() => setMobileMenuOpen(false)}>
+               <button
+                 aria-label="Close mobile menu"
+                 className="p-1 hover:bg-gray-100 focus-visible:ring-2 focus-visible:outline-none rounded-lg"
+                 onClick={() => setMobileMenuOpen(false)}
+               >
                  <X className="w-6 h-6" />
                </button>
             </div>
