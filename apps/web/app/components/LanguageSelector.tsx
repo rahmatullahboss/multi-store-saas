@@ -58,6 +58,7 @@ export function LanguageSelector({
         className={`
           inline-flex items-center gap-2 rounded-lg border border-gray-200 
           bg-white hover:bg-gray-50 transition-colors font-medium
+          focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 outline-none
           ${sizeClasses[size]} ${className}
         `}
         title="Toggle language"
@@ -83,6 +84,7 @@ export function LanguageSelector({
             onClick={() => setLang(language.code)}
             className={`
               ${sizeClasses[size]} font-semibold rounded-lg transition-all duration-200
+              focus-visible:ring-2 focus-visible:ring-[#006A4E] focus-visible:ring-offset-2 outline-none
               ${lang === language.code
                 ? 'bg-[#006A4E] text-white shadow-sm'
                 : 'text-gray-600 hover:text-gray-900 hover:bg-gray-200'
@@ -105,6 +107,7 @@ export function LanguageSelector({
         className={`
           inline-flex items-center gap-2 rounded-lg border border-gray-200 
           bg-white hover:bg-gray-50 transition-colors
+          focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 outline-none
           ${sizeClasses[size]}
         `}
         aria-label="Select language"
@@ -132,6 +135,7 @@ export function LanguageSelector({
               }}
               className={`
                 w-full px-4 py-2.5 text-left flex items-center gap-3 hover:bg-gray-50 transition-colors
+                focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 outline-none
                 ${lang === language.code ? 'bg-emerald-50' : ''}
               `}
             >
@@ -164,6 +168,7 @@ export function CompactLanguageToggle({ className = '' }: { className?: string }
       className={`
         inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg 
         bg-gray-100 hover:bg-gray-200 transition-colors text-sm font-medium
+        focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 outline-none
         ${className}
       `}
       title={`Switch to ${lang === 'en' ? 'বাংলা' : 'English'}`}
