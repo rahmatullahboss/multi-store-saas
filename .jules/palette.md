@@ -1,0 +1,3 @@
+## 2024-05-24 - Accessibility: Focus states on floating contact buttons
+**Learning:** Interactive floating elements like WhatsApp and Call buttons often lack visible focus states for keyboard users due to missing `focus-visible` ring utility classes, despite hover states being present. This creates an invisible trap during keyboard navigation.
+**Action:** Always ensure floating interactive elements explicitly use `focus-visible:ring-*` classes rather than generic `focus:ring-*` (which applies to mouse clicks) to improve keyboard accessibility without deteriorating mouse-user visual experience.
