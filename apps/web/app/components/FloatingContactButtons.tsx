@@ -96,7 +96,7 @@ export function FloatingContactButtons({
           href={whatsappLink}
           target="_blank"
           rel="noopener noreferrer"
-          className={`fixed ${bottomOffset} right-4 z-40 w-14 h-14 bg-green-500 hover:bg-green-600 rounded-full flex items-center justify-center shadow-xl transition-transform hover:scale-110`}
+          className={`fixed ${bottomOffset} right-4 z-40 w-14 h-14 bg-green-500 hover:bg-green-600 rounded-full flex items-center justify-center shadow-xl transition-transform hover:scale-110 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-green-500 focus-visible:ring-offset-2`}
           title="WhatsApp এ মেসেজ করুন"
           aria-label="Chat on WhatsApp"
         >
@@ -110,7 +110,7 @@ export function FloatingContactButtons({
       {hasCall && callNumber && (
         <a
           href={phoneLink}
-          className={`fixed ${bottomOffset} ${hasWhatsApp ? 'right-20' : 'right-4'} z-40 w-14 h-14 bg-blue-500 hover:bg-blue-600 rounded-full flex items-center justify-center shadow-xl transition-transform hover:scale-110`}
+          className={`fixed ${bottomOffset} ${hasWhatsApp ? 'right-20' : 'right-4'} z-40 w-14 h-14 bg-blue-500 hover:bg-blue-600 rounded-full flex items-center justify-center shadow-xl transition-transform hover:scale-110 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-500 focus-visible:ring-offset-2`}
           title="কল করুন"
           aria-label="Call Us"
         >

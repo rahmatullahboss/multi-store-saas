@@ -92,7 +92,7 @@ export function WhatsAppButton({
             <div className="bg-white rounded-2xl shadow-xl p-4 pr-8 max-w-[200px] border border-gray-100">
               <button
                 onClick={() => setShowBubble(false)}
-                className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 transition-colors"
+                className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-400 rounded-sm"
                 aria-label="Close"
               >
                 <X className="w-4 h-4" />
@@ -112,7 +112,7 @@ export function WhatsAppButton({
           target="_blank"
           rel="noopener noreferrer"
           onClick={handleClick}
-          className="group relative flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 bg-[#25D366] rounded-full shadow-lg hover:shadow-xl hover:scale-110 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-green-300"
+          className="group relative flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 bg-[#25D366] rounded-full shadow-lg hover:shadow-xl hover:scale-110 transition-all duration-300 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-green-300 focus-visible:ring-offset-2"
           aria-label="Chat on WhatsApp"
         >
           {/* Ripple effect */}
