@@ -1,0 +1,3 @@
+## 2024-10-25 - Prevent Hover-Only Invisible Traps for Keyboard Users
+**Learning:** Interactive elements revealed solely via `group-hover` or `opacity-0` become invisible traps for keyboard navigation, as they cannot be seen when focused. Furthermore, using `focus:ring` instead of `focus-visible:ring` causes unnecessary visual rings during mouse clicks.
+**Action:** Pair `group-hover` with `group-focus-within` and explicitly use `focus-visible` utilities (e.g., `focus-visible:opacity-100 focus-visible:ring-2`) on the interactive element to ensure proper visibility and clear focus rings only for keyboard users.
