@@ -55,30 +55,26 @@ export async function processMessage(
   const db = drizzle(env.DB, { schema });
   const policyDb = createDb(env.DB);
   
-  // 1. Fetch Agent Config
-  const agent = await db.query.agents.findFirst({
-    where: eq(schema.agents.id, agentId),
-  });
+  // 1. Fetch Agent Config, Conversation, and Chat History concurrently
+  const [agent, conversation, history] = await Promise.all([
+    db.query.agents.findFirst({
+      where: eq(schema.agents.id, agentId),
+    }),
+    db.query.conversations.findFirst({
+      where: and(
+        eq(schema.conversations.id, conversationId),
+        eq(schema.conversations.agentId, agentId)
+      ),
+    }),
+    db.query.messages.findMany({
+      where: eq(schema.messages.conversationId, conversationId),
+      orderBy: [desc(schema.messages.createdAt)],
+      limit: 10,
+    })
+  ]);
   
   if (!agent) throw new Error('Agent not found');
-
-  // Enforce conversation ownership for this agent to prevent cross-agent data access.
-  const conversation = await db.query.conversations.findFirst({
-    where: and(
-      eq(schema.conversations.id, conversationId),
-      eq(schema.conversations.agentId, agentId)
-    ),
-  });
-  if (!conversation) {
-    throw new Error('Conversation not found');
-  }
-  
-  // 2. Fetch Chat History from messages table
-  const history = await db.query.messages.findMany({
-    where: eq(schema.messages.conversationId, conversationId),
-    orderBy: [desc(schema.messages.createdAt)],
-    limit: 10,
-  });
+  if (!conversation) throw new Error('Conversation not found');
 
   // 2.5 Check Usage Limits & Credits
   
