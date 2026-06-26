@@ -111,19 +111,20 @@ export const action: ActionFunction = async ({ request, context }) => {
         ));
 
       // Insert version sections to draft
-      for (let i = 0; i < sections.length; i++) {
-        const section = sections[i];
-        await db.insert(templateSectionsDraft).values({
-          id: `draft_${section.id}_${Date.now()}_${i}`,
-          shopId: storeId,
-          templateId: ver.templateId,
-          type: section.type,
-          enabled: 1,
-          sortOrder: i,
-          propsJson: JSON.stringify(section.settings || {}),
-          blocksJson: JSON.stringify(section.blocks || []),
-          version: 1,
-        });
+      if (sections.length > 0) {
+        await db.insert(templateSectionsDraft).values(
+          sections.map((section: any, i: number) => ({
+            id: `draft_${section.id}_${Date.now()}_${i}`,
+            shopId: storeId,
+            templateId: ver.templateId,
+            type: section.type,
+            enabled: 1,
+            sortOrder: i,
+            propsJson: JSON.stringify(section.settings || {}),
+            blocksJson: JSON.stringify(section.blocks || []),
+            version: 1,
+          }))
+        );
       }
 
       // Update theme settings draft if available
@@ -150,18 +151,19 @@ export const action: ActionFunction = async ({ request, context }) => {
         ));
 
       // Insert version sections to published
-      for (let i = 0; i < sections.length; i++) {
-        const section = sections[i];
-        await db.insert(templateSectionsPublished).values({
-          id: `pub_${section.id}_${Date.now()}_${i}`,
-          shopId: storeId,
-          templateId: ver.templateId,
-          type: section.type,
-          enabled: 1,
-          sortOrder: i,
-          propsJson: JSON.stringify(section.settings || {}),
-          blocksJson: JSON.stringify(section.blocks || []),
-        });
+      if (sections.length > 0) {
+        await db.insert(templateSectionsPublished).values(
+          sections.map((section: any, i: number) => ({
+            id: `pub_${section.id}_${Date.now()}_${i}`,
+            shopId: storeId,
+            templateId: ver.templateId,
+            type: section.type,
+            enabled: 1,
+            sortOrder: i,
+            propsJson: JSON.stringify(section.settings || {}),
+            blocksJson: JSON.stringify(section.blocks || []),
+          }))
+        );
       }
 
       // Update theme settings published if available
