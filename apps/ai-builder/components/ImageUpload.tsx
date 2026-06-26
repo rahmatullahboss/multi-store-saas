@@ -66,17 +66,17 @@ export function ImageUpload({ images, onImagesChange, maxImages = 2 }: ImageUplo
       
       {/* Upload Area */}
       {images.length < maxImages && (
-        <div
-          onClick={() => inputRef.current?.click()}
+        <label
           onDrop={handleDrop}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           className={`
-            border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all
+            block border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all
             ${isDragging 
               ? 'border-purple-500 bg-purple-500/10' 
               : 'border-gray-700 hover:border-gray-600 hover:bg-white/5'
             }
+            focus-within:ring-2 focus-within:ring-purple-500
           `}
         >
           <input
@@ -85,7 +85,7 @@ export function ImageUpload({ images, onImagesChange, maxImages = 2 }: ImageUplo
             accept="image/*"
             multiple
             onChange={(e) => handleFileChange(e.target.files)}
-            className="hidden"
+            className="sr-only"
           />
           
           <div className="flex flex-col items-center gap-2">
@@ -99,7 +99,7 @@ export function ImageUpload({ images, onImagesChange, maxImages = 2 }: ImageUplo
               {maxImages - images.length} image{maxImages - images.length !== 1 ? 's' : ''} remaining
             </p>
           </div>
-        </div>
+        </label>
       )}
 
       {/* Image Previews */}
@@ -117,7 +117,8 @@ export function ImageUpload({ images, onImagesChange, maxImages = 2 }: ImageUplo
               />
               <button
                 onClick={() => removeImage(index)}
-                className="absolute top-1 right-1 p-1 bg-black/70 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                aria-label={`Remove reference image ${index + 1}`}
+                className="absolute top-1 right-1 p-1 bg-black/70 rounded-full opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:ring-2 focus-visible:ring-purple-500 transition-opacity"
               >
                 <X className="w-4 h-4" />
               </button>
