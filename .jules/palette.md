@@ -1,0 +1,3 @@
+## 2026-06-26 - Accessible File Upload Areas and Interactive Overlays
+**Learning:** File upload dropzones using clickable `div`s with `hidden` inputs and interactive overlays relying solely on `group-hover` create keyboard accessibility traps. The `hidden` input is removed from the focus order, and hover-only reveals prevent screen reader and keyboard-only users from discovering or interacting with actions.
+**Action:** Use a `<label>` block instead of a clickable `div` for file dropzones, paired with a `sr-only` input and `focus-within:ring-2` to restore native focus capability. For interactive overlays (like remove buttons), pair `group-hover` with `group-focus-within`, and ensure elements have explicit `focus-visible:ring-2` styling and `aria-label`s.
