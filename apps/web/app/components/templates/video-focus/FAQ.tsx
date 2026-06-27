@@ -31,8 +31,12 @@ export function VideoFocusFAQ({
             {config.faq.map((item, i) => (
               <div key={i} className="bg-[#0A0A0A] rounded-[1.5rem] border border-white/5 overflow-hidden transition-colors hover:border-red-600/30">
                 <button
+                  id={`faq-button-${i}`}
+                  type="button"
                   onClick={() => setOpenIndex(openIndex === i ? null : i)}
-                  className="w-full p-8 flex items-center justify-between text-left group"
+                  className="w-full p-8 flex items-center justify-between text-left group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-600 focus-visible:rounded-2xl"
+                  aria-expanded={openIndex === i}
+                  aria-controls={`faq-answer-${i}`}
                 >
                   <span className="font-bold text-white text-lg group-hover:text-red-500 transition-colors">
                     {item.question}
@@ -43,7 +47,12 @@ export function VideoFocusFAQ({
                 </button>
                 
                 {openIndex === i && (
-                  <div className="px-8 pb-8 animate-in fade-in slide-in-from-top-2 duration-500">
+                  <div
+                    id={`faq-answer-${i}`}
+                    role="region"
+                    aria-labelledby={`faq-button-${i}`}
+                    className="px-8 pb-8 animate-in fade-in slide-in-from-top-2 duration-500"
+                  >
                     <p className="text-gray-400 leading-relaxed font-medium">
                       {item.answer}
                     </p>
