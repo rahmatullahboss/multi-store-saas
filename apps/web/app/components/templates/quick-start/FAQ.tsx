@@ -51,8 +51,12 @@ export function FAQ({ theme, config }: SectionProps) {
               className={`border-2 rounded-2xl overflow-hidden transition-all duration-300 ${openIndex === index ? 'border-[#E63946] bg-[#FFF5F5]/30' : 'border-transparent bg-[#F8F9FA] hover:border-[#F4A261]/30'}`}
             >
               <button 
+                id={`faq-button-${index}`}
+                type="button"
                 onClick={() => setOpenIndex(openIndex === index ? null : index)}
-                className="w-full flex justify-between items-center p-6 text-left"
+                className="w-full flex justify-between items-center p-6 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E63946] focus-visible:rounded-xl"
+                aria-expanded={openIndex === index}
+                aria-controls={`faq-answer-${index}`}
               >
            <span className={`font-bold text-lg ${openIndex === index ? 'text-[#E63946]' : 'text-[#1D3557]'}`}>
                   {'question' in faq ? faq.question : (faq as any).q}
@@ -63,6 +67,9 @@ export function FAQ({ theme, config }: SectionProps) {
               </button>
               
               <div 
+                id={`faq-answer-${index}`}
+                role="region"
+                aria-labelledby={`faq-button-${index}`}
                 className={`transition-all duration-300 ease-in-out overflow-hidden ${openIndex === index ? 'max-h-48' : 'max-h-0'}`}
               >
                 <div className="p-6 pt-0 text-[#6C757D] leading-relaxed">
