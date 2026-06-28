@@ -262,7 +262,7 @@ function PreviewHeader({
         </nav>
 
         <div className="flex items-center gap-4">
-          <button onClick={() => onNavigate({ type: 'cart' })} className="relative group p-2">
+          <button onClick={() => onNavigate({ type: 'cart' })} className="relative group p-2" aria-label="View Cart">
             <ShoppingBag className="w-5 h-5 text-white/90 group-hover:text-white transition-colors" />
             {cart.itemCount > 0 && (
               <span
@@ -273,7 +273,7 @@ function PreviewHeader({
               </span>
             )}
           </button>
-          <button className="md:hidden p-2" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+          <button className="md:hidden p-2" onClick={() => setMobileMenuOpen(!mobileMenuOpen)} aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}>
             {mobileMenuOpen ? (
               <X className="w-5 h-5 text-white" />
             ) : (
@@ -576,6 +576,7 @@ function PreviewCartPageComponent({
                   <button
                     onClick={() => cart.updateQuantity(item.id, item.quantity - 1)}
                     className="p-2"
+                    aria-label="Decrease quantity"
                   >
                     -
                   </button>
@@ -583,6 +584,7 @@ function PreviewCartPageComponent({
                   <button
                     onClick={() => cart.updateQuantity(item.id, item.quantity + 1)}
                     className="p-2"
+                    aria-label="Increase quantity"
                   >
                     +
                   </button>
@@ -1080,10 +1082,11 @@ function EclipseProductCard({
                 toggleWishlist(product.id);
               }}
               className="bg-white text-black p-3 rounded-full hover:scale-110 transition-transform shadow-lg"
+              aria-label={isLiked ? "Remove from wishlist" : "Add to wishlist"}
             >
               <Heart size={18} className={isLiked ? 'fill-red-500 text-red-500' : ''} />
             </button>
-            <button className="bg-white text-black p-3 rounded-full hover:scale-110 transition-transform shadow-lg">
+            <button className="bg-white text-black p-3 rounded-full hover:scale-110 transition-transform shadow-lg" aria-label="Add to cart">
               <ShoppingBag size={18} />
             </button>
           </div>
