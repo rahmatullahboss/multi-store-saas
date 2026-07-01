@@ -33,8 +33,12 @@ export function ShowcaseFAQ({
             {config.faq.map((item, i) => (
               <div key={i} className="group">
                 <button
+                  type="button"
+                  id={`faq-button-${i}`}
+                  aria-expanded={openIndex === i}
+                  aria-controls={`faq-content-${i}`}
                   onClick={() => setOpenIndex(openIndex === i ? null : i)}
-                  className="w-full py-8 border-b border-white/10 flex items-center justify-between text-left transition-all"
+                  className="w-full py-8 border-b border-white/10 flex items-center justify-between text-left transition-all focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:outline-none rounded-lg"
                 >
                   <span className={`text-xl font-bold transition-all ${openIndex === i ? 'text-rose-500 pl-4' : 'text-white pl-0'}`}>
                     {item.question}
@@ -45,7 +49,12 @@ export function ShowcaseFAQ({
                 </button>
                 
                 {openIndex === i && (
-                  <div className="py-8 px-4 bg-zinc-900/30 rounded-b-3xl animate-in slide-in-from-top-4 duration-500">
+                  <div
+                    id={`faq-content-${i}`}
+                    role="region"
+                    aria-labelledby={`faq-button-${i}`}
+                    className="py-8 px-4 bg-zinc-900/30 rounded-b-3xl animate-in slide-in-from-top-4 duration-500"
+                  >
                     <p className="text-zinc-500 font-medium leading-relaxed text-lg max-w-3xl">
                       {item.answer}
                     </p>
