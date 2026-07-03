@@ -1,0 +1,3 @@
+## 2024-07-04 - Accessible Payment Method Selector
+**Learning:** In interactive lists that function as selection menus (like the payment method selector), using clickable `<div>` elements removes native keyboard accessibility. While adding `onClick` makes them interactive for mouse users, it leaves keyboard users unable to focus or select options.
+**Action:** Always use semantic `<button type="button">` elements for custom selection lists. For single-selection menus, wrap the buttons in a container with `role="radiogroup"`, add `role="radio"` and `aria-checked={isSelected}` to each button, and include explicit `focus-visible` styles (e.g., `focus-visible:ring-2`) to provide clear visual feedback during keyboard navigation.
