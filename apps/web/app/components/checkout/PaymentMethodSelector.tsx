@@ -159,17 +159,24 @@ export function PaymentMethodSelector({
         {lang === 'bn' ? 'পেমেন্ট মেথড নির্বাচন করুন' : 'Select Payment Method'}
       </label>
       
-      <div className="grid grid-cols-1 gap-2">
+      <div
+        className="grid grid-cols-1 gap-2"
+        role="radiogroup"
+        aria-label={lang === 'bn' ? 'পেমেন্ট মেথড' : 'Payment Method'}
+      >
         {methods.map((method) => {
           const Icon = method.icon;
           const isSelected = selectedMethod === method.id;
           
           return (
-            <div 
+            <button
+              type="button"
+              role="radio"
+              aria-checked={isSelected}
               key={method.id}
               onClick={() => onMethodChange(method.id)}
               className={`
-                relative flex items-center p-3 cursor-pointer rounded-lg border transition-all
+                w-full text-left relative flex items-center p-3 cursor-pointer rounded-lg border transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2
                 ${isSelected 
                   ? 'border-blue-500 ring-1 ring-blue-500 bg-blue-50/50' 
                   : 'border-gray-200 hover:border-gray-300 bg-white'}
@@ -189,7 +196,7 @@ export function PaymentMethodSelector({
               `}>
                 {isSelected && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
               </div>
-            </div>
+            </button>
           );
         })}
       </div>
