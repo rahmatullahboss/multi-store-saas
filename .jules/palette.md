@@ -1,0 +1,3 @@
+## 2024-07-06 - Accessible Payment Method Selector
+**Learning:** Generic `div` elements used as interactive selection items (like payment methods) break keyboard navigation and lack proper semantic meaning for screen readers. Using `onClick` without a focusable element creates accessibility traps.
+**Action:** Always wrap interactive selection lists in a parent with `role="radiogroup"` (or similar semantic structure) and use `<button type="button" role="radio">` with proper `aria-checked` and `focus-visible` ring utilities for individual items to ensure native keyboard focusability and accessible state reporting.
