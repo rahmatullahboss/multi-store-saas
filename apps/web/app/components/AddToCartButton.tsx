@@ -112,6 +112,7 @@ export function AddToCartButton({
 
   return (
     <button
+      type="button"
       onClick={(e) => {
         if (onClick) {
           onClick(e);
