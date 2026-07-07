@@ -1,0 +1,3 @@
+## 2025-02-25 - Replace clickable divs with semantic buttons in PaymentMethodSelector
+**Learning:** In interactive lists (e.g., selection menus), always use semantic `<button type="button">` elements instead of clickable `div`s to preserve native keyboard navigation, adding explicit `focus-visible` ring utilities for accessible focus states. For single-selection menus (like payment selectors), add `role="radio"` and `aria-checked` to the buttons, and wrap them in a parent container with `role="radiogroup"`.
+**Action:** Always verify components that act as selectors/toggles and replace `<div>` elements with proper `<button>` elements having appropriate ARIA roles and keyboard focus styles.
